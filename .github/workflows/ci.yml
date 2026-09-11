@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  hygiene:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: No private data in the repository
+        run: node scripts/check-no-private-data.mjs
+      - name: Migrations are additive
+        run: |
+          # A released migration must never be edited. On a pull request,
+          # every file under supabase/migrations that changed must be new.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" -- supabase/migrations || true)
+            if [ -n "$changed" ]; then
+              echo "These migrations were modified or deleted:"
+              echo "$changed"
+              echo "Add a new migration instead."
+              exit 1
+            fi
+          fi
