@@ -5,6 +5,52 @@ Built and maintained by **Ekwo**. A fully managed edition — your own instance,
 
 ---
 
+## Why Ekwo
+
+Accounting software has settled into two shapes, and both take something
+from you. The SaaS keeps your books on its servers, behind its API and its
+price list, and leaving means exporting a PDF. The open-source ERP gives you
+the code but keeps the parts that save time — bank feeds, automatic matching,
+invoice recognition — for the paid edition and a network of integrators.
+
+Ekwo is built on a different premise: **the ledger belongs to the business,
+and the work of keeping it can be done by software that the business also
+owns.** So the whole accounting core is open, the data sits in a Postgres
+database that you control, and the interface is designed for machines as
+much as for people. A REST API and an OpenAPI description come free with
+Supabase; an MCP server is the next step; from there an AI agent can book a
+purchase, match a payment, prepare a VAT return or produce a FEC on your own
+data, without the data ever leaving your account.
+
+What we are building, in order:
+
+1. **This repository — the core.** Schema, posting rules, VAT, reports, the
+   FEC, Belgian and French charts of accounts. Done, tested, installable
+   today.
+2. **`npx ekwo init`** — link your own Supabase project, apply the schema,
+   pick a country, create the first company, in one command.
+3. **A Community web application** on top of the core, and an **MCP server**
+   so that any AI assistant can operate the books.
+4. **Format libraries** as independent MIT packages:
+   [Factur-X](https://github.com/Ekwo-ai/factur-x) and
+   [XBRL for the NBB](https://github.com/Ekwo-ai/xbrl-cbso) already exist;
+   Peppol UBL follows.
+
+Who it is for: a company that wants to keep its own books with an AI at the
+keyboard; an accounting firm that runs several companies inside one
+installation; a developer who needs a real double-entry core with VAT rules
+as data rather than as code; and anyone who wants to leave a proprietary
+system with the books intact.
+
+What we sell, so that this stays free: a managed edition at
+[ekwo.ai](https://ekwo.ai) where the same schema runs on your own Supabase
+project, and Ekwo operates the application, the AI agents, the bank
+connections, the Peppol access point and the filings. If Ekwo disappeared
+tomorrow, the Community edition would keep working. That is the test every
+feature has to pass before it lands here.
+
+## What is in this repository
+
 A double-entry accounting core for Postgres. It is the schema, the posting
 rules and the reports, as migrations you apply to a database you control.
 There is no server to run: Supabase turns the schema into a REST API with an
@@ -169,6 +215,13 @@ is here and always will be.
 The test is simple: if Ekwo disappeared tomorrow, would it keep working? If
 yes, it belongs here. `ee/` holds the commercial layer and has its own
 licence.
+
+## Finding your way
+
+Each folder carries a short README saying what lives there and the rule
+that applies to it: [`supabase/`](supabase/), [`supabase/migrations/`](supabase/migrations/),
+[`supabase/seed/`](supabase/seed/), [`packages/core/`](packages/core/), [`tests/`](tests/),
+[`docs/`](docs/), [`scripts/`](scripts/) and [`ee/`](ee/). The long-form reference is in `docs/`.
 
 ## Development
 
