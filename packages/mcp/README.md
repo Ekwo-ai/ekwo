@@ -175,10 +175,12 @@ Then point a client at it — in Claude Desktop, the JSON block above — and:
 7. **"Lock June."** `lock_period`, then try to post something dated in June:
    the refusal comes back as `period_locked:`.
 
-A payment needs somewhere to book the bank side: either a bank account
-(`bank_accounts`) wired to its journal, or a `default_account_id` on the
-journal. `install_country_template` does not set one, so create the bank
-account once before the first payment.
+A payment needs somewhere to book the bank side. On a company installed from a
+country model the bank and cash journals already point at their account
+(`550000` and `570000` in Belgium, `512000` and `530000` in France), so
+`record_payment` works with nothing else set up. A `bank_accounts` row wired to
+the journal, or `bank_account_id` on the payment, overrides that — which is
+what you want with several accounts in one journal.
 
 ## Licence
 
