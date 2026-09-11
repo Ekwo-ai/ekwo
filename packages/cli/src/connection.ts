@@ -14,9 +14,11 @@
  * `--db-password` and `--db-region` is the convenience, and it no longer
  * guesses: the pooler hostname carries a generation prefix as well as a
  * region, so both `aws-0-<region>` and `aws-1-<region>` are tried and the one
- * that answers is kept and printed. The direct host `db.<ref>.supabase.co`
- * resolves to an IPv6 address only on projects created since 2024, so it is
- * offered last and never as a silent default.
+ * that answers is kept and printed. There is deliberately no helper that
+ * builds the direct host `db.<ref>.supabase.co`: it resolves to an IPv6
+ * address only on projects created since 2024, so deriving it on the
+ * operator's behalf produces a hang rather than an error. Someone who wants it
+ * passes it as `--db-url`.
  */
 
 export interface Connection {
@@ -98,14 +100,6 @@ export function poolerCandidates(
   return POOLER_GENERATIONS.map((generation) =>
     poolerUrl(projectRef, password, region, generation),
   );
-}
-
-/**
- * The direct host. IPv6 only on projects created since 2024, so from an
- * IPv4-only network it does not fail cleanly — it never connects at all.
- */
-export function directUrl(projectRef: string, password: string): string {
-  return `postgresql://postgres:${encodeURIComponent(password)}@db.${projectRef}.supabase.co:5432/postgres`;
 }
 
 /** The host of a connection string, for a message that names what answered. */

@@ -29,7 +29,6 @@ export { CONFIG_FILE, readConfig, writeConfig, type EkwoConfig } from './config.
 export {
   NoPoolerHostError,
   POOLER_GENERATIONS,
-  directUrl,
   hostOf,
   pickPoolerUrl,
   poolerCandidates,
