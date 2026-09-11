@@ -1,0 +1,493 @@
+-- Ekwo OS — France: chart of accounts, journals and defaults.
+--
+-- Source: plan comptable général, règlement ANC n° 2014-03 refondu par le
+-- règlement ANC n° 2022-06 du 4 novembre 2022, applicable aux exercices ouverts
+-- à compter du 1er janvier 2025.
+--
+-- Scope: classes 1 to 7 at group level (two- and three-digit headers) plus the
+-- six-digit detail accounts a French SAS/SARL actually books to. Reference data:
+-- `install_country_template()` copies it into a company, nothing here belongs
+-- to a company.
+
+insert into account_templates (country, code, name, account_type, reconcilable, parent_code, sequence) values
+  -- =======================================================================
+  -- Classe 1 — Comptes de capitaux
+  -- =======================================================================
+  ('FR', '10',       'Capital et réserves',                                         'equity',                false, null    , 10),
+  ('FR', '101',      'Capital',                                                     'equity',                false, '10'    , 20),
+  ('FR', '101000',   'Capital',                                                     'equity',                false, '101'   , 30),
+  ('FR', '104',      'Primes liées au capital social',                              'equity',                false, '10'    , 40),
+  ('FR', '104100',   'Primes d''émission',                                          'equity',                false, '104'   , 50),
+  ('FR', '105',      'Écarts de réévaluation',                                      'equity',                false, '10'    , 60),
+  ('FR', '106',      'Réserves',                                                    'equity',                false, '10'    , 70),
+  ('FR', '106100',   'Réserve légale',                                              'equity',                false, '106'   , 80),
+  ('FR', '106300',   'Réserves statutaires ou contractuelles',                      'equity',                false, '106'   , 90),
+  ('FR', '108',      'Compte de l''exploitant',                                     'equity',                false, '10'    , 100),
+
+  ('FR', '11',       'Report à nouveau',                                            'equity_retained',       false, null    , 110),
+  ('FR', '110',      'Report à nouveau (solde créditeur)',                          'equity_retained',       false, '11'    , 120),
+  ('FR', '110000',   'Report à nouveau créditeur',                                  'equity_retained',       false, '110'   , 130),
+  ('FR', '119',      'Report à nouveau (solde débiteur)',                           'equity_retained',       false, '11'    , 140),
+  ('FR', '119000',   'Report à nouveau débiteur',                                   'equity_retained',       false, '119'   , 150),
+
+  ('FR', '12',       'Résultat de l''exercice',                                     'equity',                false, null    , 160),
+  ('FR', '120',      'Résultat de l''exercice (bénéfice)',                          'equity',                false, '12'    , 170),
+  ('FR', '120000',   'Résultat de l''exercice — bénéfice',                          'equity',                false, '120'   , 180),
+  ('FR', '129',      'Résultat de l''exercice (perte)',                             'equity',                false, '12'    , 190),
+  ('FR', '129000',   'Résultat de l''exercice — perte',                             'equity',                false, '129'   , 200),
+
+  ('FR', '13',       'Subventions d''investissement',                               'equity',                false, null    , 210),
+  ('FR', '131',      'Subventions d''équipement',                                   'equity',                false, '13'    , 220),
+  ('FR', '131000',   'Subventions d''équipement reçues',                            'equity',                false, '131'   , 230),
+  ('FR', '139',      'Subventions d''investissement inscrites au compte de résultat', 'equity',                false, '13'    , 240),
+
+  ('FR', '14',       'Provisions réglementées',                                     'equity',                false, null    , 250),
+  ('FR', '145',      'Amortissements dérogatoires',                                 'equity',                false, '14'    , 260),
+  ('FR', '148',      'Autres provisions réglementées',                              'equity',                false, '14'    , 270),
+
+  ('FR', '15',       'Provisions',                                                  'liability_non_current', false, null    , 280),
+  ('FR', '151',      'Provisions pour risques',                                     'liability_non_current', false, '15'    , 290),
+  ('FR', '151100',   'Provisions pour litiges',                                     'liability_non_current', false, '151'   , 300),
+  ('FR', '153',      'Provisions pour pensions et obligations similaires',          'liability_non_current', false, '15'    , 310),
+  ('FR', '155',      'Provisions pour impôts',                                      'liability_non_current', false, '15'    , 320),
+  ('FR', '158',      'Autres provisions pour charges',                              'liability_non_current', false, '15'    , 330),
+  ('FR', '158000',   'Autres provisions pour charges',                              'liability_non_current', false, '158'   , 340),
+
+  ('FR', '16',       'Emprunts et dettes assimilées',                               'liability_non_current', false, null    , 350),
+  ('FR', '161',      'Emprunts obligataires convertibles',                          'liability_non_current', false, '16'    , 360),
+  ('FR', '164',      'Emprunts auprès des établissements de crédit',                'liability_non_current', false, '16'    , 370),
+  ('FR', '164000',   'Emprunts auprès des établissements de crédit',                'liability_non_current', false, '164'   , 380),
+  ('FR', '165',      'Dépôts et cautionnements reçus',                              'liability_non_current', false, '16'    , 390),
+  ('FR', '166',      'Participation des salariés aux résultats',                    'liability_non_current', false, '16'    , 400),
+  ('FR', '167',      'Emprunts et dettes assortis de conditions particulières',     'liability_non_current', false, '16'    , 410),
+  ('FR', '168',      'Autres emprunts et dettes assimilées',                        'liability_non_current', false, '16'    , 420),
+  ('FR', '168800',   'Intérêts courus sur emprunts et dettes',                      'liability_non_current', false, '168'   , 430),
+
+  ('FR', '17',       'Dettes rattachées à des participations',                      'liability_non_current', false, null    , 440),
+  ('FR', '171',      'Dettes rattachées à des participations (groupe)',             'liability_non_current', false, '17'    , 450),
+
+  ('FR', '18',       'Comptes de liaison des établissements et sociétés en participation', 'liability_non_current', false, null    , 460),
+  ('FR', '181',      'Comptes de liaison des établissements',                       'liability_non_current', false, '18'    , 470),
+  -- =======================================================================
+  -- Classe 2 — Comptes d'immobilisations
+  -- =======================================================================
+  ('FR', '20',       'Immobilisations incorporelles',                               'asset_fixed',           false, null    , 480),
+  ('FR', '201',      'Frais d''établissement',                                      'asset_fixed',           false, '20'    , 490),
+  ('FR', '203',      'Frais de recherche et de développement',                      'asset_fixed',           false, '20'    , 500),
+  ('FR', '205',      'Concessions, brevets, licences, marques, procédés et logiciels', 'asset_fixed',           false, '20'    , 510),
+  ('FR', '205000',   'Concessions, brevets et droits similaires',                   'asset_fixed',           false, '205'   , 520),
+  ('FR', '205100',   'Logiciels',                                                   'asset_fixed',           false, '205'   , 530),
+  ('FR', '206',      'Droit au bail',                                               'asset_fixed',           false, '20'    , 540),
+  ('FR', '207',      'Fonds commercial',                                            'asset_fixed',           false, '20'    , 550),
+  ('FR', '208',      'Autres immobilisations incorporelles',                        'asset_fixed',           false, '20'    , 560),
+
+  ('FR', '21',       'Immobilisations corporelles',                                 'asset_fixed',           false, null    , 570),
+  ('FR', '211',      'Terrains',                                                    'asset_fixed',           false, '21'    , 580),
+  ('FR', '211000',   'Terrains',                                                    'asset_fixed',           false, '211'   , 590),
+  ('FR', '213',      'Constructions',                                               'asset_fixed',           false, '21'    , 600),
+  ('FR', '213000',   'Constructions sur sol propre',                                'asset_fixed',           false, '213'   , 610),
+  ('FR', '213500',   'Installations générales et agencements des constructions',    'asset_fixed',           false, '213'   , 620),
+  ('FR', '215',      'Installations techniques, matériel et outillage industriels', 'asset_fixed',           false, '21'    , 630),
+  ('FR', '215400',   'Matériel industriel',                                         'asset_fixed',           false, '215'   , 640),
+  ('FR', '218',      'Autres immobilisations corporelles',                          'asset_fixed',           false, '21'    , 650),
+  ('FR', '218100',   'Installations générales, agencements et aménagements divers', 'asset_fixed',           false, '218'   , 660),
+  ('FR', '218200',   'Matériel de transport',                                       'asset_fixed',           false, '218'   , 670),
+  ('FR', '218300',   'Matériel de bureau et matériel informatique',                 'asset_fixed',           false, '218'   , 680),
+  ('FR', '218400',   'Mobilier',                                                    'asset_fixed',           false, '218'   , 690),
+
+  ('FR', '22',       'Immobilisations mises en concession',                         'asset_fixed',           false, null    , 700),
+
+  ('FR', '23',       'Immobilisations en cours',                                    'asset_fixed',           false, null    , 710),
+  ('FR', '231',      'Immobilisations corporelles en cours',                        'asset_fixed',           false, '23'    , 720),
+  ('FR', '232',      'Immobilisations incorporelles en cours',                      'asset_fixed',           false, '23'    , 730),
+  ('FR', '237',      'Avances et acomptes versés sur immobilisations incorporelles', 'asset_fixed',           false, '23'    , 740),
+  ('FR', '238',      'Avances et acomptes versés sur immobilisations corporelles',  'asset_fixed',           false, '23'    , 750),
+
+  ('FR', '26',       'Participations et créances rattachées à des participations',  'asset_non_current',     false, null    , 760),
+  ('FR', '261',      'Titres de participation',                                     'asset_non_current',     false, '26'    , 770),
+  ('FR', '261000',   'Titres de participation',                                     'asset_non_current',     false, '261'   , 780),
+  ('FR', '267',      'Créances rattachées à des participations',                    'asset_non_current',     false, '26'    , 790),
+
+  ('FR', '27',       'Autres immobilisations financières',                          'asset_non_current',     false, null    , 800),
+  ('FR', '271',      'Titres immobilisés (droit de propriété)',                     'asset_non_current',     false, '27'    , 810),
+  ('FR', '274',      'Prêts',                                                       'asset_non_current',     false, '27'    , 820),
+  ('FR', '275',      'Dépôts et cautionnements versés',                             'asset_non_current',     false, '27'    , 830),
+  ('FR', '275000',   'Dépôts et cautionnements versés',                             'asset_non_current',     false, '275'   , 840),
+  ('FR', '276',      'Autres créances immobilisées',                                'asset_non_current',     false, '27'    , 850),
+
+  ('FR', '28',       'Amortissements des immobilisations',                          'asset_fixed',           false, null    , 860),
+  ('FR', '280',      'Amortissements des immobilisations incorporelles',            'asset_fixed',           false, '28'    , 870),
+  ('FR', '280100',   'Amortissements des frais d''établissement',                   'asset_fixed',           false, '280'   , 880),
+  ('FR', '280500',   'Amortissements des concessions, brevets et logiciels',        'asset_fixed',           false, '280'   , 890),
+  ('FR', '281',      'Amortissements des immobilisations corporelles',              'asset_fixed',           false, '28'    , 900),
+  ('FR', '281300',   'Amortissements des constructions',                            'asset_fixed',           false, '281'   , 910),
+  ('FR', '281500',   'Amortissements des installations techniques et du matériel industriel', 'asset_fixed',           false, '281'   , 920),
+  ('FR', '281810',   'Amortissements des installations générales et agencements divers', 'asset_fixed',           false, '281'   , 930),
+  ('FR', '281820',   'Amortissements du matériel de transport',                     'asset_fixed',           false, '281'   , 940),
+  ('FR', '281830',   'Amortissements du matériel de bureau et informatique',        'asset_fixed',           false, '281'   , 950),
+  ('FR', '281840',   'Amortissements du mobilier',                                  'asset_fixed',           false, '281'   , 960),
+
+  ('FR', '29',       'Dépréciations des immobilisations',                           'asset_fixed',           false, null    , 970),
+  ('FR', '290',      'Dépréciations des immobilisations incorporelles',             'asset_fixed',           false, '29'    , 980),
+  ('FR', '291',      'Dépréciations des immobilisations corporelles',               'asset_fixed',           false, '29'    , 990),
+  -- =======================================================================
+  -- Classe 3 — Comptes de stocks et en-cours
+  -- =======================================================================
+  ('FR', '31',       'Matières premières et fournitures',                           'asset_current',         false, null    , 1000),
+  ('FR', '310',      'Matières premières',                                          'asset_current',         false, '31'    , 1010),
+  ('FR', '310000',   'Matières premières',                                          'asset_current',         false, '310'   , 1020),
+  ('FR', '317',      'Fournitures',                                                 'asset_current',         false, '31'    , 1030),
+
+  ('FR', '32',       'Autres approvisionnements',                                   'asset_current',         false, null    , 1040),
+  ('FR', '321',      'Matières consommables',                                       'asset_current',         false, '32'    , 1050),
+  ('FR', '322',      'Fournitures consommables',                                    'asset_current',         false, '32'    , 1060),
+  ('FR', '322500',   'Fournitures de bureau',                                       'asset_current',         false, '322'   , 1070),
+  ('FR', '326',      'Emballages',                                                  'asset_current',         false, '32'    , 1080),
+
+  ('FR', '33',       'En-cours de production de biens',                             'asset_current',         false, null    , 1090),
+  ('FR', '331',      'Produits en cours',                                           'asset_current',         false, '33'    , 1100),
+  ('FR', '335',      'Travaux en cours',                                            'asset_current',         false, '33'    , 1110),
+
+  ('FR', '34',       'En-cours de production de services',                          'asset_current',         false, null    , 1120),
+  ('FR', '341',      'Études en cours',                                             'asset_current',         false, '34'    , 1130),
+  ('FR', '345',      'Prestations de services en cours',                            'asset_current',         false, '34'    , 1140),
+
+  ('FR', '35',       'Stocks de produits',                                          'asset_current',         false, null    , 1150),
+  ('FR', '351',      'Produits intermédiaires',                                     'asset_current',         false, '35'    , 1160),
+  ('FR', '355',      'Produits finis',                                              'asset_current',         false, '35'    , 1170),
+  ('FR', '355000',   'Produits finis',                                              'asset_current',         false, '355'   , 1180),
+  ('FR', '358',      'Produits résiduels',                                          'asset_current',         false, '35'    , 1190),
+
+  ('FR', '37',       'Stocks de marchandises',                                      'asset_current',         false, null    , 1200),
+  ('FR', '370',      'Stocks de marchandises',                                      'asset_current',         false, '37'    , 1210),
+  ('FR', '370000',   'Stocks de marchandises',                                      'asset_current',         false, '370'   , 1220),
+
+  ('FR', '39',       'Dépréciations des stocks et en-cours',                        'asset_current',         false, null    , 1230),
+  ('FR', '391',      'Dépréciations des matières premières et fournitures',         'asset_current',         false, '39'    , 1240),
+  ('FR', '397',      'Dépréciations des stocks de marchandises',                    'asset_current',         false, '39'    , 1250),
+  ('FR', '397000',   'Dépréciations des stocks de marchandises',                    'asset_current',         false, '397'   , 1260),
+  -- =======================================================================
+  -- Classe 4 — Comptes de tiers
+  -- =======================================================================
+  ('FR', '40',       'Fournisseurs et comptes rattachés',                           'liability_payable',     true , null    , 1270),
+  ('FR', '401',      'Fournisseurs',                                                'liability_payable',     true , '40'    , 1280),
+  ('FR', '401000',   'Fournisseurs',                                                'liability_payable',     true , '401'   , 1290),
+  ('FR', '401100',   'Fournisseurs — achats de biens et prestations de services',   'liability_payable',     true , '401'   , 1300),
+  ('FR', '403',      'Fournisseurs — Effets à payer',                               'liability_current',     false, '40'    , 1310),
+  ('FR', '404',      'Fournisseurs d''immobilisations',                             'liability_current',     false, '40'    , 1320),
+  ('FR', '405',      'Fournisseurs d''immobilisations — Effets à payer',            'liability_current',     false, '40'    , 1330),
+  ('FR', '408',      'Fournisseurs — Factures non parvenues',                       'liability_current',     false, '40'    , 1340),
+  ('FR', '408100',   'Fournisseurs — factures non parvenues',                       'liability_current',     false, '408'   , 1350),
+  ('FR', '409',      'Fournisseurs débiteurs',                                      'liability_current',     false, '40'    , 1360),
+  ('FR', '409100',   'Fournisseurs — avances et acomptes versés sur commandes',     'liability_current',     false, '409'   , 1370),
+
+  ('FR', '41',       'Clients et comptes rattachés',                                'asset_receivable',      true , null    , 1380),
+  ('FR', '411',      'Clients',                                                     'asset_receivable',      true , '41'    , 1390),
+  ('FR', '411000',   'Clients — ventes de biens et prestations de services',        'asset_receivable',      true , '411'   , 1400),
+  ('FR', '413',      'Clients — Effets à recevoir',                                 'asset_current',         false, '41'    , 1410),
+  ('FR', '416',      'Clients douteux ou litigieux',                                'asset_current',         false, '41'    , 1420),
+  ('FR', '416000',   'Clients douteux ou litigieux',                                'asset_current',         false, '416'   , 1430),
+  ('FR', '418',      'Clients — Produits non encore facturés',                      'asset_current',         false, '41'    , 1440),
+  ('FR', '418100',   'Clients — factures à établir',                                'asset_current',         false, '418'   , 1450),
+  ('FR', '419',      'Clients créditeurs',                                          'asset_current',         false, '41'    , 1460),
+  ('FR', '419100',   'Clients — avances et acomptes reçus sur commandes',           'asset_current',         false, '419'   , 1470),
+
+  ('FR', '42',       'Personnel et comptes rattachés',                              'liability_current',     false, null    , 1480),
+  ('FR', '421',      'Personnel — Rémunérations dues',                              'liability_current',     false, '42'    , 1490),
+  ('FR', '421000',   'Personnel — rémunérations dues',                              'liability_current',     false, '421'   , 1500),
+  ('FR', '425',      'Personnel — Avances et acomptes',                             'liability_current',     false, '42'    , 1510),
+  ('FR', '425000',   'Personnel — avances et acomptes',                             'liability_current',     false, '425'   , 1520),
+  ('FR', '427',      'Personnel — Oppositions',                                     'liability_current',     false, '42'    , 1530),
+  ('FR', '428',      'Personnel — Charges à payer et produits à recevoir',          'liability_current',     false, '42'    , 1540),
+  ('FR', '428200',   'Dettes provisionnées pour congés à payer',                    'liability_current',     false, '428'   , 1550),
+  ('FR', '428600',   'Personnel — autres charges à payer',                          'liability_current',     false, '428'   , 1560),
+
+  ('FR', '43',       'Sécurité sociale et autres organismes sociaux',               'liability_current',     false, null    , 1570),
+  ('FR', '431',      'Sécurité sociale',                                            'liability_current',     false, '43'    , 1580),
+  ('FR', '431000',   'URSSAF — cotisations à payer',                                'liability_current',     false, '431'   , 1590),
+  ('FR', '437',      'Autres organismes sociaux',                                   'liability_current',     false, '43'    , 1600),
+  ('FR', '437100',   'Caisses de retraite complémentaire',                          'liability_current',     false, '437'   , 1610),
+  ('FR', '437200',   'Mutuelle et organismes de prévoyance',                        'liability_current',     false, '437'   , 1620),
+  ('FR', '438',      'Organismes sociaux — Charges à payer et produits à recevoir', 'liability_current',     false, '43'    , 1630),
+
+  ('FR', '44',       'État et autres collectivités publiques',                      'liability_current',     false, null    , 1640),
+  ('FR', '441',      'État — Subventions à recevoir',                               'asset_current',         false, '44'    , 1650),
+  ('FR', '444',      'État — Impôt sur les bénéfices',                              'liability_current',     false, '44'    , 1660),
+  ('FR', '444000',   'État — impôt sur les bénéfices',                              'liability_current',     false, '444'   , 1670),
+  ('FR', '445',      'État — Taxes sur le chiffre d''affaires',                     'liability_current',     false, '44'    , 1680),
+  ('FR', '445200',   'TVA due intracommunautaire',                                  'liability_current',     false, '445'   , 1690),
+  ('FR', '445510',   'TVA à décaisser',                                             'liability_current',     false, '445'   , 1700),
+  ('FR', '445660',   'TVA déductible sur autres biens et services',                 'asset_current',         false, '445'   , 1710),
+  ('FR', '445662',   'TVA déductible sur immobilisations',                          'asset_current',         false, '445'   , 1720),
+  ('FR', '445670',   'Crédit de TVA à reporter',                                    'asset_current',         false, '445'   , 1730),
+  ('FR', '445710',   'TVA collectée',                                               'liability_current',     false, '445'   , 1740),
+  ('FR', '445800',   'Taxes sur le chiffre d''affaires à régulariser ou en attente', 'asset_current',         false, '445'   , 1750),
+  ('FR', '447',      'Autres impôts, taxes et versements assimilés',                'liability_current',     false, '44'    , 1760),
+  ('FR', '447000',   'Autres impôts, taxes et versements assimilés',                'liability_current',     false, '447'   , 1770),
+  ('FR', '448',      'État — Charges à payer et produits à recevoir',               'liability_current',     false, '44'    , 1780),
+
+  ('FR', '45',       'Groupe et associés',                                          'liability_current',     false, null    , 1790),
+  ('FR', '451',      'Groupe',                                                      'liability_current',     false, '45'    , 1800),
+  ('FR', '455',      'Associés — Comptes courants',                                 'liability_current',     false, '45'    , 1810),
+  ('FR', '455000',   'Associés — comptes courants',                                 'liability_current',     false, '455'   , 1820),
+  ('FR', '456',      'Associés — Opérations sur le capital',                        'liability_current',     false, '45'    , 1830),
+  ('FR', '457',      'Associés — Dividendes à payer',                               'liability_current',     false, '45'    , 1840),
+  ('FR', '457000',   'Associés — dividendes à payer',                               'liability_current',     false, '457'   , 1850),
+
+  ('FR', '46',       'Débiteurs divers et créditeurs divers',                       'liability_current',     false, null    , 1860),
+  ('FR', '462',      'Créances sur cessions d''immobilisations',                    'asset_current',         false, '46'    , 1870),
+  ('FR', '465',      'Créances sur cessions de valeurs mobilières de placement',    'asset_current',         false, '46'    , 1880),
+  ('FR', '467',      'Autres comptes débiteurs ou créditeurs',                      'liability_current',     false, '46'    , 1890),
+  ('FR', '467000',   'Autres comptes débiteurs ou créditeurs',                      'liability_current',     false, '467'   , 1900),
+  ('FR', '468',      'Divers — Charges à payer et produits à recevoir',             'liability_current',     false, '46'    , 1910),
+  ('FR', '468600',   'Divers — charges à payer',                                    'liability_current',     false, '468'   , 1920),
+
+  ('FR', '47',       'Comptes transitoires ou d''attente',                          'liability_current',     false, null    , 1930),
+  ('FR', '471',      'Comptes d''attente',                                          'liability_current',     false, '47'    , 1940),
+  ('FR', '471000',   'Compte d''attente',                                           'liability_current',     false, '471'   , 1950),
+  ('FR', '478',      'Autres comptes transitoires',                                 'liability_current',     false, '47'    , 1960),
+
+  ('FR', '48',       'Comptes de régularisation',                                   'liability_current',     false, null    , 1970),
+  ('FR', '486',      'Charges constatées d''avance',                                'asset_prepayments',     false, '48'    , 1980),
+  ('FR', '486000',   'Charges constatées d''avance',                                'asset_prepayments',     false, '486'   , 1990),
+  ('FR', '487',      'Produits constatés d''avance',                                'liability_current',     false, '48'    , 2000),
+  ('FR', '487000',   'Produits constatés d''avance',                                'liability_current',     false, '487'   , 2010),
+
+  ('FR', '49',       'Dépréciations des comptes de tiers',                          'asset_current',         false, null    , 2020),
+  ('FR', '491',      'Dépréciations des comptes de clients',                        'asset_current',         false, '49'    , 2030),
+  ('FR', '491000',   'Dépréciations des comptes de clients',                        'asset_current',         false, '491'   , 2040),
+  -- =======================================================================
+  -- Classe 5 — Comptes financiers
+  -- =======================================================================
+  ('FR', '50',       'Valeurs mobilières de placement',                             'asset_current',         false, null    , 2050),
+  ('FR', '501',      'Parts dans des entreprises liées',                            'asset_current',         false, '50'    , 2060),
+  ('FR', '503',      'Actions',                                                     'asset_current',         false, '50'    , 2070),
+  ('FR', '506',      'Obligations',                                                 'asset_current',         false, '50'    , 2080),
+  ('FR', '508',      'Autres valeurs mobilières de placement et créances assimilées', 'asset_current',         false, '50'    , 2090),
+
+  ('FR', '51',       'Banques, établissements financiers et assimilés',             'asset_current',         false, null    , 2100),
+  ('FR', '511',      'Valeurs à l''encaissement',                                   'asset_current',         false, '51'    , 2110),
+  ('FR', '511300',   'Chèques à encaisser',                                         'asset_current',         false, '511'   , 2120),
+  ('FR', '512',      'Banques',                                                     'asset_cash',            false, '51'    , 2130),
+  ('FR', '512000',   'Banque',                                                      'asset_cash',            false, '512'   , 2140),
+  ('FR', '512100',   'Banque — compte courant',                                     'asset_cash',            false, '512'   , 2150),
+  ('FR', '512500',   'Banque — compte en devises',                                  'asset_cash',            false, '512'   , 2160),
+  ('FR', '514',      'Chèques postaux',                                             'asset_current',         false, '51'    , 2170),
+  ('FR', '517',      'Autres organismes financiers',                                'asset_current',         false, '51'    , 2180),
+  ('FR', '518',      'Intérêts courus',                                             'asset_current',         false, '51'    , 2190),
+
+  ('FR', '52',       'Instruments de trésorerie',                                   'asset_current',         false, null    , 2200),
+
+  ('FR', '53',       'Caisse',                                                      'asset_cash',            false, null    , 2210),
+  ('FR', '530',      'Caisse',                                                      'asset_cash',            false, '53'    , 2220),
+  ('FR', '530000',   'Caisse',                                                      'asset_cash',            false, '530'   , 2230),
+
+  ('FR', '54',       'Régies d''avances et accréditifs',                            'asset_current',         false, null    , 2240),
+  ('FR', '540',      'Régies d''avances et accréditifs',                            'asset_current',         false, '54'    , 2250),
+
+  ('FR', '58',       'Virements internes',                                          'asset_current',         false, null    , 2260),
+  ('FR', '580',      'Virements internes',                                          'asset_current',         false, '58'    , 2270),
+  ('FR', '580000',   'Virements internes',                                          'asset_current',         false, '580'   , 2280),
+
+  ('FR', '59',       'Dépréciations des comptes financiers',                        'asset_current',         false, null    , 2290),
+  ('FR', '590',      'Dépréciations des valeurs mobilières de placement',           'asset_current',         false, '59'    , 2300),
+  -- =======================================================================
+  -- Classe 6 — Comptes de charges
+  -- =======================================================================
+  ('FR', '60',       'Achats',                                                      'expense_direct_cost',   false, null    , 2310),
+  ('FR', '601',      'Achats stockés — Matières premières et fournitures',          'expense_direct_cost',   false, '60'    , 2320),
+  ('FR', '601000',   'Achats de matières premières',                                'expense_direct_cost',   false, '601'   , 2330),
+  ('FR', '602',      'Achats stockés — Autres approvisionnements',                  'expense_direct_cost',   false, '60'    , 2340),
+  ('FR', '603',      'Variation des stocks',                                        'expense_direct_cost',   false, '60'    , 2350),
+  ('FR', '603100',   'Variation des stocks de matières premières',                  'expense_direct_cost',   false, '603'   , 2360),
+  ('FR', '603700',   'Variation des stocks de marchandises',                        'expense_direct_cost',   false, '603'   , 2370),
+  ('FR', '604',      'Achats d''études et prestations de services',                 'expense_direct_cost',   false, '60'    , 2380),
+  ('FR', '605',      'Achats de matériel, équipements et travaux',                  'expense_direct_cost',   false, '60'    , 2390),
+  ('FR', '606',      'Achats non stockés de matières et fournitures',               'expense_direct_cost',   false, '60'    , 2400),
+  ('FR', '606100',   'Fournitures non stockables — eau et énergie',                 'expense_direct_cost',   false, '606'   , 2410),
+  ('FR', '606300',   'Fournitures d''entretien et de petit équipement',             'expense_direct_cost',   false, '606'   , 2420),
+  ('FR', '606400',   'Fournitures administratives',                                 'expense_direct_cost',   false, '606'   , 2430),
+  ('FR', '607',      'Achats de marchandises',                                      'expense_direct_cost',   false, '60'    , 2440),
+  ('FR', '607000',   'Achats de marchandises',                                      'expense_direct_cost',   false, '607'   , 2450),
+  ('FR', '608',      'Frais accessoires d''achat',                                  'expense_direct_cost',   false, '60'    , 2460),
+  ('FR', '609',      'Rabais, remises et ristournes obtenus sur achats',            'expense_direct_cost',   false, '60'    , 2470),
+
+  ('FR', '61',       'Services extérieurs',                                         'expense',               false, null    , 2480),
+  ('FR', '611',      'Sous-traitance générale',                                     'expense',               false, '61'    , 2490),
+  ('FR', '611000',   'Sous-traitance générale',                                     'expense',               false, '611'   , 2500),
+  ('FR', '612',      'Redevances de crédit-bail',                                   'expense',               false, '61'    , 2510),
+  ('FR', '613',      'Locations',                                                   'expense',               false, '61'    , 2520),
+  ('FR', '613200',   'Locations immobilières',                                      'expense',               false, '613'   , 2530),
+  ('FR', '613500',   'Locations mobilières',                                        'expense',               false, '613'   , 2540),
+  ('FR', '614',      'Charges locatives et de copropriété',                         'expense',               false, '61'    , 2550),
+  ('FR', '615',      'Entretien et réparations',                                    'expense',               false, '61'    , 2560),
+  ('FR', '615200',   'Entretien et réparations sur biens immobiliers',              'expense',               false, '615'   , 2570),
+  ('FR', '615500',   'Entretien et réparations sur biens mobiliers',                'expense',               false, '615'   , 2580),
+  ('FR', '615600',   'Maintenance',                                                 'expense',               false, '615'   , 2590),
+  ('FR', '616',      'Primes d''assurances',                                        'expense',               false, '61'    , 2600),
+  ('FR', '616000',   'Primes d''assurances',                                        'expense',               false, '616'   , 2610),
+  ('FR', '617',      'Études et recherches',                                        'expense',               false, '61'    , 2620),
+  ('FR', '618',      'Divers',                                                      'expense',               false, '61'    , 2630),
+  ('FR', '618100',   'Documentation générale',                                      'expense',               false, '618'   , 2640),
+  ('FR', '619',      'Rabais, remises et ristournes obtenus sur services extérieurs', 'expense',               false, '61'    , 2650),
+
+  ('FR', '62',       'Autres services extérieurs',                                  'expense',               false, null    , 2660),
+  ('FR', '621',      'Personnel extérieur à l''entreprise',                         'expense',               false, '62'    , 2670),
+  ('FR', '622',      'Rémunérations d''intermédiaires et honoraires',               'expense',               false, '62'    , 2680),
+  ('FR', '622600',   'Honoraires',                                                  'expense',               false, '622'   , 2690),
+  ('FR', '622700',   'Frais d''actes et de contentieux',                            'expense',               false, '622'   , 2700),
+  ('FR', '623',      'Publicité, publications et relations publiques',              'expense',               false, '62'    , 2710),
+  ('FR', '623100',   'Annonces et insertions',                                      'expense',               false, '623'   , 2720),
+  ('FR', '624',      'Transports de biens et transports collectifs du personnel',   'expense',               false, '62'    , 2730),
+  ('FR', '625',      'Déplacements, missions et réceptions',                        'expense',               false, '62'    , 2740),
+  ('FR', '625100',   'Voyages et déplacements',                                     'expense',               false, '625'   , 2750),
+  ('FR', '625600',   'Missions',                                                    'expense',               false, '625'   , 2760),
+  ('FR', '625700',   'Réceptions',                                                  'expense',               false, '625'   , 2770),
+  ('FR', '626',      'Frais postaux et de télécommunications',                      'expense',               false, '62'    , 2780),
+  ('FR', '626100',   'Frais de télécommunications',                                 'expense',               false, '626'   , 2790),
+  ('FR', '627',      'Services bancaires et assimilés',                             'expense',               false, '62'    , 2800),
+  ('FR', '627000',   'Services bancaires et assimilés',                             'expense',               false, '627'   , 2810),
+  ('FR', '628',      'Divers',                                                      'expense',               false, '62'    , 2820),
+  ('FR', '628100',   'Concours divers — cotisations',                               'expense',               false, '628'   , 2830),
+  ('FR', '629',      'Rabais, remises et ristournes obtenus sur autres services extérieurs', 'expense',               false, '62'    , 2840),
+
+  ('FR', '63',       'Impôts, taxes et versements assimilés',                       'expense',               false, null    , 2850),
+  ('FR', '631',      'Impôts et taxes sur rémunérations (administration des impôts)', 'expense',               false, '63'    , 2860),
+  ('FR', '633',      'Impôts et taxes sur rémunérations (autres organismes)',       'expense',               false, '63'    , 2870),
+  ('FR', '633300',   'Formation professionnelle continue',                          'expense',               false, '633'   , 2880),
+  ('FR', '635',      'Autres impôts et taxes (administration des impôts)',          'expense',               false, '63'    , 2890),
+  ('FR', '635100',   'Contribution économique territoriale',                        'expense',               false, '635'   , 2900),
+  ('FR', '637',      'Autres impôts et taxes (autres organismes)',                  'expense',               false, '63'    , 2910),
+
+  ('FR', '64',       'Charges de personnel',                                        'expense',               false, null    , 2920),
+  ('FR', '641',      'Rémunérations du personnel',                                  'expense',               false, '64'    , 2930),
+  ('FR', '641000',   'Rémunérations du personnel',                                  'expense',               false, '641'   , 2940),
+  ('FR', '641100',   'Salaires et appointements',                                   'expense',               false, '641'   , 2950),
+  ('FR', '641400',   'Indemnités et avantages divers',                              'expense',               false, '641'   , 2960),
+  ('FR', '644',      'Rémunération du travail de l''exploitant',                    'expense',               false, '64'    , 2970),
+  ('FR', '645',      'Charges de sécurité sociale et de prévoyance',                'expense',               false, '64'    , 2980),
+  ('FR', '645100',   'Cotisations à l''URSSAF',                                     'expense',               false, '645'   , 2990),
+  ('FR', '645300',   'Cotisations aux caisses de retraite',                         'expense',               false, '645'   , 3000),
+  ('FR', '647',      'Autres charges sociales',                                     'expense',               false, '64'    , 3010),
+  ('FR', '647500',   'Médecine du travail et pharmacie',                            'expense',               false, '647'   , 3020),
+  ('FR', '648',      'Autres charges de personnel',                                 'expense',               false, '64'    , 3030),
+
+  ('FR', '65',       'Autres charges de gestion courante',                          'expense',               false, null    , 3040),
+  ('FR', '651',      'Redevances pour concessions, brevets, licences et marques',   'expense',               false, '65'    , 3050),
+  ('FR', '653',      'Jetons de présence',                                          'expense',               false, '65'    , 3060),
+  ('FR', '654',      'Pertes sur créances irrécouvrables',                          'expense',               false, '65'    , 3070),
+  ('FR', '655',      'Quote-part de résultat sur opérations faites en commun',      'expense',               false, '65'    , 3080),
+  ('FR', '658',      'Charges diverses de gestion courante',                        'expense',               false, '65'    , 3090),
+  ('FR', '658000',   'Charges diverses de gestion courante',                        'expense',               false, '658'   , 3100),
+
+  ('FR', '66',       'Charges financières',                                         'expense',               false, null    , 3110),
+  ('FR', '661',      'Charges d''intérêts',                                         'expense',               false, '66'    , 3120),
+  ('FR', '661600',   'Intérêts des emprunts et dettes',                             'expense',               false, '661'   , 3130),
+  ('FR', '664',      'Pertes sur créances liées à des participations',              'expense',               false, '66'    , 3140),
+  ('FR', '665',      'Escomptes accordés',                                          'expense',               false, '66'    , 3150),
+  ('FR', '666',      'Pertes de change',                                            'expense',               false, '66'    , 3160),
+  ('FR', '666000',   'Pertes de change',                                            'expense',               false, '666'   , 3170),
+  ('FR', '667',      'Charges nettes sur cessions de valeurs mobilières de placement', 'expense',               false, '66'    , 3180),
+  ('FR', '668',      'Autres charges financières',                                  'expense',               false, '66'    , 3190),
+
+  ('FR', '67',       'Charges exceptionnelles',                                     'expense',               false, null    , 3200),
+  ('FR', '671',      'Charges exceptionnelles sur opérations de gestion',           'expense',               false, '67'    , 3210),
+  ('FR', '671200',   'Pénalités, amendes fiscales et pénales',                      'expense',               false, '671'   , 3220),
+  ('FR', '675',      'Valeurs comptables des éléments d''actif cédés',              'expense',               false, '67'    , 3230),
+  ('FR', '675000',   'Valeurs comptables des éléments d''actif cédés',              'expense',               false, '675'   , 3240),
+  ('FR', '678',      'Autres charges exceptionnelles',                              'expense',               false, '67'    , 3250),
+
+  ('FR', '68',       'Dotations aux amortissements, dépréciations et provisions',   'expense_depreciation',  false, null    , 3260),
+  ('FR', '681',      'Dotations aux amortissements et provisions — charges d''exploitation', 'expense_depreciation',  false, '68'    , 3270),
+  ('FR', '681100',   'Dotations aux amortissements sur immobilisations',            'expense_depreciation',  false, '681'   , 3280),
+  ('FR', '681500',   'Dotations aux provisions pour risques et charges d''exploitation', 'expense_depreciation',  false, '681'   , 3290),
+  ('FR', '681700',   'Dotations aux dépréciations des actifs circulants',           'expense_depreciation',  false, '681'   , 3300),
+  ('FR', '686',      'Dotations aux amortissements et provisions — charges financières', 'expense_depreciation',  false, '68'    , 3310),
+  ('FR', '687',      'Dotations aux amortissements et provisions — charges exceptionnelles', 'expense_depreciation',  false, '68'    , 3320),
+  ('FR', '687200',   'Dotations aux amortissements dérogatoires',                   'expense_depreciation',  false, '687'   , 3330),
+
+  ('FR', '69',       'Participation des salariés et impôts sur les bénéfices',      'expense',               false, null    , 3340),
+  ('FR', '691',      'Participation des salariés aux résultats',                    'expense',               false, '69'    , 3350),
+  ('FR', '695',      'Impôts sur les bénéfices',                                    'expense',               false, '69'    , 3360),
+  ('FR', '695000',   'Impôts sur les bénéfices',                                    'expense',               false, '695'   , 3370),
+  ('FR', '696',      'Suppléments d''impôt sur les sociétés liés aux distributions', 'expense',               false, '69'    , 3380),
+  ('FR', '698',      'Intégration fiscale',                                         'expense',               false, '69'    , 3390),
+  -- =======================================================================
+  -- Classe 7 — Comptes de produits
+  -- =======================================================================
+  ('FR', '70',       'Ventes de produits fabriqués, prestations de services, marchandises', 'income',                false, null    , 3400),
+  ('FR', '701',      'Ventes de produits finis',                                    'income',                false, '70'    , 3410),
+  ('FR', '704',      'Travaux',                                                     'income',                false, '70'    , 3420),
+  ('FR', '704000',   'Travaux',                                                     'income',                false, '704'   , 3430),
+  ('FR', '705',      'Études',                                                      'income',                false, '70'    , 3440),
+  ('FR', '705000',   'Études',                                                      'income',                false, '705'   , 3450),
+  ('FR', '706',      'Prestations de services',                                     'income',                false, '70'    , 3460),
+  ('FR', '706000',   'Prestations de services',                                     'income',                false, '706'   , 3470),
+  ('FR', '707',      'Ventes de marchandises',                                      'income',                false, '70'    , 3480),
+  ('FR', '707000',   'Ventes de marchandises',                                      'income',                false, '707'   , 3490),
+  ('FR', '708',      'Produits des activités annexes',                              'income',                false, '70'    , 3500),
+  ('FR', '708500',   'Ports et frais accessoires facturés',                         'income',                false, '708'   , 3510),
+  ('FR', '709',      'Rabais, remises et ristournes accordés par l''entreprise',    'income',                false, '70'    , 3520),
+  ('FR', '709000',   'Rabais, remises et ristournes accordés',                      'income',                false, '709'   , 3530),
+
+  ('FR', '71',       'Production stockée (ou déstockage)',                          'income_other',          false, null    , 3540),
+  ('FR', '713',      'Variation des stocks (en-cours de production, produits)',     'income_other',          false, '71'    , 3550),
+  ('FR', '713500',   'Variation des stocks de produits finis',                      'income_other',          false, '713'   , 3560),
+
+  ('FR', '72',       'Production immobilisée',                                      'income_other',          false, null    , 3570),
+  ('FR', '721',      'Production immobilisée — immobilisations incorporelles',      'income_other',          false, '72'    , 3580),
+  ('FR', '722',      'Production immobilisée — immobilisations corporelles',        'income_other',          false, '72'    , 3590),
+
+  ('FR', '73',       'Produits nets partiels sur opérations à long terme',          'income_other',          false, null    , 3600),
+  ('FR', '734',      'Produits nets sur opérations à long terme',                   'income_other',          false, '73'    , 3610),
+
+  ('FR', '74',       'Subventions d''exploitation',                                 'income_other',          false, null    , 3620),
+  ('FR', '740',      'Subventions d''exploitation',                                 'income_other',          false, '74'    , 3630),
+  ('FR', '740000',   'Subventions d''exploitation',                                 'income_other',          false, '740'   , 3640),
+
+  ('FR', '75',       'Autres produits de gestion courante',                         'income_other',          false, null    , 3650),
+  ('FR', '751',      'Redevances pour concessions, brevets, licences et marques',   'income_other',          false, '75'    , 3660),
+  ('FR', '752',      'Revenus des immeubles non affectés aux activités professionnelles', 'income_other',          false, '75'    , 3670),
+  ('FR', '755',      'Quote-part de résultat sur opérations faites en commun',      'income_other',          false, '75'    , 3680),
+  ('FR', '758',      'Produits divers de gestion courante',                         'income_other',          false, '75'    , 3690),
+  ('FR', '758000',   'Produits divers de gestion courante',                         'income_other',          false, '758'   , 3700),
+
+  ('FR', '76',       'Produits financiers',                                         'income_other',          false, null    , 3710),
+  ('FR', '761',      'Produits de participations',                                  'income_other',          false, '76'    , 3720),
+  ('FR', '762',      'Produits des autres immobilisations financières',             'income_other',          false, '76'    , 3730),
+  ('FR', '763',      'Revenus des autres créances',                                 'income_other',          false, '76'    , 3740),
+  ('FR', '764',      'Revenus des valeurs mobilières de placement',                 'income_other',          false, '76'    , 3750),
+  ('FR', '765',      'Escomptes obtenus',                                           'income_other',          false, '76'    , 3760),
+  ('FR', '766',      'Gains de change',                                             'income_other',          false, '76'    , 3770),
+  ('FR', '766000',   'Gains de change',                                             'income_other',          false, '766'   , 3780),
+  ('FR', '768',      'Autres produits financiers',                                  'income_other',          false, '76'    , 3790),
+
+  ('FR', '77',       'Produits exceptionnels',                                      'income_other',          false, null    , 3800),
+  ('FR', '771',      'Produits exceptionnels sur opérations de gestion',            'income_other',          false, '77'    , 3810),
+  ('FR', '775',      'Produits des cessions d''éléments d''actif',                  'income_other',          false, '77'    , 3820),
+  ('FR', '775000',   'Produits des cessions d''éléments d''actif',                  'income_other',          false, '775'   , 3830),
+  ('FR', '777',      'Quote-part des subventions d''investissement virée au résultat', 'income_other',          false, '77'    , 3840),
+  ('FR', '778',      'Autres produits exceptionnels',                               'income_other',          false, '77'    , 3850),
+
+  ('FR', '78',       'Reprises sur amortissements, dépréciations et provisions',    'income_other',          false, null    , 3860),
+  ('FR', '781',      'Reprises sur amortissements et provisions (exploitation)',    'income_other',          false, '78'    , 3870),
+  ('FR', '786',      'Reprises sur dépréciations et provisions (financières)',      'income_other',          false, '78'    , 3880),
+
+  ('FR', '79',       'Transferts de charges',                                       'income_other',          false, null    , 3890),
+  ('FR', '791',      'Transferts de charges d''exploitation',                       'income_other',          false, '79'    , 3900),
+  ('FR', '791000',   'Transferts de charges d''exploitation',                       'income_other',          false, '791'   , 3910),
+  ('FR', '796',      'Transferts de charges financières',                           'income_other',          false, '79'    , 3920)
+on conflict (country, code) do nothing;
+
+insert into journal_templates (country, code, name, journal_type, sequence) values
+  ('FR', 'SAL',  'Journal des ventes',     'sales',    10),
+  ('FR', 'PUR',  'Journal des achats',     'purchase', 20),
+  ('FR', 'BNK',  'Journal de banque',      'bank',     30),
+  ('FR', 'CSH',  'Journal de caisse',      'cash',     40),
+  ('FR', 'MISC', 'Opérations diverses',    'general',  50),
+  ('FR', 'OPN',  'Journal des à-nouveaux', 'opening',  60)
+on conflict (country, code) do nothing;
+
+insert into country_defaults (country, name, currency_code, receivable_code, payable_code, suspense_code, rounding_code, retained_earnings_code, sales_account_code, purchase_account_code, bank_account_code, sales_journal_code, purchase_journal_code, misc_journal_code) values
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', 'SAL', 'PUR', 'MISC')
+on conflict (country) do nothing;
