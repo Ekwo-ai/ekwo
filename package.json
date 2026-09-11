@@ -1,0 +1,67 @@
+{
+  "name": "@ekwo-ai/factur-x",
+  "version": "0.1.0",
+  "description": "Factur-X / ZUGFeRD e-invoices in TypeScript: EN 16931 CII XML from a plain invoice object, PDF/A-3 embedding and extraction.",
+  "keywords": [
+    "factur-x",
+    "facturx",
+    "zugferd",
+    "en16931",
+    "cii",
+    "e-invoicing",
+    "einvoice",
+    "pdf-a3",
+    "invoice",
+    "peppol"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/factur-x#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/factur-x.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/factur-x/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./pdf": {
+      "types": "./dist/pdf.d.ts",
+      "import": "./dist/pdf.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "example": "tsx examples/basic.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "dependencies": {
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
