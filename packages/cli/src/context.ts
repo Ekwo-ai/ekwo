@@ -12,15 +12,18 @@ import {
   ENV_DB_URL_FALLBACK,
   ENV_SERVICE_ROLE_KEY,
   ENV_SUPABASE_URL,
-  databaseUrlFor,
+  hostOf,
   looksLikeConnectionString,
+  pickPoolerUrl,
   projectRefFrom,
   supabaseUrlFor,
   withSsl,
   type Connection,
+  type Probe,
 } from './connection.js';
 import { NotInteractiveError, askSecret, isInteractive } from './prompt.js';
 import { connect, type SqlClient } from './sql.js';
+import { dim, note } from './ui.js';
 
 export const CONNECTION_FLAGS = [
   'db-url',
@@ -35,7 +38,24 @@ export interface ResolveOptions {
   /** Ask for what is missing. False in `--yes` runs and when stdin is not a terminal. */
   interactive: boolean;
   env?: NodeJS.ProcessEnv;
+  /**
+   * How a candidate pooler host is tried. Injected so the resolution can be
+   * tested without a network, and so nothing else in this file knows a driver
+   * exists.
+   */
+  probe?: Probe;
 }
+
+/** Opens the connection, closes it, and answers whether that worked. */
+export const connectProbe: Probe = async (dbUrl) => {
+  try {
+    const db = await connect(dbUrl);
+    await db.close();
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 /** Works out how to reach the database, without connecting yet. */
 export async function resolveConnection(
@@ -55,7 +75,9 @@ export async function resolveConnection(
     projectRefFrom(supabaseUrlGiven) ??
     projectRefFrom(dbUrl);
 
-  if (dbUrl === undefined && projectRef !== undefined) {
+  const region = stringFlag(args, 'db-region');
+
+  if (dbUrl === undefined && projectRef !== undefined && region !== undefined) {
     const password =
       stringFlag(args, 'db-password') ??
       env['EKWO_DB_PASSWORD'] ??
@@ -65,15 +87,28 @@ export async function resolveConnection(
     if (password === undefined || password.length === 0) {
       throw new NotInteractiveError('the database password', '--db-password or --db-url');
     }
-    dbUrl = databaseUrlFor(projectRef, password, stringFlag(args, 'db-region'));
+    // Both pooler generations are tried and the one that answers is kept. The
+    // prefix is not derivable from the region, and building one of the two and
+    // calling it the host is how `--db-region` used to fail: the connection
+    // was refused with "Tenant or user not found", which reads like a wrong
+    // password rather than a wrong hostname.
+    dbUrl = await pickPoolerUrl(projectRef, password, region, options.probe ?? connectProbe);
+    note(dim(`Session pooler: ${hostOf(dbUrl)}`));
   }
 
+  // No `--db-region`, or no ref at all: ask for the string the dashboard
+  // prints. The direct host `db.<ref>.supabase.co` is not built here on the
+  // operator's behalf — it resolves to IPv6 only on any recent project, so
+  // deriving it silently produces a hang rather than an answer.
   if (dbUrl === undefined) {
     if (!interactive) {
-      throw new NotInteractiveError('the database connection string', '--db-url');
+      throw new NotInteractiveError(
+        'the database connection string',
+        '--db-url (or --project-ref with --db-password and --db-region)',
+      );
     }
     const answer = await askSecret(
-      'Postgres connection string (Supabase dashboard → Project Settings → Database):',
+      'Postgres connection string (Supabase dashboard → Connect → Session pooler):',
     );
     if (!looksLikeConnectionString(answer)) {
       throw new Error(

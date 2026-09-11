@@ -18,7 +18,10 @@ import {
   stringFlag,
 } from '../../packages/cli/src/args.js';
 import {
-  databaseUrlFor,
+  NoPoolerHostError,
+  pickPoolerUrl,
+  poolerCandidates,
+  poolerUrl,
   projectRefFrom,
   supabaseUrlFor,
   withSsl,
@@ -78,15 +81,45 @@ describe('the connection helpers', () => {
   });
 
   it('escapes the password when it builds a URL', () => {
-    const url = databaseUrlFor('abcdefghijklmnopqrst', 'p@ss w/ord');
+    const url = poolerUrl('abcdefghijklmnopqrst', 'p@ss w/ord', 'eu-central-1', 'aws-0');
     expect(url).toContain('p%40ss%20w%2Ford');
-    expect(url).toContain('db.abcdefghijklmnopqrst.supabase.co');
+    expect(url).toContain('aws-0-eu-central-1.pooler.supabase.com');
   });
 
-  it('uses the pooler when a region is given', () => {
-    expect(databaseUrlFor('abcdefghijklmnopqrst', 'pw', 'eu-central-1')).toBe(
-      'postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-eu-central-1.pooler.supabase.com:5432/postgres',
-    );
+  it('offers both pooler generations for a region, on the session port', () => {
+    const candidates = poolerCandidates('abcdefghijklmnopqrst', 'pw', 'eu-west-3');
+    expect(candidates).toEqual([
+      'postgresql://postgres.abcdefghijklmnopqrst:pw@aws-0-eu-west-3.pooler.supabase.com:5432/postgres',
+      'postgresql://postgres.abcdefghijklmnopqrst:pw@aws-1-eu-west-3.pooler.supabase.com:5432/postgres',
+    ]);
+  });
+
+  it('keeps the pooler host that answers, and never the one that did not', async () => {
+    const tried: string[] = [];
+    const chosen = await pickPoolerUrl('abcdefghijklmnopqrst', 'pw', 'eu-west-3', async (url) => {
+      tried.push(url);
+      return url.includes('aws-1-');
+    });
+    expect(chosen).toContain('aws-1-eu-west-3');
+    // aws-0 was tried first and refused; the resolution did not stop there.
+    expect(tried[0]).toContain('aws-0-eu-west-3');
+    expect(tried).toHaveLength(2);
+    // What is probed carries TLS, the way the connection eventually will.
+    expect(tried[0]).toContain('sslmode=require');
+  });
+
+  it('says to copy the dashboard string when no pooler host answers', async () => {
+    await expect(
+      pickPoolerUrl('abcdefghijklmnopqrst', 'pw', 'eu-west-3', async () => false),
+    ).rejects.toThrow(NoPoolerHostError);
+    const error = await pickPoolerUrl('abcdefghijklmnopqrst', 'pw', 'eu-west-3', async () => false)
+      .then(() => undefined)
+      .catch((e: Error) => e);
+    expect(error?.message).toContain('aws-0-eu-west-3.pooler.supabase.com');
+    expect(error?.message).toContain('aws-1-eu-west-3.pooler.supabase.com');
+    expect(error?.message).toContain('Session pooler');
+    // The password is not echoed back into the message.
+    expect(error?.message).not.toContain('pw@');
   });
 
   it('asks for TLS unless the string already says otherwise', () => {

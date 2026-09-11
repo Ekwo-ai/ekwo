@@ -27,11 +27,18 @@ export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js
 export { COMMANDS, help, run, version } from './cli.js';
 export { CONFIG_FILE, readConfig, writeConfig, type EkwoConfig } from './config.js';
 export {
-  databaseUrlFor,
+  NoPoolerHostError,
+  POOLER_GENERATIONS,
+  directUrl,
+  hostOf,
+  pickPoolerUrl,
+  poolerCandidates,
+  poolerUrl,
   projectRefFrom,
   supabaseUrlFor,
   withSsl,
   type Connection,
+  type Probe,
 } from './connection.js';
 export { doctor, type Check, type DoctorReport, type Severity } from './doctor.js';
 export {

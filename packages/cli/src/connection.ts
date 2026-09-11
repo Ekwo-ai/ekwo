@@ -10,10 +10,13 @@
  * variables so an operator can put them somewhere *they* chose.
  *
  * The reliable way to give the CLI a database is `--db-url`, copied from the
- * Supabase dashboard under Project Settings → Database. `--project-ref` with
- * `--db-password` is a convenience that guesses the host, and a guess is what
- * it stays: the pooler hostname carries a region, and the direct hostname is
- * IPv6-only on recent projects.
+ * Supabase dashboard under Connect → Session pooler. `--project-ref` with
+ * `--db-password` and `--db-region` is the convenience, and it no longer
+ * guesses: the pooler hostname carries a generation prefix as well as a
+ * region, so both `aws-0-<region>` and `aws-1-<region>` are tried and the one
+ * that answers is kept and printed. The direct host `db.<ref>.supabase.co`
+ * resolves to an IPv6 address only on projects created since 2024, so it is
+ * offered last and never as a silent default.
  */
 
 export interface Connection {
@@ -58,22 +61,89 @@ export function supabaseUrlFor(projectRef: string): string {
 }
 
 /**
- * Builds a connection string from a project ref and the database password.
- *
- * With a region, the shared pooler on port 5432 (session mode, which supports
- * everything a migration needs). Without, the direct host, which is what an
- * older project answers on.
+ * The two pooler generations Supabase issues today. Both are tried, so the
+ * order is only which one costs a round trip when it is the wrong one.
  */
-export function databaseUrlFor(
+export const POOLER_GENERATIONS = ['aws-0', 'aws-1'] as const;
+
+/**
+ * The session pooler, on port 5432, for one generation prefix.
+ *
+ * Session mode — not the transaction pooler on 6543 — because a migration
+ * needs a session: advisory locks, `set local`, and a multi-statement file
+ * applied as one command.
+ */
+export function poolerUrl(
   projectRef: string,
   password: string,
-  region?: string | undefined,
+  region: string,
+  generation: string,
 ): string {
-  const encoded = encodeURIComponent(password);
-  if (region !== undefined && region.length > 0) {
-    return `postgresql://postgres.${projectRef}:${encoded}@aws-0-${region}.pooler.supabase.com:5432/postgres`;
+  return `postgresql://postgres.${projectRef}:${encodeURIComponent(password)}@${generation}-${region}.pooler.supabase.com:5432/postgres`;
+}
+
+/**
+ * Every pooler host worth trying for a ref and a region.
+ *
+ * The generation prefix is not derivable. A project created in `eu-west-3` in
+ * September 2026 answered on `aws-1-eu-west-3` and returned "Tenant or user
+ * not found" on `aws-0-eu-west-3`; older projects are the other way round.
+ * Building one of them and calling it the answer is the bug this replaces.
+ */
+export function poolerCandidates(
+  projectRef: string,
+  password: string,
+  region: string,
+): string[] {
+  return POOLER_GENERATIONS.map((generation) =>
+    poolerUrl(projectRef, password, region, generation),
+  );
+}
+
+/**
+ * The direct host. IPv6 only on projects created since 2024, so from an
+ * IPv4-only network it does not fail cleanly — it never connects at all.
+ */
+export function directUrl(projectRef: string, password: string): string {
+  return `postgresql://postgres:${encodeURIComponent(password)}@db.${projectRef}.supabase.co:5432/postgres`;
+}
+
+/** The host of a connection string, for a message that names what answered. */
+export function hostOf(dbUrl: string): string {
+  const match = /@([^/:?]+)/.exec(dbUrl);
+  return match?.[1] ?? dbUrl;
+}
+
+/** Answers whether a connection string reaches a database. */
+export type Probe = (dbUrl: string) => Promise<boolean>;
+
+export class NoPoolerHostError extends Error {
+  constructor(readonly tried: string[]) {
+    super(
+      `no_pooler_host: none of ${tried.join(', ')} answered. ` +
+        'Copy the connection string from your Supabase dashboard — Connect → Session pooler — ' +
+        'and pass it as --db-url. That string is the only form that is not derived.',
+    );
   }
-  return `postgresql://postgres:${encoded}@db.${projectRef}.supabase.co:5432/postgres`;
+}
+
+/**
+ * Picks the pooler host that answers, trying each generation in turn.
+ *
+ * Returns the string that worked, so the caller can print the host and the
+ * operator learns which one their project is on.
+ */
+export async function pickPoolerUrl(
+  projectRef: string,
+  password: string,
+  region: string,
+  probe: Probe,
+): Promise<string> {
+  const candidates = poolerCandidates(projectRef, password, region);
+  for (const candidate of candidates) {
+    if (await probe(withSsl(candidate))) return candidate;
+  }
+  throw new NoPoolerHostError(candidates.map(hostOf));
 }
 
 export function looksLikeConnectionString(value: string): boolean {
