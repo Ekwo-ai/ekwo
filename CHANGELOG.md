@@ -11,6 +11,14 @@ somewhere has already run it.
 
 ### Fixed
 
+- **Nobody but the database owner could post an entry.** `next_entry_number()`
+  and `next_matching_number()` write `journal_sequences` and
+  `matching_sequences`, which carry a select policy and no other, and both ran
+  as the caller — so posting a document or drawing a matching letter failed
+  for every signed-in user with "new row violates row-level security policy".
+  It went unnoticed because the tests and the installer both run as the owner.
+  Migration `20260911173100` makes the two functions `security definer` and
+  has each check that the caller may write the company it is counting for.
 - Re-applying the tax seeds — a second `ekwo init` or `supabase db push` on
   the same project — failed on `tax_posting_templates`, which had no natural
   key to conflict on. Migration `20260911160000` adds it and the seeds use it;
@@ -19,6 +27,28 @@ somewhere has already run it.
 
 ### Added
 
+- **`npx @ekwo-ai/mcp`** — `packages/mcp`, the Model Context Protocol server.
+  Twenty-two tools over stdio: read the companies, the chart of accounts, the
+  contacts, the documents and the bank lines; create a contact, a draft
+  invoice and its lines; post it; record a payment and match it against the
+  open invoices; pull the trial balance, the general ledger, the aged balance,
+  the VAT return and the French FEC; lock a period. Plus the chart of accounts
+  and the taxes as MCP resources, and two prompts — `close_month` and
+  `prepare_vat_return`.
+
+  It acts **as the user**: `SUPABASE_URL` and `SUPABASE_ANON_KEY` with an
+  address and a password (or an access token), and row level security decides
+  everything else. A `service_role` key is refused at startup. The
+  self-hosted route, `EKWO_DB_URL`, requires `EKWO_ACT_AS_USER_ID` and sets
+  the JWT claims and the `authenticated` role on every query, so the policies
+  bind there too. Every ledger write goes through the schema's own functions;
+  nothing in the server writes an `entries` row, and no tool unposts an entry.
+- **`post_payment(payment_id)`** — migration `20260911173000`. Money in or out
+  becomes a balanced entry: the bank side from the payment's bank account or
+  its journal, the third-party side resolved by role the way `post_document`
+  resolves it. It matches nothing, deliberately: which invoices a payment
+  settles is `reconcile`'s decision. Without it, every client would have had
+  to assemble the two ledger lines itself.
 - **`npx ekwo init`** — `packages/cli`, published as `ekwo`. One command turns
   a Supabase project the customer already owns into a set of books: it applies
   the migrations, seeds the currencies, the chart of accounts and the VAT

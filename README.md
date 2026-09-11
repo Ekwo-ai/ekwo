@@ -18,9 +18,10 @@ and the work of keeping it can be done by software that the business also
 owns.** So the whole accounting core is open, the data sits in a Postgres
 database that you control, and the interface is designed for machines as
 much as for people. A REST API and an OpenAPI description come free with
-Supabase; an MCP server is the next step; from there an AI agent can book a
+Supabase, and an MCP server sits on top of them, so an AI agent can book a
 purchase, match a payment, prepare a VAT return or produce a FEC on your own
-data, without the data ever leaving your account.
+data — as you, under your own row level security, without the data ever
+leaving your account.
 
 What we are building, in order:
 
@@ -31,8 +32,10 @@ What we are building, in order:
    the schema, seeds the country rules, creates the first administrator and
    the first company, in one command. Done; see
    [`packages/cli`](packages/cli/).
-3. **A Community web application** on top of the core, and an **MCP server**
-   so that any AI assistant can operate the books.
+3. **The MCP server** — `npx @ekwo-ai/mcp`, so any AI assistant can operate
+   the books: read the ledger, raise an invoice, post it, match a payment,
+   pull the VAT return or the FEC. Done; see [`packages/mcp`](packages/mcp/).
+   A Community web application comes next.
 4. **Format libraries** as independent MIT packages:
    [Factur-X](https://github.com/Ekwo-ai/factur-x) and
    [XBRL for the NBB](https://github.com/Ekwo-ai/xbrl-cbso) already exist;
@@ -71,9 +74,9 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
-- **Tested on real Postgres.** 166 tests run the migrations, the seeds, the
-  accounting scenarios and the installer against Postgres compiled to
-  WebAssembly.
+- **Tested on real Postgres.** 205 tests run the migrations, the seeds, the
+  accounting scenarios, the installer and the MCP server against Postgres
+  compiled to WebAssembly.
 
 ## Install on your own Supabase project
 
@@ -226,6 +229,26 @@ const boxes   = await ekwo.vatReturn({ companyId, from: '2026-07-01', to: '2026-
 const fec     = await ekwo.generateFec({ companyId, from: '2026-01-01', to: '2026-12-31' });
 ```
 
+`packages/mcp` is the Model Context Protocol server, published as
+`@ekwo-ai/mcp`. It is the same idea as the client above, for an assistant
+rather than for your code: twenty-two tools over stdio — read the chart of
+accounts, create a draft invoice, post it, record and match a payment, pull
+the trial balance, the aged balance, the VAT return or the FEC — plus the
+chart of accounts and the taxes as resources, and two prompts for closing a
+month and preparing a return.
+
+It runs **as the user**, never as `service_role`: it signs in with their
+address and password, or takes their access token, and row level security
+decides the rest. Every ledger write goes through the schema's own functions,
+so nothing in the server writes an `entries` row, and nothing in it can unpost
+an entry. Configuration is a block of environment variables in
+`claude_desktop_config.json` or `.mcp.json`; see
+[`packages/mcp`](packages/mcp/).
+
+```sh
+npx @ekwo-ai/mcp
+```
+
 ## Related libraries
 
 Two format libraries live in their own repositories, under MIT, and will be
@@ -259,7 +282,7 @@ licence.
 Each folder carries a short README saying what lives there and the rule
 that applies to it: [`supabase/`](supabase/), [`supabase/migrations/`](supabase/migrations/),
 [`supabase/seed/`](supabase/seed/), [`packages/core/`](packages/core/),
-[`packages/cli/`](packages/cli/), [`tests/`](tests/),
+[`packages/cli/`](packages/cli/), [`packages/mcp/`](packages/mcp/), [`tests/`](tests/),
 [`docs/`](docs/), [`scripts/`](scripts/) and [`ee/`](ee/). The long-form reference is in `docs/`.
 
 ## Development

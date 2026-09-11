@@ -20,8 +20,8 @@ npm test
 | `instance.test.ts` | the instance row is a true singleton, only an instance administrator creates a company, registration is optional and reversible, no table carries a `tenant_id` |
 | `fec.test.ts` | the eighteen columns in order, the formats, `checkFec()`, and a golden file against the demo company |
 
-The installer has its own folder, `tests/cli/`, which runs the CLI's code
-against the same PGlite.
+The installer and the MCP server have their own folders, `tests/cli/` and
+`tests/mcp/`, which run their code against the same PGlite.
 
 | File | Proves |
 |---|---|
@@ -34,9 +34,21 @@ against the same PGlite.
 | `cli/package.test.ts` | the SQL copied into the published package is byte for byte the repository's, and nothing from `ee/` ships |
 | `cli/cli.test.ts` | argument parsing and its refusals, the connection-string helpers, and what the help promises |
 
-Two things these do not run: the network driver and GoTrue. Both sit behind an
-injected seam — `SqlClient` for the first, `fetch` for the second — so the
-substitution is one object and not a layer of mocks.
+And `tests/mcp/`, which calls the MCP server's tools the way the protocol
+does — including once through a real client over the in-memory transport.
+
+| File | Proves |
+|---|---|
+| `mcp/accounting.test.ts` | a quarter of bookkeeping through the tools an assistant calls: a contact, a Belgian invoice at 21 %, posting it to 704 / 451 / 400, two payments matched against it, un-matching and re-matching, then the trial balance, the VAT return and the FEC read back |
+| `mcp/guards.test.ts` | the refusals, all of them the database's: a locked period, a viewer who may read and not write, an owner of one company who cannot see or write the other, a stranger who sees nothing |
+| `mcp/surface.test.ts` | what a client actually sees, over the in-memory transport: the twenty-two tools, a valid JSON Schema for each, the read-only and destructive annotations, the two resources, the two prompts, and a refusal arriving as a tool error rather than a broken connection |
+| `mcp/config.test.ts` | what the server refuses to start with: a `service_role` key, and a database connection with no user to act for |
+
+Three things these do not run: the network driver, GoTrue, and PostgREST.
+Each sits behind an injected seam — `SqlClient` for the first, `fetch` for the
+second, the `Backend` interface for the third — so the substitution is one
+object and not a layer of mocks. `packages/mcp/README.md` carries the manual
+sequence that exercises the PostgREST route against a real project.
 
 ## Helpers
 
@@ -54,6 +66,9 @@ substitution is one object and not a layer of mocks.
 - `cli/helpers.ts` — PGlite behind the CLI's `SqlClient`, an `auth.users` row
   standing in for an account GoTrue created, and a `fetch` that answers from a
   table of routes and records what it was sent.
+- `mcp/helpers.ts` — PGlite behind the MCP server's `SqlClient`, which sets
+  the JWT claims and the `authenticated` role on every call, so a tool is
+  refused here for the same reason it would be refused over the API.
 
 ## Writing a test
 

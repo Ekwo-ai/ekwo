@@ -26,6 +26,10 @@ jobs:
       # only shows up here, never in a unit test.
       - run: node packages/cli/dist/bin.js --help
       - run: node packages/cli/dist/bin.js --version
+      # The MCP server's binary too: it is started by a client, so a broken
+      # entry point shows up as "server failed to start" and nothing else.
+      - run: node packages/mcp/dist/bin.js --help
+      - run: node packages/mcp/dist/bin.js --version
       # And the copy of the schema inside the package has to be the real one.
       - name: The CLI ships the repository's migrations
         run: |

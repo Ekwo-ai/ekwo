@@ -14,7 +14,10 @@
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@ekwo-ai/core": ["./packages/core/src/index.ts"]
+    }
   },
   "include": ["packages/*/src", "tests", "scripts"]
 }

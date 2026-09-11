@@ -341,6 +341,63 @@ alone on an empty database. `ekwo init` never applies it, `ekwo migrate` never
 applies it, and `ekwo demo` asks before adding it to an installation that
 already holds a company.
 
+## The MCP server
+
+**It acts as the user, and never as `service_role`.** The server signs in with
+the operator's own address and password — or takes their access token — and
+everything it can then read or write is what row level security lets that
+person read or write. The alternative was one service key and a `company_id`
+argument, which is shorter to write and means an assistant that can answer for
+every company of an installation, including the ones its user was never
+invited to. The key is refused at startup in both shapes Supabase has issued,
+because a mistake that appears to work is the expensive kind.
+
+**The direct-Postgres mode demands the user it acts for.** `EKWO_DB_URL` exists
+for a self-hosted installation with no PostgREST in front of the database, and
+a database connection is nobody: `auth.uid()` is null and row level security
+is bypassed rather than satisfied. So that mode requires
+`EKWO_ACT_AS_USER_ID`, and every query runs inside a transaction that sets
+`request.jwt.claims` and switches to the `authenticated` role. Without that,
+the fallback would quietly be the privileged mode, and it is the one an
+operator in a hurry would reach for.
+
+**Every ledger write goes through a function of the schema.** `post_document`,
+`post_payment`, `post_entry`, `reconcile`, `unreconcile`. Nothing in the MCP
+package inserts an `entries` or an `entry_lines` row; the direct inserts it
+does are the objects a person types — contacts, draft documents and their
+lines, payments, bank transactions. The moment a client writes ledger lines,
+the rules about sides, accounts, rounding and locks live in that client, and
+the next client answers differently. `post_payment` was added for exactly this
+reason: money moving had no function, so a client would have had to assemble
+the two lines itself.
+
+**No tool deletes or edits a posted entry.** There is no unpost and no way to
+ask for one. A mistake is corrected with a credit note, which is how
+accounting has always worked and what an audit trail means. `unreconcile` is
+the only undo in the server, and matching changes no account.
+
+**Amounts cross as decimal strings, in both directions.** `numeric` is exact
+and a float is not; a table read asks for `amount::text` and a date for
+`date::text`, so `"1210.00"` and `"2026-06-15"` arrive as themselves on either
+route rather than as whatever a driver or JSON made of them. The one place a
+float can appear is a function result crossing PostgREST as JSON, and it is
+rendered back to two decimals in one place.
+
+**Refusals are answers.** `period_locked:`, `entry_unbalanced:`,
+`document_total_mismatch:` travel to the model with the message the database
+raised, plus one sentence saying what it means. Paraphrasing them, or catching
+them and retrying with a different date, would turn a company's own rule into
+an obstacle the assistant routes around.
+
+**One query language for two backends.** Tool handlers are written against
+five operations — select, insert, update, delete, call a function — and each
+backend implements them: PostgREST through `@supabase/supabase-js`, Postgres
+through parameterised SQL. The library is a dependency this repository would
+otherwise have avoided, but the two things it does here are the password grant
+with its refresh and the PostgREST query string, which are exactly the parts
+no test in this repository can exercise. Untested code of our own was the
+worse trade.
+
 ## Licensing and packaging
 
 **AGPL-3.0 for the core, MIT for the format libraries.** The format libraries'
