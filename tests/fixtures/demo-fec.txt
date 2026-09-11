@@ -1,0 +1,32 @@
+JournalCode|JournalLib|EcritureNum|EcritureDate|CompteNum|CompteLib|CompAuxNum|CompAuxLib|PieceRef|PieceDate|EcritureLib|Debit|Credit|EcritureLet|DateLet|ValidDate|Montantdevise|Idevise
+SAL|Journal des ventes|SAL/2026/0001|20260703|704000|Prestations de services|||FAC-2026-0001|20260703|Atelier de cadrage, Journees de conseil|0,00|3700,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0001|20260703|451000|TVA à payer|||FAC-2026-0001|20260703|Vente 21 %|0,00|777,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0001|20260703|400000|Clients|C0001|Atelier Dumont SRL|FAC-2026-0001|20260703|FAC-2026-0001|4477,00|0,00|A0001|20260805|20260901||
+PUR|Journal des achats|PUR/2026/0001|20260709|613000|Honoraires et prestations de tiers|||ACH-2026-0001|20260709|Honoraires comptables T2|1450,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0001|20260709|411000|TVA à récupérer|||ACH-2026-0001|20260709|Achat services 21 %|304,50|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0001|20260709|440000|Fournisseurs|F0001|Bureau Lelievre SA|ACH-2026-0001|20260709|ACH-2026-0001|0,00|1754,50|||20260901||
+SAL|Journal des ventes|SAL/2026/0002|20260724|704000|Prestations de services|||FAC-2026-0002|20260724|Support mensuel|0,00|800,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0002|20260724|451000|TVA à payer|||FAC-2026-0002|20260724|Vente 21 %|0,00|168,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0002|20260724|400000|Clients|C0001|Atelier Dumont SRL|FAC-2026-0002|20260724|FAC-2026-0002|968,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0002|20260731|612400|Logiciels et abonnements informatiques|||ACH-2026-0002|20260731|Abonnement plateforme, un an|990,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0002|20260731|411000|TVA à récupérer|||ACH-2026-0002|20260731|Service intracom. recu 21 %|207,90|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0002|20260731|451000|TVA à payer|||ACH-2026-0002|20260731|Service intracom. recu 21 %|0,00|207,90|||20260901||
+PUR|Journal des achats|PUR/2026/0002|20260731|440000|Fournisseurs|F0002|Hollandia Software BV|ACH-2026-0002|20260731|ACH-2026-0002|0,00|990,00|||20260901||
+PUR|Journal des achats|PUR/2026/0003|20260801|610000|Loyers et charges locatives|||ACH-2026-0003|20260801|Loyer du bureau, aout|1200,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0003|20260801|411000|TVA à récupérer|||ACH-2026-0003|20260801|Achat services 21 %|252,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0003|20260801|440000|Fournisseurs|F0003|Immo Central SA|ACH-2026-0003|20260801|ACH-2026-0003|0,00|1452,00|||20260901||
+BNK|Journal financier|BNK/2026/0001|20260805|550000|Banque — compte courant|||FAC-2026-0001|20260805|Reglement Atelier Dumont|4477,00|0,00|||20260901||
+BNK|Journal financier|BNK/2026/0001|20260805|400000|Clients|C0001|Atelier Dumont SRL|FAC-2026-0001|20260805|FAC-2026-0001|0,00|4477,00|A0001|20260805|20260901||
+SAL|Journal des ventes|SAL/2026/0003|20260805|700100|Ventes — Belgique|||FAC-2026-0003|20260805|Brochure imprimee|0,00|400,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0003|20260805|451000|TVA à payer|||FAC-2026-0003|20260805|Vente 6 %|0,00|24,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0003|20260805|400000|Clients|C0001|Atelier Dumont SRL|FAC-2026-0003|20260805|FAC-2026-0003|424,00|0,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0004|20260812|700200|Ventes — Union européenne|||FAC-2026-0004|20260812|Audit technique|0,00|3200,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0004|20260812|400000|Clients|C0002|Studio Verhoeven BV|FAC-2026-0004|20260812|FAC-2026-0004|3200,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0004|20260820|241000|Matériel de bureau et matériel informatique|||ACH-2026-0004|20260820|Poste de travail|2400,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0004|20260820|411000|TVA à récupérer|||ACH-2026-0004|20260820|Achat investissement 21 %|504,00|0,00|||20260901||
+PUR|Journal des achats|PUR/2026/0004|20260820|440000|Fournisseurs|F0001|Bureau Lelievre SA|ACH-2026-0004|20260820|ACH-2026-0004|0,00|2904,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0005|20260828|700300|Ventes — hors Union européenne|||FAC-2026-0005|20260828|Licence annuelle|0,00|5400,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0005|20260828|400000|Clients|C0003|Northwind Systems Inc|FAC-2026-0005|20260828|FAC-2026-0005|5400,00|0,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0006|20260830|704000|Prestations de services|||NCC-2026-0001|20260830|Remise sur support mensuel|300,00|0,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0006|20260830|451000|TVA à payer|||NCC-2026-0001|20260830|Vente 21 %|63,00|0,00|||20260901||
+SAL|Journal des ventes|SAL/2026/0006|20260830|400000|Clients|C0001|Atelier Dumont SRL|NCC-2026-0001|20260830|NCC-2026-0001|0,00|363,00|||20260901||
