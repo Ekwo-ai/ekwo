@@ -15,6 +15,9 @@ import { fromQueryRow, generateFec, type FecOptions, type FecQueryRow } from './
 import type {
   AgedBalanceRow,
   Entry,
+  Instance,
+  InstanceEdition,
+  InstanceMember,
   IsoDate,
   TrialBalanceRow,
   Uuid,
@@ -124,6 +127,50 @@ export class EkwoClient {
       p_to: range.to,
     });
     return generateFec(unwrap(result, 'fec_lines').map(fromQueryRow), options);
+  }
+
+  /**
+   * Records the installation. Called once, by the installer; raises if this
+   * database has already been set up.
+   */
+  async initInstance(
+    organizationName: string,
+    country: string,
+    edition: InstanceEdition = 'community',
+  ): Promise<Instance> {
+    const result = await this.db.rpc<Instance>('init_instance', {
+      p_organization_name: organizationName,
+      p_country: country,
+      p_edition: edition,
+    });
+    return unwrap(result, 'init_instance');
+  }
+
+  /**
+   * Makes a user an instance administrator. The first claim is open; after
+   * that only an administrator may appoint another.
+   */
+  async claimInstanceAdmin(userId?: Uuid): Promise<InstanceMember> {
+    const result = await this.db.rpc<InstanceMember>('claim_instance_admin', {
+      p_user_id: userId ?? null,
+    });
+    return unwrap(result, 'claim_instance_admin');
+  }
+
+  /**
+   * Opt-in: records an address so Ekwo can reach the operator. Never
+   * required, and `unregisterInstance()` undoes it.
+   */
+  async registerInstance(contactEmail: string): Promise<Instance> {
+    const result = await this.db.rpc<Instance>('register_instance', {
+      p_contact_email: contactEmail,
+    });
+    return unwrap(result, 'register_instance');
+  }
+
+  async unregisterInstance(): Promise<Instance> {
+    const result = await this.db.rpc<Instance>('unregister_instance', {});
+    return unwrap(result, 'unregister_instance');
   }
 
   /** Installs a country chart of accounts, journals and taxes into a company. */

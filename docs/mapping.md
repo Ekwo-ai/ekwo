@@ -15,6 +15,15 @@ connector in a day instead of reading two schemas in parallel for a week.
 
 An empty cell means there is no counterpart, which is itself information.
 
+## Instance
+
+| Ekwo | Odoo | EN 16931 | FEC |
+|---|---|---|---|
+| `instance` | *(no counterpart: Odoo is multi-company inside one deployment, not one deployment per customer)* | | |
+| `instance.edition` | Community / Enterprise, switched by `web_enterprise` and a subscription key | | |
+| `instance_members.role = 'instance_admin'` | the `base.group_system` group | | |
+| *(no counterpart)* | `res.company` as a tenant boundary | | |
+
 ## Company and period
 
 | Ekwo | Odoo | EN 16931 | FEC |

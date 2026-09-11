@@ -3,6 +3,70 @@
 Why the schema is shaped this way. One paragraph each, with the reason, so a
 future contributor can argue with the reason rather than guess at it.
 
+## The instance
+
+**One installation belongs to one customer, and `instance` records it.** A
+single row — primary key `1`, plus a check constraint, so a second one is
+impossible rather than merely unusual — holding a locally generated
+`instance_id`, the organisation's name, its country, the edition, the schema
+version and the install date. This table is the reason there is no
+`tenant_id` anywhere in the schema: the instance *is* the tenant, so the
+cross-customer column and its risk of leaking never exist. What remains
+inside an instance is several companies and several people with different
+rights, which is `company_id` and row level security.
+
+**Registering with Ekwo is an opt-in, and never a condition of use.**
+`contact_email` and `registered_at` are empty on a fresh install. Nothing
+writes them unless the operator calls `register_instance()`, nothing in this
+repository reads them, and `unregister_instance()` puts them back —
+because opting in that cannot be undone is not a choice. `instance_id` is
+generated locally and is not a licence key: no code path checks it, and no
+feature depends on it.
+
+**`edition` records who operates the installation, and gates nothing.**
+`community` when you run it yourself, `cloud` when Ekwo does. It is there so
+support and migrations know what they are looking at, not so a feature can be
+switched off. Gating an accounting feature on a column would make the open
+core a demo.
+
+**There is an instance-level role, and it is in the same vocabulary as the
+company roles.** `member_role` now carries `instance_admin` alongside
+`owner`, `accountant` and `viewer`, so an interface renders one list and an
+API speaks one language. The storage is split into `instance_members`,
+because the keys genuinely differ — a company role is keyed by (company,
+user), an instance role by user alone — and making `company_id` nullable in
+`company_members` would break its primary key and the meaning of every row in
+it. A check constraint on each table refuses the roles that do not belong to
+it, so the split cannot drift.
+
+**An instance administrator creates companies and invites members; that is
+all.** They can list the companies and administer them, and they cannot read
+a ledger they were not invited to. Administering an installation is not the
+same as being on the books, and a test asserts the difference.
+
+**The first user to ask takes the instance.** `claim_instance_admin()` is
+open while `instance_members` is empty and closed afterwards, which is the
+same bootstrap the first member of a company gets. It avoids an installer
+that has to hold a password.
+
+**A select policy has to follow every insert policy.** `insert ... returning`
+is checked against the select policy as well, and PostgREST always returns
+the row, so an administrator creating a company would have seen the row
+created and an error returned. `companies_select` and
+`company_members_select` therefore admit the instance administrator too. This
+is worth writing down because the symptom — "violates row-level security" on
+a row that was in fact written — points at the wrong policy.
+
+**Users live in the customer's own Supabase Auth.** `company_members.user_id`
+and `instance_members.user_id` hold an `auth.users.id` from the customer's
+project, matched against `auth.uid()` in every policy. Ekwo holds no account
+and no directory. There is deliberately **no foreign key** to `auth.users`:
+it would make the schema refuse to install on a plain Postgres, and it would
+force seeds and fixtures to write into `auth`, which Supabase treats as its
+own. The cost is that a deleted auth user leaves an orphan membership row,
+which a cleanup job or an `on delete cascade` added by the operator can
+handle.
+
 ## Structure
 
 **Documents and entries stay two layers, joined by a foreign key.** An invoice

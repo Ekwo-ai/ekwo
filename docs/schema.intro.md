@@ -6,7 +6,13 @@ cannot drift from what the database actually holds. Regenerate it with
 
 ## Shape
 
+One installation belongs to one customer. That is why there is no `tenant_id`
+anywhere: the instance is the tenant, and `instance` records it in a single
+row written by the installer.
+
 ```
+instance                                 one row: who installed it, where, which edition
+instance_members                         instance administrators
 companies ─┬─ company_members            who may read or write, in three roles
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, eighteen types
@@ -39,9 +45,22 @@ the four template tables plus `country_defaults` that
    `fiscal_years.is_closed`. Matching stays allowed.
 5. **A third-party account is reconcilable.** A check constraint refuses an
    `asset_receivable` or `liability_payable` account that is not.
-6. **Every table has row level security**, driven by `company_members`:
-   `viewer` reads, `accountant` writes, `owner` also administers the company
-   and its members.
+6. **Every table has row level security.** At instance level,
+   `instance_admin` in `instance_members` creates companies and invites
+   members. Per company, `company_members` gives `viewer` read, `accountant`
+   write, and `owner` administration of the company and its members. An
+   instance administrator can see the list of companies and invite people
+   into them; they cannot read a ledger they were not invited to.
+7. **The instance row is a singleton.** A primary key of `1` and a check
+   constraint make a second row impossible, not merely unusual.
+
+## Registration is opt-in
+
+`instance.contact_email` and `instance.registered_at` are empty on a fresh
+install. Nothing writes them unless the operator calls `register_instance()`,
+nothing in this repository reads them, and `unregister_instance()` puts them
+back. Community works unregistered, forever. `instance.edition` records
+whether Ekwo operates the installation; it gates nothing here.
 
 ## Account types
 

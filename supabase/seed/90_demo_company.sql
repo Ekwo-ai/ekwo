@@ -4,6 +4,10 @@
 -- invoices, a payment, a matching and a bank statement. Everything here is
 -- invented: no real company, person, VAT number or bank account.
 --
+-- It also stands in for the installer: it records the instance and claims the
+-- first instance administrator, which is what `init_instance()` and
+-- `claim_instance_admin()` do on a real install.
+--
 -- Drop this file from `supabase/seed/` before installing on a real project.
 
 do $$
@@ -30,6 +34,13 @@ begin
   if exists (select 1 from companies where vat_number = 'BE0123456749') then
     return;
   end if;
+
+  -- A real installation calls init_instance() from the installer; the demo
+  -- stands in for it so the seeded database looks like an installed one.
+  if not exists (select 1 from instance) then
+    perform init_instance('Exemple Conseil', 'BE', 'community');
+  end if;
+  perform claim_instance_admin(v_owner);
 
   insert into companies (name, legal_name, legal_form, country, fiscal_country,
                          vat_number, registration_number, address_line1,

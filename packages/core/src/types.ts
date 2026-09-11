@@ -14,7 +14,48 @@ export type IsoTimestamp = string;
 /** Postgres `numeric`, carried as a string so no cent is lost to a float. */
 export type Decimal = string;
 
-export type MemberRole = 'owner' | 'accountant' | 'viewer';
+/**
+ * One vocabulary for the whole installation. `instance_admin` is the
+ * instance-level role and lives in `instance_members`; the other three are
+ * per company and live in `company_members`. A check constraint on each
+ * table keeps them apart.
+ */
+export type MemberRole = 'instance_admin' | 'owner' | 'accountant' | 'viewer';
+
+export type CompanyRole = Exclude<MemberRole, 'instance_admin'>;
+
+export type InstanceEdition = 'community' | 'cloud';
+
+/**
+ * The installation itself: exactly one row, written by the installer.
+ *
+ * There is no `tenant_id` in this schema because the instance is the tenant.
+ * `contact_email` and `registered_at` are an opt-in: they are empty on a
+ * fresh install, nothing writes them unless the operator asks, and nothing
+ * checks them.
+ */
+export interface Instance {
+  id: 1;
+  instance_id: Uuid;
+  organization_name: string;
+  country: string;
+  edition: InstanceEdition;
+  schema_version: string;
+  installed_at: IsoTimestamp;
+  contact_email: string | null;
+  registered_at: IsoTimestamp | null;
+}
+
+export interface InstanceMember {
+  user_id: Uuid;
+  role: 'instance_admin';
+  created_at: IsoTimestamp;
+}
+
+/** True when the operator has opted into being registered with Ekwo. */
+export function isRegistered(instance: Instance): boolean {
+  return instance.registered_at !== null;
+}
 
 export const ACCOUNT_TYPES = [
   'asset_receivable',
@@ -131,6 +172,13 @@ export interface Company {
   sales_journal_id: Uuid | null;
   purchase_journal_id: Uuid | null;
   miscellaneous_journal_id: Uuid | null;
+}
+
+export interface CompanyMember {
+  company_id: Uuid;
+  user_id: Uuid;
+  role: CompanyRole;
+  created_at: IsoTimestamp;
 }
 
 export interface FiscalYear {

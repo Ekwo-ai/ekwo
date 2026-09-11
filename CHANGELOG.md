@@ -13,7 +13,19 @@ somewhere has already run it.
 
 ### Added
 
-- **Schema.** Twenty-nine tables across companies and membership, fiscal
+- **The instance.** `instance`, a singleton row written by the installer:
+  a locally generated `instance_id`, the organisation, its country, the
+  edition (`community` or `cloud`), the schema version and the install date.
+  `contact_email` and `registered_at` are an opt-in, empty by default, read by
+  nothing, and reversible through `unregister_instance()`. There is no
+  `tenant_id` anywhere in the schema: the instance is the tenant.
+- **An instance-level role.** `member_role` gains `instance_admin`, stored in
+  `instance_members`; it creates companies and invites members, and cannot
+  read a ledger it was not invited to. `init_instance()`,
+  `claim_instance_admin()`, `register_instance()`, `unregister_instance()` and
+  `is_instance_admin()` come with it. Users live in the customer's own
+  Supabase Auth.
+- **Schema.** Thirty further tables across companies and membership, fiscal
   years, chart of accounts, journals, contacts, taxes and tax postings,
   journal entries and lines, documents and document lines, payments,
   reconciliations, bank accounts, statements and transactions, currencies and
@@ -45,6 +57,7 @@ somewhere has already run it.
   declaration boxes, eleven currencies, and a fictional demo company.
 - **`@ekwo-ai/core`**: types of the schema, a thin client over the accounting
   functions, and the French FEC generator with its file-level checks.
-- **Tests**: 71 of them, running every migration and seed against Postgres in
+- **Tests**: 86 of them, running every migration and seed against Postgres in
   WebAssembly, covering posting, credit notes, self-assessment, matching,
-  period locks, reports, row level security and a golden FEC export.
+  period locks, reports, row level security, the instance singleton and its
+  roles, and a golden FEC export.

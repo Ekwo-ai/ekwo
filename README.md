@@ -23,7 +23,7 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
-- **Tested on real Postgres.** 71 tests run the migrations, the seeds and the
+- **Tested on real Postgres.** 86 tests run the migrations, the seeds and the
   accounting scenarios against Postgres compiled to WebAssembly.
 
 ## Install on your own Supabase project
@@ -44,9 +44,15 @@ psql "$DATABASE_URL" -f supabase/seed/20_taxes_be.sql   # or 21_taxes_fr.sql
 
 Skip `supabase/seed/90_demo_company.sql` unless you want the sample data.
 
-Then create your company and let the template do the rest:
+Then record the installation, take the first administrator seat, and create
+your company:
 
 ```sql
+-- once per installation
+select init_instance('My Organisation', 'BE', 'community');
+select claim_instance_admin();          -- the first user to ask takes it
+
+-- once per company
 insert into companies (name, country, fiscal_country, currency_code)
 values ('My Company', 'BE', 'BE', 'EUR')
 returning id;
@@ -70,6 +76,8 @@ of work; until it lands, the CLI above is the supported path.
 ## The schema in twenty lines
 
 ```
+instance                                 one row: who installed it, where, which edition
+instance_members                         instance administrators
 companies ─┬─ company_members            who may read or write
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, 18 account types
@@ -84,6 +92,18 @@ companies ─┬─ company_members            who may read or write
            ├─ analytic_axes ── analytic_values ── entry_line_analytics
            └─ attachments                files, polymorphic
 ```
+
+One installation belongs to one customer, so there is no `tenant_id`
+anywhere: `instance` is that fact, in one row. Inside it, `instance_admin`
+creates companies and invites people, and `company_members` gives each person
+`owner`, `accountant` or `viewer` on each company. Your users live in your own
+Supabase Auth; Ekwo never holds an account.
+
+**Registering with Ekwo is optional and empty by default.** `contact_email`
+and `registered_at` on the instance row stay null unless you call
+`register_instance()`, nothing in this repository reads them, and
+`unregister_instance()` puts them back. Community works unregistered, forever,
+and `edition` gates no feature.
 
 `post_document(id)` turns a document into an entry. `trial_balance`,
 `general_ledger`, `aged_balance`, `vat_return` and `fec_lines` read it back.

@@ -6,7 +6,13 @@ cannot drift from what the database actually holds. Regenerate it with
 
 ## Shape
 
+One installation belongs to one customer. That is why there is no `tenant_id`
+anywhere: the instance is the tenant, and `instance` records it in a single
+row written by the installer.
+
 ```
+instance                                 one row: who installed it, where, which edition
+instance_members                         instance administrators
 companies ─┬─ company_members            who may read or write, in three roles
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, eighteen types
@@ -39,9 +45,22 @@ the four template tables plus `country_defaults` that
    `fiscal_years.is_closed`. Matching stays allowed.
 5. **A third-party account is reconcilable.** A check constraint refuses an
    `asset_receivable` or `liability_payable` account that is not.
-6. **Every table has row level security**, driven by `company_members`:
-   `viewer` reads, `accountant` writes, `owner` also administers the company
-   and its members.
+6. **Every table has row level security.** At instance level,
+   `instance_admin` in `instance_members` creates companies and invites
+   members. Per company, `company_members` gives `viewer` read, `accountant`
+   write, and `owner` administration of the company and its members. An
+   instance administrator can see the list of companies and invite people
+   into them; they cannot read a ledger they were not invited to.
+7. **The instance row is a singleton.** A primary key of `1` and a check
+   constraint make a second row impossible, not merely unusual.
+
+## Registration is opt-in
+
+`instance.contact_email` and `instance.registered_at` are empty on a fresh
+install. Nothing writes them unless the operator calls `register_instance()`,
+nothing in this repository reads them, and `unregister_instance()` puts them
+back. Community works unregistered, forever. `instance.edition` records
+whether Ekwo operates the installation; it gates nothing here.
 
 ## Account types
 
@@ -133,6 +152,8 @@ the return say the same thing, because they are the same rows.
 | [`entry_line_analytics`](#entry_line_analytics) | Analytic split of a ledger line. One row per value, share in percent. |
 | [`entry_lines`](#entry_lines) | Ledger lines. Amounts are always positive; a reversal flips the side, it never negates. |
 | [`fiscal_years`](#fiscal_years) | Accounting periods. An exercise is an object, not two integers on the company. |
+| [`instance`](#instance) | The installation itself. Exactly one row. Registration with Ekwo is optional and empty by default. |
+| [`instance_members`](#instance_members) | Instance administrators: they create companies and invite members. user_id is an auth.users id from the customer's own Supabase project. |
 | [`journal_sequences`](#journal_sequences) | Counter behind next_entry_number(). One row per journal and year. |
 | [`journal_templates`](#journal_templates) |  |
 | [`journals`](#journals) | Books of entry. The code is the first segment of every entry number. |
@@ -391,6 +412,7 @@ Who may read or write a company. `owner` administers, `accountant` books, `viewe
 
 Constraints:
 
+- `CHECK ((role <> 'instance_admin'::member_role))`
 - `PRIMARY KEY (company_id, user_id)`
 
 ### `contacts`
@@ -690,6 +712,47 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, start_date)`
 
+### `instance`
+
+The installation itself. Exactly one row. Registration with Ekwo is optional and empty by default.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `smallint` | not null |
+| `instance_id` | `uuid` | not null — Stable identifier of this installation, generated locally. Never a licence key. |
+| `organization_name` | `text` | not null |
+| `country` | `character(2)` | not null |
+| `edition` | `instance_edition` | not null — community when you run it yourself, cloud when Ekwo operates it. Gates nothing in this repository. |
+| `schema_version` | `text` | not null — Version of the schema at install, updated by migrations. |
+| `installed_at` | `timestamp with time zone` | not null |
+| `contact_email` | `text` | Opt-in only: an address to reach the operator. Empty unless they asked to register. |
+| `registered_at` | `timestamp with time zone` | Opt-in only: when the operator registered with Ekwo. Empty means not registered, which is a supported state. |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK (((registered_at IS NULL) OR (contact_email IS NOT NULL)))`
+- `CHECK ((id = 1))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (instance_id)`
+
+### `instance_members`
+
+Instance administrators: they create companies and invite members. user_id is an auth.users id from the customer's own Supabase project.
+
+| Column | Type | Notes |
+|---|---|---|
+| `user_id` | `uuid` | not null — An auth.users.id in the customer's Supabase Auth. No foreign key, so the schema installs on a plain Postgres and seeds never write into auth. |
+| `role` | `member_role` | not null |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((role = 'instance_admin'::member_role))`
+- `PRIMARY KEY (user_id)`
+
 ### `journal_sequences`
 
 Counter behind next_entry_number(). One row per journal and year.
@@ -919,21 +982,27 @@ Constraints:
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Open receivables (or payables) by age, from unmatched ledger lines. p_group is 'receivable' or 'payable'. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
+| `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
+| `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
+| `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
 | `install_country_template(p_company_id uuid, p_country character)` | Copies a country chart of accounts, journals and taxes into a company and wires the default roles. |
+| `is_instance_admin()` | Whether the current user administers this installation. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. |
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings, and a counterpart that balances by construction. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. |
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line for an amount, defaulting to the smaller open amount. |
+| `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
+| `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `vat_return(p_company_id uuid, p_from date, p_to date)` | VAT return boxes for a period, summed from the declaration boxes written on the ledger lines. |
 
 ---
