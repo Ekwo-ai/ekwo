@@ -1,0 +1,31 @@
+{
+  "name": "@ekwo-ai/core",
+  "version": "0.1.0",
+  "description": "TypeScript types and the French FEC generator for the Ekwo OS accounting schema.",
+  "keywords": ["accounting", "fec", "supabase", "postgres", "pcmn", "pcg", "bookkeeping", "ekwo"],
+  "license": "AGPL-3.0-only",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/Ekwo-ai/ekwo.git", "directory": "packages/core" },
+  "bugs": { "url": "https://github.com/Ekwo-ai/ekwo/issues" },
+  "type": "module",
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "files": ["dist", "README.md", "CHANGELOG.md"],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./fec": { "types": "./dist/fec.d.ts", "import": "./dist/fec.js" }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@supabase/supabase-js": { "optional": true }
+  }
+}
