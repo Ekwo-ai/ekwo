@@ -11,6 +11,10 @@ somewhere has already run it.
 
 ### Fixed
 
+- `record_payment` (MCP) asked for a journal even when `bank_account_id` was
+  given, although the account carries its journal. It now takes the journal
+  from the account. Found on the first run against a real Supabase project.
+
 - **`--db-region` built a pooler hostname and called it the answer.** The
   region does not determine the generation prefix: a project created in
   `eu-west-3` answers on `aws-1-eu-west-3.pooler.supabase.com` and returns

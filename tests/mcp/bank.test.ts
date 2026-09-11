@@ -181,4 +181,47 @@ describe('a payment on that account', () => {
     );
     expect(document['payment_state']).toBe('paid');
   });
+
+  it('takes the journal from the bank account when the caller names only the account', async () => {
+    // Found on the first real run of the server: record_payment with a
+    // bank_account_id and no journal answered missing_journal, although the
+    // account had carried its journal since ekwo init created it.
+    const accounts = list(
+      record(await readTools.listBankAccounts(accountant, { company_id: one.companyId }))[
+        'bank_accounts'
+      ],
+    );
+    const bankAccountId = String(accounts[0]?.['id']);
+    const payment = record(
+      await writeTools.recordPayment(accountant, {
+        company_id: one.companyId,
+        direction: 'inbound',
+        amount: '50.00',
+        payment_date: '2026-06-21',
+        bank_account_id: bankAccountId,
+        match_open_items: false,
+      }),
+    );
+    const journal = await rows<{ id: string }>(
+      db,
+      `select id from journals where company_id = $1 and code = 'BNK'`,
+      [one.companyId],
+    );
+    expect(record(payment['payment'])['journal_id']).toBe(journal[0]?.id);
+    expect(await ledgerOfEntry(db, String(record(payment['entry'])['id']))).toEqual([
+      { code: '550000', debit: '50.00', credit: '0.00' },
+      { code: '400000', debit: '0.00', credit: '50.00' },
+    ]);
+  });
+
+  it('still refuses a payment that names neither a journal nor a bank account', async () => {
+    await expect(
+      writeTools.recordPayment(accountant, {
+        company_id: one.companyId,
+        direction: 'inbound',
+        amount: '10.00',
+        payment_date: '2026-06-21',
+      }),
+    ).rejects.toThrow(/missing_journal/);
+  });
 });

@@ -617,10 +617,10 @@ export const RecordPaymentInput = z.object({
   payment_date: isoDate,
   contact_id: uuid.optional().describe('Who paid or was paid. Needed for the payment to be matched against their invoices.'),
   journal_id: uuid.optional(),
-  journal_code: z.string().min(1).optional().describe('The bank or cash journal, by code, e.g. BNK. One of journal_id or journal_code is required.'),
+  journal_code: z.string().min(1).optional().describe('The bank or cash journal, by code, e.g. BNK. Not needed when bank_account_id is given: the account knows its journal.'),
   bank_account_id: uuid
     .optional()
-    .describe('Which bank account the money moved on. list_bank_accounts says what exists; left out, the default account of the journal is used.'),
+    .describe('Which bank account the money moved on. list_bank_accounts says what exists. Given alone, it also names the journal; left out, the default account of the journal is used.'),
   reference: z.string().min(1).optional(),
   memo: z.string().min(1).optional(),
   match_open_items: z.boolean().optional().describe('Default true: match the payment against the oldest open invoices of that contact, up to the amount paid.'),
@@ -631,15 +631,28 @@ export async function recordPayment(
   args: z.infer<typeof RecordPaymentInput>,
 ): Promise<unknown> {
   let journalId = args.journal_id;
-  if (journalId === undefined) {
-    if (args.journal_code === undefined) {
-      throw new EkwoMcpError(
-        'missing_journal: a payment needs journal_id or journal_code — the bank or cash book it goes through. get_company lists the journals.',
-      );
-    }
+  if (journalId === undefined && args.journal_code !== undefined) {
     journalId = (await idsByCode(backend, 'journals', args.company_id, [args.journal_code])).get(
       args.journal_code,
     ) as string;
+  }
+  if (journalId === undefined && args.bank_account_id !== undefined) {
+    // A bank account knows the journal it moves through; asking the caller
+    // to repeat it was the first thing the real test tripped over.
+    const account = await backend.select<{ journal_id: string | null }>({
+      table: 'bank_accounts',
+      columns: ['journal_id'],
+      where: [
+        { column: 'id', op: 'eq', value: args.bank_account_id },
+        { column: 'company_id', op: 'eq', value: args.company_id },
+      ],
+    });
+    journalId = account[0]?.journal_id ?? undefined;
+  }
+  if (journalId === undefined) {
+    throw new EkwoMcpError(
+      'missing_journal: a payment needs the bank or cash book it goes through — give bank_account_id (list_bank_accounts), or journal_id / journal_code (get_company lists the journals).',
+    );
   }
 
   const payment = only(
