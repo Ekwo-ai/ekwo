@@ -25,6 +25,7 @@ subject says what the migration is about, in snake_case, without a verb.
 | `…121100_country_templates` | the template tables and `install_country_template()` |
 | `…121200_fec` | `fec_lines()` |
 | `…130000_instance`, `…130100_instance_members`, `…140000_instance_admins` | the `instance` row and the instance administrators |
+| `…160000_tax_posting_templates_unique` | the natural key of `tax_posting_templates`, so the tax seeds can be re-applied |
 
 ## Rules for a new migration
 

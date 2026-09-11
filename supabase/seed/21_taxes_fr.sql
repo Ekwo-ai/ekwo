@@ -114,4 +114,5 @@ select t.id,
     ('FR-P-IMP-20','credit_note', 'tax',  -100, '445200', '08', -100, 30)
   ) as v (tax_code, document_kind, posting_type, factor_percent, account_code,
           declaration_box, box_factor_percent, sequence)
-  join tax_templates t on t.country = 'FR' and t.code = v.tax_code;
+  join tax_templates t on t.country = 'FR' and t.code = v.tax_code
+on conflict (tax_template_id, document_kind, posting_type, sequence) do nothing;

@@ -9,6 +9,14 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Fixed
+
+- Re-applying the tax seeds — a second `ekwo init` or `supabase db push` on
+  the same project — failed on `tax_posting_templates`, which had no natural
+  key to conflict on. Migration `20260911160000` adds it and the seeds use it;
+  a test now applies every reference seed twice. Found on the first real
+  installation.
+
 ### Added
 
 - **`npx ekwo init`** — `packages/cli`, published as `ekwo`. One command turns
