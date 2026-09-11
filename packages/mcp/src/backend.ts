@@ -112,7 +112,8 @@ const HINTS: Record<string, string> = {
   unsupported_tax_amount_type: 'Only percentage taxes can be posted; a fixed-amount tax has no basis to spread.',
   no_counterpart_account: 'No receivable or payable account is set, either on the contact or as a company default.',
   no_journal: 'No journal was given and the company has no default for this kind of document.',
-  no_bank_account: 'The payment names no bank account and its journal has no default account.',
+  no_bank_account: 'The payment names no bank account and its journal has no default account. create_bank_account adds one and wires it to the journal.',
+  missing_account: 'The line names no account, and the company and its country model have no default for this kind of document. Give account_code on the line, or set the company default.',
   payment_already_booked: 'This payment already has an entry.',
   payment_cancelled: 'A cancelled payment cannot be booked.',
   reconcile_same_side: 'Matching pairs a debit with a credit; both lines are on the same side.',
@@ -127,8 +128,32 @@ const HINTS: Record<string, string> = {
   unknown_payment: 'No payment with that id is visible to you.',
 };
 
+/**
+ * Check constraints that a client can legitimately provoke, in the words a
+ * model can act on.
+ *
+ * Postgres names the constraint and nothing else — "violates check constraint
+ * document_lines_product_has_account" says which rule broke and not what to
+ * do. These few are the ones reachable through a tool, so they get the same
+ * shape as a socle raise: an identifier, then a sentence.
+ */
+const CONSTRAINTS: Record<string, string> = {
+  document_lines_product_has_account:
+    'missing_account: a line has no account, and neither the product, the company nor the country model supplies a default for this kind of document',
+};
+
 /** The socle error, with the sentence that explains it when we have one. */
 export function explain(message: string): EkwoMcpError {
+  for (const [constraint, rewritten] of Object.entries(CONSTRAINTS)) {
+    if (message.includes(constraint)) {
+      const code = socleCode(rewritten);
+      const hint = code === undefined ? undefined : HINTS[code];
+      return new EkwoMcpError(rewritten, {
+        ...(code !== undefined ? { code } : {}),
+        ...(hint !== undefined ? { hint } : {}),
+      });
+    }
+  }
   const code = socleCode(message);
   const hint = code === undefined ? undefined : HINTS[code];
   return new EkwoMcpError(message, { ...(code !== undefined ? { code } : {}), ...(hint !== undefined ? { hint } : {}) });

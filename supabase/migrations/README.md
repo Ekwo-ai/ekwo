@@ -36,6 +36,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `…173000_post_payment` | `post_payment()`: money in or out becomes an entry, so no client writes ledger lines |
 | `…173100_sequence_counters_under_rls` | `next_entry_number()` and `next_matching_number()` become definer, so a signed-in user can post |
 | `…183000_country_journal_defaults` | the bank and cash journals get their account from the country model, so a first payment has somewhere to book |
+| `…193853_line_account_defaults` | the account a document line falls back to: the line, the company default, the country model — and the two `country_defaults` columns that had no reader |
 
 ## Rules for a new migration
 
