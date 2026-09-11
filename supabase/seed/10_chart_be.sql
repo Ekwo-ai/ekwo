@@ -459,6 +459,6 @@ insert into journal_templates (country, code, name, journal_type, sequence) valu
   ('BE', 'OPN',  'Journal d''ouverture', 'opening',  60)
 on conflict (country, code) do nothing;
 
-insert into country_defaults (country, name, currency_code, receivable_code, payable_code, suspense_code, rounding_code, retained_earnings_code, sales_account_code, purchase_account_code, bank_account_code, sales_journal_code, purchase_journal_code, misc_journal_code) values
-  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', 'SAL', 'PUR', 'MISC')
+insert into country_defaults (country, name, currency_code, receivable_code, payable_code, suspense_code, rounding_code, retained_earnings_code, sales_account_code, purchase_account_code, bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code, misc_journal_code) values
+  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC')
 on conflict (country) do nothing;

@@ -35,6 +35,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `…170000_document_amount_paid` | `documents.amount_paid` derived from the matching, inside the reconciliation trigger, never written by hand |
 | `…173000_post_payment` | `post_payment()`: money in or out becomes an entry, so no client writes ledger lines |
 | `…173100_sequence_counters_under_rls` | `next_entry_number()` and `next_matching_number()` become definer, so a signed-in user can post |
+| `…183000_country_journal_defaults` | the bank and cash journals get their account from the country model, so a first payment has somewhere to book |
 
 ## Rules for a new migration
 

@@ -488,6 +488,6 @@ insert into journal_templates (country, code, name, journal_type, sequence) valu
   ('FR', 'OPN',  'Journal des à-nouveaux', 'opening',  60)
 on conflict (country, code) do nothing;
 
-insert into country_defaults (country, name, currency_code, receivable_code, payable_code, suspense_code, rounding_code, retained_earnings_code, sales_account_code, purchase_account_code, bank_account_code, sales_journal_code, purchase_journal_code, misc_journal_code) values
-  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', 'SAL', 'PUR', 'MISC')
+insert into country_defaults (country, name, currency_code, receivable_code, payable_code, suspense_code, rounding_code, retained_earnings_code, sales_account_code, purchase_account_code, bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code, misc_journal_code) values
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC')
 on conflict (country) do nothing;

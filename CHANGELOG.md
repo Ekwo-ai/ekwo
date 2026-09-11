@@ -11,6 +11,15 @@ somewhere has already run it.
 
 ### Fixed
 
+- **A freshly installed company refused its first payment.**
+  `country_defaults.bank_account_code` was declared from the first release and
+  read by nothing, so `install_country_template` left
+  `journals.default_account_id` null on every journal and `post_payment()`
+  found no bank side — the demo seed wired it by hand, which was the symptom.
+  Migration `20260911183000` adds `cash_account_code` to the country model and
+  points the bank and cash journals at their account (`550000` / `570000` in
+  the PCMN, `512000` / `530000` in the PCG). A company that already chose a
+  default account keeps it.
 - **Nobody but the database owner could post an entry.** `next_entry_number()`
   and `next_matching_number()` write `journal_sequences` and
   `matching_sequences`, which carry a select policy and no other, and both ran
@@ -27,6 +36,10 @@ somewhere has already run it.
 
 ### Added
 
+- **The write path has a test under row level security.** Every test in this
+  repository ran as the table owner, which is exempt, so the two bugs above
+  were invisible: an accountant now posts a document and matches a payment
+  under `set role authenticated`, and both counters are exercised.
 - **`npx @ekwo-ai/mcp`** — `packages/mcp`, the Model Context Protocol server.
   Twenty-two tools over stdio: read the companies, the chart of accounts, the
   contacts, the documents and the bank lines; create a contact, a draft

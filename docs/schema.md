@@ -479,6 +479,7 @@ Which template account plays which role, per country.
 | `sales_journal_code` | `text` | not null |
 | `purchase_journal_code` | `text` | not null |
 | `misc_journal_code` | `text` | not null |
+| `cash_account_code` | `text` | Ledger account behind the cash journal of this country. 570000 in the PCMN, 530000 in the PCG. |
 
 Constraints:
 
@@ -990,7 +991,7 @@ Constraints:
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
-| `install_country_template(p_company_id uuid, p_country character)` | Copies a country chart of accounts, journals and taxes into a company and wires the default roles. |
+| `install_country_template(p_company_id uuid, p_country character)` | Copies a country chart of accounts, journals and taxes into a company, wires the default roles and points the financial journals at their account. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |

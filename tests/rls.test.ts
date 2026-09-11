@@ -1,7 +1,13 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
-import { demoCompanyId, DEMO_OWNER, newCompany, newContact } from './helpers/factory.js';
+import {
+  demoCompanyId,
+  DEMO_OWNER,
+  newCompany,
+  newContact,
+  newDocument,
+} from './helpers/factory.js';
 
 let db: PGlite;
 let companyId: string;
@@ -131,6 +137,50 @@ describe('row level security', () => {
       rows<{ company_id: string }>(db, `select distinct company_id from accounts`),
     );
     expect(accounts.map((a) => a.company_id)).toEqual([other.companyId]);
+  });
+
+  it('lets an accountant post and match, and not only read', async () => {
+    // The counters behind next_entry_number() and next_matching_number() are
+    // select-only tables, and the functions used to run as the caller: posting
+    // worked for the table owner — which is what every other test is — and
+    // failed for every signed-in user. The write path needs its own test.
+    const customer = await newContact(db, companyId, { name: 'Client RLS' });
+    const doc = await newDocument(db, companyId, {
+      docType: 'sale_invoice',
+      number: 'FAC-RLS-001',
+      contactId: customer,
+      date: '2026-09-15',
+      lines: [{ unitPrice: 100, taxCode: 'BE-S-21', accountCode: '704000' }],
+    });
+
+    const entry = await asUser(db, accountantId, async () =>
+      one<{ number: string; state: string }>(db, `select * from post_document($1)`, [doc]),
+    );
+    expect(entry.state).toBe('posted');
+    expect(entry.number).toMatch(/^SAL\/2026\/\d{4}$/);
+
+    // And money against it, which draws a matching letter from the other counter.
+    const matching = await asUser(db, accountantId, async () => {
+      const payment = await one<{ id: string }>(
+        db,
+        `insert into payments (company_id, direction, payment_date, amount, contact_id, journal_id)
+         values ($1, 'inbound', date '2026-09-20', 121.00, $2,
+                 (select id from journals where company_id = $1 and code = 'BNK'))
+         returning id`,
+        [companyId, customer],
+      );
+      await db.query(`select post_payment($1)`, [payment.id]);
+      return one<{ matching_number: string }>(
+        db,
+        `select * from reconcile(
+           (select l.id from entry_lines l join entries e on e.id = l.entry_id
+             where e.document_id = $1 and l.contact_id = $2),
+           (select l.id from entry_lines l join payments p on p.entry_id = l.entry_id
+             where p.id = $3 and l.contact_id = $2))`,
+        [doc, customer, payment.id],
+      );
+    });
+    expect(matching.matching_number).toMatch(/^A\d{4}$/);
   });
 
   it('shows nothing at all to an anonymous visitor', async () => {

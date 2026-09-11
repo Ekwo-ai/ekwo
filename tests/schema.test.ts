@@ -157,6 +157,49 @@ describe('country templates', () => {
     expect(company.sales).toBe('SAL');
   });
 
+  it('points the financial journals at their account, per country', async () => {
+    // `post_payment` looks for the bank side on the journal's default account
+    // when the payment names no bank account. Before this was wired, a freshly
+    // installed company refused the first payment with `no_bank_account` and
+    // the operator had to discover `journals.default_account_id` themselves.
+    const fr = await newCompany(db, { country: 'FR', name: 'Journaux SAS' });
+    const be = await newCompany(db, { country: 'BE', name: 'Journaux SRL' });
+
+    const wired = async (companyId: string): Promise<Record<string, string | null>> => {
+      const found = await rows<{ code: string; account: string | null }>(
+        db,
+        `select j.code, a.code as account
+           from journals j
+           left join accounts a on a.id = j.default_account_id
+          where j.company_id = $1 and j.journal_type in ('bank', 'cash')
+          order by j.code`,
+        [companyId],
+      );
+      return Object.fromEntries(found.map((row) => [row.code, row.account]));
+    };
+
+    expect(await wired(fr.companyId)).toEqual({ BNK: '512000', CSH: '530000' });
+    expect(await wired(be.companyId)).toEqual({ BNK: '550000', CSH: '570000' });
+  });
+
+  it('leaves a default account the company already chose', async () => {
+    const fx = await newCompany(db, { country: 'BE', name: 'Choix SRL' });
+    await db.query(
+      `update journals set default_account_id = account_id_by_code($1, '550100')
+        where company_id = $1 and code = 'BNK'`,
+      [fx.companyId],
+    );
+    await db.query(`select install_country_template($1, 'BE')`, [fx.companyId]);
+
+    const journal = await one<{ account: string }>(
+      db,
+      `select a.code as account from journals j join accounts a on a.id = j.default_account_id
+        where j.company_id = $1 and j.code = 'BNK'`,
+      [fx.companyId],
+    );
+    expect(journal.account).toBe('550100');
+  });
+
   it('books a French 20 % invoice on the French chart', async () => {
     const fx = await newCompany(db, { country: 'FR', name: 'Autre SAS' });
     await db.query(
