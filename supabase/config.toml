@@ -1,0 +1,34 @@
+# Ekwo OS — Supabase project configuration.
+#
+# `project_id` is a local label; `supabase link --project-ref <ref>` is what
+# points the CLI at your own project.
+
+project_id = "ekwo"
+
+[db]
+major_version = 15
+
+[db.migrations]
+schema_paths = []
+
+# `supabase db reset` applies these after the migrations. The demo company
+# (supabase/seed/90_demo_company.sql) is deliberately left out: apply it by
+# hand when you want the sample data.
+[db.seed]
+enabled = true
+sql_paths = [
+  "./seed/00_currencies.sql",
+  "./seed/10_chart_be.sql",
+  "./seed/11_chart_fr.sql",
+  "./seed/20_taxes_be.sql",
+  "./seed/21_taxes_fr.sql",
+]
+
+[api]
+enabled = true
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[auth]
+enabled = true
