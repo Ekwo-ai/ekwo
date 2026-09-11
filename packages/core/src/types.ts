@@ -331,6 +331,79 @@ export interface EkwoDocument {
   sent_at: IsoTimestamp | null;
 }
 
+/** What a product is: a service or goods. They are not taxed the same way. */
+export type ProductKind = 'service' | 'goods';
+
+/**
+ * The unit codes worth offering, out of UN/ECE recommendation 20.
+ *
+ * The recommendation carries some eighteen hundred, and an invoice for
+ * professional services uses five of them. This is the short list a client
+ * proposes; `products.unit_code` accepts any well-formed code, because
+ * refusing `KWH` or `TNE` in the database because a list here is short would
+ * be the list deciding what a business may sell.
+ */
+export const UNIT_CODES = {
+  C62: 'one (a piece)',
+  HUR: 'hour',
+  DAY: 'day',
+  MON: 'month',
+  ANN: 'year',
+  KGM: 'kilogram',
+  GRM: 'gram',
+  TNE: 'tonne',
+  LTR: 'litre',
+  MTR: 'metre',
+  MTK: 'square metre',
+  MTQ: 'cubic metre',
+  KMT: 'kilometre',
+  KWH: 'kilowatt hour',
+  SET: 'set',
+  PR: 'pair',
+} as const satisfies Record<string, string>;
+
+export type UnitCode = keyof typeof UNIT_CODES;
+
+/** True for one of the codes above. A code outside it may still be valid. */
+export function isUnitCode(value: string): value is UnitCode {
+  return Object.prototype.hasOwnProperty.call(UNIT_CODES, value);
+}
+
+/**
+ * True for anything shaped like a UN/ECE rec. 20 code — the rule the database
+ * enforces on `products.unit_code`, repeated here so a client can refuse the
+ * value before the round trip rather than after it.
+ */
+export function isWellFormedUnitCode(value: string): boolean {
+  return /^[A-Z0-9]{1,3}$/.test(value);
+}
+
+/**
+ * A catalogue row. It fills a document line in and never constrains it: the
+ * line keeps its own text, price, account and tax once it has them.
+ */
+export interface Product {
+  id: Uuid;
+  company_id: Uuid;
+  /** EN 16931 BT-155, the seller's item identifier. Unique in the company. */
+  code: string;
+  /** EN 16931 BT-153. */
+  name: string;
+  /** EN 16931 BT-154. */
+  description: string | null;
+  kind: ProductKind;
+  /** UN/ECE recommendation 20, BT-130. */
+  unit_code: string;
+  currency_code: string;
+  sale_price: Decimal | null;
+  purchase_price: Decimal | null;
+  sale_account_id: Uuid | null;
+  purchase_account_id: Uuid | null;
+  sale_tax_id: Uuid | null;
+  purchase_tax_id: Uuid | null;
+  active: boolean;
+}
+
 export interface DocumentLine {
   id: Uuid;
   document_id: Uuid;
@@ -344,9 +417,39 @@ export interface DocumentLine {
   discount_percent: Decimal;
   tax_id: Uuid | null;
   account_id: Uuid | null;
+  /** The catalogue row it was filled in from, when there was one. */
+  product_id: Uuid | null;
+  /** EN 16931 BT-154; `name` is BT-153. */
+  description: string | null;
   vat_category: string | null;
   vat_rate: Decimal | null;
   amount_untaxed: Decimal;
+}
+
+/** One row of the `document_line_items` view: a line with its EN 16931 item terms. */
+export interface DocumentLineItem {
+  document_line_id: Uuid;
+  document_id: Uuid;
+  company_id: Uuid;
+  sequence: number;
+  line_type: DocumentLineType;
+  /** BT-153. */
+  item_name: string;
+  /** BT-154. */
+  item_description: string | null;
+  /** BT-155, which is `products.code`. Null on a line with no product. */
+  seller_item_identifier: string | null;
+  product_id: Uuid | null;
+  product_kind: ProductKind | null;
+  quantity: Decimal;
+  unit_code: string;
+  unit_price: Decimal;
+  discount_percent: Decimal;
+  amount_untaxed: Decimal;
+  tax_id: Uuid | null;
+  vat_category: string | null;
+  vat_rate: Decimal | null;
+  account_id: Uuid | null;
 }
 
 /** One row of `trial_balance(company_id, from, to)`. */

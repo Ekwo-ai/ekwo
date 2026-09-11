@@ -181,6 +181,31 @@ An empty cell means there is no counterpart, which is itself information.
 | `documents.entry_id` | *(implicit)* | | |
 | `documents.peppol_status`, `.peppol_message_id` | `account.move.peppol_move_state` | | |
 
+## Products
+
+`product.template` is the catalogue row in Odoo and `product.product` the
+variant of it; Ekwo has one table, because variants are a commerce feature and
+a variant with no distinct price, account or tax is a row that carries
+nothing. Nothing here is stock: there is no `qty_available`, no valuation and
+no move, and there is deliberately no counterpart to them.
+
+| Ekwo | Odoo | EN 16931 | FEC |
+|---|---|---|---|
+| `products` | `product.template` / `product.product` | BG-31 item information | |
+| `products.code` | `product.template.default_code` | BT-155 item seller identifier | |
+| `products.name` | `product.template.name` | BT-153 item name | |
+| `products.description` | `product.template.description_sale` | BT-154 item description | |
+| `products.kind` | `product.template.type` (`service` / `consu`) | | |
+| `products.unit_code` | `product.template.uom_id` | BT-130 unit of measure code | |
+| `products.sale_price` | `product.template.list_price` | BT-146 item net price | |
+| `products.purchase_price` | `product.template.standard_price` | | |
+| `products.sale_account_id` | `property_account_income_id` | | `CompteNum` |
+| `products.purchase_account_id` | `property_account_expense_id` | | `CompteNum` |
+| `products.sale_tax_id` | `product.template.taxes_id` | | |
+| `products.purchase_tax_id` | `product.template.supplier_taxes_id` | | |
+| `products.active` | `product.template.active` | | |
+| *(no counterpart)* | `product.product` variants, `qty_available`, `stock.move` | | |
+
 ## Document lines
 
 | Ekwo | Odoo | EN 16931 | FEC |
@@ -188,7 +213,9 @@ An empty cell means there is no counterpart, which is itself information.
 | `document_lines` | `account.move.line` filtered on `display_type = 'product'` | BG-25 invoice line | |
 | `document_lines.sequence` | `.sequence` | BT-126 line identifier | |
 | `document_lines.line_type` | `.display_type` | | |
+| `document_lines.product_id` | `.product_id` | | |
 | `document_lines.name` | `.name` | BT-153 item name | |
+| `document_lines.description` | `.name`, second line | BT-154 item description | |
 | `document_lines.quantity` | `.quantity` | BT-129 invoiced quantity | |
 | `document_lines.unit_code` | `.product_uom_id` | BT-130 unit of measure code | |
 | `document_lines.unit_price` | `.price_unit` | BT-146 item net price | |
@@ -201,6 +228,36 @@ An empty cell means there is no counterpart, which is itself information.
 | `document_tax_summary` (view) | `account.move.tax_totals` | BG-23 VAT breakdown | |
 | `document_tax_summary.base_amount` | | BT-116 category taxable amount | |
 | `document_tax_summary.tax_amount` | | BT-117 category tax amount | |
+| `document_line_items` (view) | `account.move.invoice_line_ids` | BG-25 with BG-31 | |
+| `document_line_items.seller_item_identifier` | `product.default_code` | BT-155 item seller identifier | |
+
+### To the Factur-X invoice object
+
+[`@ekwo-ai/factur-x`](https://github.com/Ekwo-ai/factur-x) takes a plain
+invoice object and emits EN 16931 CII XML. It is **not** a dependency of this
+repository: it lives in a private repository, and `npm ci` in CI has no
+credentials for it, so depending on it would make a fresh clone fail to
+install. The mapping is therefore written here and asserted in
+`tests/mcp/products.test.ts` without the library.
+
+Read `document_line_items` and build one line per row:
+
+| Factur-X line field | Ekwo | EN 16931 |
+|---|---|---|
+| `name` | `item_name` | BT-153 |
+| `description` | `item_description` | BT-154 |
+| `sellerItemId` | `seller_item_identifier` — the product code, null on a free-text line | BT-155 |
+| `quantity` | `quantity` | BT-129 |
+| `unitCode` | `unit_code` | BT-130 |
+| `unitPrice` | `unit_price` | BT-146 |
+| `vatRate` | `vat_rate` | BT-152 |
+| `vatCategory` | `vat_category` | BT-151 |
+
+The header comes from `documents` and `companies` as the Documents table
+above says: `number` → `number` (BT-1), `document_date` → `issueDate` (BT-2),
+`due_date` → `dueDate` (BT-9), `buyer_reference` → `buyerReference` (BT-10),
+`order_reference` → `orderReference` (BT-13), `payee_iban` → `payment.iban`
+(BT-84).
 
 ## Payments, matching, bank
 

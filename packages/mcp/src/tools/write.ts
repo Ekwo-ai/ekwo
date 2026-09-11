@@ -92,18 +92,207 @@ export async function createContact(
 }
 
 // ---------------------------------------------------------------------------
+// Products
+// ---------------------------------------------------------------------------
+
+const UNIT_CODE = z
+  .string()
+  .min(1)
+  .max(3)
+  .describe('UN/ECE recommendation 20: C62 a piece, HUR an hour, DAY a day, MON a month, KGM, LTR, MTR, KWH. Defaults to C62.');
+
+export const CreateProductInput = z.object({
+  company_id: companyId,
+  code: z.string().min(1).describe("Your own reference for the item. Unique in the company, and what EN 16931 calls the seller's item identifier (BT-155)."),
+  name: z.string().min(1).describe('What appears on the invoice line (BT-153).'),
+  description: z.string().min(1).optional().describe('The longer text under the name (BT-154).'),
+  kind: z.enum(['service', 'goods']).optional().describe('Defaults to service. Goods and services are not taxed alike and do not feed the same declaration boxes.'),
+  unit_code: UNIT_CODE.optional(),
+  currency_code: z.string().length(3).optional(),
+  sale_price: z.union([z.string(), z.number()]).optional().describe('Net unit price on a sale. A line may still carry another.'),
+  purchase_price: z.union([z.string(), z.number()]).optional(),
+  sale_account_id: uuid.optional(),
+  sale_account_code: z.string().min(1).optional().describe('Income account a sale of this books to.'),
+  purchase_account_id: uuid.optional(),
+  purchase_account_code: z.string().min(1).optional().describe('Expense account a purchase of this books to.'),
+  sale_tax_id: uuid.optional(),
+  sale_tax_code: z.string().min(1).optional().describe('Tax applied when it is sold, by code.'),
+  purchase_tax_id: uuid.optional(),
+  purchase_tax_code: z.string().min(1).optional(),
+});
+
+/** Turns the four `*_code` arguments into ids, in one query per table. */
+async function productReferences(
+  backend: Backend,
+  company: string,
+  args: {
+    sale_account_code?: string | undefined;
+    purchase_account_code?: string | undefined;
+    sale_tax_code?: string | undefined;
+    purchase_tax_code?: string | undefined;
+  },
+): Promise<{ accounts: Map<string, string>; taxes: Map<string, string> }> {
+  const [accounts, taxes] = await Promise.all([
+    idsByCode(
+      backend,
+      'accounts',
+      company,
+      [args.sale_account_code, args.purchase_account_code].filter((c): c is string => typeof c === 'string'),
+    ),
+    idsByCode(
+      backend,
+      'taxes',
+      company,
+      [args.sale_tax_code, args.purchase_tax_code].filter((c): c is string => typeof c === 'string'),
+    ),
+  ]);
+  return { accounts, taxes };
+}
+
+export async function createProduct(
+  backend: Backend,
+  args: z.infer<typeof CreateProductInput>,
+): Promise<unknown> {
+  const { accounts, taxes } = await productReferences(backend, args.company_id, args);
+
+  const created = only(
+    await backend.insert<Row>(
+      'products',
+      [
+        {
+          company_id: args.company_id,
+          code: args.code.trim(),
+          name: args.name,
+          description: args.description ?? null,
+          kind: args.kind ?? 'service',
+          unit_code: (args.unit_code ?? 'C62').toUpperCase(),
+          currency_code: args.currency_code ?? 'EUR',
+          sale_price: args.sale_price === undefined ? null : amountIn(args.sale_price),
+          purchase_price: args.purchase_price === undefined ? null : amountIn(args.purchase_price),
+          sale_account_id:
+            args.sale_account_id ?? (args.sale_account_code === undefined ? null : accounts.get(args.sale_account_code)),
+          purchase_account_id:
+            args.purchase_account_id ??
+            (args.purchase_account_code === undefined ? null : accounts.get(args.purchase_account_code)),
+          sale_tax_id: args.sale_tax_id ?? (args.sale_tax_code === undefined ? null : taxes.get(args.sale_tax_code)),
+          purchase_tax_id:
+            args.purchase_tax_id ?? (args.purchase_tax_code === undefined ? null : taxes.get(args.purchase_tax_code)),
+        },
+      ],
+      columns.PRODUCT,
+    ),
+    'the product could not be created',
+  );
+  return {
+    product: created,
+    note: 'A product fills a line in and never constrains it: create_document takes product_code, and anything the line carries wins over it.',
+  };
+}
+
+export const UpdateProductInput = z.object({
+  product_id: uuid.optional(),
+  company_id: companyId.optional().describe('Needed with product_code, to say which company the code belongs to.'),
+  product_code: z.string().min(1).optional().describe('Instead of product_id, with company_id.'),
+  code: z.string().min(1).optional().describe('A new reference for it.'),
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  kind: z.enum(['service', 'goods']).optional(),
+  unit_code: UNIT_CODE.optional(),
+  sale_price: z.union([z.string(), z.number()]).nullable().optional(),
+  purchase_price: z.union([z.string(), z.number()]).nullable().optional(),
+  sale_account_code: z.string().min(1).optional(),
+  purchase_account_code: z.string().min(1).optional(),
+  sale_tax_code: z.string().min(1).optional(),
+  purchase_tax_code: z.string().min(1).optional(),
+  active: z.boolean().optional().describe('False retires it: searches stop offering it and the lines that already carry it are untouched.'),
+});
+
+/**
+ * Changes a product. What it does not do is reach into the documents that
+ * already reference it: a line keeps the text, the price and the account it
+ * was invoiced with, because an invoice is a statement about a day and a
+ * catalogue edited afterwards must not be able to rewrite it.
+ */
+export async function updateProduct(
+  backend: Backend,
+  args: z.infer<typeof UpdateProductInput>,
+): Promise<unknown> {
+  const where: Filter[] =
+    args.product_id !== undefined
+      ? [{ column: 'id', op: 'eq', value: args.product_id }]
+      : [
+          { column: 'company_id', op: 'eq', value: args.company_id ?? '' },
+          { column: 'code', op: 'eq', value: args.product_code ?? '' },
+        ];
+  if (args.product_id === undefined && (args.company_id === undefined || args.product_code === undefined)) {
+    throw new EkwoMcpError(
+      'missing_product: give product_id, or company_id together with product_code.',
+    );
+  }
+
+  const existing = only(
+    await backend.select<Row>({ table: 'products', columns: columns.PRODUCT, where }),
+    args.product_id === undefined ? `product "${String(args.product_code)}"` : `product ${args.product_id}`,
+  );
+  const company = existing['company_id'] as string;
+  const { accounts, taxes } = await productReferences(backend, company, args);
+
+  const patch: Row = {};
+  if (args.code !== undefined) patch['code'] = args.code.trim();
+  if (args.name !== undefined) patch['name'] = args.name;
+  if (args.description !== undefined) patch['description'] = args.description;
+  if (args.kind !== undefined) patch['kind'] = args.kind;
+  if (args.unit_code !== undefined) patch['unit_code'] = args.unit_code.toUpperCase();
+  if (args.sale_price !== undefined) {
+    patch['sale_price'] = args.sale_price === null ? null : amountIn(args.sale_price);
+  }
+  if (args.purchase_price !== undefined) {
+    patch['purchase_price'] = args.purchase_price === null ? null : amountIn(args.purchase_price);
+  }
+  if (args.sale_account_code !== undefined) patch['sale_account_id'] = accounts.get(args.sale_account_code);
+  if (args.purchase_account_code !== undefined) {
+    patch['purchase_account_id'] = accounts.get(args.purchase_account_code);
+  }
+  if (args.sale_tax_code !== undefined) patch['sale_tax_id'] = taxes.get(args.sale_tax_code);
+  if (args.purchase_tax_code !== undefined) patch['purchase_tax_id'] = taxes.get(args.purchase_tax_code);
+  if (args.active !== undefined) patch['active'] = args.active;
+
+  if (Object.keys(patch).length === 0) {
+    throw new EkwoMcpError('nothing_to_update: give at least one field to change.');
+  }
+
+  const updated = only(
+    await backend.update<Row>(
+      'products',
+      patch,
+      [{ column: 'id', op: 'eq', value: existing['id'] as string }],
+      columns.PRODUCT,
+    ),
+    'the product could not be updated, and your role on that company may be the reason',
+  );
+  return {
+    product: updated,
+    note: 'Documents already booked are untouched: a line keeps the text, the price and the account it was invoiced with.',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Documents
 // ---------------------------------------------------------------------------
 
 const LineInput = z.object({
-  name: z.string().min(1).describe('What is billed, as it appears on the invoice.'),
+  name: z.string().min(1).optional().describe('What is billed, as it appears on the invoice. Required unless a product supplies it.'),
+  description: z.string().min(1).optional().describe('EN 16931 BT-154, under the name. A product supplies it when the line does not.'),
   quantity: z.union([z.string(), z.number()]).optional().describe('Defaults to 1.'),
-  unit_price: z.union([z.string(), z.number()]).describe('Price of one unit, excluding tax, as a decimal string.'),
+  unit_code: z.string().min(1).max(3).optional().describe('Unit of measure, UN/ECE rec. 20: C62 a piece, HUR an hour, DAY a day, KGM, LTR, MTR. From the product, then C62.'),
+  unit_price: z.union([z.string(), z.number()]).optional().describe("Price of one unit, excluding tax, as a decimal string. Left out, the product's price; without either, the line is refused."),
   discount_percent: z.union([z.string(), z.number()]).optional().describe('A percentage off this line, 0 to 99.'),
+  product_id: uuid.optional(),
+  product_code: z.string().min(1).optional().describe('A catalogue row, by code. It fills in the text, the price, the unit, the account and the tax; anything given on the line wins.'),
   account_id: uuid.optional(),
-  account_code: z.string().min(1).optional().describe('The income or expense account, by code. Left out, the company falls back to its default sales or purchase account, and then to the one its country model names; a company with neither refuses the line.'),
+  account_code: z.string().min(1).optional().describe('The income or expense account, by code. Left out: the product, then the company default, then the one its country model names. A company with none of them refuses the line.'),
   tax_id: uuid.optional(),
-  tax_code: z.string().min(1).optional().describe('The tax, by code, e.g. S21 or P21G. Leaving both out books no tax at all, which is not the same as 0 %.'),
+  tax_code: z.string().min(1).optional().describe('The tax, by code, e.g. BE-S-21. Left out, the tax of the product. With no product either, the line books a base with no VAT box, which is not the same as 0 %.'),
 });
 
 const DOC_TYPES = [
@@ -134,17 +323,7 @@ export async function createDocument(
   backend: Backend,
   args: z.infer<typeof CreateDocumentInput>,
 ): Promise<unknown> {
-  const accountCodes = args.lines
-    .map((line) => line.account_code)
-    .filter((code): code is string => typeof code === 'string');
-  const taxCodes = args.lines
-    .map((line) => line.tax_code)
-    .filter((code): code is string => typeof code === 'string');
-
-  const [accounts, taxes] = await Promise.all([
-    idsByCode(backend, 'accounts', args.company_id, accountCodes),
-    idsByCode(backend, 'taxes', args.company_id, taxCodes),
-  ]);
+  const resolved = await resolveLineInputs(backend, args.company_id, args.doc_type, args.lines);
 
   const document = only(
     await backend.insert<Row>(
@@ -169,42 +348,188 @@ export async function createDocument(
     'the document could not be created',
   );
 
-  await insertLines(backend, args.company_id, document['id'] as string, args.lines, accounts, taxes);
+  await insertLines(backend, args.company_id, document['id'] as string, resolved);
   return getDocument(backend, { document_id: document['id'] as string });
 }
 
 type LineArgs = z.infer<typeof LineInput>;
 
+type DocType = (typeof DOC_TYPES)[number];
+
+/** A line, with every code turned into an id and every gap the product fills. */
+interface ResolvedLine {
+  product_id: string | null;
+  name: string;
+  description: string | null;
+  unit_code: string;
+  unit_price: string;
+  quantity: string;
+  discount_percent: string;
+  account_id: string | null;
+  tax_id: string | null;
+}
+
+function isSale(docType: DocType): boolean {
+  return docType.startsWith('sale_');
+}
+
+/**
+ * Turns the lines a model wrote into the rows the schema takes.
+ *
+ * Two things happen here and nowhere else. Codes become ids — one query per
+ * table, so twenty lines are three round trips and not sixty. And a product
+ * fills in what the line left out: the text, the description, the unit, the
+ * price and the tax. Those are *pre-fills*, in the sense an accounting
+ * package has always meant: the line is what is invoiced, and everything the
+ * caller gave wins over everything the catalogue says.
+ *
+ * The account is deliberately not resolved here. The database does it, in
+ * `resolve_line_account`, because a product line with no account is refused
+ * by a check constraint — so a null can only mean "resolve it", and every
+ * client has to get the same answer. A null tax is the opposite: it means no
+ * tax at all, which is why it is filled from the product only when the line
+ * named none.
+ */
+async function resolveLineInputs(
+  backend: Backend,
+  company: string,
+  docType: DocType,
+  lines: LineArgs[],
+): Promise<ResolvedLine[]> {
+  const [accounts, taxes, products] = await Promise.all([
+    idsByCode(
+      backend,
+      'accounts',
+      company,
+      lines.map((line) => line.account_code).filter((code): code is string => typeof code === 'string'),
+    ),
+    idsByCode(
+      backend,
+      'taxes',
+      company,
+      lines.map((line) => line.tax_code).filter((code): code is string => typeof code === 'string'),
+    ),
+    productsFor(backend, company, lines),
+  ]);
+
+  const sale = isSale(docType);
+
+  return lines.map((line, index) => {
+    const productId =
+      line.product_id ?? (line.product_code === undefined ? null : (products.byCode.get(line.product_code)?.['id'] as string));
+    const product =
+      productId === null || productId === undefined ? undefined : products.byId.get(productId);
+
+    if (productId !== null && productId !== undefined && product === undefined) {
+      throw new EkwoMcpError(
+        `unknown_product: no product ${productId} in this company. search_products says what exists; a product of another company is invisible here, not merely refused.`,
+      );
+    }
+
+    const name = line.name ?? (product?.['name'] as string | undefined);
+    if (name === undefined) {
+      throw new EkwoMcpError(
+        `missing_line_name: line ${index + 1} has no name and no product to take one from. A line has to say what is being billed.`,
+      );
+    }
+
+    const catalogPrice = product?.[sale ? 'sale_price' : 'purchase_price'];
+    const unitPrice = line.unit_price ?? (typeof catalogPrice === 'string' ? catalogPrice : undefined);
+    if (unitPrice === undefined) {
+      throw new EkwoMcpError(
+        `missing_unit_price: line ${index + 1} ("${name}") has no price, and ${
+          product === undefined
+            ? 'no product to take one from'
+            : `product ${String(product['code'])} has no ${sale ? 'sale' : 'purchase'} price`
+        }.`,
+      );
+    }
+
+    const productTax = product?.[sale ? 'sale_tax_id' : 'purchase_tax_id'];
+
+    return {
+      product_id: productId ?? null,
+      name,
+      description:
+        line.description ?? ((product?.['description'] as string | null | undefined) ?? null),
+      unit_code: line.unit_code ?? ((product?.['unit_code'] as string | undefined) ?? 'C62'),
+      unit_price: amountIn(unitPrice),
+      quantity: amountIn(line.quantity ?? 1),
+      discount_percent: amountIn(line.discount_percent ?? 0),
+      account_id:
+        line.account_id ?? (line.account_code === undefined ? null : (accounts.get(line.account_code) ?? null)),
+      tax_id:
+        line.tax_id ??
+        (line.tax_code === undefined
+          ? (typeof productTax === 'string' ? productTax : null)
+          : (taxes.get(line.tax_code) ?? null)),
+    };
+  });
+}
+
+/** The products named by a set of lines, by id and by code, in one query each. */
+async function productsFor(
+  backend: Backend,
+  company: string,
+  lines: LineArgs[],
+): Promise<{ byId: Map<string, Row>; byCode: Map<string, Row> }> {
+  const ids = [...new Set(lines.map((line) => line.product_id).filter((id): id is string => typeof id === 'string'))];
+  const codes = [
+    ...new Set(lines.map((line) => line.product_code).filter((code): code is string => typeof code === 'string')),
+  ];
+  if (ids.length === 0 && codes.length === 0) return { byId: new Map(), byCode: new Map() };
+
+  const where: Filter[] = [{ column: 'company_id', op: 'eq', value: company }];
+  const rows =
+    ids.length > 0 && codes.length > 0
+      ? [
+          ...(await backend.select<Row>({
+            table: 'products',
+            columns: columns.PRODUCT,
+            where: [...where, { column: 'id', op: 'in', value: ids }],
+          })),
+          ...(await backend.select<Row>({
+            table: 'products',
+            columns: columns.PRODUCT,
+            where: [...where, { column: 'code', op: 'in', value: codes }],
+          })),
+        ]
+      : await backend.select<Row>({
+          table: 'products',
+          columns: columns.PRODUCT,
+          where: [
+            ...where,
+            ids.length > 0
+              ? { column: 'id', op: 'in', value: ids }
+              : { column: 'code', op: 'in', value: codes },
+          ],
+        });
+
+  const byId = new Map(rows.map((row) => [row['id'] as string, row]));
+  const byCode = new Map(rows.map((row) => [row['code'] as string, row]));
+  for (const code of codes) {
+    if (!byCode.has(code)) {
+      throw new EkwoMcpError(
+        `unknown_product_code: no product "${code}" in this company. search_products says what exists, and create_product adds one.`,
+      );
+    }
+  }
+  return { byId, byCode };
+}
+
 async function insertLines(
   backend: Backend,
   company: string,
   documentId: string,
-  lines: LineArgs[],
-  accounts: Map<string, string>,
-  taxes: Map<string, string>,
+  lines: ResolvedLine[],
 ): Promise<void> {
-  const rows: Row[] = lines.map((line, index) => {
-    // A line with no account is not an error here. `resolve_line_account`
-    // decides — the line, then the product, then the company, then the
-    // country — and the check constraint refuses when every one of them is
-    // empty. Resolving it a second time in this package would be a second
-    // answer to the same question.
-    const accountId =
-      line.account_id ?? (line.account_code === undefined ? null : accounts.get(line.account_code) ?? null);
-    const taxId = line.tax_id ?? (line.tax_code === undefined ? null : (taxes.get(line.tax_code) ?? null));
-    return {
-      document_id: documentId,
-      company_id: company,
-      sequence: (index + 1) * 10,
-      line_type: 'product',
-      name: line.name,
-      quantity: amountIn(line.quantity ?? 1),
-      unit_price: amountIn(line.unit_price),
-      discount_percent: amountIn(line.discount_percent ?? 0),
-      account_id: accountId,
-      tax_id: taxId,
-    };
-  });
+  const rows: Row[] = lines.map((line, index) => ({
+    document_id: documentId,
+    company_id: company,
+    sequence: (index + 1) * 10,
+    line_type: 'product',
+    ...line,
+  }));
   await backend.insert('document_lines', rows, ['id']);
 }
 
@@ -220,7 +545,7 @@ export async function updateDocumentLines(
   const document = only(
     await backend.select<Row>({
       table: 'documents',
-      columns: ['id', 'company_id', 'state'],
+      columns: ['id', 'company_id', 'state', 'doc_type'],
       where: [{ column: 'id', op: 'eq', value: args.document_id }],
     }),
     `document ${args.document_id}`,
@@ -232,23 +557,15 @@ export async function updateDocumentLines(
   }
 
   const company = document['company_id'] as string;
-  const [accounts, taxes] = await Promise.all([
-    idsByCode(
-      backend,
-      'accounts',
-      company,
-      args.lines.map((line) => line.account_code).filter((code): code is string => typeof code === 'string'),
-    ),
-    idsByCode(
-      backend,
-      'taxes',
-      company,
-      args.lines.map((line) => line.tax_code).filter((code): code is string => typeof code === 'string'),
-    ),
-  ]);
+  const resolved = await resolveLineInputs(
+    backend,
+    company,
+    document['doc_type'] as DocType,
+    args.lines,
+  );
 
   await backend.remove('document_lines', [{ column: 'document_id', op: 'eq', value: args.document_id }]);
-  await insertLines(backend, company, args.document_id, args.lines, accounts, taxes);
+  await insertLines(backend, company, args.document_id, resolved);
   return getDocument(backend, { document_id: args.document_id });
 }
 

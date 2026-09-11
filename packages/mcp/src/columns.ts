@@ -97,12 +97,32 @@ export const DOCUMENT = [
   'sent_at::text',
 ];
 
+export const PRODUCT = [
+  'id',
+  'company_id',
+  'code',
+  'name',
+  'description',
+  'kind',
+  'unit_code',
+  'currency_code',
+  'sale_price::text',
+  'purchase_price::text',
+  'sale_account_id',
+  'purchase_account_id',
+  'sale_tax_id',
+  'purchase_tax_id',
+  'active',
+];
+
 export const DOCUMENT_LINE = [
   'id',
   'document_id',
   'sequence',
   'line_type',
   'name',
+  'description',
+  'product_id',
   'quantity::text',
   'unit_code',
   'unit_price::text',

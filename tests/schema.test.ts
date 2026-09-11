@@ -38,7 +38,7 @@ describe('migrations', () => {
       'accounts', 'journals', 'journal_sequences',
       'contacts', 'taxes', 'tax_postings',
       'entries', 'entry_lines',
-      'documents', 'document_lines',
+      'documents', 'document_lines', 'products',
       'payments', 'reconciliations',
       'bank_accounts', 'bank_statements', 'bank_transactions',
       'currencies', 'currency_rates',

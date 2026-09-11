@@ -400,6 +400,50 @@ export async function listBankTransactions(
 // Reports
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Products
+// ---------------------------------------------------------------------------
+
+export const SearchProductsInput = z.object({
+  company_id: companyId,
+  query: z.string().min(1).optional().describe('Matches the code, the name or the description.'),
+  kind: z.enum(['service', 'goods']).optional(),
+  include_inactive: z.boolean().optional().describe('Default false: a retired product is hidden.'),
+  limit: z.number().int().min(1).max(200).optional(),
+});
+
+export async function searchProducts(
+  backend: Backend,
+  args: z.infer<typeof SearchProductsInput>,
+): Promise<unknown> {
+  const where: Filter[] = [{ column: 'company_id', op: 'eq', value: args.company_id }];
+  if (args.kind !== undefined) where.push({ column: 'kind', op: 'eq', value: args.kind });
+  if (args.include_inactive !== true) where.push({ column: 'active', op: 'eq', value: true });
+
+  const products = await backend.select<Row>({
+    table: 'products',
+    columns: columns.PRODUCT,
+    where,
+    order: [{ column: 'code' }],
+    limit: args.limit ?? 100,
+  });
+
+  // The filter on the text is applied here rather than in three `ilike`
+  // clauses, because neither backend offers an OR and a second round trip per
+  // column would be the alternative.
+  const needle = args.query?.toLowerCase();
+  const matching =
+    needle === undefined
+      ? products
+      : products.filter((product) =>
+          [product['code'], product['name'], product['description']]
+            .filter((value): value is string => typeof value === 'string')
+            .some((value) => value.toLowerCase().includes(needle)),
+        );
+
+  return { products: matching };
+}
+
 export const ListBankAccountsInput = z.object({
   company_id: companyId,
   include_inactive: z.boolean().optional().describe('Default false.'),

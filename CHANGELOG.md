@@ -58,6 +58,27 @@ somewhere has already run it.
 
 ### Added
 
+- **`products`, in the core rather than in a module beside it.** Migration
+  `20260911195054`: a code unique in the company (EN 16931 BT-155), a name
+  (BT-153), a description (BT-154), `service` or `goods`, a unit from UN/ECE
+  recommendation 20, a sale and a purchase price, the account and the tax each
+  side books to, and `active`. Row level security by company, in the same
+  migration. `document_lines` gains `product_id` — nullable for ever, because
+  free text is how most invoices are written — and `description`; the unit
+  stays on the `unit_code` that shipped in the first release.
+
+  A product **pre-fills a line and never constrains it**: the line keeps its
+  own text, price, unit, account and tax, so a catalogue edited next month
+  cannot change what an invoice said last month. The account resolution gains
+  its product step — the line, the product, the company default, the country
+  model — and the `document_line_items` view puts BT-153, BT-154 and BT-155
+  side by side for a Factur-X or Peppol document.
+
+  The MCP server gains `search_products`, `create_product` and
+  `update_product`, and a line of `create_document` or `update_document_lines`
+  takes `product_id` or `product_code`. `@ekwo-ai/core` carries `Product`,
+  `ProductKind` and the short list of unit codes. The demo company carries
+  four products and three invoices written from them.
 - **A bank account at install time, and a tool to add one later.**
   `ekwo init` asks for the IBAN of the main account — optional, with `--iban`,
   `--bic` and `--bank-name` for the non-interactive form — and creates the

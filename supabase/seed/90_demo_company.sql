@@ -25,6 +25,11 @@ declare
   s_lelievre   uuid;
   s_hollandia  uuid;
   s_immo       uuid;
+  -- products
+  p_conseil    uuid;
+  p_atelier    uuid;
+  p_support    uuid;
+  p_brochure   uuid;
   -- documents
   d            uuid;
   v_doc_ids    uuid[] := '{}';
@@ -109,6 +114,39 @@ begin
           'loyers@immo-central.example', 'Avenue Louise 100', '1050', 'Ixelles', 'BE', 10)
   returning id into s_immo;
 
+  -- --------------------------------------------------------------- products
+  -- Four catalogue rows, so the demo shows what a product does: it fills a
+  -- line in — name, unit, price, account, tax — and constrains nothing.
+  -- `on conflict do nothing` keeps the file re-appliable, like the rest.
+  insert into products (company_id, code, name, description, kind, unit_code,
+                        sale_price, sale_account_id, sale_tax_id) values
+    (v_company, 'CONS-JOUR', 'Journee de conseil',
+     'Accompagnement sur site ou a distance, par journee de sept heures.',
+     'service', 'DAY', 500,
+     account_id_by_code(v_company, '704000'),
+     (select id from taxes where company_id = v_company and code = 'BE-S-21')),
+    (v_company, 'CONS-ATELIER', 'Atelier de cadrage',
+     'Demi-journee de cadrage, jusqu''a huit participants.',
+     'service', 'C62', 1200,
+     account_id_by_code(v_company, '704000'),
+     (select id from taxes where company_id = v_company and code = 'BE-S-21')),
+    (v_company, 'SUPPORT-M', 'Support mensuel',
+     'Assistance par courriel, un mois, temps de reponse un jour ouvrable.',
+     'service', 'MON', 800,
+     account_id_by_code(v_company, '704000'),
+     (select id from taxes where company_id = v_company and code = 'BE-S-21')),
+    (v_company, 'BROCHURE', 'Brochure imprimee',
+     'Brochure seize pages, quadrichromie, taux reduit.',
+     'goods', 'C62', 1,
+     account_id_by_code(v_company, '700100'),
+     (select id from taxes where company_id = v_company and code = 'BE-S-06'))
+  on conflict (company_id, code) do nothing;
+
+  select id into p_conseil  from products where company_id = v_company and code = 'CONS-JOUR';
+  select id into p_atelier  from products where company_id = v_company and code = 'CONS-ATELIER';
+  select id into p_support  from products where company_id = v_company and code = 'SUPPORT-M';
+  select id into p_brochure from products where company_id = v_company and code = 'BROCHURE';
+
   -- ------------------------------------------------------------------- bank
   select id into v_bank_jrnl from journals where company_id = v_company and code = 'BNK';
 
@@ -129,12 +167,14 @@ begin
           'PO-DUM-118', '+++010/1234/56789+++', 'Mission d''accompagnement, juin 2026')
   returning id into d;
   v_doc_ids := v_doc_ids || d;
-  insert into document_lines (document_id, company_id, sequence, name, quantity, unit_code,
-                              unit_price, tax_id, account_id, vat_category, vat_rate) values
-    (d, v_company, 10, 'Journees de conseil', 5, 'DAY', 500,
+  insert into document_lines (document_id, company_id, sequence, product_id, name, description,
+                              quantity, unit_code, unit_price, tax_id, account_id,
+                              vat_category, vat_rate) values
+    (d, v_company, 10, p_conseil, 'Journees de conseil',
+     'Accompagnement sur site ou a distance, par journee de sept heures.', 5, 'DAY', 500,
      (select id from taxes where company_id = v_company and code = 'BE-S-21'),
      account_id_by_code(v_company, '704000'), 'S', 21),
-    (d, v_company, 20, 'Atelier de cadrage', 1, 'C62', 1200,
+    (d, v_company, 20, p_atelier, 'Atelier de cadrage', null, 1, 'C62', 1200,
      (select id from taxes where company_id = v_company and code = 'BE-S-21'),
      account_id_by_code(v_company, '704000'), 'S', 21);
 
@@ -143,9 +183,9 @@ begin
   values (v_company, 'sale_invoice', 'FAC-2026-0002', c_dumont, date '2026-07-24', date '2026-08-23')
   returning id into d;
   v_doc_ids := v_doc_ids || d;
-  insert into document_lines (document_id, company_id, sequence, name, quantity, unit_price,
-                              tax_id, account_id, vat_category, vat_rate)
-  values (d, v_company, 10, 'Support mensuel', 1, 800,
+  insert into document_lines (document_id, company_id, sequence, product_id, name, quantity,
+                              unit_code, unit_price, tax_id, account_id, vat_category, vat_rate)
+  values (d, v_company, 10, p_support, 'Support mensuel', 1, 'MON', 800,
           (select id from taxes where company_id = v_company and code = 'BE-S-21'),
           account_id_by_code(v_company, '704000'), 'S', 21);
 
@@ -154,9 +194,9 @@ begin
   values (v_company, 'sale_invoice', 'FAC-2026-0003', c_dumont, date '2026-08-05', date '2026-09-04')
   returning id into d;
   v_doc_ids := v_doc_ids || d;
-  insert into document_lines (document_id, company_id, sequence, name, quantity, unit_price,
-                              tax_id, account_id, vat_category, vat_rate)
-  values (d, v_company, 10, 'Brochure imprimee', 400, 1,
+  insert into document_lines (document_id, company_id, sequence, product_id, name, quantity,
+                              unit_price, tax_id, account_id, vat_category, vat_rate)
+  values (d, v_company, 10, p_brochure, 'Brochure imprimee', 400, 1,
           (select id from taxes where company_id = v_company and code = 'BE-S-06'),
           account_id_by_code(v_company, '700100'), 'S', 6);
 

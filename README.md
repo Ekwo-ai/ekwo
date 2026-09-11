@@ -184,6 +184,7 @@ companies ─┬─ company_members            who may read or write
            ├─ contacts                   customers, suppliers, employees
            ├─ taxes ── tax_postings      ledger account + VAT box, per tax
            ├─ entries ── entry_lines     the ledger; lines carry the truth
+           ├─ products                   what a line is filled in from, never stock
            ├─ documents ── document_lines invoices, credit notes, quotes
            ├─ payments                   money in and out
            ├─ reconciliations            bilateral matching, by amount

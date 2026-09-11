@@ -10,7 +10,7 @@ nothing`), so applying it twice is harmless.
 | `11_chart_fr.sql` | French PCG, 392 accounts (règlement ANC 2022-06), 6 journals, default account roles | yes |
 | `20_taxes_be.sql` | 19 Belgian VAT codes and their postings: ledger accounts and Intervat boxes | yes |
 | `21_taxes_fr.sql` | 17 French VAT codes and their postings: ledger accounts and CA3 lines | yes |
-| `90_demo_company.sql` | A fictional company, « Exemple Conseil SRL », with contacts, posted documents, a matched payment and a bank statement | **no** — sample data only |
+| `90_demo_company.sql` | A fictional company, « Exemple Conseil SRL », with contacts, four catalogue products, posted documents, a matched payment and a bank statement | **no** — sample data only |
 
 `config.toml` lists the first five under `[db.seed].sql_paths`; the demo file
 is deliberately left out. Load it by hand on a scratch project when you want
@@ -35,6 +35,15 @@ flagged in the file headers:
 
 If you find a wrong box, change the seed row and add a test in
 `tests/reporting.test.ts` that pins the corrected amount.
+
+## Products in the demo, and none in the country files
+
+The chart files seed no product, and they never will: what a business sells is
+not a country rule. The demo company carries four — a consulting day priced in
+`DAY`, a workshop, a monthly support in `MON` and a printed brochure at the
+reduced rate — because a product is worth seeing in use, and three of the demo
+invoices are written from them. They are inserted `on conflict (company_id,
+code) do nothing`, like everything else here.
 
 ## Adding a country
 

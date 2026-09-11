@@ -22,6 +22,7 @@ const READ_TOOLS = [
   'get_company',
   'list_accounts',
   'search_contacts',
+  'search_products',
   'list_documents',
   'get_document',
   'list_bank_accounts',
@@ -36,6 +37,8 @@ const READ_TOOLS = [
 
 const WRITE_TOOLS = [
   'create_contact',
+  'create_product',
+  'update_product',
   'create_document',
   'update_document_lines',
   'post_document',
@@ -107,6 +110,7 @@ describe('the tools a client is offered', () => {
     const { tools } = await client.listTools();
     const needsCompany = [
       'create_contact',
+      'create_product',
       'create_document',
       'record_payment',
       'create_bank_account',

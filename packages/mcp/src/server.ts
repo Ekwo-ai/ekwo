@@ -218,6 +218,42 @@ export function buildServer(backend: Backend): McpServer {
   // ------------------------------------------------------------------- write
 
   server.registerTool(
+    'search_products',
+    {
+      title: 'Find a product',
+      description:
+        'The catalogue of a company: what it sells and buys, with the code, the unit, the price, the account each books to and the tax each carries. Search it before writing a line by hand — a product fills in the text, the price, the account and the tax, and keeps two invoices for the same thing consistent. Retired products are left out unless you ask for them.',
+      inputSchema: read.SearchProductsInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.searchProducts(backend, args)),
+  );
+
+  server.registerTool(
+    'create_product',
+    {
+      title: 'Add a product',
+      description:
+        'Adds an item to the catalogue: a code unique in the company, a name, a unit, a price, and optionally the account and the tax a sale or a purchase of it carries. It changes nothing already booked — a product is what a new line is filled in from, never a rule applied to the past. Search first: a second code for the same thing is how a price list stops being one.',
+      inputSchema: write.CreateProductInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.createProduct(backend, args)),
+  );
+
+  server.registerTool(
+    'update_product',
+    {
+      title: 'Change a product',
+      description:
+        "Changes a catalogue row — its name, price, unit, account, tax — or retires it with active: false. Documents already written keep the text, the price and the account they were invoiced with; an invoice is a statement about the day it was raised, and this tool cannot rewrite one. Retiring is the way to withdraw something: deleting is refused while any line still points at it.",
+      inputSchema: write.UpdateProductInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.updateProduct(backend, args)),
+  );
+
+  server.registerTool(
     'create_contact',
     {
       title: 'Create a contact',
@@ -234,7 +270,7 @@ export function buildServer(backend: Backend): McpServer {
     {
       title: 'Create a draft invoice',
       description:
-        'Creates a draft invoice, credit note or quote with its lines, and returns it with the totals the database computed — never with totals you supplied. Each line needs an account (by code or id) and, unless the transaction is genuinely untaxed, a tax (by code): a line with no tax is booked as a base with no VAT box, which is not the same as 0 %. Nothing is in the ledger yet; post_document is what books it.',
+        'Creates a draft invoice, credit note or quote with its lines, and returns it with the totals the database computed — never with totals you supplied. A line may name a product_code, which fills in its text, price, unit, account and tax; anything the line carries wins over that. With no product and no account_code, the account falls back to the company default and then to its country model. A tax is different: a line with none is booked as a base with no VAT box, which is not the same as 0 %. Nothing is in the ledger yet; post_document is what books it.',
       inputSchema: write.CreateDocumentInput.shape,
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
@@ -246,7 +282,7 @@ export function buildServer(backend: Backend): McpServer {
     {
       title: 'Replace the lines of a draft',
       description:
-        'Replaces every line of a draft document with the set you give, and returns the document with its recomputed totals. Drafts only: a posted document is corrected with a credit note, never edited.',
+        'Replaces every line of a draft document with the set you give, and returns the document with its recomputed totals. Lines take product_code the same way create_document does. Drafts only: a posted document is corrected with a credit note, never edited.',
       inputSchema: write.UpdateDocumentLinesInput.shape,
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },

@@ -160,6 +160,7 @@ the return say the same thing, because they are the same rows.
 | [`journals`](#journals) | Books of entry. The code is the first segment of every entry number. |
 | [`matching_sequences`](#matching_sequences) |  |
 | [`payments`](#payments) | Money in and out. Amounts are positive; `direction` carries the sign. |
+| [`products`](#products) | What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation. |
 | [`reconciliations`](#reconciliations) | One row per pairing of a debit with a credit. Full matching is the sum of partials. |
 | [`tax_posting_templates`](#tax_posting_templates) |  |
 | [`tax_postings`](#tax_postings) | Where a tax lands: ledger account and VAT-return box, per tax and per document kind. |
@@ -547,6 +548,8 @@ Document lines in a table, not JSON: EN 16931 needs a VAT category per line and 
 | `amount_untaxed` | `numeric(16,2)` | generated — quantity x unit_price less the discount, rounded to two decimals once. |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `product_id` | `uuid` | The catalogue row this line was filled in from, when there was one. Nullable for ever: free text is how most invoices are written. |
+| `description` | `text` | Item description, EN 16931 BT-154. `name` is BT-153. |
 
 Constraints:
 
@@ -849,6 +852,39 @@ Constraints:
 - `CHECK ((amount > (0)::numeric))`
 - `PRIMARY KEY (id)`
 
+### `products`
+
+What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `code` | `text` | not null — The seller's own item identifier, EN 16931 BT-155. Unique in the company. |
+| `name` | `text` | not null — Item name, EN 16931 BT-153, copied onto the line it fills in. |
+| `description` | `text` | Item description, EN 16931 BT-154. |
+| `kind` | `product_kind` | not null |
+| `unit_code` | `text` | not null — Unit of measure, UN/ECE recommendation 20 (BT-130). C62 is "one". |
+| `currency_code` | `character(3)` | not null |
+| `sale_price` | `numeric(16,6)` | Suggested net unit price on a sale. A line may carry another. |
+| `purchase_price` | `numeric(16,6)` |  |
+| `sale_account_id` | `uuid` |  |
+| `purchase_account_id` | `uuid` |  |
+| `sale_tax_id` | `uuid` |  |
+| `purchase_tax_id` | `uuid` |  |
+| `active` | `boolean` | not null |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((length(btrim(code)) > 0))`
+- `CHECK (((purchase_price IS NULL) OR (purchase_price >= (0)::numeric)))`
+- `CHECK (((sale_price IS NULL) OR (sale_price >= (0)::numeric)))`
+- `CHECK ((unit_code ~ '^[A-Z0-9]{1,3}$'::text))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (company_id, code)`
+
 ### `reconciliations`
 
 One row per pairing of a debit with a credit. Full matching is the sum of partials.
@@ -1004,6 +1040,7 @@ Constraints:
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line for an amount, defaulting to the smaller open amount. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |

@@ -104,6 +104,7 @@ Every write names its company explicitly.
 | `get_company` | Financial years, lock dates, journals, default accounts |
 | `list_accounts` | The chart of accounts, by code prefix, type or name |
 | `search_contacts` | Customers and suppliers, by name, type or VAT number |
+| `search_products` | The catalogue: code, unit, price, account and tax of what is sold and bought |
 | `list_documents` | Invoices, credit notes and quotes, filtered |
 | `get_document` | One document with its lines and the entry it produced |
 | `list_bank_accounts` | The bank accounts of a company, with the journal and ledger account behind each |
@@ -115,6 +116,8 @@ Every write names its company explicitly.
 | `generate_fec` | The French FEC as text, with its checks and its filename |
 | `status` | Schema version, instance, connection, companies |
 | `create_contact` | A customer, supplier or other third party |
+| `create_product` | A catalogue row: code, name, unit, price, account, tax |
+| `update_product` | Changes one, or retires it with `active: false` |
 | `create_document` | A draft invoice, credit note or quote, with its lines |
 | `update_document_lines` | Replaces the lines of a **draft** |
 | `post_document` | Books it. Cannot be undone. |
@@ -147,6 +150,11 @@ pulls the boxes and ties them back to the ledger before anything is filed.
   `document_total_mismatch:` and the rest arrive with the message the database
   raised, plus one sentence saying what it means. They are answers, not
   obstacles to route around.
+- **A product fills a line in and never constrains it.** A line naming
+  `product_code` takes the catalogue's text, description, unit, price, account
+  and tax; anything the line carries wins over that. What is already posted is
+  never touched when the catalogue changes, and a product referenced by a line
+  is retired with `active: false` rather than deleted.
 - **A missing tax is a missing tax.** A line with no tax books a base with no
   VAT box, which is not the same as 0 %. A missing *account* is different: it
   can only mean "resolve it", because a product line with no account is
@@ -171,6 +179,9 @@ Then point a client at it — in Claude Desktop, the JSON block above — and:
 3. **"Create a customer called Dumont, then invoice them 1 000 € plus 21 %
    VAT for consulting."** `create_contact`, then `create_document`; the answer
    carries `amount_total: "1210.00"` computed by the database.
+   Or with a catalogue: **"add a product CONS-JOUR, a consulting day at 500 €
+   on 704000 at 21 %, then invoice Dumont two of them"** — `create_product`,
+   then `create_document` with `product_code` and nothing else on the line.
 4. **"Post it."** `post_document`. The entry books 704 / 451 / 400 and takes a
    number like `SAL/2026/0001`.
 5. **"They paid 500 € on the 10th."** `record_payment`, which books the bank

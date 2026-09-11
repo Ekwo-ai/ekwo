@@ -388,6 +388,53 @@ silently produces a hang rather than an error, so the CLI asks for the string
 the dashboard prints instead. A convenience that fails in a way that points at
 the wrong cause is worse than a question.
 
+## Products
+
+**A product is in the core, not in a module beside it.** Every invoice line
+answers the same four questions — what is it called, what does it cost, which
+account, which tax — and a catalogue is the place those answers are written
+once. Putting it in a module would mean `document_lines.product_id` either
+does not exist (and the module reinvents the join) or exists and points at a
+table the core does not ship, which is the worst of the two.
+
+**It is a catalogue, not stock.** No quantity on hand, no valuation, no
+movements. Stock is a different piece of software with its own correctness
+problems — costing methods, negative quantities, period-end valuation — and
+the moment those live next to the ledger, a wrong stock movement becomes a
+wrong entry. What a business sells is in the core; what it holds in a
+warehouse is not.
+
+**A product pre-fills a line and never constrains it.** The line keeps its own
+text, price, unit, account and tax, and anything the caller gave wins over the
+catalogue. So `products.name` changing next month cannot alter what an invoice
+said last month, and `product_id` on a posted line is a reference to where the
+line came from rather than a source the line is read through. This is also why
+`document_lines.product_id` has `on delete restrict` and why withdrawing a
+product is `active = false`: deleting one referenced by a posted invoice would
+quietly rewrite a document.
+
+**`product_id` is nullable and always will be.** Free text is how most
+invoices are written. A schema that demands a catalogue row per line makes the
+operator invent one, and a catalogue of inventions is worse than no catalogue.
+
+**The unit stays on `document_lines.unit_code`, and the product fills it in.**
+That column shipped in the first release, mapped to BT-130. A second `unit`
+column beside it would be two answers to one question. The check on
+`products.unit_code` is on the shape only — three characters, upper case —
+because UN/ECE recommendation 20 carries some eighteen hundred codes and a
+short list in the database would refuse `KWH` or `TNE` on the grounds that a
+developer had not thought of them. The short list lives in `@ekwo-ai/core` as
+what a client *proposes*.
+
+**BT-155 is the product code and lives nowhere else.** The seller's item
+identifier is exactly what `products.code` is, so a line with no product has
+none — which is the correct answer, since BT-155 is optional in EN 16931,
+rather than a gap to fill with the line number. `document_line_items` is the
+view that puts BT-153, BT-154 and BT-155 side by side for whoever is building
+a Factur-X or Peppol document; `docs/mapping.md` carries the field-by-field
+mapping, and it is written down rather than imported because
+`@ekwo-ai/factur-x` is in a private repository that CI cannot install from.
+
 ## The MCP server
 
 **It acts as the user, and never as `service_role`.** The server signs in with
