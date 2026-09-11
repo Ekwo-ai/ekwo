@@ -1,0 +1,27 @@
+{
+  "name": "ekwo",
+  "version": "0.1.0",
+  "description": "Install and operate Ekwo OS on your own Supabase project: npx ekwo init.",
+  "keywords": ["accounting", "supabase", "postgres", "migrations", "cli", "bookkeeping", "ekwo"],
+  "license": "AGPL-3.0-only",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo#readme",
+  "repository": { "type": "git", "url": "git+https://github.com/Ekwo-ai/ekwo.git", "directory": "packages/cli" },
+  "bugs": { "url": "https://github.com/Ekwo-ai/ekwo/issues" },
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "files": ["dist", "README.md"],
+  "bin": { "ekwo": "./dist/bin.js" },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs dist/assets && node scripts/chmod-bin.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "postgres": "^3.4.5"
+  }
+}

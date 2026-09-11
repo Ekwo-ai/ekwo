@@ -239,6 +239,96 @@ and a test asserts that this one does.
 Belgium, which are the arithmetic of the other boxes and are flagged
 `computed = true`.
 
+## The installer
+
+**Ekwo provisions no Supabase project and pays for none.** The customer
+creates the project; `npx ekwo init` connects to it. The alternative — a
+Management API call that creates a project under an Ekwo-held token — would
+make every Community installation depend on an Ekwo account and an Ekwo
+billing relationship, which is the thing this project exists not to do. It
+also costs the operator nothing: the free plan is enough to start, and their
+books are on their account from the first row.
+
+**The CLI requires Node and nothing else.** Not the Supabase CLI, not Docker,
+not psql. It opens a Postgres connection and applies the SQL itself. Requiring
+a second tool to install the first one loses people at the step where they
+have decided to try it.
+
+**The migration history is Supabase's, not ours.** `ekwo migrate` writes
+`supabase_migrations.schema_migrations` — the same schema, the same table, the
+same `version` / `name` / `statements` columns, `version` being the timestamp
+prefix of the filename. So `supabase db push` and `ekwo migrate` are
+interchangeable in both directions, and an operator who prefers the Supabase
+CLI never has to choose. A private history table would have been simpler to
+write and would have forked the ecosystem at the first `db push`.
+
+**Each migration is applied whole, in one transaction with its history row.**
+The file is sent as a single command string, so Postgres runs it as one unit;
+the insert that records it commits with it. A migration that fails halfway
+therefore leaves neither half-applied schema nor a history row that lies, and
+the next run resumes at the file that failed. The consequence, which is a rule
+for contributors: no migration may open a transaction of its own.
+
+**`statements` is recorded but never executed.** The column is split out of
+the file by a small parser that understands dollar quoting, `E''` escapes and
+nested block comments. Execution does not go through it. A bug in the splitter
+can therefore make that column less pretty and can never break an
+installation — which is the right place to put a parser nobody has to trust.
+
+**The first administrator is created through GoTrue, not through SQL.** Every
+policy compares `auth.uid()` against a row, and `auth.uid()` reads the JWT of
+the request. The CLI holds a connection, not a session: it runs as the
+database owner, `auth.uid()` is NULL and row level security is *bypassed*
+rather than satisfied. So the installer cannot be the first user; it can only
+create one and write the rows that user will be recognised by. Writing
+`auth.users` by hand was the alternative and it produces an account that looks
+right and cannot sign in — the password hash, the confirmation state and the
+identity row belong to GoTrue. This is the only reason the `service_role` key
+is ever asked for, and `--admin-user-id` avoids it entirely when the account
+already exists.
+
+**Where a guard lives in a function, the CLI satisfies it rather than going
+round it.** `register_instance()` refuses anyone who is not an instance
+administrator, and a superuser connection is nobody. So the CLI sets
+`request.jwt.claims` the way PostgREST does, for the administrator it is
+acting for, and calls the function. It would have been one line shorter to
+update the column directly; it would also have meant the rule only applies to
+clients that happen to respect it.
+
+**No secret is ever written to disk.** The database password and the
+`service_role` key come from a flag, an environment variable or a masked
+prompt, and are forgotten. `ekwo.json` holds the project URL, the country and
+the schema version — a file that is safe to commit, so it stays useful. A
+credential cache would have saved one paste per command and would have made
+the first accidental `git add .` a disclosure.
+
+**One runtime dependency, the Postgres driver.** Argument parsing, the
+prompts and the masked input are written out in the package. Everything this
+CLI is handed is a secret, so every dependency is one more thing that could
+read it, and the three it replaces are a few dozen lines each.
+
+**Orphaned memberships are a `doctor` warning, not a foreign key.**
+`company_members` has no key to `auth.users` on purpose: inviting someone into
+a company before they have an account is a normal thing to want, and a key
+forbids it. The price is that deleting a user leaves a row behind. Those rows
+grant nothing — `auth.uid()` can never match them — but they misreport who has
+access, so `ekwo doctor` names them and leaves the decision alone. Deleting
+them automatically would silently undo an invitation that has not been taken
+up yet. `instance_admins` does have the key, and cascades, because an
+administrator is necessarily a signed-in user.
+
+**There is no `eject`.** Nothing is held to eject from: the data is already in
+the customer's database, the schema is AGPL-3.0 in this repository, and
+`supabase db push` keeps applying it if the CLI is never run again. The help
+says so rather than staying silent, because "how do I get out" is the first
+question an open-core promise has to answer.
+
+**The demo seed is a command of its own and refuses to be routine.** It
+invents a company *and* a fictional administrator, because it has to stand
+alone on an empty database. `ekwo init` never applies it, `ekwo migrate` never
+applies it, and `ekwo demo` asks before adding it to an installation that
+already holds a company.
+
 ## Licensing and packaging
 
 **AGPL-3.0 for the core, MIT for the format libraries.** The format libraries'

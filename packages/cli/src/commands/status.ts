@@ -1,0 +1,88 @@
+/**
+ * `ekwo status` — what is on the other end of the connection string.
+ */
+
+import { boolFlag, rejectUnknownFlags, type ParsedArgs } from '../args.js';
+import { migrationsDir } from '../bundle.js';
+import { CONNECTION_FLAGS, openDatabase } from '../context.js';
+import { listMigrations } from '../migrations.js';
+import { isInteractive } from '../prompt.js';
+import { status } from '../status.js';
+import { dim, heading, line, note, pairs, warn, yellow } from '../ui.js';
+
+export const STATUS_FLAGS = [...CONNECTION_FLAGS, 'json', 'yes'] as const;
+
+export async function statusCommand(args: ParsedArgs): Promise<number> {
+  rejectUnknownFlags(args, STATUS_FLAGS);
+  const interactive = !boolFlag(args, 'yes') && isInteractive();
+  const { db, connection } = await openDatabase(args, { interactive });
+
+  try {
+    const migrations = await listMigrations(migrationsDir());
+    const report = await status(db, migrations);
+
+    if (boolFlag(args, 'json')) {
+      line(JSON.stringify(report, null, 2));
+      return report.pending.length > 0 ? 1 : 0;
+    }
+
+    if (!report.schemaInstalled) {
+      heading('Schema');
+      warn('not installed on this project. Run `ekwo init`.');
+      return 1;
+    }
+
+    heading('Schema');
+    pairs([
+      ['project', connection.supabaseUrl ?? connection.projectRef ?? '(from --db-url)'],
+      ['installed version', report.installedVersion ?? 'unknown'],
+      ['available version', report.availableVersion ?? 'unknown'],
+      ['migrations', `${report.appliedCount} applied, ${report.pending.length} pending`],
+    ]);
+    if (report.pending.length > 0) {
+      line();
+      for (const migration of report.pending) note(yellow(`pending  ${migration.file}`));
+      note(dim('Run `ekwo migrate` to apply them.'));
+    }
+    if (report.unknown.length > 0) {
+      line();
+      warn(`${report.unknown.length} migration(s) applied here are not in this release.`);
+    }
+
+    heading('Instance');
+    if (report.instance === undefined) {
+      note(dim('the schema is there but init_instance() has not run — `ekwo init` finishes it'));
+    } else {
+      pairs([
+        ['organisation', report.instance.organization_name],
+        ['country', report.instance.country],
+        ['edition', report.instance.edition],
+        ['instance id', report.instance.instance_id],
+        ['administrators', String(report.admins)],
+        [
+          'registered',
+          report.instance.registered_at === null
+            ? 'no'
+            : `${report.instance.contact_email ?? ''} since ${report.instance.registered_at}`,
+        ],
+      ]);
+    }
+
+    heading(`Companies (${report.companies.length})`);
+    if (report.companies.length === 0) {
+      note(dim('none yet'));
+    } else {
+      pairs(
+        report.companies.map((c) => [
+          c.name,
+          `${c.country} · ${c.accounts} accounts · ${c.entries} entries · ${c.fiscalYears} financial year(s)`,
+        ]),
+      );
+    }
+
+    line();
+    return report.pending.length > 0 ? 1 : 0;
+  } finally {
+    await db.close();
+  }
+}

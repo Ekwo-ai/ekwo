@@ -9,6 +9,51 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Added
+
+- **`npx ekwo init`** — `packages/cli`, published as `ekwo`. One command turns
+  a Supabase project the customer already owns into a set of books: it applies
+  the migrations, seeds the currencies, the chart of accounts and the VAT
+  codes, creates the first administrator in the customer's own Supabase Auth,
+  then runs the six steps of the installation sequence — `init_instance()`,
+  `claim_instance_admin()`, the company, `company_members` as owner,
+  `install_country_template()` and the first financial year. Every step checks
+  before it acts, so running it twice creates nothing twice. Node 20 is the
+  only requirement: no Supabase CLI, no Docker.
+- **`ekwo migrate`, `ekwo status`, `ekwo doctor`, `ekwo demo`.** `migrate`
+  shows the gap before closing it and re-applies the idempotent reference
+  seeds; `status` reports the schema version installed against available, the
+  pending migrations, the instance, its administrators and its companies;
+  `doctor` checks what the schema cannot enforce on its own — row level
+  security on every table, a policy on every protected table, no pending
+  migration, no membership pointing at a deleted user, statements that tie to
+  their lines, posted entries that balance; `demo` loads the sample company on
+  explicit request.
+- **`ekwo register` / `ekwo unregister`.** The registration question is asked
+  once, at the end of `init`, and the default answer is no. Saying yes writes
+  the address on the instance row through `register_instance()` and POSTs six
+  fields — instance id, organisation, country, edition, schema version,
+  contact address — to `EKWO_REGISTRY_URL`. A failed POST is a soft message:
+  the local record stands and `ekwo register` retries.
+- **A migration history compatible with the Supabase CLI.** The runner writes
+  `supabase_migrations.schema_migrations` with the same columns and the same
+  `version` the Supabase CLI uses, so `supabase db push` and `ekwo migrate`
+  are interchangeable in both directions. Each file is applied in one
+  transaction with its history row, so a migration that fails halfway leaves
+  nothing behind and the next run resumes at it.
+- **The schema travels with the package.** `supabase/migrations` and
+  `supabase/seed` are copied into `dist/assets` at build time, and a test pins
+  that copy to the repository byte for byte. `ee/` is never included.
+- **`.env.example`**, documenting `EKWO_DB_URL`, `SUPABASE_URL`,
+  `SUPABASE_SERVICE_ROLE_KEY` and `EKWO_REGISTRY_URL`. The CLI never writes a
+  secret to disk; `ekwo.json`, the one file it writes, holds the project URL,
+  the country and the schema version.
+- **Seventy more tests**, 161 in all, covering the migration runner
+  (idempotence, Supabase-compatible history, resuming after a failure halfway),
+  the full non-interactive installation against a shimmed Supabase Auth, the
+  status and doctor checks, and registration with the endpoint mocked and with
+  it unreachable.
+
 ## [0.1.0] — 2026-09-11
 
 ### Added

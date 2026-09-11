@@ -27,8 +27,10 @@ What we are building, in order:
 1. **This repository — the core.** Schema, posting rules, VAT, reports, the
    FEC, Belgian and French charts of accounts. Done, tested, installable
    today.
-2. **`npx ekwo init`** — link your own Supabase project, apply the schema,
-   pick a country, create the first company, in one command.
+2. **`npx ekwo init`** — point it at your own Supabase project and it applies
+   the schema, seeds the country rules, creates the first administrator and
+   the first company, in one command. Done; see
+   [`packages/cli`](packages/cli/).
 3. **A Community web application** on top of the core, and an **MCP server**
    so that any AI assistant can operate the books.
 4. **Format libraries** as independent MIT packages:
@@ -69,32 +71,36 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
-- **Tested on real Postgres.** 91 tests run the migrations, the seeds and the
-  accounting scenarios against Postgres compiled to WebAssembly.
+- **Tested on real Postgres.** 161 tests run the migrations, the seeds, the
+  accounting scenarios and the installer against Postgres compiled to
+  WebAssembly.
 
 ## Install on your own Supabase project
 
-You need the [Supabase CLI](https://supabase.com/docs/guides/cli) and a
-project — the free plan is enough to start.
+Create a project at [supabase.com](https://supabase.com) — the free plan is
+enough to start — and point the installer at it. Node 20 or later is the only
+thing you need locally: no Supabase CLI, no Docker, no clone.
 
 ```sh
-git clone https://github.com/Ekwo-ai/ekwo.git
-cd ekwo
-
-supabase link --project-ref <your-project-ref>
-supabase db push                       # applies supabase/migrations in order
-psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
-psql "$DATABASE_URL" -f supabase/seed/10_chart_be.sql   # or 11_chart_fr.sql
-psql "$DATABASE_URL" -f supabase/seed/20_taxes_be.sql   # or 21_taxes_fr.sql
+npx ekwo init
 ```
 
-Skip `supabase/seed/90_demo_company.sql` unless you want the sample data.
+It asks for the connection string, the country, your organisation, the first
+company and the address of the first administrator, then applies the
+migrations, seeds the chart of accounts and the VAT codes, creates that
+administrator in *your* Supabase Auth and runs the six steps below. Every step
+checks before it acts, so running it twice creates nothing twice.
 
-### The installation sequence
+Ekwo does not create the project and does not pay for it. Your books are on
+your account from the first row, which is the only version of "you own your
+data" that survives us going away. Full flags, environment variables and the
+non-interactive form are in [`packages/cli`](packages/cli/).
 
-Six steps, in this order. Sign in to your own Supabase project first: every
-user of an Ekwo installation is a user of *your* Supabase Auth, never of
-anything at Ekwo.
+### What it does underneath
+
+Six steps, in this order. They are ordinary SQL, and running them by hand is a
+supported path — with the Supabase CLI, `supabase db push` applies the same
+migrations and writes the same history table the installer does.
 
 ```sql
 -- 1. Record the installation. Once, ever.
@@ -131,8 +137,37 @@ database rather than in whichever client happens to run first.
 taxes, and wires the company's default accounts — receivable, payable,
 suspense, retained earnings — and its journals.
 
-A `npx ekwo init` that does all of the above in one command is the next piece
-of work; until it lands, the CLI above is the supported path.
+The installer does steps 1 and 2 in a particular order for a reason worth
+knowing. It holds a database connection, not a session, so `auth.uid()` is
+NULL and row level security is bypassed rather than satisfied: it cannot *be*
+the first user. So it creates that user through the Supabase Auth admin API
+first — which also needs the `service_role` key, the only reason the key is
+ever asked for — and writes the rows that user will be recognised by second.
+
+By hand instead, with the Supabase CLI:
+
+```sh
+git clone https://github.com/Ekwo-ai/ekwo.git && cd ekwo
+supabase link --project-ref <your-project-ref>
+supabase db push                       # applies supabase/migrations in order
+psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
+psql "$DATABASE_URL" -f supabase/seed/10_chart_be.sql   # or 11_chart_fr.sql
+psql "$DATABASE_URL" -f supabase/seed/20_taxes_be.sql   # or 21_taxes_fr.sql
+```
+
+Skip `supabase/seed/90_demo_company.sql` unless you want the sample data, and
+then run the six statements above as a signed-in user. The two routes are
+interchangeable: `ekwo migrate` and `supabase db push` read and write the same
+`supabase_migrations.schema_migrations`.
+
+### Keeping it running
+
+```sh
+npx ekwo status    # schema version installed against available, instance, companies
+npx ekwo migrate   # apply what a new release adds
+npx ekwo doctor    # row level security everywhere, orphaned memberships, statements
+npx ekwo demo      # the sample company, on explicit request only
+```
 
 ## The schema in twenty lines
 
@@ -163,7 +198,8 @@ in your own Supabase Auth; Ekwo never holds an account.
 **Registering with Ekwo is optional and empty by default.** `contact_email`
 and `registered_at` on the instance row stay null unless you call
 `register_instance()`, nothing in this repository reads them, and
-`unregister_instance()` puts them back. Community works unregistered, forever,
+`unregister_instance()` puts them back. `ekwo init` asks the question once, at
+the end, and the default answer is no. Community works unregistered, forever,
 and `edition` gates no feature.
 
 `post_document(id)` turns a document into an entry. `trial_balance`,
@@ -171,10 +207,12 @@ and `edition` gates no feature.
 `docs/schema.md` describes every table and column; `docs/mapping.md` lines
 each one up against Odoo, EN 16931 and the FEC.
 
-## The TypeScript package
+## The TypeScript packages
 
 `packages/core` carries the types of the schema and the FEC generator, with
 no runtime dependency beyond an optional `@supabase/supabase-js`.
+`packages/cli` is the `ekwo` command above; it has one runtime dependency, the
+Postgres driver, and never writes a secret to disk.
 
 ```ts
 import { EkwoClient } from '@ekwo-ai/core';
@@ -220,7 +258,8 @@ licence.
 
 Each folder carries a short README saying what lives there and the rule
 that applies to it: [`supabase/`](supabase/), [`supabase/migrations/`](supabase/migrations/),
-[`supabase/seed/`](supabase/seed/), [`packages/core/`](packages/core/), [`tests/`](tests/),
+[`supabase/seed/`](supabase/seed/), [`packages/core/`](packages/core/),
+[`packages/cli/`](packages/cli/), [`tests/`](tests/),
 [`docs/`](docs/), [`scripts/`](scripts/) and [`ee/`](ee/). The long-form reference is in `docs/`.
 
 ## Development
@@ -229,6 +268,7 @@ that applies to it: [`supabase/`](supabase/), [`supabase/migrations/`](supabase/
 npm install
 npm run typecheck
 npm test          # applies every migration and seed to an in-memory Postgres
+npm run build     # builds both packages; the CLI copies supabase/ into its dist
 ```
 
 Tests use [PGlite](https://pglite.dev), so no Docker and no local Postgres.

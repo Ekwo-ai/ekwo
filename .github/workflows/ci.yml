@@ -20,7 +20,17 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      # Builds both workspaces; the CLI also copies supabase/ into its dist.
       - run: npm run build
+      # The published binary has to run. A broken shebang or a missing export
+      # only shows up here, never in a unit test.
+      - run: node packages/cli/dist/bin.js --help
+      - run: node packages/cli/dist/bin.js --version
+      # And the copy of the schema inside the package has to be the real one.
+      - name: The CLI ships the repository's migrations
+        run: |
+          diff -r --exclude='*.md' supabase/migrations packages/cli/dist/assets/migrations
+          diff -r --exclude='*.md' supabase/seed packages/cli/dist/assets/seed
 
   hygiene:
     runs-on: ubuntu-latest
@@ -31,6 +41,14 @@ jobs:
           node-version: 22
       - name: No private data in the repository
         run: node scripts/check-no-private-data.mjs
+      - name: No secret committed in .env.example
+        run: |
+          # The example file documents the variables; a real value in it would
+          # be published on the first push.
+          if grep -Eq '^(EKWO_DB_URL|SUPABASE_SERVICE_ROLE_KEY)=.*(eyJ[A-Za-z0-9_-]{10,})' .env.example; then
+            echo ".env.example holds what looks like a real key."
+            exit 1
+          fi
       - name: Migrations are additive
         run: |
           # A released migration must never be edited. On a pull request,

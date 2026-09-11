@@ -1,0 +1,246 @@
+# ekwo
+
+The installer and the operator's tool for [Ekwo OS](https://github.com/Ekwo-ai/ekwo).
+One command turns a Supabase project you already own into a set of double-entry
+books: the schema, the chart of accounts, the VAT codes, the first
+administrator, the first company and its first financial year.
+
+```sh
+npx ekwo init
+```
+
+You need Node 20 or later. That is the whole list. The Supabase CLI is not
+required — this talks to Postgres directly — and Docker is not required
+either.
+
+## From a free Supabase account to a first invoice
+
+1. **Create a project** at [supabase.com](https://supabase.com). The free plan
+   is enough to start. Ekwo does not create it, does not pay for it and has no
+   access to it: it is yours from the first row.
+2. **Copy two things** from the dashboard:
+   - Project Settings → Database → **Connection string** (URI). It contains
+     your database password.
+   - Project Settings → API → **`service_role` key**, and the **Project URL**.
+     These are used once, to create the first administrator in your own
+     Supabase Auth, and are never written to disk.
+3. **Run the installer.**
+
+   ```sh
+   npx ekwo init
+   ```
+
+   It asks for the connection string, the country, your organisation, the
+   first company and the address of the first administrator, then does the
+   rest. Five to ten seconds on a free project.
+
+4. **Sign in** to your project as that administrator and start booking. Until
+   the Community web application lands, the interface is the REST API Supabase
+   generates from the schema, or `psql`, or `@ekwo-ai/core`.
+
+Everything above in one non-interactive line:
+
+```sh
+npx ekwo init \
+  --db-url "postgresql://postgres:PASSWORD@db.YOURREF.supabase.co:5432/postgres" \
+  --supabase-url "https://YOURREF.supabase.co" \
+  --service-role-key "$SUPABASE_SERVICE_ROLE_KEY" \
+  --country BE \
+  --org "My Organisation" \
+  --company "My Company" \
+  --admin-email "you@example.com" \
+  --admin-password "a-long-password" \
+  --fiscal-year 2026 \
+  --yes
+```
+
+## What `init` does, step by step
+
+| Step | What happens | Why it is done this way |
+|---|---|---|
+| 1 | Applies `supabase/migrations/*.sql` in order | Recorded in `supabase_migrations.schema_migrations`, the Supabase CLI's own history table, so `supabase db push` and `ekwo migrate` stay interchangeable |
+| 2 | Applies the reference seeds | Currencies, the Belgian PCMN and the French PCG, their VAT codes. `90_demo_company.sql` is sample data and is never applied here |
+| 3 | Creates the first administrator through the Supabase Auth admin API | See below: a database connection cannot be a signed-in user |
+| 4 | `init_instance()`, `claim_instance_admin()`, the company, `company_members` as owner, `install_country_template()`, the first financial year | The six steps of the root README, in the same order |
+| 5 | Writes `ekwo.json` | Project URL, country, schema version. Nothing else, ever |
+| 6 | Asks whether to register with Ekwo | The default answer is no, and no is a supported answer forever |
+
+Every step checks before it acts. Running `ekwo init` twice on the same
+project reports what was already there and creates nothing a second time.
+
+### Why the first user goes through Supabase Auth
+
+Every row level security policy in the schema compares `auth.uid()` against a
+row, and `auth.uid()` reads the JWT of the request. The CLI holds a Postgres
+connection, not a session: it runs as the database owner, `auth.uid()` is
+NULL, and row level security is *bypassed* rather than satisfied. So the
+installer cannot be the first user. It can only create one and then write the
+rows that user will be recognised by.
+
+Creating that user in SQL is not an option either. `auth.users` belongs to
+GoTrue — the password hash, the confirmation state, the identity row — and
+writing it by hand produces an account that looks right and cannot sign in.
+Hence the order: the admin API first, its user id second, `instance_admins`
+and `company_members` third.
+
+This is the only reason `--service-role-key` exists. Pass `--admin-user-id`
+instead if the account already exists, and no key is needed.
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `ekwo init` | The whole installation, interactive or not. |
+| `ekwo migrate` | Applies the migrations this release adds, after showing the gap. Re-applies the reference seeds, which are idempotent. |
+| `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, its companies. Exits 1 when something is pending. |
+| `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
+| `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
+| `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
+| `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
+
+There is no `eject`, because there is nothing to eject from. The schema is in
+your database, the migrations are in the repository under AGPL-3.0, and
+`supabase db push` applies them without this CLI ever running again.
+
+## Flags
+
+Every command takes the connection flags:
+
+| Flag | Meaning |
+|---|---|
+| `--db-url <url>` | Postgres connection string. The reliable way. |
+| `--project-ref <ref>` | With `--db-password`, the host is derived from the ref. |
+| `--db-password <pw>` | Database password. Prompted, masked, when omitted. |
+| `--db-region <region>` | Use the shared pooler in that region, e.g. `eu-central-1`. |
+| `--supabase-url <url>` | `https://<ref>.supabase.co`. Needed only to create a user. |
+| `--service-role-key <key>` | Needed only to create a user. |
+| `--yes`, `-y` | Never ask a question. Everything must come from flags or the environment. |
+
+`--project-ref` derives `db.<ref>.supabase.co`, and with `--db-region` the
+pooler host instead. Both are conveniences and both are guesses: recent
+projects answer on IPv6 only at the direct host, and the pooler hostname
+carries a region. Copy the connection string from the dashboard and pass
+`--db-url` when in doubt.
+
+`ekwo init` adds:
+
+| Flag | Meaning |
+|---|---|
+| `--country BE\|FR` | Which chart of accounts and VAT rules. |
+| `--org <name>` | Your organisation, written on the instance row. |
+| `--company <name>` | The first company. Defaults to `--org`. |
+| `--admin-email <address>` | The first administrator, created in your Supabase Auth. |
+| `--admin-password <pw>` | Their password. Omitted, an invite link is generated and printed. |
+| `--admin-user-id <uuid>` | Use an account that already exists, instead of creating one. |
+| `--fiscal-year <year>` | Calendar year of the first financial year. Defaults to this year. |
+| `--demo` | Also load the sample company. |
+| `--register` | Register without being asked. `--register-email` sets the address. |
+| `--registry-url <url>` | Where the registration is announced. |
+
+`ekwo status` and `ekwo doctor` take `--json`. `ekwo migrate` takes
+`--skip-seeds`.
+
+## Environment variables
+
+| Variable | Same as |
+|---|---|
+| `EKWO_DB_URL` | `--db-url`. `SUPABASE_DB_URL` also works. |
+| `EKWO_DB_PASSWORD` | `--db-password` |
+| `SUPABASE_URL` | `--supabase-url` |
+| `SUPABASE_SERVICE_ROLE_KEY` | `--service-role-key` |
+| `EKWO_REGISTRY_URL` | `--registry-url`. Default `https://api.ekwo.ai/v1/registrations`. |
+| `NO_COLOR` | Plain output. |
+
+See [`.env.example`](../../.env.example) at the root of the repository.
+
+## Secrets
+
+The CLI never writes a secret to disk. The database password and the
+`service_role` key are read from a flag, an environment variable or a masked
+prompt, used, and forgotten. There is no credential cache, no dotfile in the
+home directory, and nothing in `ekwo.json` but the project URL, the country
+and the schema version.
+
+It has one runtime dependency, the Postgres driver. Argument parsing, prompts
+and the masked input are a few dozen lines each in this package rather than
+packages from the registry, because everything this CLI is handed is a secret
+and every dependency added is one more thing that could read it.
+
+## Registering with Ekwo
+
+At the end of `ekwo init` you are asked:
+
+> Register this installation with Ekwo to receive security advisories and
+> release notes?
+
+The default answer is no, and no is supported forever. Community works
+unregistered: nothing in the schema and nothing in this CLI reads
+`contact_email` or `registered_at` to decide what you may do, and `edition`
+gates no feature.
+
+If you say yes, two things happen, independently. `register_instance(email)`
+writes the address and a date onto your instance row, and a POST goes to
+`EKWO_REGISTRY_URL` carrying exactly six fields:
+
+```json
+{
+  "instance_id": "…",
+  "organization": "My Organisation",
+  "country": "BE",
+  "edition": "community",
+  "schema_version": "0.1.0",
+  "contact_email": "you@example.com"
+}
+```
+
+No ledger data, no user list, no connection string. `instance_id` is generated
+locally by your own database and is not a licence key: no code path anywhere
+checks it.
+
+**The endpoint does not exist yet.** A failed POST is a soft message, not a
+failed install: the local record stands and `ekwo register` retries it later.
+`ekwo unregister` clears the local fields; it sends nothing, because the CLI
+only holds the local row.
+
+## Testing it against a real project
+
+The test suite runs against Postgres compiled to WebAssembly, so it proves
+the migration runner, the installation sequence and the checks without a
+Supabase project. Two things it cannot prove: the network driver, and GoTrue.
+To exercise those, on a scratch project:
+
+```sh
+npm install && npm run build
+
+# 1. A project you can throw away. Note its ref, password, URL and key.
+node packages/cli/dist/bin.js init \
+  --db-url "postgresql://postgres:PASSWORD@db.SCRATCHREF.supabase.co:5432/postgres" \
+  --supabase-url "https://SCRATCHREF.supabase.co" \
+  --service-role-key "$KEY" \
+  --country BE --org "Scratch" --company "Scratch BV" \
+  --admin-email "you@example.com" --admin-password "a-long-password" \
+  --fiscal-year 2026 --yes
+
+# 2. Everything should be green, and nothing pending.
+node packages/cli/dist/bin.js status --db-url "$URL"
+node packages/cli/dist/bin.js doctor --db-url "$URL"
+
+# 3. The history must be the Supabase one: this should report no difference.
+supabase link --project-ref SCRATCHREF
+supabase migration list
+
+# 4. And the other direction: db push finds nothing left to do.
+supabase db push
+
+# 5. Run init again. Every step should say it was already there.
+node packages/cli/dist/bin.js init --db-url "$URL" --country BE \
+  --org "Scratch" --company "Scratch BV" --admin-email "you@example.com" \
+  --admin-user-id "<the uuid from step 1>" --fiscal-year 2026 --yes
+
+# 6. Sign in as the administrator and confirm row level security really binds:
+#    a company you were not invited to must be invisible.
+```
+
+## Licence
+
+[AGPL-3.0-only](../../LICENSE) © Ekwo AI.

@@ -39,6 +39,23 @@ A tax régime is data, not code. Add rows to `tax_templates` and
 If a régime cannot be expressed that way, that is a design discussion worth
 having in an issue before any SQL is written.
 
+## Working on the installer
+
+`packages/cli` is the `ekwo` command. Three rules hold there.
+
+1. **No migration may open a transaction of its own.** The runner applies each
+   file as one command string inside a transaction it owns, together with the
+   history row, so a failure halfway leaves nothing behind. A `begin` in a
+   migration breaks that.
+2. **The migration history belongs to Supabase.** `supabase_migrations.schema_migrations`
+   is written in the Supabase CLI's format so `supabase db push` and
+   `ekwo migrate` stay interchangeable. Do not add a column to it and do not
+   invent a second history table.
+3. **No secret reaches the disk, and the dependency list stays at one.** The
+   database password and the `service_role` key come from a flag, the
+   environment or a masked prompt. Everything this CLI handles is a secret, so
+   a new runtime dependency needs an argument in the pull request.
+
 ## Tests
 
 ```sh
@@ -49,7 +66,8 @@ npm test
 
 Tests run against [PGlite](https://pglite.dev): real Postgres, no Docker. Add
 a test for any behaviour you change. Accounting scenarios belong in
-`tests/posting.test.ts`; schema-level invariants in `tests/schema.test.ts`.
+`tests/posting.test.ts`; schema-level invariants in `tests/schema.test.ts`;
+anything the installer does in `tests/cli/`.
 
 To refresh the golden FEC file after a deliberate change:
 
