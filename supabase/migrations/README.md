@@ -7,6 +7,12 @@ One file per change, applied in filename order, additive only.
 `YYYYMMDDHHMMSS_short_subject.sql`. The timestamp orders the files; the
 subject says what the migration is about, in snake_case, without a verb.
 
+Take the timestamp from the clock, seconds included, and never a round
+hour. Two people writing migrations in the same tree on the same afternoon
+both reached for `…170000` once; Supabase keys its history on that prefix,
+and a duplicate silently drops one file from `supabase migration list`.
+Always number after the newest file on `main`, and check `git log` first.
+
 ## The order that exists today
 
 | File | Content |
@@ -26,6 +32,7 @@ subject says what the migration is about, in snake_case, without a verb.
 | `…121200_fec` | `fec_lines()` |
 | `…130000_instance`, `…130100_instance_members`, `…140000_instance_admins` | the `instance` row and the instance administrators |
 | `…160000_tax_posting_templates_unique` | the natural key of `tax_posting_templates`, so the tax seeds can be re-applied |
+| `…170000_document_amount_paid` | `documents.amount_paid` derived from the matching, inside the reconciliation trigger, never written by hand |
 | `…173000_post_payment` | `post_payment()`: money in or out becomes an entry, so no client writes ledger lines |
 | `…173100_sequence_counters_under_rls` | `next_entry_number()` and `next_matching_number()` become definer, so a signed-in user can post |
 

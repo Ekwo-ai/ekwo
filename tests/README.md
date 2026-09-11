@@ -70,6 +70,22 @@ sequence that exercises the PostgREST route against a real project.
   the JWT claims and the `authenticated` role on every call, so a tool is
   refused here for the same reason it would be refused over the API.
 
+## Test the writes under row level security, not only the reads
+
+The schema was shipped with a bug no test caught: the numbering counters
+had a select policy only, and `next_entry_number()` ran as the caller, so
+**no signed-in user could post an entry**. The suite had proved who could
+*read* under `authenticated` and had run every *write* — `post_document`,
+`post_entry`, `reconcile` — as the table owner, which row level security
+does not apply to. A suite that checks who may read and never who may write
+gives false assurance.
+
+Rule: every write path gets at least one test that performs it under
+`set role authenticated` with `request.jwt.claims` set to a real member of
+the company — the `viewer` who must be refused and the `accountant` who must
+succeed. `tests/rls.test.ts` shows the pattern; `tests/mcp/` runs the whole
+invoice-to-payment cycle that way.
+
 ## Writing a test
 
 Build the scenario with the factory, act through the same functions a client
