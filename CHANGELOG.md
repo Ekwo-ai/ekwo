@@ -114,7 +114,7 @@ somewhere has already run it.
   declaration boxes, eleven currencies, and a fictional demo company.
 - **`@ekwo-ai/core`**: types of the schema, a thin client over the accounting
   functions, and the French FEC generator with its file-level checks.
-- **Tests**: 165 of them, running every migration and seed against Postgres in
+- **Tests**: 166 of them, running every migration and seed against Postgres in
   WebAssembly, covering posting, credit notes, self-assessment, matching,
   period locks, reports, row level security, the instance singleton and its
   roles, and a golden FEC export.

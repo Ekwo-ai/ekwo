@@ -71,7 +71,7 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
-- **Tested on real Postgres.** 165 tests run the migrations, the seeds, the
+- **Tested on real Postgres.** 166 tests run the migrations, the seeds, the
   accounting scenarios and the installer against Postgres compiled to
   WebAssembly.
 

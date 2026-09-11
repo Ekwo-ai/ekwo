@@ -179,6 +179,62 @@ describe('reconcile', () => {
     expect(doc.payment_state).toBe('paid');
   });
 
+  it('settles a purchase invoice the same way, on the payable side', async () => {
+    const supplier = await newContact(db, fx.companyId, {
+      name: 'Fournisseur a payer',
+      type: 'supplier',
+    });
+    const documentId = await newDocument(db, fx.companyId, {
+      docType: 'purchase_invoice',
+      number: 'ACH-SETTLE',
+      contactId: supplier,
+      date: '2026-04-04',
+      lines: [{ unitPrice: 1000, taxCode: 'BE-P-21-S', accountCode: '613000' }],
+    });
+    await db.query(`select post_document($1)`, [documentId]);
+
+    const payable = await one<{ id: string }>(
+      db,
+      `select l.id from entry_lines l
+         join entries e on e.id = l.entry_id
+         join accounts a on a.id = l.account_id
+        where e.document_id = $1 and a.code = '440000'`,
+      [documentId],
+    );
+
+    // A bank payment: debit the supplier, credit the bank.
+    const entry = await one<{ id: string }>(
+      db,
+      `insert into entries (company_id, journal_id, entry_date, description, state)
+       select $1, id, date '2026-04-12', 'Paiement fournisseur', 'draft' from journals
+        where company_id = $1 and code = 'BNK' returning id`,
+      [fx.companyId],
+    );
+    const debit = await one<{ id: string }>(
+      db,
+      `insert into entry_lines (entry_id, company_id, account_id, sequence, debit, credit, contact_id)
+       values ($1, $2, account_id_by_code($2, '440000'), 10, 1210, 0, $3) returning id`,
+      [entry.id, fx.companyId, supplier],
+    );
+    await db.query(
+      `insert into entry_lines (entry_id, company_id, account_id, sequence, debit, credit)
+       values ($1, $2, account_id_by_code($2, '550000'), 20, 0, 1210)`,
+      [entry.id, fx.companyId],
+    );
+    await db.query(`select post_entry($1)`, [entry.id]);
+
+    await db.query(`select reconcile($1, $2, null)`, [debit.id, payable.id]);
+
+    const doc = await one<{ amount_paid: string; amount_residual: string; payment_state: string }>(
+      db,
+      `select amount_paid, amount_residual, payment_state from documents where id = $1`,
+      [documentId],
+    );
+    expect(doc.amount_paid).toBe('1210.00');
+    expect(doc.amount_residual).toBe('0.00');
+    expect(doc.payment_state).toBe('paid');
+  });
+
   it('puts the document back when the matching is undone', async () => {
     const { documentId, receivableLineId } = await invoiceWithReceivable('2026-04-03');
     const receipt = await bankReceipt('2026-04-11', 1210);
