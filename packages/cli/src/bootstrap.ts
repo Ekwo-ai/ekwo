@@ -24,6 +24,15 @@ export interface Step {
   detail?: string;
 }
 
+export interface BankAccountOptions {
+  /** The only field that is required to create one; without it, none is. */
+  iban: string;
+  bic?: string | undefined;
+  bankName?: string | undefined;
+  /** What it is called in the books. Defaults to the bank name, then to `Compte courant`. */
+  label?: string | undefined;
+}
+
 export interface BootstrapOptions {
   organization: string;
   country: string;
@@ -32,13 +41,35 @@ export interface BootstrapOptions {
   fiscalYear: number;
   /** `auth.users.id` of the first administrator. */
   adminUserId: string;
+  /** ISO 4217 code. Left out, the country model decides; it is `EUR` for both countries shipped. */
+  currencyCode?: string | undefined;
+  /** The main bank account, when the operator has one to give. */
+  bankAccount?: BankAccountOptions | undefined;
 }
 
 export interface BootstrapResult {
   instanceId: string;
   companyId: string;
   fiscalYearName: string;
+  /** The currency the company was created with. */
+  currencyCode: string;
+  /** The bank account, when one was asked for. */
+  bankAccountId?: string | undefined;
   steps: Step[];
+}
+
+/**
+ * The currency the country model proposes.
+ *
+ * `companies.currency_code` is `not null default 'EUR'`, so the value has to
+ * be chosen *before* the insert — after it there is nothing empty left to
+ * fill, which is why `install_country_template` could never be the place for
+ * this. It is the reader `country_defaults.currency_code` never had.
+ */
+export async function countryCurrency(db: SqlClient, country: string): Promise<string | undefined> {
+  return scalar<string>(db, 'select currency_code from country_defaults where country = $1', [
+    country.toUpperCase(),
+  ]);
 }
 
 /** Countries with a chart of accounts seeded in this database. */
@@ -123,10 +154,18 @@ export async function bootstrap(
     steps.push({ name: 'administrator', outcome: 'created', detail: options.adminUserId });
   }
 
-  // 3. The company.
-  const existingCompany = await first<{ id: string }>(
+  // 3. The company. Its currency is chosen here or nowhere: the column is
+  //    `not null default 'EUR'`, so nothing downstream can tell a deliberate
+  //    EUR from a default one.
+  const currencyCode = (
+    options.currencyCode ??
+    (await countryCurrency(db, country)) ??
+    'EUR'
+  ).toUpperCase();
+
+  const existingCompany = await first<{ id: string; currency_code: string }>(
     db,
-    'select id from companies where name = $1 order by created_at limit 1',
+    'select id, currency_code from companies where name = $1 order by created_at limit 1',
     [options.company],
   );
   let companyId: string;
@@ -134,16 +173,24 @@ export async function bootstrap(
     const created = await first<{ id: string }>(
       db,
       `insert into companies (name, country, fiscal_country, currency_code)
-       values ($1, $2, $2, 'EUR')
+       values ($1, $2, $2, $3)
        returning id`,
-      [options.company, country],
+      [options.company, country, currencyCode],
     );
     if (created === undefined) throw new Error('company_insert_failed: no row returned');
     companyId = created.id;
-    steps.push({ name: 'company', outcome: 'created', detail: options.company });
+    steps.push({
+      name: 'company',
+      outcome: 'created',
+      detail: `${options.company} (${currencyCode})`,
+    });
   } else {
     companyId = existingCompany.id;
-    steps.push({ name: 'company', outcome: 'already', detail: options.company });
+    steps.push({
+      name: 'company',
+      outcome: 'already',
+      detail: `${options.company} (${existingCompany.currency_code})`,
+    });
   }
 
   // 4. The administrator on the books of that company. Administering an
@@ -200,5 +247,108 @@ export async function bootstrap(
     steps.push({ name: 'financial year', outcome: 'already', detail: existingYear.name });
   }
 
-  return { instanceId, companyId, fiscalYearName, steps };
+  // 7. The main bank account, when an IBAN was given. Without one there is
+  //    nothing to create: a bank account with no IBAN identifies nothing, and
+  //    `ekwo doctor` says so rather than this step inventing a placeholder.
+  let bankAccountId: string | undefined;
+  if (options.bankAccount !== undefined) {
+    const outcome = await ensureBankAccount(db, companyId, currencyCode, options.bankAccount);
+    bankAccountId = outcome.id;
+    steps.push({
+      name: 'bank account',
+      outcome: outcome.outcome,
+      detail: `${outcome.label} — ${options.bankAccount.iban}${outcome.accountCode === undefined ? '' : ` on ${outcome.accountCode}`}`,
+    });
+  }
+
+  return { instanceId, companyId, fiscalYearName, currencyCode, bankAccountId, steps };
+}
+
+interface BankAccountOutcome {
+  id: string;
+  outcome: StepOutcome;
+  label: string;
+  accountCode?: string | undefined;
+}
+
+/**
+ * The company's first bank account, wired to the bank journal and its ledger
+ * account.
+ *
+ * `install_country_template` already points the bank journal at 550000 or
+ * 512000, so the ledger side is known and this step does not ask for it. The
+ * IBAN is the natural key — `bank_accounts_company_iban_idx` — so running
+ * `init` again with the same one finds it rather than creating a second.
+ */
+export async function ensureBankAccount(
+  db: SqlClient,
+  companyId: string,
+  currencyCode: string,
+  options: BankAccountOptions,
+): Promise<BankAccountOutcome> {
+  const iban = options.iban.replace(/\s+/g, '').toUpperCase();
+  const label = options.label ?? options.bankName ?? 'Compte courant';
+
+  const journal = await first<{ id: string; default_account_id: string | null; code: string }>(
+    db,
+    `select id, default_account_id, code from journals
+      where company_id = $1 and journal_type = 'bank' and active
+      order by code limit 1`,
+    [companyId],
+  );
+  if (journal === undefined) {
+    throw new Error(
+      'no_bank_journal: this company has no journal of type bank, so a bank account has nothing to book through. ' +
+        'Run install_country_template first.',
+    );
+  }
+
+  const accountCode = await scalar<string>(
+    db,
+    'select code from accounts where id = $1',
+    [journal.default_account_id],
+  );
+
+  const existing = await first<{ id: string; name: string }>(
+    db,
+    'select id, name from bank_accounts where company_id = $1 and iban = $2',
+    [companyId, iban],
+  );
+
+  let id: string;
+  let outcome: StepOutcome;
+  if (existing === undefined) {
+    const created = await first<{ id: string }>(
+      db,
+      `insert into bank_accounts (company_id, name, iban, bic, bank_name, currency_code,
+                                  account_id, journal_id)
+       values ($1, $2, $3, $4, $5, $6, $7, $8)
+       returning id`,
+      [
+        companyId,
+        label,
+        iban,
+        options.bic ?? null,
+        options.bankName ?? null,
+        currencyCode,
+        journal.default_account_id,
+        journal.id,
+      ],
+    );
+    if (created === undefined) throw new Error('bank_account_insert_failed: no row returned');
+    id = created.id;
+    outcome = 'created';
+  } else {
+    id = existing.id;
+    outcome = 'already';
+  }
+
+  // The journal points back, so `post_payment` finds the money side from
+  // either direction.
+  await db.query(
+    'update journals set bank_account_id = $1 where id = $2 and bank_account_id is null',
+    [id, journal.id],
+  );
+
+  return { id, outcome, label, accountCode };
 }

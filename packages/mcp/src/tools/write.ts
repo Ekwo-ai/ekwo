@@ -101,7 +101,7 @@ const LineInput = z.object({
   unit_price: z.union([z.string(), z.number()]).describe('Price of one unit, excluding tax, as a decimal string.'),
   discount_percent: z.union([z.string(), z.number()]).optional().describe('A percentage off this line, 0 to 99.'),
   account_id: uuid.optional(),
-  account_code: z.string().min(1).optional().describe('The income or expense account, by code. One of account_id or account_code is required.'),
+  account_code: z.string().min(1).optional().describe('The income or expense account, by code. Left out, the company falls back to its default sales or purchase account, and then to the one its country model names; a company with neither refuses the line.'),
   tax_id: uuid.optional(),
   tax_code: z.string().min(1).optional().describe('The tax, by code, e.g. S21 or P21G. Leaving both out books no tax at all, which is not the same as 0 %.'),
 });
@@ -184,12 +184,13 @@ async function insertLines(
   taxes: Map<string, string>,
 ): Promise<void> {
   const rows: Row[] = lines.map((line, index) => {
-    const accountId = line.account_id ?? (line.account_code === undefined ? undefined : accounts.get(line.account_code));
-    if (accountId === undefined) {
-      throw new EkwoMcpError(
-        `missing_account: line ${index + 1} ("${line.name}") needs account_id or account_code. Accounts are resolved by role and by code, never guessed.`,
-      );
-    }
+    // A line with no account is not an error here. `resolve_line_account`
+    // decides — the line, then the product, then the company, then the
+    // country — and the check constraint refuses when every one of them is
+    // empty. Resolving it a second time in this package would be a second
+    // answer to the same question.
+    const accountId =
+      line.account_id ?? (line.account_code === undefined ? null : accounts.get(line.account_code) ?? null);
     const taxId = line.tax_id ?? (line.tax_code === undefined ? null : (taxes.get(line.tax_code) ?? null));
     return {
       document_id: documentId,
@@ -300,7 +301,9 @@ export const RecordPaymentInput = z.object({
   contact_id: uuid.optional().describe('Who paid or was paid. Needed for the payment to be matched against their invoices.'),
   journal_id: uuid.optional(),
   journal_code: z.string().min(1).optional().describe('The bank or cash journal, by code, e.g. BNK. One of journal_id or journal_code is required.'),
-  bank_account_id: uuid.optional(),
+  bank_account_id: uuid
+    .optional()
+    .describe('Which bank account the money moved on. list_bank_accounts says what exists; left out, the default account of the journal is used.'),
   reference: z.string().min(1).optional(),
   memo: z.string().min(1).optional(),
   match_open_items: z.boolean().optional().describe('Default true: match the payment against the oldest open invoices of that contact, up to the amount paid.'),
@@ -510,6 +513,140 @@ export async function unreconcile(
 // ---------------------------------------------------------------------------
 // Bank
 // ---------------------------------------------------------------------------
+
+export const CreateBankAccountInput = z.object({
+  company_id: companyId,
+  iban: z.string().min(5).describe('The IBAN. Spaces are removed and the value is upper-cased; it is the natural key of a bank account in a company.'),
+  label: z.string().min(1).optional().describe('What it is called in the books. Defaults to the bank name, then to the IBAN.'),
+  bic: z.string().min(1).optional(),
+  bank_name: z.string().min(1).optional(),
+  currency_code: z.string().length(3).optional().describe("Defaults to the company's own currency."),
+  journal_id: uuid.optional(),
+  journal_code: z.string().min(1).optional().describe('The financial journal it books through. Left out, the bank journal of the company.'),
+  account_id: uuid.optional(),
+  account_code: z.string().min(1).optional().describe("The ledger account behind it. Left out, the journal's default account — 550000 in Belgium, 512000 in France."),
+});
+
+/**
+ * A bank account, wired to a journal and to a ledger account.
+ *
+ * Both of those have an answer already: `install_country_template` points the
+ * bank journal at the country's bank account, so neither has to be asked for.
+ * What nobody can derive is the IBAN, which is why this tool exists at all —
+ * an installation with no bank account has no IBAN to put on an invoice and
+ * nothing to reconcile a statement against.
+ */
+export async function createBankAccount(
+  backend: Backend,
+  args: z.infer<typeof CreateBankAccountInput>,
+): Promise<unknown> {
+  const iban = args.iban.replace(/\s+/g, '').toUpperCase();
+
+  let journalId = args.journal_id;
+  if (journalId === undefined && args.journal_code !== undefined) {
+    journalId = (await idsByCode(backend, 'journals', args.company_id, [args.journal_code])).get(
+      args.journal_code,
+    ) as string;
+  }
+
+  const journals = await backend.select<Row>({
+    table: 'journals',
+    columns: ['id', 'code', 'name', 'journal_type', 'default_account_id', 'bank_account_id'],
+    where: [
+      { column: 'company_id', op: 'eq', value: args.company_id },
+      ...(journalId === undefined
+        ? ([{ column: 'journal_type', op: 'eq', value: 'bank' }] satisfies Filter[])
+        : ([{ column: 'id', op: 'eq', value: journalId }] satisfies Filter[])),
+    ],
+    order: [{ column: 'code' }],
+  });
+  const journal = journals[0];
+  if (journal === undefined) {
+    throw new EkwoMcpError(
+      journalId === undefined
+        ? 'no_bank_journal: this company has no journal of type bank. get_company lists the journals; install_country_template creates them.'
+        : `not_found: journal ${String(journalId)}. Either it does not exist, or your role on that company does not allow this.`,
+    );
+  }
+
+  let accountId = args.account_id;
+  if (accountId === undefined && args.account_code !== undefined) {
+    accountId = (await idsByCode(backend, 'accounts', args.company_id, [args.account_code])).get(
+      args.account_code,
+    ) as string;
+  }
+  accountId = accountId ?? (journal['default_account_id'] as string | null) ?? undefined;
+  if (accountId === undefined) {
+    throw new EkwoMcpError(
+      `no_bank_ledger_account: journal ${String(journal['code'])} has no default account, so this bank account would book nowhere. Give account_code, or set the journal's default account.`,
+    );
+  }
+
+  const existing = await backend.select<Row>({
+    table: 'bank_accounts',
+    columns: columns.BANK_ACCOUNT,
+    where: [
+      { column: 'company_id', op: 'eq', value: args.company_id },
+      { column: 'iban', op: 'eq', value: iban },
+    ],
+  });
+  if (existing[0] !== undefined) {
+    return {
+      bank_account: existing[0],
+      created: false,
+      note: 'A bank account with this IBAN was already there; nothing was created.',
+    };
+  }
+
+  const currency =
+    args.currency_code ??
+    (
+      await backend.select<{ currency_code: string }>({
+        table: 'companies',
+        columns: ['currency_code'],
+        where: [{ column: 'id', op: 'eq', value: args.company_id }],
+      })
+    )[0]?.currency_code ??
+    'EUR';
+
+  const created = only(
+    await backend.insert<Row>(
+      'bank_accounts',
+      [
+        {
+          company_id: args.company_id,
+          name: args.label ?? args.bank_name ?? iban,
+          iban,
+          bic: args.bic ?? null,
+          bank_name: args.bank_name ?? null,
+          currency_code: currency,
+          account_id: accountId,
+          journal_id: journal['id'],
+        },
+      ],
+      columns.BANK_ACCOUNT,
+    ),
+    'the bank account could not be created',
+  );
+
+  // The journal points back, so `post_payment` finds the money side from
+  // either direction. A journal that already names one keeps it.
+  if (journal['bank_account_id'] === null) {
+    await backend.update(
+      'journals',
+      { bank_account_id: created['id'] },
+      [{ column: 'id', op: 'eq', value: journal['id'] as string }],
+      ['id'],
+    );
+  }
+
+  return {
+    bank_account: created,
+    created: true,
+    journal: { id: journal['id'], code: journal['code'], name: journal['name'] },
+    note: 'Payments through this journal now book against this account. record_payment takes its id as bank_account_id.',
+  };
+}
 
 export const CreateBankTransactionInput = z.object({
   company_id: companyId,

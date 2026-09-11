@@ -400,6 +400,35 @@ export async function listBankTransactions(
 // Reports
 // ---------------------------------------------------------------------------
 
+export const ListBankAccountsInput = z.object({
+  company_id: companyId,
+  include_inactive: z.boolean().optional().describe('Default false.'),
+});
+
+export async function listBankAccounts(
+  backend: Backend,
+  args: z.infer<typeof ListBankAccountsInput>,
+): Promise<unknown> {
+  const accounts = await backend.select<Row>({
+    table: 'bank_accounts',
+    columns: columns.BANK_ACCOUNT,
+    where: [
+      { column: 'company_id', op: 'eq', value: args.company_id },
+      ...(args.include_inactive === true
+        ? []
+        : ([{ column: 'active', op: 'eq', value: true }] satisfies Filter[])),
+    ],
+    order: [{ column: 'name' }],
+  });
+  return {
+    bank_accounts: accounts,
+    note:
+      accounts.length === 0
+        ? 'This company has no bank account. create_bank_account adds one; until then a payment books on the default account of its journal.'
+        : undefined,
+  };
+}
+
 export const TrialBalanceInput = z.object({
   company_id: companyId,
   from: isoDate,

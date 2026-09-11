@@ -18,6 +18,7 @@ npm test
 | `reporting.test.ts` | the trial balance balances and excludes drafts, twelve VAT boxes to the cent, the aged balance ties to the receivable account |
 | `rls.test.ts` | every table has row level security and a policy, a non-member sees nothing, a viewer cannot write, two companies cannot see each other, `anon` sees nothing |
 | `instance.test.ts` | the instance row is a true singleton, only an instance administrator creates a company, registration is optional and reversible, no table carries a `tenant_id` |
+| `line_defaults.test.ts` | the account a line with none falls back to — the line, the company default, the country model — including under `set role authenticated`, and the refusal when nothing anywhere has an answer |
 | `fec.test.ts` | the eighteen columns in order, the formats, `checkFec()`, and a golden file against the demo company |
 
 The installer and the MCP server have their own folders, `tests/cli/` and
@@ -41,7 +42,8 @@ does — including once through a real client over the in-memory transport.
 |---|---|
 | `mcp/accounting.test.ts` | a quarter of bookkeeping through the tools an assistant calls: a contact, a Belgian invoice at 21 %, posting it to 704 / 451 / 400, two payments matched against it, un-matching and re-matching, then the trial balance, the VAT return and the FEC read back |
 | `mcp/guards.test.ts` | the refusals, all of them the database's: a locked period, a viewer who may read and not write, an owner of one company who cannot see or write the other, a stranger who sees nothing |
-| `mcp/surface.test.ts` | what a client actually sees, over the in-memory transport: the twenty-two tools, a valid JSON Schema for each, the read-only and destructive annotations, the two resources, the two prompts, and a refusal arriving as a tool error rather than a broken connection |
+| `mcp/surface.test.ts` | what a client actually sees, over the in-memory transport: every tool this release ships, a valid JSON Schema for each, the read-only and destructive annotations, the two resources, the two prompts, and a refusal arriving as a tool error rather than a broken connection |
+| `mcp/bank.test.ts` | the setup path an operator used to have to do in SQL: a viewer refused a bank account, an accountant given one wired to the bank journal and its ledger account, the same IBAN twice returning the first, another company seeing none of it, and a payment that books 550000 against 400000 |
 | `mcp/config.test.ts` | what the server refuses to start with: a `service_role` key, and a database connection with no user to act for |
 
 Three things these do not run: the network driver, GoTrue, and PostgREST.

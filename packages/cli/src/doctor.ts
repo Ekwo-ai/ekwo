@@ -41,6 +41,7 @@ export async function doctor(db: SqlClient, migrations: Migration[]): Promise<Do
   checks.push(await checkPolicies(db));
   checks.push(await checkOrphanMembers(db));
   checks.push(await checkOrphanAdmins(db));
+  checks.push(await checkBankAccounts(db));
   checks.push(await checkStatements(db));
   checks.push(await checkPostedEntriesBalance(db));
 
@@ -171,6 +172,49 @@ async function checkOrphanAdmins(db: SqlClient): Promise<Check> {
     details: [
       ...rows.map((r) => r.user_id),
       'The foreign key to auth.users should have cascaded these away. Check that it is still there.',
+    ],
+  };
+}
+
+/**
+ * A company with no bank account has nowhere for a payment to land.
+ *
+ * `post_payment` resolves the money side from the payment's bank account, or
+ * from the default account of its journal — and the country template wires
+ * that second one, so this is never an error. It is the configuration an
+ * operator meant to finish and did not: without a bank account there is no
+ * IBAN on an invoice, no statement to import and nothing to reconcile
+ * against. So: a warning, naming the companies and the command that fixes it.
+ */
+async function checkBankAccounts(db: SqlClient): Promise<Check> {
+  const rows = await db.query<{ name: string }>(
+    `select c.name
+       from companies c
+      where not exists (
+        select 1 from bank_accounts b where b.company_id = c.id and b.active
+      )
+      order by c.name`,
+  );
+  if (rows.length === 0) {
+    const count = await scalar<string>(db, 'select count(*)::text from companies');
+    return {
+      name: 'bank accounts',
+      severity: 'ok',
+      summary:
+        count === '0'
+          ? 'no company yet, so nothing to bank'
+          : 'every company has at least one bank account',
+    };
+  }
+  return {
+    name: 'bank accounts',
+    severity: 'warning',
+    summary: `${rows.length} company/companies with no bank account`,
+    details: [
+      ...rows.map((r) => r.name),
+      'Payments still book — the bank journal carries a default account — but there is no IBAN to',
+      'put on an invoice and no statement to reconcile against.',
+      'Add one with `ekwo init --iban …` on the same project, or the create_bank_account tool of the MCP server.',
     ],
   };
 }

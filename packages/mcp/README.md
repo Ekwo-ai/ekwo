@@ -96,7 +96,7 @@ alongside the server; the recommended route needs no driver at all.
 
 ## The tools
 
-Thirteen read, nine write. Every write names its company explicitly.
+Every write names its company explicitly.
 
 | Tool | What it does |
 |---|---|
@@ -106,6 +106,7 @@ Thirteen read, nine write. Every write names its company explicitly.
 | `search_contacts` | Customers and suppliers, by name, type or VAT number |
 | `list_documents` | Invoices, credit notes and quotes, filtered |
 | `get_document` | One document with its lines and the entry it produced |
+| `list_bank_accounts` | The bank accounts of a company, with the journal and ledger account behind each |
 | `list_bank_transactions` | Statement lines, pending by default |
 | `trial_balance` | Opening, movements and closing per account |
 | `general_ledger` | Every posted line of an account, with a running balance |
@@ -119,6 +120,7 @@ Thirteen read, nine write. Every write names its company explicitly.
 | `post_document` | Books it. Cannot be undone. |
 | `record_payment` | Books money in or out and matches it against open invoices |
 | `reconcile` / `unreconcile` | Matches two ledger lines, or undoes one matching |
+| `create_bank_account` | Registers an account from its IBAN and wires it to the bank journal. Running it twice with the same IBAN creates nothing |
 | `create_bank_transaction` | One statement line by hand, for an installation with no feed |
 | `lock_period` | Moves the accounting and VAT lock dates. Owner only. |
 
@@ -146,7 +148,10 @@ pulls the boxes and ties them back to the ledger before anything is filed.
   raised, plus one sentence saying what it means. They are answers, not
   obstacles to route around.
 - **A missing tax is a missing tax.** A line with no tax books a base with no
-  VAT box, which is not the same as 0 %.
+  VAT box, which is not the same as 0 %. A missing *account* is different: it
+  can only mean "resolve it", because a product line with no account is
+  refused by a check constraint. So a line may leave `account_code` out, and
+  the database fills it — the company default, then the country model.
 
 ## Testing it by hand
 
@@ -178,9 +183,11 @@ Then point a client at it — in Claude Desktop, the JSON block above — and:
 A payment needs somewhere to book the bank side. On a company installed from a
 country model the bank and cash journals already point at their account
 (`550000` and `570000` in Belgium, `512000` and `530000` in France), so
-`record_payment` works with nothing else set up. A `bank_accounts` row wired to
-the journal, or `bank_account_id` on the payment, overrides that — which is
-what you want with several accounts in one journal.
+`record_payment` works with nothing else set up. `create_bank_account` names
+the real account — the IBAN is the one thing nobody can derive — and wires it
+to the journal; `bank_account_id` on the payment then says which one the money
+moved on, which is what you need with several accounts in one journal. Until a
+company has one, `ekwo doctor` says so.
 
 ## Licence
 

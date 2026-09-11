@@ -20,13 +20,13 @@
 
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
-import { availableCountries, bootstrap } from '../bootstrap.js';
+import { availableCountries, bootstrap, countryCurrency } from '../bootstrap.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { listMigrations } from '../migrations.js';
 import { applyMigrations } from '../migrations.js';
-import { askRequired, askSecret, choose, confirm, isInteractive, NotInteractiveError } from '../prompt.js';
+import { ask as askText, askRequired, askSecret, choose, confirm, isInteractive, NotInteractiveError } from '../prompt.js';
 import { register, registryUrl } from '../registry.js';
 import { applyDemoSeed, applySeeds } from '../seeds.js';
 import { asUser, scalar } from '../sql.js';
@@ -42,6 +42,10 @@ export const INIT_FLAGS = [
   'admin-password',
   'admin-user-id',
   'fiscal-year',
+  'currency',
+  'iban',
+  'bic',
+  'bank-name',
   'demo',
   'register',
   'register-email',
@@ -106,6 +110,35 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
 
     const fiscalYear = numberFlag(args, 'fiscal-year') ?? new Date().getUTCFullYear();
 
+    // The currency has to be settled before the company row exists:
+    // `companies.currency_code` is `not null default 'EUR'`, so there is no
+    // later moment at which it is empty and the country model could fill it.
+    const countryDefault = (await countryCurrency(db, country)) ?? 'EUR';
+    const currencyCode = (
+      stringFlag(args, 'currency') ??
+      (interactive ? await askText('Currency of the company?', countryDefault) : countryDefault)
+    ).toUpperCase();
+
+    // The main bank account. Optional everywhere: a company can be installed
+    // and book sales without one, and `ekwo doctor` is what notices later.
+    const iban =
+      stringFlag(args, 'iban') ??
+      (interactive
+        ? emptyToUndefined(await askText('IBAN of the main bank account? (optional, Enter to skip)'))
+        : undefined);
+    const bankAccount =
+      iban === undefined || iban.length === 0
+        ? undefined
+        : {
+            iban,
+            bic:
+              stringFlag(args, 'bic') ??
+              (interactive ? emptyToUndefined(await askText('BIC? (optional)')) : undefined),
+            bankName:
+              stringFlag(args, 'bank-name') ??
+              (interactive ? emptyToUndefined(await askText('Name of the bank? (optional)')) : undefined),
+          };
+
     // ---- The first administrator -------------------------------------------
     heading('First administrator');
     const adminUserId = await resolveAdminUser(db, args, {
@@ -122,6 +155,8 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       company,
       fiscalYear,
       adminUserId,
+      currencyCode,
+      bankAccount,
     });
     for (const s of outcome.steps) {
       const text = s.detail === undefined ? s.name : `${s.name} — ${s.detail}`;
@@ -152,8 +187,9 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     heading('Done');
     pairs([
       ['organisation', organization],
-      ['company', `${company} (${country})`],
+      ['company', `${company} (${country}, ${outcome.currencyCode})`],
       ['financial year', outcome.fiscalYearName],
+      ['bank account', bankAccount === undefined ? 'none — ekwo doctor will say so' : bankAccount.iban],
       ['schema version', schemaVersion ?? 'unknown'],
       ['config', configFile],
     ]);
@@ -169,6 +205,11 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
 
 function required(flag: string, what: string): never {
   throw new NotInteractiveError(what, flag);
+}
+
+/** An unanswered optional question is not an empty string. */
+function emptyToUndefined(value: string): string | undefined {
+  return value.length === 0 ? undefined : value;
 }
 
 /**

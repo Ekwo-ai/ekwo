@@ -341,6 +341,53 @@ alone on an empty database. `ekwo init` never applies it, `ekwo migrate` never
 applies it, and `ekwo demo` asks before adding it to an installation that
 already holds a company.
 
+**The account of a document line is resolved in the database, and the tax is
+not.** Order for the account, most specific first: the line, the product, the
+company default (`default_sales_account_id` / `default_purchase_account_id`),
+the country model (`country_defaults.sales_account_code` /
+`purchase_account_code`). It runs in a trigger on `document_lines` rather than
+in each client, because `document_lines_product_has_account` forbids a product
+line with no account — so a null account can only ever mean "resolve it", and
+every client that inserts a line, MCP server or PostgREST or psql, has to get
+the same answer. A null *tax* is the opposite case: it means no tax at all,
+which is a real answer, so nothing fills it in. What a product carries besides
+its account — description, price, unit, tax — is a pre-fill done by whoever is
+typing the line, the way an ERP's onchange works: those columns accept a
+chosen value, and overwriting them in a trigger would take the choice away.
+
+**Three columns of `country_defaults` were given a reader rather than
+deleted.** `sales_account_code`, `purchase_account_code` and `currency_code`
+shipped in the first release and were read by nothing, which is the state the
+naming policy forbids: keep it or use it, never "in case". The first two are
+the last step of the resolution above. The third is read by `ekwo init`, which
+offers it as the currency of the company — and it has to be read there,
+because `companies.currency_code` is `not null default 'EUR'` and is therefore
+never empty by the time `install_country_template` runs. Deleting a published
+column is irreversible and would have been the easier decision to defend and
+the harder one to undo.
+
+**A bank account is created from its IBAN and nothing else is asked.** The
+journal and the ledger account behind it are already chosen — the country
+template points the bank journal at 550000 or 512000 — so asking for them
+would be asking the operator to repeat what the model already says. The IBAN
+is the one fact nobody can derive, and it is also the natural key: a unique
+index on `(company_id, iban)` makes `ekwo init --iban …` and
+`create_bank_account` idempotent without a flag for it. A company with no bank
+account is a `doctor` warning and never an error: payments still book on the
+journal's default account, but there is no IBAN for an invoice and no
+statement to reconcile against.
+
+**`--db-region` no longer derives a hostname.** The pooler host carries a
+generation prefix as well as a region, and the region does not determine it: a
+project created in `eu-west-3` in September 2026 answered on `aws-1-eu-west-3`
+and returned "Tenant or user not found" on `aws-0-` — a message that reads
+like a wrong password. So both are opened and the one that answers is kept and
+printed. Without a region nothing is built at all: the direct host
+`db.<ref>.supabase.co` is IPv6-only on recent projects, and deriving it
+silently produces a hang rather than an error, so the CLI asks for the string
+the dashboard prints instead. A convenience that fails in a way that points at
+the wrong cause is worse than a question.
+
 ## The MCP server
 
 **It acts as the user, and never as `service_role`.** The server signs in with

@@ -231,11 +231,11 @@ const fec     = await ekwo.generateFec({ companyId, from: '2026-01-01', to: '202
 
 `packages/mcp` is the Model Context Protocol server, published as
 `@ekwo-ai/mcp`. It is the same idea as the client above, for an assistant
-rather than for your code: twenty-two tools over stdio — read the chart of
-accounts, create a draft invoice, post it, record and match a payment, pull
-the trial balance, the aged balance, the VAT return or the FEC — plus the
-chart of accounts and the taxes as resources, and two prompts for closing a
-month and preparing a return.
+rather than for your code: tools over stdio — read the chart of accounts,
+create a draft invoice, post it, register a bank account, record and match a
+payment, pull the trial balance, the aged balance, the VAT return or the FEC
+— plus the chart of accounts and the taxes as resources, and two prompts for
+closing a month and preparing a return.
 
 It runs **as the user**, never as `service_role`: it signs in with their
 address and password, or takes their access token, and row level security

@@ -27,17 +27,19 @@ either.
 
    **Take the pooler string, not the direct one, unless you know you have
    IPv6.** The direct host `db.<ref>.supabase.co` resolves to an IPv6 address
-   only, so from an IPv4-only network it simply never connects. The session
-   pooler answers on IPv4 and supports everything a migration needs:
+   only on any recent project, so from an IPv4-only network it simply never
+   connects. The session pooler answers on IPv4 and supports everything a
+   migration needs:
 
    ```
    postgresql://postgres.<ref>:<password>@aws-1-<region>.pooler.supabase.com:5432/postgres
    ```
 
    The region is in the hostname the dashboard gives you, and so is the
-   generation prefix: verified on a real project on 11 September 2026 in
-   `eu-west-3`, where `aws-1` worked and `aws-0` did not know the tenant.
-   Copy the line from the dashboard rather than building it by hand.
+   generation prefix, which the region does not determine: verified on a real
+   project on 11 September 2026 in `eu-west-3`, where `aws-1` worked and
+   `aws-0` answered "Tenant or user not found". Copy the line from the
+   dashboard — Connect → Session pooler — rather than building it by hand.
 3. **Run the installer.**
 
    ```sh
@@ -45,8 +47,9 @@ either.
    ```
 
    It asks for the connection string, the country, your organisation, the
-   first company and the address of the first administrator, then does the
-   rest. Five to ten seconds on a free project.
+   currency, the first company, the address of the first administrator and —
+   optionally — the IBAN of your main bank account, then does the rest. Five
+   to ten seconds on a free project.
 
 4. **Sign in** to your project as that administrator and start booking. Until
    the Community web application lands, the interface is the REST API Supabase
@@ -56,7 +59,7 @@ Everything above in one non-interactive line:
 
 ```sh
 npx ekwo init \
-  --db-url "postgresql://postgres:PASSWORD@db.YOURREF.supabase.co:5432/postgres" \
+  --db-url "postgresql://postgres.YOURREF:PASSWORD@aws-1-eu-west-3.pooler.supabase.com:5432/postgres" \
   --supabase-url "https://YOURREF.supabase.co" \
   --service-role-key "$SUPABASE_SERVICE_ROLE_KEY" \
   --country BE \
@@ -65,6 +68,7 @@ npx ekwo init \
   --admin-email "you@example.com" \
   --admin-password "a-long-password" \
   --fiscal-year 2026 \
+  --iban "BE71096123456769" \
   --yes
 ```
 
@@ -75,7 +79,7 @@ npx ekwo init \
 | 1 | Applies `supabase/migrations/*.sql` in order | Recorded in `supabase_migrations.schema_migrations`, the Supabase CLI's own history table, so `supabase db push` and `ekwo migrate` stay interchangeable |
 | 2 | Applies the reference seeds | Currencies, the Belgian PCMN and the French PCG, their VAT codes. `90_demo_company.sql` is sample data and is never applied here |
 | 3 | Creates the first administrator through the Supabase Auth admin API | See below: a database connection cannot be a signed-in user |
-| 4 | `init_instance()`, `claim_instance_admin()`, the company, `company_members` as owner, `install_country_template()`, the first financial year | The six steps of the root README, in the same order |
+| 4 | `init_instance()`, `claim_instance_admin()`, the company, `company_members` as owner, `install_country_template()`, the first financial year, and the bank account when an IBAN was given | The six steps of the root README, in the same order, plus the one thing nobody can derive |
 | 5 | Writes `ekwo.json` | Project URL, country, schema version. Nothing else, ever |
 | 6 | Asks whether to register with Ekwo | The default answer is no, and no is a supported answer forever |
 
@@ -107,7 +111,7 @@ instead if the account already exists, and no key is needed.
 | `ekwo init` | The whole installation, interactive or not. |
 | `ekwo migrate` | Applies the migrations this release adds, after showing the gap. Re-applies the reference seeds, which are idempotent. |
 | `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, its companies. Exits 1 when something is pending. |
-| `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
+| `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
 | `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
@@ -123,21 +127,22 @@ Every command takes the connection flags:
 | Flag | Meaning |
 |---|---|
 | `--db-url <url>` | Postgres connection string. The reliable way. |
-| `--project-ref <ref>` | With `--db-password`, the host is derived from the ref. |
+| `--project-ref <ref>` | With `--db-password` and `--db-region`, the session pooler host. |
 | `--db-password <pw>` | Database password. Prompted, masked, when omitted. |
-| `--db-region <region>` | Use the shared pooler in that region, e.g. `eu-central-1`. |
+| `--db-region <region>` | With `--project-ref`, the session pooler in that region. Both generation prefixes are tried and the one that answers is kept. |
 | `--supabase-url <url>` | `https://<ref>.supabase.co`. Needed only to create a user. |
 | `--service-role-key <key>` | Needed only to create a user. |
 | `--yes`, `-y` | Never ask a question. Everything must come from flags or the environment. |
 
-`--project-ref` derives `db.<ref>.supabase.co`, and with `--db-region` the
-pooler host instead. Both are conveniences and both are guesses: recent
-projects answer on IPv6 only at the direct host, and the pooler hostname
-carries a region *and* a generation prefix — `--db-region` builds `aws-0-…`,
-while a project created in `eu-west-3` in September 2026 answered on `aws-1-…`
-and did not know the tenant on `aws-0-…`. Copy the connection string from the
-dashboard and pass `--db-url` when in doubt; it is the only form that is not
-a guess.
+`--project-ref` with `--db-password` and `--db-region` builds the session
+pooler host. It no longer guesses which one: the pooler hostname carries a
+generation prefix as well as a region, and the region does not determine it,
+so `aws-0-<region>` and `aws-1-<region>` are both opened on port 5432 and the
+one that answers is kept and printed. Without `--db-region` nothing is
+derived — the CLI asks for the connection string, because the direct host
+`db.<ref>.supabase.co` is IPv6-only on recent projects and deriving it
+silently produces a hang rather than an error. `--db-url`, copied from the
+dashboard under Connect → Session pooler, is the form that is never derived.
 
 `ekwo init` adds:
 
@@ -150,6 +155,10 @@ a guess.
 | `--admin-password <pw>` | Their password. Omitted, an invite link is generated and printed. |
 | `--admin-user-id <uuid>` | Use an account that already exists, instead of creating one. |
 | `--fiscal-year <year>` | Calendar year of the first financial year. Defaults to this year. |
+| `--currency <code>` | Currency of the company. Defaults to what the country model says: `EUR` for both countries shipped. |
+| `--iban <iban>` | Creates the main bank account, wired to the bank journal and its ledger account. Omitted, no bank account is created and `ekwo doctor` says so. |
+| `--bic <bic>` | Optional, on that account. |
+| `--bank-name <name>` | Optional. It also names the account in the books. |
 | `--demo` | Also load the sample company. |
 | `--register` | Register without being asked. `--register-email` sets the address. |
 | `--registry-url <url>` | Where the registration is announced. |
@@ -231,12 +240,12 @@ npm install && npm run build
 
 # 1. A project you can throw away. Note its ref, password, URL and key.
 node packages/cli/dist/bin.js init \
-  --db-url "postgresql://postgres:PASSWORD@db.SCRATCHREF.supabase.co:5432/postgres" \
+  --db-url "postgresql://postgres.SCRATCHREF:PASSWORD@aws-1-REGION.pooler.supabase.com:5432/postgres" \
   --supabase-url "https://SCRATCHREF.supabase.co" \
   --service-role-key "$KEY" \
   --country BE --org "Scratch" --company "Scratch BV" \
   --admin-email "you@example.com" --admin-password "a-long-password" \
-  --fiscal-year 2026 --yes
+  --fiscal-year 2026 --iban "BE71096123456769" --yes
 
 # 2. Everything should be green, and nothing pending.
 node packages/cli/dist/bin.js status --db-url "$URL"

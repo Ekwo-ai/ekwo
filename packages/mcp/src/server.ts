@@ -302,6 +302,30 @@ export function buildServer(backend: Backend): McpServer {
   );
 
   server.registerTool(
+    'create_bank_account',
+    {
+      title: 'Add a bank account',
+      description:
+        "Registers a bank account of the company from its IBAN, and wires it to the bank journal and to the ledger account behind it — both of which the country template has already chosen, so neither has to be given. Running it twice with the same IBAN returns the one that exists rather than creating a second. Do this once per account: until a company has one, an invoice carries no IBAN and record_payment can only book on the journal's default account.",
+      inputSchema: write.CreateBankAccountInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.createBankAccount(backend, args)),
+  );
+
+  server.registerTool(
+    'list_bank_accounts',
+    {
+      title: 'Bank accounts',
+      description:
+        'The bank accounts of a company, with their IBAN, the journal they book through and the ledger account behind each. Read it before recording a payment on a particular account, and to find out whether the company has one at all.',
+      inputSchema: read.ListBankAccountsInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.listBankAccounts(backend, args)),
+  );
+
+  server.registerTool(
     'create_bank_transaction',
     {
       title: 'Add a bank transaction',

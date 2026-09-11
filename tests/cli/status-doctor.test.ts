@@ -36,6 +36,7 @@ beforeEach(async () => {
     company: 'Example One',
     fiscalYear: 2026,
     adminUserId: userId,
+    bankAccount: { iban: 'BE71 0961 2345 6769', bic: 'GKCCBEBB', bankName: 'Banque Exemple' },
   });
   companyId = result.companyId;
 });
@@ -97,9 +98,22 @@ describe('doctor', () => {
       'policies',
       'company members',
       'instance administrators',
+      'bank accounts',
       'bank statements',
       'posted entries',
     ]);
+  });
+
+  it('warns about a company with no bank account, and never fails on it', async () => {
+    await db.query('delete from bank_accounts where company_id = $1', [companyId]);
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'bank accounts');
+    expect(check?.severity).toBe('warning');
+    expect(check?.details).toContain('Example One');
+    // A company without a bank account is incomplete, not broken: `ekwo doctor`
+    // exits 1 on a problem and 0 on warnings, and this must stay on the 0 side.
+    expect(report.problems).toBe(0);
+    expect(report.warnings).toBeGreaterThan(0);
   });
 
   it('names a table that was added without row level security', async () => {

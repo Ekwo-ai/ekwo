@@ -299,3 +299,58 @@ describe('the books, through the tools', () => {
     expect(list(state['companies']).map((row) => row['id'])).toEqual([fx.companyId]);
   });
 });
+
+/**
+ * A document line may leave its account out.
+ *
+ * The resolution is the trigger's — the line, then the product, then the
+ * company, then the country model — and this proves the tool lets it happen
+ * rather than refusing first, which is what it used to do.
+ */
+describe('a line with no account', () => {
+  it('is booked on the company default and reported as such', async () => {
+    const draft = record(
+      await writeTools.createDocument(backend, {
+        company_id: fx.companyId,
+        doc_type: 'sale_invoice',
+        contact_id: customerId,
+        document_date: '2026-09-10',
+        lines: [
+          { name: 'Sans compte', unit_price: '500.00', tax_code: 'BE-S-21' },
+          { name: 'Avec compte', unit_price: '100.00', account_code: '700300', tax_code: 'BE-S-21' },
+        ],
+      }),
+    );
+    const lines = list(draft['lines']);
+    const codes = lines.map((line) => record(line['account'] ?? {})['code']);
+    expect(codes).toEqual(['700000', '700300']);
+  });
+
+  it('refuses, naming the tool argument, when there is no default anywhere', async () => {
+    // A company whose model has nothing to offer for a purchase.
+    await db.query(
+      'update companies set default_purchase_account_id = null where id = $1',
+      [fx.companyId],
+    );
+    await db.query(`update country_defaults set purchase_account_code = null where country = 'BE'`);
+    try {
+      await expect(
+        writeTools.createDocument(backend, {
+          company_id: fx.companyId,
+          doc_type: 'purchase_invoice',
+          contact_id: customerId,
+          document_date: '2026-09-10',
+          lines: [{ name: 'Rien nulle part', unit_price: '50.00' }],
+        }),
+      ).rejects.toThrow(/missing_account/);
+    } finally {
+      await db.query(
+        `update country_defaults set purchase_account_code = '610000' where country = 'BE'`,
+      );
+      await db.query(
+        `update companies set default_purchase_account_id = account_id_by_code($1, '610000') where id = $1`,
+        [fx.companyId],
+      );
+    }
+  });
+});

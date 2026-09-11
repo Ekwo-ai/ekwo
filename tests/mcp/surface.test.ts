@@ -24,6 +24,7 @@ const READ_TOOLS = [
   'search_contacts',
   'list_documents',
   'get_document',
+  'list_bank_accounts',
   'list_bank_transactions',
   'trial_balance',
   'general_ledger',
@@ -41,6 +42,7 @@ const WRITE_TOOLS = [
   'record_payment',
   'reconcile',
   'unreconcile',
+  'create_bank_account',
   'create_bank_transaction',
   'lock_period',
 ];
@@ -67,7 +69,7 @@ afterAll(async () => {
 });
 
 describe('the tools a client is offered', () => {
-  it('are the twenty-two of this release, and nothing else', async () => {
+  it('are the ones this release ships, and nothing else', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((tool) => tool.name).sort()).toEqual([...READ_TOOLS, ...WRITE_TOOLS].sort());
   });
@@ -103,7 +105,14 @@ describe('the tools a client is offered', () => {
 
   it('ask for a company on every write', async () => {
     const { tools } = await client.listTools();
-    const needsCompany = ['create_contact', 'create_document', 'record_payment', 'create_bank_transaction', 'lock_period'];
+    const needsCompany = [
+      'create_contact',
+      'create_document',
+      'record_payment',
+      'create_bank_account',
+      'create_bank_transaction',
+      'lock_period',
+    ];
     for (const name of needsCompany) {
       const schema = tools.find((tool) => tool.name === name)?.inputSchema as {
         required?: string[];

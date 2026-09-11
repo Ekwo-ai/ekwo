@@ -187,6 +187,121 @@ describe('bootstrap', () => {
     );
   });
 
+  it('creates no bank account when no IBAN is given', async () => {
+    const userId = await makeAuthUser(db);
+    const result = await bootstrap(db, {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example One',
+      fiscalYear: 2026,
+      adminUserId: userId,
+    });
+
+    expect(result.bankAccountId).toBeUndefined();
+    expect(result.steps.map((s) => s.name)).not.toContain('bank account');
+    const accounts = await db.query<{ count: string }>(
+      'select count(*)::text from bank_accounts where company_id = $1',
+      [result.companyId],
+    );
+    expect(accounts[0]?.count).toBe('0');
+  });
+
+  it('wires the bank account to the bank journal and its ledger account', async () => {
+    const userId = await makeAuthUser(db);
+    const result = await bootstrap(db, {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example One',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      bankAccount: { iban: 'BE71 0961 2345 6769', bic: 'GKCCBEBB', bankName: 'Banque Exemple' },
+    });
+
+    const bank = await db.query<{
+      iban: string;
+      bic: string;
+      bank_name: string;
+      name: string;
+      currency_code: string;
+      code: string;
+      journal_code: string;
+    }>(
+      `select b.iban, b.bic, b.bank_name, b.name, b.currency_code,
+              a.code, j.code as journal_code
+         from bank_accounts b
+         join accounts a on a.id = b.account_id
+         join journals j on j.id = b.journal_id
+        where b.company_id = $1`,
+      [result.companyId],
+    );
+    expect(bank).toHaveLength(1);
+    // Spaces out, upper case in: an IBAN is compared, and the unique index is
+    // on the stored form.
+    expect(bank[0]?.iban).toBe('BE71096123456769');
+    expect(bank[0]?.bic).toBe('GKCCBEBB');
+    expect(bank[0]?.name).toBe('Banque Exemple');
+    expect(bank[0]?.currency_code).toBe('EUR');
+    // 550000 is what the Belgian country model points the bank journal at.
+    expect(bank[0]?.code).toBe('550000');
+    expect(bank[0]?.journal_code).toBe('BNK');
+
+    const journal = await db.query<{ bank_account_id: string }>(
+      `select bank_account_id from journals where company_id = $1 and code = 'BNK'`,
+      [result.companyId],
+    );
+    expect(journal[0]?.bank_account_id).toBe(result.bankAccountId);
+  });
+
+  it('finds the same bank account on a second run rather than creating another', async () => {
+    const userId = await makeAuthUser(db);
+    const options = {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example One',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      bankAccount: { iban: 'BE71096123456769' },
+    };
+
+    const first = await bootstrap(db, options);
+    const second = await bootstrap(db, options);
+
+    expect(second.bankAccountId).toBe(first.bankAccountId);
+    expect(second.steps.find((s) => s.name === 'bank account')?.outcome).toBe('already');
+    const count = await db.query<{ count: string }>(
+      'select count(*)::text from bank_accounts where company_id = $1',
+      [first.companyId],
+    );
+    expect(count[0]?.count).toBe('1');
+  });
+
+  it('takes the currency from the country model, and lets a flag override it', async () => {
+    const userId = await makeAuthUser(db);
+    const belgian = await bootstrap(db, {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example One',
+      fiscalYear: 2026,
+      adminUserId: userId,
+    });
+    expect(belgian.currencyCode).toBe('EUR');
+
+    const chosen = await bootstrap(db, {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example Two',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      currencyCode: 'usd',
+    });
+    expect(chosen.currencyCode).toBe('USD');
+    const row = await db.query<{ currency_code: string }>(
+      'select currency_code from companies where id = $1',
+      [chosen.companyId],
+    );
+    expect(row[0]?.currency_code).toBe('USD');
+  });
+
   it('installs a French company on the PCG', async () => {
     const userId = await makeAuthUser(db);
     const result = await bootstrap(db, {

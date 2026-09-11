@@ -11,6 +11,28 @@ somewhere has already run it.
 
 ### Fixed
 
+- **`--db-region` built a pooler hostname and called it the answer.** The
+  region does not determine the generation prefix: a project created in
+  `eu-west-3` answers on `aws-1-eu-west-3.pooler.supabase.com` and returns
+  "Tenant or user not found" on `aws-0-`, which reads like a wrong password
+  rather than a wrong host. `--project-ref` with `--db-password` and
+  `--db-region` now tries both generations on the session port, keeps the one
+  that answers and prints it. Without `--db-region` nothing is derived at all:
+  the CLI asks for the connection string the dashboard prints under Connect →
+  Session pooler, because the direct host `db.<ref>.supabase.co` is IPv6-only
+  on any recent project and deriving it silently produces a hang.
+- **Three columns of `country_defaults` had no reader.**
+  `sales_account_code`, `purchase_account_code` and `currency_code` were
+  declared from the first release and consumed by nothing — the state the
+  naming policy forbids. They are consumed now rather than deleted: migration
+  `20260911193853` adds `companies.default_sales_account_id` and
+  `default_purchase_account_id`, `install_country_template` wires them from
+  the country model, and a document line that names no account is resolved by
+  trigger — the line, then the company default, then the country model.
+  `ekwo init` offers `country_defaults.currency_code` as the currency of the
+  company, which has to happen before the insert: `companies.currency_code` is
+  `not null default 'EUR'` and is never empty afterwards.
+
 - **A freshly installed company refused its first payment.**
   `country_defaults.bank_account_code` was declared from the first release and
   read by nothing, so `install_country_template` left
@@ -36,12 +58,21 @@ somewhere has already run it.
 
 ### Added
 
+- **A bank account at install time, and a tool to add one later.**
+  `ekwo init` asks for the IBAN of the main account — optional, with `--iban`,
+  `--bic` and `--bank-name` for the non-interactive form — and creates the
+  `bank_accounts` row wired to the bank journal and to the ledger account the
+  country model put behind it. Running `init` again with the same IBAN finds
+  it rather than creating a second. The MCP server gains `create_bank_account`
+  and `list_bank_accounts`, `record_payment` documents its `bank_account_id`,
+  and the `no_bank_account` refusal now names the tool that fixes it.
+  `ekwo doctor` warns — never fails — about a company with no bank account.
 - **The write path has a test under row level security.** Every test in this
   repository ran as the table owner, which is exempt, so the two bugs above
   were invisible: an accountant now posts a document and matches a payment
   under `set role authenticated`, and both counters are exercised.
 - **`npx @ekwo-ai/mcp`** — `packages/mcp`, the Model Context Protocol server.
-  Twenty-two tools over stdio: read the companies, the chart of accounts, the
+  Tools over stdio: read the companies, the chart of accounts, the
   contacts, the documents and the bank lines; create a contact, a draft
   invoice and its lines; post it; record a payment and match it against the
   open invoices; pull the trial balance, the general ledger, the aged balance,
