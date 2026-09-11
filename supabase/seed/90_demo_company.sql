@@ -285,9 +285,8 @@ begin
    where e.document_id = v_doc_ids[1] and l.debit > 0
      and l.account_id = account_id_by_code(v_company, '400000');
 
+  -- No amount_paid to write: matching the customer line moves the document.
   perform reconcile(v_line_debit, v_line_credit, null);
-
-  update documents set amount_paid = 4477.00 where id = v_doc_ids[1];
 
   -- ------------------------------------------------------- bank statement
   insert into bank_statements (company_id, bank_account_id, name, statement_date,

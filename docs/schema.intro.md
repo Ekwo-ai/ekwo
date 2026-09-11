@@ -39,7 +39,9 @@ the four template tables plus `country_defaults` that
 2. **A posted entry balances.** A check constraint on `entries`, with
    `total_debit` and `total_credit` maintained from the lines by trigger.
 3. **Totals are derived.** `document_lines.amount_untaxed` is generated;
-   document and entry totals are maintained by trigger; nothing is keyed in.
+   document and entry totals are maintained by trigger; `documents.amount_paid`
+   is recomputed from the matching on the third-party lines. Nothing is keyed
+   in.
 4. **A locked period refuses writes.** Triggers on `entries` and
    `entry_lines` consult `companies.lock_date`, `companies.tax_lock_date` and
    `fiscal_years.is_closed`. Matching stays allowed.

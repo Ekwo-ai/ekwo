@@ -99,7 +99,10 @@ somewhere has already run it.
   fiscal years, enforced by triggers on entries and lines. Matching stays
   possible after a lock.
 - **Bilateral matching**: `reconcile()` and `unreconcile()`, with a shared
-  letter (`A0001`) and a residual maintained on each line.
+  letter (`A0001`) and a residual maintained on each line. Matching a
+  third-party line moves `documents.amount_paid`, and `amount_residual` and
+  `payment_state` follow: what a document has been settled by is derived, not
+  keyed in.
 - **Reports**: `trial_balance`, `general_ledger`, `aged_balance`,
   `vat_return`, `fec_lines`. All of them filter posted entries in the `WHERE`
   clause, so a draft line cannot leak into a balance.
@@ -111,7 +114,7 @@ somewhere has already run it.
   declaration boxes, eleven currencies, and a fictional demo company.
 - **`@ekwo-ai/core`**: types of the schema, a thin client over the accounting
   functions, and the French FEC generator with its file-level checks.
-- **Tests**: 91 of them, running every migration and seed against Postgres in
+- **Tests**: 165 of them, running every migration and seed against Postgres in
   WebAssembly, covering posting, credit notes, self-assessment, matching,
   period locks, reports, row level security, the instance singleton and its
   roles, and a golden FEC export.

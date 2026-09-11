@@ -146,6 +146,18 @@ is a generated column; document and entry totals are maintained by trigger.
 Where a header and its lines can disagree, one day they will, and the ledger
 is the one that has to be right.
 
+**What a document has been settled by is derived from its matching.**
+`documents.amount_paid` is recomputed from the matched amounts on the
+third-party lines of its entry, so `amount_residual` and `payment_state`
+follow from the ledger rather than from whoever remembered to update the
+header. It shipped as a column somebody had to write by hand, which was the
+rule above broken on its own terms; the recomputation is folded into the
+existing reconciliation trigger rather than added as a second one, because two
+`after` row triggers on the same table fire in name order and this one has to
+run after the line residuals are updated. A value written by hand still
+sticks until the next matching, because the socle does not yet model a
+prepayment that is settled against nothing.
+
 **The counterpart line is the difference of everything already written.** The
 entry therefore balances by construction, and when the document header
 disagrees with it, `post_document` raises and names the document. The header

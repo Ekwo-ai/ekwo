@@ -39,7 +39,9 @@ the four template tables plus `country_defaults` that
 2. **A posted entry balances.** A check constraint on `entries`, with
    `total_debit` and `total_credit` maintained from the lines by trigger.
 3. **Totals are derived.** `document_lines.amount_untaxed` is generated;
-   document and entry totals are maintained by trigger; nothing is keyed in.
+   document and entry totals are maintained by trigger; `documents.amount_paid`
+   is recomputed from the matching on the third-party lines. Nothing is keyed
+   in.
 4. **A locked period refuses writes.** Triggers on `entries` and
    `entry_lines` consult `companies.lock_date`, `companies.tax_lock_date` and
    `fiscal_years.is_closed`. Matching stays allowed.
@@ -587,7 +589,7 @@ Sales and purchase invoices, credit notes, quotes and orders. `state` is the doc
 | `amount_untaxed` | `numeric(16,2)` | not null |
 | `amount_tax` | `numeric(16,2)` | not null |
 | `amount_total` | `numeric(16,2)` | not null |
-| `amount_paid` | `numeric(16,2)` | not null |
+| `amount_paid` | `numeric(16,2)` | not null — Derived from reconciliations on the third-party lines of the document's entry. A value written by hand is replaced at the next matching. |
 | `amount_residual` | `numeric(16,2)` | generated |
 | `reversed_document_id` | `uuid` |  |
 | `entry_id` | `uuid` |  |
@@ -982,6 +984,7 @@ Constraints:
 | `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
+| `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |

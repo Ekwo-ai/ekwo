@@ -143,6 +143,70 @@ describe('reconcile', () => {
     expect(message).toMatch(/account_not_reconcilable/);
   });
 
+  it('moves the document it settles, without anyone writing amount_paid', async () => {
+    const { documentId, receivableLineId } = await invoiceWithReceivable('2026-04-02');
+
+    let doc = await one<{ amount_paid: string; amount_residual: string; payment_state: string }>(
+      db,
+      `select amount_paid, amount_residual, payment_state from documents where id = $1`,
+      [documentId],
+    );
+    expect(doc.amount_paid).toBe('0.00');
+    expect(doc.payment_state).toBe('not_paid');
+
+    const part = await bankReceipt('2026-04-10', 500);
+    await db.query(`select reconcile($1, $2, 500)`, [receivableLineId, part]);
+
+    doc = await one(
+      db,
+      `select amount_paid, amount_residual, payment_state from documents where id = $1`,
+      [documentId],
+    );
+    expect(doc.amount_paid).toBe('500.00');
+    expect(doc.amount_residual).toBe('710.00');
+    expect(doc.payment_state).toBe('partially_paid');
+
+    const rest = await bankReceipt('2026-04-20', 710);
+    await db.query(`select reconcile($1, $2, null)`, [receivableLineId, rest]);
+
+    doc = await one(
+      db,
+      `select amount_paid, amount_residual, payment_state from documents where id = $1`,
+      [documentId],
+    );
+    expect(doc.amount_paid).toBe('1210.00');
+    expect(doc.amount_residual).toBe('0.00');
+    expect(doc.payment_state).toBe('paid');
+  });
+
+  it('puts the document back when the matching is undone', async () => {
+    const { documentId, receivableLineId } = await invoiceWithReceivable('2026-04-03');
+    const receipt = await bankReceipt('2026-04-11', 1210);
+    const pairing = await one<{ id: string }>(db, `select (reconcile($1, $2, null)).id`, [
+      receivableLineId,
+      receipt,
+    ]);
+    expect(
+      (
+        await one<{ payment_state: string }>(
+          db,
+          `select payment_state from documents where id = $1`,
+          [documentId],
+        )
+      ).payment_state,
+    ).toBe('paid');
+
+    await db.query(`select unreconcile($1)`, [pairing.id]);
+
+    const doc = await one<{ amount_paid: string; payment_state: string }>(
+      db,
+      `select amount_paid, payment_state from documents where id = $1`,
+      [documentId],
+    );
+    expect(doc.amount_paid).toBe('0.00');
+    expect(doc.payment_state).toBe('not_paid');
+  });
+
   it('releases the matched amount when a pairing is undone', async () => {
     const { receivableLineId } = await invoiceWithReceivable('2026-03-07');
     const receipt = await bankReceipt('2026-03-22', 1210);
