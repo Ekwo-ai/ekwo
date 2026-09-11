@@ -13,6 +13,23 @@ export async function demoCompanyId(db: PGlite): Promise<string> {
   return row.id;
 }
 
+/** Creates a row in the customer's auth.users and returns its id. */
+export async function newUser(db: PGlite, email?: string): Promise<string> {
+  const id = crypto.randomUUID();
+  await db.query(`insert into auth.users (id, email) values ($1, $2)`, [
+    id,
+    email ?? `${id}@example.test`,
+  ]);
+  return id;
+}
+
+/** Makes a user an instance administrator, creating the auth user first. */
+export async function newInstanceAdmin(db: PGlite): Promise<string> {
+  const id = await newUser(db);
+  await db.query(`insert into instance_admins (user_id) values ($1)`, [id]);
+  return id;
+}
+
 export interface Fixture {
   companyId: string;
   ownerId: string;

@@ -29,15 +29,14 @@ support and migrations know what they are looking at, not so a feature can be
 switched off. Gating an accounting feature on a column would make the open
 core a demo.
 
-**There is an instance-level role, and it is in the same vocabulary as the
-company roles.** `member_role` now carries `instance_admin` alongside
-`owner`, `accountant` and `viewer`, so an interface renders one list and an
-API speaks one language. The storage is split into `instance_members`,
-because the keys genuinely differ — a company role is keyed by (company,
-user), an instance role by user alone — and making `company_id` nullable in
-`company_members` would break its primary key and the meaning of every row in
-it. A check constraint on each table refuses the roles that do not belong to
-it, so the split cannot drift.
+**There is an instance-level role, and it lives in its own table.**
+`instance_admins` is keyed on the user alone, because that is genuinely its
+key: a company role is keyed by (company, user). Making `company_id` nullable
+in `company_members` to hold an instance role would break its primary key and
+the meaning of every row in it. The table name carries the role, so there is
+no `role` column to get wrong. `member_role` still carries `instance_admin`
+as a value, so an interface can render one list of roles for the whole
+installation, and `company_members` refuses it by check constraint.
 
 **An instance administrator creates companies and invites members; that is
 all.** They can list the companies and administer them, and they cannot read
@@ -58,14 +57,25 @@ is worth writing down because the symptom — "violates row-level security" on
 a row that was in fact written — points at the wrong policy.
 
 **Users live in the customer's own Supabase Auth.** `company_members.user_id`
-and `instance_members.user_id` hold an `auth.users.id` from the customer's
+and `instance_admins.user_id` hold an `auth.users.id` from the customer's
 project, matched against `auth.uid()` in every policy. Ekwo holds no account
-and no directory. There is deliberately **no foreign key** to `auth.users`:
-it would make the schema refuse to install on a plain Postgres, and it would
-force seeds and fixtures to write into `auth`, which Supabase treats as its
-own. The cost is that a deleted auth user leaves an orphan membership row,
-which a cleanup job or an `on delete cascade` added by the operator can
-handle.
+and no directory.
+
+**The foreign key onto `auth.users` is on `instance_admins` and deliberately
+not on `company_members`.** An administrator is necessarily a signed-in user,
+so there is nothing to accommodate and the key costs nothing. A company
+membership is different: inviting someone into a company before they have an
+account is a normal thing to want, and a foreign key would forbid it. The
+price of the asymmetry is that a deleted auth user leaves an orphan company
+membership, which a cleanup job handles; the instance administrator row
+cascades away on its own. Outside Supabase the schema needs an `auth.users`
+table to exist — `tests/helpers/supabase-shim.sql` shows the two columns that
+are enough.
+
+**Reading the instance row is for people who are on this installation.** A
+member of at least one company, or an administrator. Not simply anyone
+holding a valid token: on a shared Supabase project that would tell a
+stranger which organisation runs here.
 
 ## Structure
 

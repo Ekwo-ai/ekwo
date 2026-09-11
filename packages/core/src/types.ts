@@ -15,10 +15,9 @@ export type IsoTimestamp = string;
 export type Decimal = string;
 
 /**
- * One vocabulary for the whole installation. `instance_admin` is the
- * instance-level role and lives in `instance_members`; the other three are
- * per company and live in `company_members`. A check constraint on each
- * table keeps them apart.
+ * One vocabulary for the whole installation. `instance_admin` is held by a
+ * row in `instance_admins`; the other three are per company and live in
+ * `company_members`, which refuses `instance_admin` by check constraint.
  */
 export type MemberRole = 'instance_admin' | 'owner' | 'accountant' | 'viewer';
 
@@ -46,9 +45,13 @@ export interface Instance {
   registered_at: IsoTimestamp | null;
 }
 
-export interface InstanceMember {
+/**
+ * An instance administrator: creates companies and invites members. The
+ * table name is the role, so there is no role column. `user_id` is a real
+ * foreign key onto the customer's own `auth.users`.
+ */
+export interface InstanceAdmin {
   user_id: Uuid;
-  role: 'instance_admin';
   created_at: IsoTimestamp;
 }
 

@@ -33,7 +33,7 @@ describe('migrations', () => {
     ).map((t) => t.tablename);
 
     for (const expected of [
-      'instance', 'instance_members',
+      'instance', 'instance_admins',
       'companies', 'company_members', 'fiscal_years',
       'accounts', 'journals', 'journal_sequences',
       'contacts', 'taxes', 'tax_postings',
@@ -67,7 +67,7 @@ describe('migrations', () => {
       'trial_balance', 'general_ledger', 'aged_balance', 'vat_return', 'fec_lines',
       'install_country_template', 'account_id_by_code', 'commercial_entity',
       'init_instance', 'claim_instance_admin', 'register_instance', 'unregister_instance',
-      'is_instance_admin', 'ekwo_schema_version',
+      'is_instance_admin', 'is_any_company_member', 'ekwo_schema_version',
     ]) {
       expect(functions).toContain(expected);
     }

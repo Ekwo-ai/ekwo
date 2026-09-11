@@ -12,7 +12,7 @@ row written by the installer.
 
 ```
 instance                                 one row: who installed it, where, which edition
-instance_members                         instance administrators
+instance_admins                          instance administrators
 companies ─┬─ company_members            who may read or write, in three roles
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, eighteen types
@@ -45,9 +45,8 @@ the four template tables plus `country_defaults` that
    `fiscal_years.is_closed`. Matching stays allowed.
 5. **A third-party account is reconcilable.** A check constraint refuses an
    `asset_receivable` or `liability_payable` account that is not.
-6. **Every table has row level security.** At instance level,
-   `instance_admin` in `instance_members` creates companies and invites
-   members. Per company, `company_members` gives `viewer` read, `accountant`
+6. **Every table has row level security.** At instance level, a row in
+   `instance_admins` creates companies and invites members. Per company, `company_members` gives `viewer` read, `accountant`
    write, and `owner` administration of the company and its members. An
    instance administrator can see the list of companies and invite people
    into them; they cannot read a ledger they were not invited to.

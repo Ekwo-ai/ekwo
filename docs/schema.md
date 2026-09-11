@@ -12,7 +12,7 @@ row written by the installer.
 
 ```
 instance                                 one row: who installed it, where, which edition
-instance_members                         instance administrators
+instance_admins                          instance administrators
 companies ─┬─ company_members            who may read or write, in three roles
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, eighteen types
@@ -45,9 +45,8 @@ the four template tables plus `country_defaults` that
    `fiscal_years.is_closed`. Matching stays allowed.
 5. **A third-party account is reconcilable.** A check constraint refuses an
    `asset_receivable` or `liability_payable` account that is not.
-6. **Every table has row level security.** At instance level,
-   `instance_admin` in `instance_members` creates companies and invites
-   members. Per company, `company_members` gives `viewer` read, `accountant`
+6. **Every table has row level security.** At instance level, a row in
+   `instance_admins` creates companies and invites members. Per company, `company_members` gives `viewer` read, `accountant`
    write, and `owner` administration of the company and its members. An
    instance administrator can see the list of companies and invite people
    into them; they cannot read a ledger they were not invited to.
@@ -153,7 +152,7 @@ the return say the same thing, because they are the same rows.
 | [`entry_lines`](#entry_lines) | Ledger lines. Amounts are always positive; a reversal flips the side, it never negates. |
 | [`fiscal_years`](#fiscal_years) | Accounting periods. An exercise is an object, not two integers on the company. |
 | [`instance`](#instance) | The installation itself. Exactly one row. Registration with Ekwo is optional and empty by default. |
-| [`instance_members`](#instance_members) | Instance administrators: they create companies and invite members. user_id is an auth.users id from the customer's own Supabase project. |
+| [`instance_admins`](#instance_admins) | Instance administrators: they create companies and invite members. One row per user, keyed on auth.users of the customer's own Supabase project. |
 | [`journal_sequences`](#journal_sequences) | Counter behind next_entry_number(). One row per journal and year. |
 | [`journal_templates`](#journal_templates) |  |
 | [`journals`](#journals) | Books of entry. The code is the first segment of every entry number. |
@@ -737,20 +736,18 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (instance_id)`
 
-### `instance_members`
+### `instance_admins`
 
-Instance administrators: they create companies and invite members. user_id is an auth.users id from the customer's own Supabase project.
+Instance administrators: they create companies and invite members. One row per user, keyed on auth.users of the customer's own Supabase project.
 
 | Column | Type | Notes |
 |---|---|---|
-| `user_id` | `uuid` | not null — An auth.users.id in the customer's Supabase Auth. No foreign key, so the schema installs on a plain Postgres and seeds never write into auth. |
-| `role` | `member_role` | not null |
+| `user_id` | `uuid` | not null — An auth.users.id in the customer's Supabase Auth. Ekwo holds no account and no directory. |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
 
 Constraints:
 
-- `CHECK ((role = 'instance_admin'::member_role))`
 - `PRIMARY KEY (user_id)`
 
 ### `journal_sequences`
@@ -991,6 +988,7 @@ Constraints:
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
 | `install_country_template(p_company_id uuid, p_country character)` | Copies a country chart of accounts, journals and taxes into a company and wires the default roles. |
+| `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. |
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. |

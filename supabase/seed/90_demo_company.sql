@@ -40,6 +40,14 @@ begin
   if not exists (select 1 from instance) then
     perform init_instance('Exemple Conseil', 'BE', 'community');
   end if;
+
+  -- The demo administrator is a fictional account. On a real installation the
+  -- user already exists in Supabase Auth and simply calls
+  -- claim_instance_admin(); this insert only exists so the demo stands alone.
+  insert into auth.users (id, email)
+  values (v_owner, 'admin@exemple-conseil.example')
+  on conflict (id) do nothing;
+
   perform claim_instance_admin(v_owner);
 
   insert into companies (name, legal_name, legal_form, country, fiscal_country,

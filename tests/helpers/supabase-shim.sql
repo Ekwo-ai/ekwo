@@ -5,6 +5,14 @@
 
 create schema if not exists auth;
 
+-- Supabase's own user table, reduced to what the schema references. On a real
+-- project GoTrue owns the full table; here we only need `id` to exist so the
+-- foreign key from instance_admins resolves.
+create table if not exists auth.users (
+  id    uuid primary key,
+  email text
+);
+
 create or replace function auth.jwt()
 returns jsonb
 language sql

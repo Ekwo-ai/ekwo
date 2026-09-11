@@ -1,7 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
-import { DEMO_OWNER } from './helpers/factory.js';
+import { DEMO_OWNER, newInstanceAdmin, newUser } from './helpers/factory.js';
 
 let db: PGlite;
 
@@ -96,19 +96,27 @@ describe('the instance row', () => {
 });
 
 describe('instance administrators', () => {
-  it('holds exactly one role, at instance level', async () => {
-    const admins = await rows<{ user_id: string; role: string }>(
-      db,
-      `select user_id, role from instance_members`,
-    );
-    expect(admins).toEqual([{ user_id: DEMO_OWNER, role: 'instance_admin' }]);
+  it('holds one row per administrator, keyed on the customer auth.users', async () => {
+    const admins = await rows<{ user_id: string }>(db, `select user_id from instance_admins`);
+    expect(admins).toEqual([{ user_id: DEMO_OWNER }]);
 
-    const message = await expectError(
+    // The table name is the role, so there is no role column to get wrong.
+    const columns = await rows<{ column_name: string }>(
       db,
-      `insert into instance_members (user_id, role) values ($1, 'viewer')`,
-      [crypto.randomUUID()],
+      `select a.attname as column_name from pg_attribute a
+         join pg_class c on c.oid = a.attrelid
+         join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public' and c.relname = 'instance_admins'
+          and a.attnum > 0 and not a.attisdropped`,
     );
-    expect(message).toMatch(/instance_members_role_is_instance_level/);
+    expect(columns.map((c) => c.column_name)).not.toContain('role');
+  });
+
+  it('refuses an administrator who is not a user of this installation', async () => {
+    const message = await expectError(db, `insert into instance_admins (user_id) values ($1)`, [
+      crypto.randomUUID(),
+    ]);
+    expect(message).toMatch(/instance_admins_user_fkey|foreign key/i);
   });
 
   it('keeps the instance role out of company membership', async () => {
@@ -122,24 +130,25 @@ describe('instance administrators', () => {
   });
 
   it('refuses a second claim from someone who is not an administrator', async () => {
-    const message = await asUser(db, crypto.randomUUID(), async () =>
+    const stranger = await newUser(db);
+    const message = await asUser(db, stranger, async () =>
       expectError(db, `select claim_instance_admin()`),
     );
     expect(message).toMatch(/instance_already_claimed/);
   });
 
   it('lets an administrator appoint another', async () => {
-    const second = crypto.randomUUID();
+    const second = await newUser(db);
     await asUser(db, DEMO_OWNER, async () => {
       await db.query(`select claim_instance_admin($1)`, [second]);
     });
-    const admins = await rows<{ user_id: string }>(db, `select user_id from instance_members`);
+    const admins = await rows<{ user_id: string }>(db, `select user_id from instance_admins`);
     expect(admins.map((a) => a.user_id)).toContain(second);
-    await db.query(`delete from instance_members where user_id = $1`, [second]);
+    await db.query(`delete from instance_admins where user_id = $1`, [second]);
   });
 
   it('lets only an administrator create a company', async () => {
-    const stranger = crypto.randomUUID();
+    const stranger = await newUser(db);
     const refused = await asUser(db, stranger, async () =>
       expectError(
         db,
@@ -164,7 +173,7 @@ describe('instance administrators', () => {
       db,
       `select id from companies where vat_number = 'BE0123456749'`,
     );
-    const invited = crypto.randomUUID();
+    const invited = await newUser(db);
     await asUser(db, DEMO_OWNER, async () => {
       await db.query(
         `insert into company_members (company_id, user_id, role) values ($1, $2, 'accountant')`,
@@ -182,11 +191,69 @@ describe('instance administrators', () => {
 
   it('does not let an administrator read a company ledger they were not invited to', async () => {
     // Administering the installation is not the same as being on the books.
-    const admin = crypto.randomUUID();
-    await db.query(`insert into instance_members (user_id) values ($1)`, [admin]);
+    const admin = await newInstanceAdmin(db);
     const seen = await asUser(db, admin, async () => rows(db, `select id from entry_lines`));
     expect(seen).toEqual([]);
-    await db.query(`delete from instance_members where user_id = $1`, [admin]);
+    await db.query(`delete from instance_admins where user_id = $1`, [admin]);
+  });
+});
+
+describe('who may read the instance row', () => {
+  it('lets a viewer of any company read it', async () => {
+    const company = await one<{ id: string }>(
+      db,
+      `select id from companies where vat_number = 'BE0123456749'`,
+    );
+    const viewer = await newUser(db);
+    await db.query(
+      `insert into company_members (company_id, user_id, role) values ($1, $2, 'viewer')`,
+      [company.id, viewer],
+    );
+
+    const seen = await asUser(db, viewer, async () =>
+      rows<{ organization_name: string }>(db, `select organization_name from instance`),
+    );
+    expect(seen).toEqual([{ organization_name: 'Exemple Conseil' }]);
+  });
+
+  it('does not let a viewer write it', async () => {
+    const company = await one<{ id: string }>(
+      db,
+      `select id from companies where vat_number = 'BE0123456749'`,
+    );
+    const viewer = await newUser(db);
+    await db.query(
+      `insert into company_members (company_id, user_id, role) values ($1, $2, 'viewer')`,
+      [company.id, viewer],
+    );
+
+    await asUser(db, viewer, async () => {
+      await db.query(`update instance set organization_name = 'Renommee' where id = 1`);
+    });
+    const row = await one<{ organization_name: string }>(
+      db,
+      `select organization_name from instance where id = 1`,
+    );
+    expect(row.organization_name).toBe('Exemple Conseil');
+
+    const refused = await asUser(db, viewer, async () =>
+      expectError(db, `insert into instance (id, organization_name, country)
+                       values (1, 'Doublon', 'FR')`),
+    );
+    expect(refused).toMatch(/row-level security|duplicate key|violates/i);
+  });
+
+  it('hides it from someone who is on no company and administers nothing', async () => {
+    const stranger = await newUser(db);
+    const seen = await asUser(db, stranger, async () => rows(db, `select id from instance`));
+    expect(seen).toEqual([]);
+  });
+
+  it('shows it to an administrator before they join any company', async () => {
+    const admin = await newInstanceAdmin(db);
+    const seen = await asUser(db, admin, async () => rows(db, `select id from instance`));
+    expect(seen).toHaveLength(1);
+    await db.query(`delete from instance_admins where user_id = $1`, [admin]);
   });
 });
 

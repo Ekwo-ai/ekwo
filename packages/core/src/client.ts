@@ -17,7 +17,7 @@ import type {
   Entry,
   Instance,
   InstanceEdition,
-  InstanceMember,
+  InstanceAdmin,
   IsoDate,
   TrialBalanceRow,
   Uuid,
@@ -150,8 +150,8 @@ export class EkwoClient {
    * Makes a user an instance administrator. The first claim is open; after
    * that only an administrator may appoint another.
    */
-  async claimInstanceAdmin(userId?: Uuid): Promise<InstanceMember> {
-    const result = await this.db.rpc<InstanceMember>('claim_instance_admin', {
+  async claimInstanceAdmin(userId?: Uuid): Promise<InstanceAdmin> {
+    const result = await this.db.rpc<InstanceAdmin>('claim_instance_admin', {
       p_user_id: userId ?? null,
     });
     return unwrap(result, 'claim_instance_admin');

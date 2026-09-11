@@ -23,7 +23,7 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
-- **Tested on real Postgres.** 86 tests run the migrations, the seeds and the
+- **Tested on real Postgres.** 91 tests run the migrations, the seeds and the
   accounting scenarios against Postgres compiled to WebAssembly.
 
 ## Install on your own Supabase project
@@ -44,27 +44,42 @@ psql "$DATABASE_URL" -f supabase/seed/20_taxes_be.sql   # or 21_taxes_fr.sql
 
 Skip `supabase/seed/90_demo_company.sql` unless you want the sample data.
 
-Then record the installation, take the first administrator seat, and create
-your company:
+### The installation sequence
+
+Six steps, in this order. Sign in to your own Supabase project first: every
+user of an Ekwo installation is a user of *your* Supabase Auth, never of
+anything at Ekwo.
 
 ```sql
--- once per installation
+-- 1. Record the installation. Once, ever.
 select init_instance('My Organisation', 'BE', 'community');
-select claim_instance_admin();          -- the first user to ask takes it
 
--- once per company
+-- 2. Take the administrator seat. The first user to ask takes it; after
+--    that, only an administrator can appoint another.
+select claim_instance_admin();
+
+-- 3. Create the company. Only an instance administrator may.
 insert into companies (name, country, fiscal_country, currency_code)
 values ('My Company', 'BE', 'BE', 'EUR')
 returning id;
 
+-- 4. Put yourself on its books. Administering the installation is not the
+--    same as being a member of a company.
 insert into company_members (company_id, user_id, role)
 values ('<company-id>', auth.uid(), 'owner');
 
+-- 5. Chart of accounts, journals, taxes and the company's default accounts.
 select install_country_template('<company-id>', 'BE');
 
+-- 6. The first financial year.
 insert into fiscal_years (company_id, name, start_date, end_date)
 values ('<company-id>', 'FY2026', date '2026-01-01', date '2026-12-31');
 ```
+
+Steps 1 and 2 are plain inserts underneath — `init_instance()` writes the
+single `instance` row and `claim_instance_admin()` writes one row in
+`instance_admins`. The functions exist so the bootstrap rules live in the
+database rather than in whichever client happens to run first.
 
 `install_country_template` copies the chart of accounts, the journals and the
 taxes, and wires the company's default accounts — receivable, payable,
@@ -77,7 +92,7 @@ of work; until it lands, the CLI above is the supported path.
 
 ```
 instance                                 one row: who installed it, where, which edition
-instance_members                         instance administrators
+instance_admins                          instance administrators
 companies ─┬─ company_members            who may read or write
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, 18 account types
@@ -94,10 +109,10 @@ companies ─┬─ company_members            who may read or write
 ```
 
 One installation belongs to one customer, so there is no `tenant_id`
-anywhere: `instance` is that fact, in one row. Inside it, `instance_admin`
-creates companies and invites people, and `company_members` gives each person
-`owner`, `accountant` or `viewer` on each company. Your users live in your own
-Supabase Auth; Ekwo never holds an account.
+anywhere: `instance` is that fact, in one row. Inside it, `instance_admins`
+says who may create companies and invite people, and `company_members` gives
+each person `owner`, `accountant` or `viewer` on each company. Your users live
+in your own Supabase Auth; Ekwo never holds an account.
 
 **Registering with Ekwo is optional and empty by default.** `contact_email`
 and `registered_at` on the instance row stay null unless you call
