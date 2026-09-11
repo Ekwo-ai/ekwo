@@ -26,6 +26,8 @@ subject says what the migration is about, in snake_case, without a verb.
 | `…121200_fec` | `fec_lines()` |
 | `…130000_instance`, `…130100_instance_members`, `…140000_instance_admins` | the `instance` row and the instance administrators |
 | `…160000_tax_posting_templates_unique` | the natural key of `tax_posting_templates`, so the tax seeds can be re-applied |
+| `…173000_post_payment` | `post_payment()`: money in or out becomes an entry, so no client writes ledger lines |
+| `…173100_sequence_counters_under_rls` | `next_entry_number()` and `next_matching_number()` become definer, so a signed-in user can post |
 
 ## Rules for a new migration
 
