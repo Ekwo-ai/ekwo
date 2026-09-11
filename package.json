@@ -1,0 +1,64 @@
+{
+  "name": "@ekwo-ai/xbrl-cbso",
+  "version": "0.1.0",
+  "description": "Generate XBRL annual accounts for the National Bank of Belgium (CBSO taxonomy, abridged model) — pure TypeScript, zero dependencies.",
+  "keywords": [
+    "xbrl",
+    "cbso",
+    "nbb",
+    "bnb",
+    "belgium",
+    "annual-accounts",
+    "jaarrekening",
+    "comptes-annuels",
+    "accounting",
+    "pcmn"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/xbrl-cbso#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/xbrl-cbso.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/xbrl-cbso/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./pcmn": {
+      "types": "./dist/pcmn/index.d.ts",
+      "import": "./dist/pcmn/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "example": "tsx examples/basic.ts",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
