@@ -278,6 +278,29 @@ The test is simple: if Ekwo disappeared tomorrow, would it keep working? If
 yes, it belongs here. `ee/` holds the commercial layer and has its own
 licence.
 
+## Security
+
+Row level security is the whole model: every table carries it, every policy
+is a function of `auth.uid()`, the reports run as the caller, and the views
+run with the caller's rights. An anonymous request sees nothing and may call
+nothing but the policy helpers. The MCP server refuses a `service_role` key.
+`tests/rls.test.ts` proves who may read and who may write, and the CI fails
+if a table ever arrives without a policy.
+
+Three things the schema cannot do for you:
+
+- **Turn off public sign-ups** on your Supabase project (Authentication →
+  Sign In / Providers → *Allow new users to sign up*). Ekwo invites people;
+  it never needs strangers to be able to create an account. A stranger with
+  an account sees nothing, but there is no reason to let them in.
+- **Keep two administrators.** If the last row of `instance_admins` goes —
+  a deleted user cascades — the seat reopens to the first signed-in user
+  who claims it, by design, so that an installation is never locked out.
+  `ekwo doctor` warns when an installation has no administrator left.
+- **Keep the `service_role` key off every machine that does not need it.**
+  It bypasses row level security by construction. The CLI needs it once, to
+  create the first administrator; nothing else in this repository does.
+
 ## Finding your way
 
 Each folder carries a short README saying what lives there and the rule

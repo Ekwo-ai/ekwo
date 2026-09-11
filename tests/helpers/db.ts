@@ -60,7 +60,9 @@ export async function freshDatabase(options: Options = {}): Promise<PGlite> {
   await db.exec(`
     grant select, insert, update, delete on all tables in schema public to authenticated;
     grant select on all tables in schema public to anon;
-    grant execute on all functions in schema public to anon, authenticated;
+    -- Not to anon: since migration 20260911210131 the anonymous role executes
+    -- only the policy helpers, and those grants are the migration's own.
+    grant execute on all functions in schema public to authenticated;
   `);
 
   return db;

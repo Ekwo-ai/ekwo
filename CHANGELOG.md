@@ -9,6 +9,19 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Security
+
+- The anonymous role could execute every function of the schema (Postgres
+  grants EXECUTE to PUBLIC; Supabase exposes `public` functions as RPC). It
+  now executes only the eight helpers the policies evaluate, and the default
+  privileges keep it that way for functions added later. Migration
+  `20260911210131`.
+- `instance_admins` was readable by any signed-in user, member or not; a
+  Supabase project accepts self sign-up by default. Administrators are now
+  visible to members of a company, to administrators, and to oneself.
+- README: a Security section that says to turn off public sign-ups on the
+  project, and why an installation should keep two administrators.
+
 ### Fixed
 
 - `record_payment` (MCP) asked for a journal even when `bank_account_id` was

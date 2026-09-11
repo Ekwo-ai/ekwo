@@ -533,3 +533,28 @@ closing entry itself comes next.
 **No multi-currency revaluation.** `currencies`, `currency_rates`,
 `amount_currency` and `documents.exchange_rate` are in place; the periodic
 revaluation of open items in foreign currency is not.
+
+
+## The anonymous role executes only the policy helpers (11 September 2026)
+
+Postgres grants EXECUTE on a new function to PUBLIC, and Supabase exposes the
+functions of `public` as RPC endpoints, so every function of the schema was
+callable without signing in. Row level security made each call return an
+empty set, which is safe and still wrong: the surface should be closed, not
+merely empty. Migration `20260911210131` revokes EXECUTE from PUBLIC and from
+`anon`, grants it to `authenticated` and `service_role`, and changes the
+default privileges so that a function written next month starts closed.
+
+Eight helpers keep their grant to `anon`: `company_role`, `is_company_member`,
+`can_write_company`, `is_company_owner`, `is_instance_admin`,
+`is_any_company_member`, `company_has_no_member`, `instance_has_no_admin`.
+Policies call them on behalf of whoever is asking, and without EXECUTE an
+anonymous SELECT would raise "permission denied for function" instead of
+returning nothing. They answer only about `auth.uid()`, which is null for
+`anon`, so what they give away is the word *no*.
+
+In the same migration, `instance_admins` stops being readable by every
+signed-in user. Self sign-up is on by default on a Supabase project, so a
+signed-in stranger is an ordinary thing; administrators are visible to the
+members of a company, to administrators, and to oneself. The README now says
+to turn public sign-ups off, which the schema cannot do by itself.
