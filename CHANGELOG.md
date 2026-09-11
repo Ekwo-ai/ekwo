@@ -86,7 +86,7 @@ somewhere has already run it.
   `SUPABASE_SERVICE_ROLE_KEY` and `EKWO_REGISTRY_URL`. The CLI never writes a
   secret to disk; `ekwo.json`, the one file it writes, holds the project URL,
   the country and the schema version.
-- **Seventy more tests**, 161 in all, covering the migration runner
+- **A test suite for the installer**, covering the migration runner
   (idempotence, Supabase-compatible history, resuming after a failure halfway),
   the full non-interactive installation against a shimmed Supabase Auth, the
   status and doctor checks, and registration with the endpoint mocked and with

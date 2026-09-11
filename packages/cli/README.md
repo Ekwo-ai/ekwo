@@ -24,6 +24,20 @@ either.
    - Project Settings → API → **`service_role` key**, and the **Project URL**.
      These are used once, to create the first administrator in your own
      Supabase Auth, and are never written to disk.
+
+   **Take the pooler string, not the direct one, unless you know you have
+   IPv6.** The direct host `db.<ref>.supabase.co` resolves to an IPv6 address
+   only, so from an IPv4-only network it simply never connects. The session
+   pooler answers on IPv4 and supports everything a migration needs:
+
+   ```
+   postgresql://postgres.<ref>:<password>@aws-1-<region>.pooler.supabase.com:5432/postgres
+   ```
+
+   The region is in the hostname the dashboard gives you, and so is the
+   generation prefix: verified on a real project on 11 September 2026 in
+   `eu-west-3`, where `aws-1` worked and `aws-0` did not know the tenant.
+   Copy the line from the dashboard rather than building it by hand.
 3. **Run the installer.**
 
    ```sh
@@ -119,8 +133,11 @@ Every command takes the connection flags:
 `--project-ref` derives `db.<ref>.supabase.co`, and with `--db-region` the
 pooler host instead. Both are conveniences and both are guesses: recent
 projects answer on IPv6 only at the direct host, and the pooler hostname
-carries a region. Copy the connection string from the dashboard and pass
-`--db-url` when in doubt.
+carries a region *and* a generation prefix — `--db-region` builds `aws-0-…`,
+while a project created in `eu-west-3` in September 2026 answered on `aws-1-…`
+and did not know the tenant on `aws-0-…`. Copy the connection string from the
+dashboard and pass `--db-url` when in doubt; it is the only form that is not
+a guess.
 
 `ekwo init` adds:
 
