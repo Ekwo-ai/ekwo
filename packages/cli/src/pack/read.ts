@@ -1183,10 +1183,36 @@ function crossReferences(manifest: Manifest, charts: PackChart[], taxes: PackTax
         message: 'a tax group is reserved for phase 1 and the core does not carry it yet',
       });
     }
+    // A tax that falls due on collection waits somewhere, and the place it
+    // waits is a fact about the chart, so the pack says it. `post_document`
+    // refuses such a tax at posting; this refuses it where it can be read.
+    if (tax.cash_basis && tax.cash_basis_transition_account === null) {
+      issues.push({
+        path: `taxes.json ${tax.code}`,
+        message: 'a tax that falls due on collection has to name the account it waits on',
+      });
+    }
     for (const [kind, postings] of Object.entries(tax.postings)) {
       const bases = postings.filter((p) => p.type === 'base');
       if (bases.length > 1) {
         issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: 'more than one base posting' });
+      }
+      if (tax.cash_basis) {
+        // One posting per side, or the transition lines of a document cannot
+        // be told apart when the matching sends each of them on. A tax whose
+        // postings net out has nothing waiting to collect anyway.
+        if (postings.filter((p) => p.type === 'tax').length > 1) {
+          issues.push({
+            path: `taxes.json ${tax.code}.${kind}`,
+            message: 'a tax that falls due on collection takes one tax posting',
+          });
+        }
+        if (postings.some((p) => p.type === 'tax_on_base')) {
+          issues.push({
+            path: `taxes.json ${tax.code}.${kind}`,
+            message: 'a share nobody gets back is a cost, and a cost is not deferred to a payment',
+          });
+        }
       }
       for (const posting of postings) {
         if (posting.type === 'tax' && posting.account === null) {

@@ -39,6 +39,47 @@
     }
   },
   {
+    "code": "FR-S-20-ENC",
+    "name": "Prestation de services 20 % — TVA sur les encaissements",
+    "description": "Régime de droit commun des prestations de services : la TVA est exigible à l'encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-20.",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 269-2-c ; CGI, art. 278",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445870",
+    "sequence": 11,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "08"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "08",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
     "code": "FR-S-10",
     "name": "Vente 10 %",
     "description": "Taux reduit",
@@ -78,6 +119,47 @@
     }
   },
   {
+    "code": "FR-S-10-ENC",
+    "name": "Prestation de services 10 % — TVA sur les encaissements",
+    "description": "Régime de droit commun des prestations de services : la TVA est exigible à l'encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-10.",
+    "kind": "vat",
+    "rate": 10,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 269-2-c ; CGI, art. 278 bis",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445870",
+    "sequence": 21,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "9B"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "9B"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "9B",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "9B",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
     "code": "FR-S-055",
     "name": "Vente 5,5 %",
     "description": "Taux reduit",
@@ -89,6 +171,47 @@
     "legal_reference": "CGI, art. 278-0 bis",
     "vat_category": "S",
     "sequence": 30,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "09"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "09"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "09",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "09",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-055-ENC",
+    "name": "Prestation de services 5,5 % — TVA sur les encaissements",
+    "description": "Régime de droit commun des prestations de services : la TVA est exigible à l'encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-055.",
+    "kind": "vat",
+    "rate": 5.5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 269-2-c ; CGI, art. 278-0 bis",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445870",
+    "sequence": 31,
     "postings": {
       "invoice": [
         {
@@ -304,6 +427,40 @@
     }
   },
   {
+    "code": "FR-P-20-ENC",
+    "name": "Achat de services 20 % — TVA déductible au décaissement",
+    "description": "Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-20.",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445860",
+    "sequence": 111,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
     "code": "FR-P-20-I",
     "name": "Achat immobilisation 20 %",
     "description": "Immobilisations",
@@ -368,6 +525,40 @@
     }
   },
   {
+    "code": "FR-P-10-ENC",
+    "name": "Achat de services 10 % — TVA déductible au décaissement",
+    "description": "Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-10.",
+    "kind": "vat",
+    "rate": 10,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278 bis",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445860",
+    "sequence": 131,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
     "code": "FR-P-055",
     "name": "Achat 5,5 %",
     "description": "Autres biens et services",
@@ -379,6 +570,40 @@
     "legal_reference": "CGI, art. 278-0 bis",
     "vat_category": "S",
     "sequence": 140,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-055-ENC",
+    "name": "Achat de services 5,5 % — TVA déductible au décaissement",
+    "description": "Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-055.",
+    "kind": "vat",
+    "rate": 5.5,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278-0 bis",
+    "vat_category": "S",
+    "cash_basis": true,
+    "cash_basis_transition_account": "445860",
+    "sequence": 141,
     "postings": {
       "invoice": [
         {

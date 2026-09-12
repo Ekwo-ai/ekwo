@@ -282,7 +282,7 @@ describe('report_code, and the province a party sits in', () => {
     // test above asks for a form on a *boxed* posting and not on every one.
     expect(forms).toEqual([
       { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 88 },
-      { country: 'FR', report_code: 'FR-CA3', n: 58 },
+      { country: 'FR', report_code: 'FR-CA3', n: 76 },
       { country: 'FR', report_code: null, n: 2 },
     ]);
   });

@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.2.0",
-  "schema_min": "20260912111751",
+  "version": "1.3.0",
+  "schema_min": "20260912112132",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -16,7 +16,9 @@
       "Code général des impôts, art. 262, I, 262 ter, I, 283 et 293 B — exonérations, autoliquidation et franchise en base",
       "Code général des impôts, ann. II, art. 242 nonies A — mentions obligatoires et numérotation continue",
       "Code de commerce, art. L441-9, L441-10 et D441-5 — délais de paiement, pénalités et indemnité forfaitaire",
-      "Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique"
+      "Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique",
+      "Code general des impots, art. 269-2-c — exigibilite sur les encaissements",
+      "Code general des impots, art. 271-I-2 — naissance du droit a deduction"
     ]
   },
   "defaults": {
@@ -36,7 +38,9 @@
       "sales": "706000",
       "purchase": "606300",
       "bank": "512000",
-      "cash": "530000"
+      "cash": "530000",
+      "fx_gain": "766000",
+      "fx_loss": "666000"
     },
     "journal_roles": {
       "sales": "SAL",

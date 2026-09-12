@@ -462,6 +462,10 @@ function defaults(pack: Pack, country: string): string[] {
     // here would make the CLI a second place where a country model lives.
     defaulted(pack.manifest.defaults['rounding_method'] as string | null | undefined, text),
     defaulted(pack.manifest.defaults['cash_rounding_unit'] as number | null | undefined, number),
+    // Where a realised exchange difference lands. No fallback, for the reason
+    // above: an account number is a fact about a chart.
+    text(roles['fx_gain'] ?? null),
+    text(roles['fx_loss'] ?? null),
   ];
   return [
     'insert into country_defaults',
@@ -470,7 +474,7 @@ function defaults(pack: Pack, country: string): string[] {
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
     '   misc_journal_code, language_default, closing_style, current_year_result_profit_code,',
     '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,',
-    '   rounding_method, cash_rounding_unit)',
+    '   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)',
     'values',
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
@@ -495,7 +499,9 @@ function defaults(pack: Pack, country: string): string[] {
     '  retained_earnings_loss_code     = excluded.retained_earnings_loss_code,',
     '  opening_journal_code            = excluded.opening_journal_code,',
     '  rounding_method        = excluded.rounding_method,',
-    '  cash_rounding_unit     = excluded.cash_rounding_unit;',
+    '  cash_rounding_unit     = excluded.cash_rounding_unit,',
+    '  fx_gain_code           = excluded.fx_gain_code,',
+    '  fx_loss_code           = excluded.fx_loss_code;',
   ];
 }
 

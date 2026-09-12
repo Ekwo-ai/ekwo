@@ -163,7 +163,7 @@ the money goes, per kind of document.
 | `recoverable` | `false` when the buyer never gets the tax back — American sales tax, Canadian PST, a wholly non-deductible VAT. |
 | `price_include` | The unit price already holds the tax (UK and Australian retail). Compiled to a column; the gross-to-net computation waits for the country that needs it. |
 | `jurisdiction` | ISO 3166-2 **with** the country prefix (`CA-QC`, `US-CA`) for a tax levied by a state. Null in Europe. |
-| `cash_basis`, `cash_basis_transition_account` | The tax falls due when the invoice is paid. Compiled to columns; read by P0-6. |
+| `cash_basis`, `cash_basis_transition_account` | The tax falls due when the invoice is paid, not when it is issued. `post_document` books it — and the base it is computed on — on the transition account and on no declaration box; the matching moves the settled share to the account and the box it is declared on. A cash-basis tax has to name its transition account and takes **one** `tax` posting per document kind, with no `tax_on_base`: `ekwo pack check` refuses the rest. |
 
 A posting has one of three types:
 
@@ -451,8 +451,11 @@ that it is legally right, and no test can. So:
    French chart and *recoverable VAT* on the Belgian one.
 3. Name the roles in `defaults.roles`: receivable and payable are required,
    and suspense, rounding, retained earnings, sales, purchase, bank and cash
-   are what the installer wires. Every code must exist in your chart; the
-   compiler refuses the pack before writing any SQL if one does not.
+   are what the installer wires. Add `fx_gain` and `fx_loss` if any company of
+   your country ever invoices in another currency: a matching that realises a
+   difference is refused by name when they are missing, and only then. Every
+   code must exist in your chart; the compiler refuses the pack before writing
+   any SQL if one does not.
 4. Say how the year is closed. `defaults.closing_style` is one of
    `retained_earnings`, `result_accounts` or `appropriation_accounts`, and
    with it come `current_year_result_profit`, `current_year_result_loss` and

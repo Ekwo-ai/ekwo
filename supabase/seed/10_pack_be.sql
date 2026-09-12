@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.2.0, do not edit.
+-- Generated from packs/be at version 1.3.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.2.0', date '2026-09-12', '20260912111751', 'maintained', null, null, 'be78f3dd526cdef715272cfba829239f4a609a2e221cea6aee40dfea9a118b1b')
+  ('BE', 'Belgium', '1.3.0', date '2026-09-12', '20260912112132', 'maintained', null, null, '3aa4a9697933cdbcd7f6f033fdcd828d47595803acb038e760c758a43841b567')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -1146,9 +1146,9 @@ insert into country_defaults
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
-   rounding_method, cash_rounding_unit)
+   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)
 values
-  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default)
+  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000')
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -1171,7 +1171,9 @@ on conflict (country) do update set
   retained_earnings_loss_code     = excluded.retained_earnings_loss_code,
   opening_journal_code            = excluded.opening_journal_code,
   rounding_method        = excluded.rounding_method,
-  cash_rounding_unit     = excluded.cash_rounding_unit;
+  cash_rounding_unit     = excluded.cash_rounding_unit,
+  fx_gain_code           = excluded.fx_gain_code,
+  fx_loss_code           = excluded.fx_loss_code;
 
 update country_defaults set
   numbering_gapless       = true,

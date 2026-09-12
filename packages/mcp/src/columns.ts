@@ -211,6 +211,11 @@ export const ENTRY_LINE = [
   'box_amount::text',
   'matching_number',
   'matched_amount::text',
+  // The currency of the line and its amount in it, written whenever that
+  // currency is not the company's. A client matching two foreign lines needs
+  // both: that is the scale the matching is worked out on.
+  'currency_code',
+  'amount_currency::text',
 ];
 
 export const BANK_ACCOUNT = [
@@ -277,4 +282,10 @@ export const RECONCILIATION = [
   'amount::text',
   'matching_number',
   'matched_at::text',
+  // What the matching revealed, when it revealed something: the entry that
+  // booked the realised exchange difference, and the one that moved the share
+  // of a cash-basis tax the settlement made due. A client that shows a
+  // matching shows what it caused.
+  'fx_entry_id',
+  'tax_transfer_entry_id',
 ];

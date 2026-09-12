@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.2.0",
-  "schema_min": "20260912111751",
+  "version": "1.3.0",
+  "schema_min": "20260912112132",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -37,7 +37,9 @@
       "sales": "700000",
       "purchase": "610000",
       "bank": "550000",
-      "cash": "570000"
+      "cash": "570000",
+      "fx_gain": "754000",
+      "fx_loss": "654000"
     },
     "journal_roles": {
       "sales": "SAL",

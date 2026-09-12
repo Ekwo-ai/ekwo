@@ -74,7 +74,18 @@ one line wait for the countries that need them.
    packs. The gross-to-net computation of a tax-inclusive price and the
    behaviour of `cash_basis` are not: the first waits for the country that
    sells that way, the second is P0-6.
-6. Cash-basis VAT and realised exchange differences.
+6. Cash-basis VAT and realised exchange differences. **Done** (P0-6,
+   12 September 2026): `post_document` books a cash-basis tax — and the base
+   it is computed on — on the transition account the pack names and on no
+   declaration box, and `reconcile()` moves the settled share, pro rata and
+   cumulative, to the account and the box it is declared on. `post_document`
+   and `post_payment` convert to the company's currency and write
+   `amount_currency`, which nothing did before, and a matching between two
+   lines in the same foreign currency books the realised difference on
+   `fx_gain_code` / `fx_loss_code` of the country model. The French pack gains
+   the six services taxes that fall due on collection; the option for the
+   debits is the tax that was already there. Out of scope and staying out:
+   revaluation of open items, and cash accounting as a ledger.
 7. Document rules, e-invoicing profiles and bank formats as data. **Done**
    (P0-7): twelve columns on the country model — gapless numbering and the
    number pattern, the legal payment term and where its interest comes from,
