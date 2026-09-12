@@ -636,7 +636,7 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit)
 values
-  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', 0)
+  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default)
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,

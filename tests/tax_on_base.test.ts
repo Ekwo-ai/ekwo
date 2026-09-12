@@ -1,6 +1,9 @@
 import type { PGlite } from '@electric-sql/pglite';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
+import { compilePack, packsDir, readPack } from '../packages/cli/src/index.js';
+import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { accountId, ledgerOf, newCompany, newContact, newDocument, taxId, type Fixture } from './helpers/factory.js';
 
 // P0-5, the generalised tax engine. Two things are proved here:
@@ -397,5 +400,79 @@ describe('row level security', () => {
       ),
     );
     expect(message).toMatch(/row-level security|violates/i);
+  });
+});
+
+describe('no country decided anywhere but in a pack', () => {
+  // "Il n'y a pas de raison de mettre la Belgique par défaut. Le système doit
+  // rester ouvert et international." The repo-wide guard in
+  // `tax_report.test.ts` catches a country *literal*; these catch the subtler
+  // thing, a country's *answer* used as a fallback — a rounding rule or a
+  // cash unit that the code supplies when a pack stays silent.
+
+  const COUNTRY_LITERAL = /'(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)'/;
+
+  const MIGRATIONS = [
+    '20260912091917_tax_on_base_value.sql',
+    '20260912091918_tax_engine_columns.sql',
+  ];
+
+  it('leaves no country code and no country test in the migrations of this change', async () => {
+    for (const name of MIGRATIONS) {
+      const sql = await readFile(join(repoRoot, 'supabase', 'migrations', name), 'utf8');
+      const statements = sql
+        .split('\n')
+        .filter((line) => !line.trimStart().startsWith('--'))
+        .join('\n');
+      expect(COUNTRY_LITERAL.exec(statements)?.[0] ?? null, name).toBeNull();
+      // Every country reference in `install_country_template` is the argument
+      // it was called with. A comparison against anything else would be a
+      // country deciding something inside the core.
+      const comparisons = statements.match(/country\s*(?:=|in)\s*[^p\s]/g) ?? [];
+      expect(comparisons, `${name} compares country to something that is not p_country`).toEqual([]);
+    }
+  });
+
+  it('compiles the rounding rule a pack declares, whatever it is', async () => {
+    const pack = await readPack('be', packsDir());
+    const swiss = {
+      ...pack,
+      manifest: {
+        ...pack.manifest,
+        defaults: {
+          ...pack.manifest.defaults,
+          rounding_method: 'half_even',
+          cash_rounding_unit: 0.05,
+        },
+      },
+    };
+    const sql = compilePack(swiss);
+    expect(sql).toContain("'half_even', 0.05)");
+  });
+
+  it('lets the column decide when a pack declares nothing, instead of picking a country', async () => {
+    const pack = await readPack('be', packsDir());
+    const defaults = { ...pack.manifest.defaults };
+    delete (defaults as Record<string, unknown>)['rounding_method'];
+    delete (defaults as Record<string, unknown>)['cash_rounding_unit'];
+
+    const sql = compilePack({ ...pack, manifest: { ...pack.manifest, defaults } });
+    // `default, default`, never `'half_up', 0` written by the compiler: the
+    // mechanism lives in the migration and in one place only.
+    expect(sql).toContain('default, default)');
+    expect(sql).not.toContain("'half_up'");
+  });
+
+  it('reads the rounding rule of a company from its country model and nowhere else', async () => {
+    // Nothing in the core may answer "how does this company round" without
+    // going through `country_defaults`. Proving the negative: no function of
+    // the schema mentions a rounding method at all yet — P0-6 and the first
+    // country that rounds differently will be the ones to read the column.
+    const guilty = await rows<{ proname: string }>(
+      db,
+      `select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.prosrc ~ 'half_up|half_even' order by 1`,
+    );
+    expect(guilty.map((r) => r.proname)).toEqual([]);
   });
 });

@@ -958,6 +958,15 @@ posting, so on that 3,00 € invoice the ledger books 0,31 where box 82 reports
 `factor_percent` by design, and the alternative is to let a grid drive a
 posting.
 
+**No country is anybody's default.** A pack says how its country rounds; a
+pack that says nothing gets the column's own default, and the compiler writes
+`default` rather than a value of its own — otherwise the CLI becomes a second
+place where a country model is decided, and the first country that rounds
+differently finds out by reading TypeScript. `half_up`, `recoverable = true`
+and `tax_kind = 'vat'` are the neutral mechanism, not Belgium and not France.
+The repo-wide guard catches a country *literal*; `tax_on_base.test.ts` adds
+the subtler one, a country's *answer* used as a fallback.
+
 **`cash_basis`, `rounding_method` and `cash_rounding_unit` land without a
 reader.** P0-6 implements VAT on collection; `half_up` is what `round()` on a
 numeric already does in every country, so the default changes nothing; the

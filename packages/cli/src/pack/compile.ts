@@ -285,8 +285,11 @@ function defaults(pack: Pack, country: string): string[] {
     text(roles['current_year_result_loss'] ?? null),
     text(roles['retained_earnings_loss'] ?? null),
     text(journalRoles['opening'] ?? null),
-    text((pack.manifest.defaults['rounding_method'] as string | undefined) ?? 'half_up'),
-    number((pack.manifest.defaults['cash_rounding_unit'] as number | null | undefined) ?? 0),
+    // The same rule for rounding, which has a column default where closing has
+    // none: the pack's value, or `default` so the column decides. Writing one
+    // here would make the CLI a second place where a country model lives.
+    defaulted(pack.manifest.defaults['rounding_method'] as string | null | undefined, text),
+    defaulted(pack.manifest.defaults['cash_rounding_unit'] as number | null | undefined, number),
   ];
   return [
     'insert into country_defaults',
@@ -391,6 +394,16 @@ function array(values: readonly string[]): string {
 
 function bool(value: boolean): string {
   return value ? 'true' : 'false';
+}
+
+/**
+ * The value the pack declared, or the SQL keyword that lets the column decide.
+ * `default` in a `values` row is also what `excluded` carries into the upsert,
+ * so a pack that stops declaring something goes back to the schema's answer
+ * rather than keeping the last one it was given.
+ */
+function defaulted<T>(value: T | null | undefined, render: (value: T) => string): string {
+  return value === null || value === undefined ? 'default' : render(value);
 }
 
 /** A jsonb literal, with its keys in a fixed order so the output is stable. */

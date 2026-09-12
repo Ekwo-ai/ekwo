@@ -121,6 +121,12 @@ The postings of one side share out the tax of the group, which is rounded once
 (EN 16931 BR-CO-14); the last posting of each side takes the remainder, so two
 halves of 0,63 come out as 0,32 and 0,31 rather than 0,32 twice.
 
+`defaults.rounding_method` and `defaults.cash_rounding_unit` belong to the same
+rule: a pack says how its country rounds, and a pack that says nothing gets the
+column's own default. The compiler writes `default` rather than a value of its
+own, so there is exactly one place where the mechanism is decided and no
+country is anybody's fallback.
+
 ## Which declaration a box belongs to
 
 A box number is unique inside one form and nowhere else. Belgium and France
