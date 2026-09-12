@@ -232,6 +232,12 @@ describe('no country lives in the core any more', () => {
   // `packs/`, in the seeds compiled from them, and in a test that picks one.
   const COUNTRY_LITERAL = /'(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)'|"(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)"/;
 
+  // The same rule one step further out: a currency and a language are what a
+  // country decides, so a literal one in the code is a country in the code
+  // wearing a different hat. The answer comes from the pack, or from the
+  // company row, or the caller is asked — never from a euro written here.
+  const LOCALE_LITERAL = /'(EUR|USD|GBP|CAD|CHF)'|'(fr|en|nl|de)'|"(EUR|USD|GBP|CAD|CHF)"/;
+
   /**
    * The file without the lines that are purely a comment. A comment may quote
    * the country rule it replaced — that is documentation, and this guard is
@@ -283,16 +289,24 @@ describe('no country lives in the core any more', () => {
   });
 
   it('has no country code in the source of the CLI, the MCP server or the core', async () => {
+    expect(await literalsIn(COUNTRY_LITERAL)).toEqual([]);
+  });
+
+  it('has no currency or language written into that source either', async () => {
+    expect(await literalsIn(LOCALE_LITERAL)).toEqual([]);
+  });
+
+  async function literalsIn(pattern: RegExp): Promise<string[]> {
     const guilty: string[] = [];
     for (const pkg of ['cli', 'mcp', 'core']) {
       const dir = join(repoRoot, 'packages', pkg, 'src');
       for (const file of await filesUnder(dir, '.ts')) {
-        const match = COUNTRY_LITERAL.exec(code(await readFile(file, 'utf8'), '//'));
+        const match = pattern.exec(code(await readFile(file, 'utf8'), '//'));
         if (match !== null) guilty.push(`${pkg}/${file.split('/').at(-1)}: ${match[0]}`);
       }
     }
-    expect(guilty).toEqual([]);
-  });
+    return guilty;
+  }
 });
 
 describe('the form tables under row level security', () => {

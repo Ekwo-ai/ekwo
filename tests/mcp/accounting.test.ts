@@ -381,3 +381,51 @@ describe('a line with no account', () => {
     }
   });
 });
+
+describe('the currency a tool writes when the caller names none', () => {
+  it('is the company own, never a euro written into the code', async () => {
+    // A company that does not keep its books in euro is the whole test: a
+    // literal fallback would give it a euro invoice and nothing would say so.
+    const other = await newCompany(db, { country: 'BE', name: 'Loonie SRL' });
+    await db.query(`update companies set currency_code = 'CAD' where id = $1`, [other.companyId]);
+    const theirs = backendFor(db, other.ownerId);
+
+    const contact = record(
+      await writeTools.createContact(theirs, {
+        company_id: other.companyId,
+        name: 'Cliente au Québec',
+        contact_type: 'customer',
+      }),
+    );
+
+    const document = record(
+      await writeTools.createDocument(theirs, {
+        company_id: other.companyId,
+        doc_type: 'sale_invoice',
+        contact_id: String(record(contact['contact'])['id']),
+        document_date: '2026-06-15',
+        lines: [{ name: 'Conseil', unit_price: '100.00', account_code: '704000' }],
+      }),
+    );
+    expect(record(document['document'])['currency_code']).toBe('CAD');
+
+    const product = record(
+      await writeTools.createProduct(theirs, {
+        company_id: other.companyId,
+        code: 'CONSEIL',
+        name: 'Conseil',
+        sale_price: '100.00',
+      }),
+    );
+    expect(record(product['product'])['currency_code']).toBe('CAD');
+
+    // And a company nobody is a member of answers with a refusal, not a euro.
+    await expect(
+      writeTools.createProduct(backend, {
+        company_id: '00000000-0000-0000-0000-000000000009',
+        code: 'NOPE',
+        name: 'Nope',
+      }),
+    ).rejects.toThrow(/not_found: company/);
+  });
+});

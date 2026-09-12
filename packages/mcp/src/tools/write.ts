@@ -32,6 +32,29 @@ function only<T>(rows: T[], what: string): T {
 }
 
 /** Resolves codes to ids in one query, and says which code was unknown. */
+/**
+ * The currency an amount is in when the caller names none: the company's own.
+ *
+ * Never a literal. A company that keeps its books in Canadian dollars would
+ * get a euro invoice out of a euro written here, and a wrong answer is worse
+ * than a refusal. `companies.currency_code` is never null, so there is always
+ * one to find.
+ */
+async function companyCurrency(backend: Backend, company: string): Promise<string> {
+  const rows = await backend.select<{ currency_code: string }>({
+    table: 'companies',
+    columns: ['currency_code'],
+    where: [{ column: 'id', op: 'eq', value: company }],
+  });
+  const currency = rows[0]?.currency_code;
+  if (currency === undefined) {
+    throw new EkwoMcpError(
+      `not_found: company ${company}. Either it does not exist or you are not a member of it.`,
+    );
+  }
+  return currency;
+}
+
 async function idsByCode(
   backend: Backend,
   table: 'accounts' | 'taxes' | 'journals',
@@ -154,6 +177,7 @@ export async function createProduct(
   args: z.infer<typeof CreateProductInput>,
 ): Promise<unknown> {
   const { accounts, taxes } = await productReferences(backend, args.company_id, args);
+  const currency = args.currency_code ?? (await companyCurrency(backend, args.company_id));
 
   const created = only(
     await backend.insert<Row>(
@@ -166,7 +190,7 @@ export async function createProduct(
           description: args.description ?? null,
           kind: args.kind ?? 'service',
           unit_code: (args.unit_code ?? 'C62').toUpperCase(),
-          currency_code: args.currency_code ?? 'EUR',
+          currency_code: currency,
           sale_price: args.sale_price === undefined ? null : amountIn(args.sale_price),
           purchase_price: args.purchase_price === undefined ? null : amountIn(args.purchase_price),
           sale_account_id:
@@ -324,6 +348,7 @@ export async function createDocument(
   args: z.infer<typeof CreateDocumentInput>,
 ): Promise<unknown> {
   const resolved = await resolveLineInputs(backend, args.company_id, args.doc_type, args.lines);
+  const currency = args.currency_code ?? (await companyCurrency(backend, args.company_id));
 
   const document = only(
     await backend.insert<Row>(
@@ -338,7 +363,7 @@ export async function createDocument(
           accounting_date: args.accounting_date ?? null,
           number: args.number ?? null,
           supplier_reference: args.supplier_reference ?? null,
-          currency_code: args.currency_code ?? 'EUR',
+          currency_code: currency,
           journal_id: args.journal_id ?? null,
           payment_reference: args.payment_reference ?? null,
         },
@@ -928,16 +953,7 @@ export async function createBankAccount(
     };
   }
 
-  const currency =
-    args.currency_code ??
-    (
-      await backend.select<{ currency_code: string }>({
-        table: 'companies',
-        columns: ['currency_code'],
-        where: [{ column: 'id', op: 'eq', value: args.company_id }],
-      })
-    )[0]?.currency_code ??
-    'EUR';
+  const currency = args.currency_code ?? (await companyCurrency(backend, args.company_id));
 
   const created = only(
     await backend.insert<Row>(

@@ -67,7 +67,7 @@ export interface BootstrapResult {
 /**
  * The currency the country model proposes.
  *
- * `companies.currency_code` is `not null default 'EUR'`, so the value has to
+ * `companies.currency_code` is not null and has a default, so the value has to
  * be chosen *before* the insert — after it there is nothing empty left to
  * fill, which is why `install_country_template` could never be the place for
  * this. It is the reader `country_defaults.currency_code` never had.
@@ -80,9 +80,8 @@ export async function countryCurrency(db: SqlClient, country: string): Promise<s
 
 /**
  * The language the country model proposes, for the same reason as the
- * currency: `companies.language` is `not null default 'fr'`, so the choice
- * has to be made before the insert. It is what `country_defaults.
- * language_default` is for.
+ * currency: the column has a default, so the choice has to be made before the
+ * insert. It is what `country_defaults.language_default` is for.
  */
 export async function countryLanguage(db: SqlClient, country: string): Promise<string | undefined> {
   return scalar<string>(db, 'select language_default from country_defaults where country = $1', [
@@ -231,20 +230,27 @@ export async function bootstrap(
     steps.push({ name: 'administrator', outcome: 'created', detail: options.adminUserId });
   }
 
-  // 3. The company. Its currency is chosen here or nowhere: the column is
-  //    `not null default 'EUR'`, so nothing downstream can tell a deliberate
-  //    EUR from a default one.
-  const currencyCode = (
-    options.currencyCode ??
-    (await countryCurrency(db, country)) ??
-    'EUR'
-  ).toUpperCase();
+  // 3. The company. Its currency is chosen here or nowhere: the column has a
+  //    default, so nothing downstream could tell a deliberate choice from a
+  //    fallback. The caller answers, or the pack does. There is no third
+  //    answer written in this file: a company keeping its books in Canadian
+  //    dollars would get a wrong one, and a wrong answer is worse than a
+  //    refusal.
+  const packCurrency = options.currencyCode ?? (await countryCurrency(db, country));
+  if (packCurrency === undefined) {
+    throw new Error(
+      `no_currency: the ${country} pack names no currency. Pass --currency.`,
+    );
+  }
+  const currencyCode = packCurrency.toUpperCase();
 
-  const language = (
-    options.language ??
-    (await countryLanguage(db, country)) ??
-    'fr'
-  ).toLowerCase();
+  const packLanguage = options.language ?? (await countryLanguage(db, country));
+  if (packLanguage === undefined) {
+    throw new Error(
+      `no_language: the ${country} pack names no language for its labels. Pass --language.`,
+    );
+  }
+  const language = packLanguage.toLowerCase();
 
   const existingCompany = await first<{ id: string; currency_code: string }>(
     db,

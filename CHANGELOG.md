@@ -92,6 +92,15 @@ somewhere has already run it.
 
 ### Added
 
+- **No currency and no language written into the code either.** The MCP tools
+  that create a product, a document or a bank account fell back to `'EUR'`
+  when the caller named no currency; they read the company's own now, and
+  refuse with `not_found` on a company they cannot see. `bootstrap()` took
+  `'EUR'` and `'fr'` the same way and now takes the pack's, or says which flag
+  to pass. A currency and a language are what a country decides, so a literal
+  one is a country in the code wearing another hat — a guard test refuses both
+  in `packages/*/src`.
+
 - **No default country, anywhere.** `ekwo init` used to label the country
   question with `PCMN` and `PCG` written in the CLI and to preselect Belgium.
   The list and the labels now come from `country_packs`, sorted by name, so
