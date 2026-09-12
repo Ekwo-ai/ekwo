@@ -1,6 +1,7 @@
 /**
  * Public types of `@ekwo-ai/xbrl-cbso`.
  */
+import type { FactKeyLine } from './fact-keys.js';
 
 /** ISO-8601 calendar date, `YYYY-MM-DD`. */
 export type IsoDate = string;
@@ -98,8 +99,21 @@ export interface CbsoInput {
   gaDate: IsoDate;
   /** Date of the deed of incorporation or of the latest amendment of the articles. */
   deedDate: IsoDate;
-  /** Amounts and figures, keyed by reporting code. Missing codes are simply not emitted. */
-  values: Record<BnbCode, YearValues>;
+  /**
+   * Amounts and figures, keyed by reporting code. Missing codes are simply not
+   * emitted. This is the legacy path: it makes the caller hold its own mapping
+   * from its accounts to the codes of the model. Prefer {@link CbsoInput.lines}
+   * when the mapping already lives in the book-keeping system.
+   */
+  values?: Record<BnbCode, YearValues>;
+  /**
+   * Statement lines keyed by their fact signature (`met:am1|bas:m9|rst:m2`),
+   * as a book-keeping system that stores the taxonomy key next to each line
+   * produces them. Resolved against the template and merged into
+   * {@link CbsoInput.values}; a code given on both sides with two different
+   * figures is an error.
+   */
+  lines?: readonly FactKeyLine[];
   /** Board members. May be empty. */
   administrators?: Administrator[];
   /** Identification declarations. Defaults apply when omitted. */
