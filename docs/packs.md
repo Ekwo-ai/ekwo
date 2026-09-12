@@ -220,6 +220,14 @@ rather than finding out later: `appropriation_accounts` needs accounts that do
 meeting then decides — a dividend, a reserve — is never part of a close, in
 any country.
 
+**There is no default.** Leave `closing_style` out and `close_fiscal_year`
+refuses with `no_closing_defaults`; leave `journal_roles.opening` out and it
+refuses with `no_opening_journal`. Nothing falls back on a Belgian or a French
+value, because a default closing style would be one country's mechanism given
+to every country that has not spoken. `ekwo pack check` refuses a pack that
+declares a style without the accounts and the journal that style needs, so the
+gap is found when the pack is written and not on somebody's year end.
+
 ## What is not in a pack
 
 The engine: posting, matching, the returns, the installer. Also deliberately

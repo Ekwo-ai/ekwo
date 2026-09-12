@@ -513,11 +513,11 @@ Which template account plays which role, per country.
 | `misc_journal_code` | `text` | not null |
 | `cash_account_code` | `text` | Ledger account behind the cash journal of this country, from the pack of that country. |
 | `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
-| `closing_style` | `closing_style` | not null — Which of the three mechanisms close_fiscal_year() follows for a company of this country. |
+| `closing_style` | `closing_style` | Which of the three mechanisms close_fiscal_year() follows for a company of this country. Null until the pack says; there is no default, because a default would be one country's answer given to every other. |
 | `current_year_result_profit_code` | `text` | Account the result of the year lands on when the year is profitable. Belgium 693, France 120. Null where the result goes straight to retained earnings. |
 | `current_year_result_loss_code` | `text` | Same, for a loss. Belgium 793, France 129. Both countries keep a profit and a loss apart, so this is a pair and not one account. |
 | `retained_earnings_loss_code` | `text` | Retained earnings account for an accumulated loss, where the chart keeps one apart from the profit account. Belgium 141, France 119. Null falls back to retained_earnings_code. |
-| `opening_journal_code` | `text` | not null — Journal the opening and the year-end entries are booked on. A journal of type `opening` is used when no code matches, so a company that renamed its own still closes. |
+| `opening_journal_code` | `text` | Code of the journal the opening and the year-end entries are booked on, from the pack. Null until the pack names one, and then nothing opens or closes: there is no code written into the schema to fall back on. |
 
 Constraints:
 
@@ -1150,7 +1150,7 @@ Constraints:
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. Definer, for the same reason as next_entry_number. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
-| `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on: the code the country model names, else the company's own journal of type opening. |
+| `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings, and a counterpart that balances by construction. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. |
 | `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role. Matches nothing. |

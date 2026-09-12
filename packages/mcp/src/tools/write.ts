@@ -1096,7 +1096,7 @@ export const OpeningBalanceInput = z.object({
   lines: z
     .array(
       z.object({
-        account_code: z.string().min(1).describe('Code in this company\'s chart, e.g. 400000.'),
+        account_code: z.string().min(1).describe('Code in this company\'s chart. list_accounts says what exists; the codes are the pack\'s, not ours.'),
         debit: z.union([z.string(), z.number()]).optional().describe('A positive decimal string. A line carries a debit or a credit, never both.'),
         credit: z.union([z.string(), z.number()]).optional(),
         contact_id: uuid.optional().describe('The customer or supplier behind a receivable or payable line, so the aged balance knows whose it is.'),

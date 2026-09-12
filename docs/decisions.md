@@ -811,6 +811,18 @@ the pack names `current_year_result_profit`, `current_year_result_loss`,
 `country_defaults.opening_journal_code` names the journal all of this is
 booked on. Five columns, all read: none of them is there "in case".
 
+**None of the five carries a default, and that is the whole point.** A
+default `closing_style` is one country's mechanism handed to every country
+that has not spoken, and `'OPN'` is the journal code Belgium and France happen
+to use. A pack that says nothing gets a refusal naming the field it is
+missing — `no_closing_defaults`, `no_opening_journal` — and never somebody
+else's answer. `ekwo pack check` catches the same gaps before a seed is
+written: a pack that declares a `closing_style` has to name the accounts that
+style needs and a journal of type `opening`. The one fallback left is inside a
+pack and not between countries: `retained_earnings_loss` left empty means the
+chart keeps one account for both signs, which is the ordinary case outside
+Belgium and France.
+
 **The style is asserted, not trusted.** `appropriation_accounts` requires an
 account that does *not* carry forward, the other two require one that does. A
 pack that named an income account where the balance sheet is expected would

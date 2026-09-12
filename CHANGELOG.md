@@ -168,7 +168,12 @@ somewhere has already run it.
   opening entry on top of it would count each balance twice —
   `docs/decisions.md` carries the reasoning and what reversing it would cost.
   `fiscal_years.is_closed` is no longer an ordinary column: a trigger refuses
-  the transition to anyone but those two functions. Three MCP tools —
+  the transition to anyone but those two functions. **None of the five new
+  `country_defaults` columns carries a default**: a default closing style is
+  one country's mechanism handed to every country that has not spoken, so a
+  pack that says nothing is refused by name — `no_closing_defaults`,
+  `no_opening_journal` — and `ekwo pack check` catches the same gaps before a
+  seed is written. Three MCP tools —
   `opening_balance`, `close_fiscal_year`, `reopen_fiscal_year` — and
   `ekwo status` now says how many financial years are open.
 
