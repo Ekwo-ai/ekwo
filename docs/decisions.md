@@ -1129,3 +1129,120 @@ members. So the column carries `met:am1|bas:m9|rst:m2`, verified against
 taxonomy 26.0.15, and null on the lines where nothing could be verified.
 `@ekwo-ai/xbrl-cbso` reads it — and that library targets framework 25.0 and
 has two rubrics swapped, which is its own fix.
+
+
+## P0-7 — what a country requires on a document is data (12 September 2026)
+
+An invoice is where a country speaks loudest, and the core answered for it.
+The number was built as `CODE/YYYY/NNNN` in a function; the legal payment
+term existed nowhere; the e-invoicing profile and the bank formats existed
+nowhere; and the legal mentions existed nowhere at all, so a renderer either
+printed "Autoliquidation" from its own source or printed nothing. Twelve
+columns of `country_defaults`, one table of sentences, and two views move all
+of it into the pack.
+
+**Nothing executable, and that is the sub-task.** This change adds no
+function. Two views read the data — one enriched, one new — so a renderer or
+the e-invoice brick has something to select, and a test asserts that no
+function body mentions any of the new columns.
+
+**`numbering_gapless` and `number_format` are two questions, not one.**
+Whether a number may skip is the law: most of Europe forbids a hole, some
+countries only ask for an order. What the number *looks like* is a pattern —
+`{CODE}`, `{YYYY}` or `{YY}`, `{MM}`, and a run of `N` for a counter padded to
+its own width. Whether the counter restarts each year is readable in the
+pattern itself, because a pattern that carries the year restarts with it,
+which is why the four numbering styles of the pack format compile to one
+boolean without losing anything. **`next_entry_number()` does not read the
+pattern**, and this change does not make it: a numbering engine that consumes
+a format is its own piece of work, and both packs declare exactly the pattern
+the engine already produces, so nothing moves under anybody's feet the day it
+lands.
+
+**`tax_point_rule` is the country's general rule, and the exception is on the
+tax.** France taxes goods on delivery and services on collection. A second
+country column for the second half would be a country model that contradicts
+itself; the service rule is `taxes.cash_basis`, which P0-5 landed and P0-6
+gives behaviour to. So France declares `delivery_date` and its service taxes
+will say the rest themselves.
+
+**`party_scheme` and `vat_scheme` are both there because they are not the same
+identifier.** A company is addressed on the network by its registration
+number — ISO 6523 `0208` in Belgium, `0009` in France — and taxed on its VAT
+number, `9925` and `9957`. Four digits, checked by the schema: the Belgian
+pack used to carry `BE:VAT`, which is a string nobody can look up in a
+register. Where a country has two registration identifiers, the pack declares
+the one its invoices carry and names the other in the legal reference: France
+declares SIRET and says in the same breath that SIREN is the same company
+without its establishment.
+
+**`applies_when` is a closed vocabulary of nine values, never an expression.**
+The same decision as the plus and minus lists of a declaration total, for the
+same reason: an accountant reads `reverse_charge` and knows what it means, and
+a pack that could write a condition would be a pack that executes. Six of the
+nine are resolved from the treatment of the taxes a document's lines already
+carry, so nothing new has to be recorded on a document for its mentions to
+come out right. `late_payment` is about the direction — interest and recovery
+costs belong on what a seller issues, never on an invoice somebody else
+wrote. `cash_basis` is about the tax. The day a country needs a tenth value it
+is a discussion about the core, not a field a pack may fill with anything.
+
+**`small_business` is data the view never selects, and says so.** A franchise
+regime is a property of the seller, and the core records no such column. The
+sentence is in the table so a renderer that knows the regime can fetch it by
+code, and `document_legal_mentions` does not pretend to know: it has no branch
+for it, a test asserts that the view returns it for no document anywhere, and
+the day a regime becomes a column the view gains one line. The alternative was
+to invent a flag on `companies` in a sub-task about country data, or to drop a
+sentence that two countries genuinely require.
+
+**The mentions are not copied into a company**, for the reason a declaration
+form is not: a chart of accounts is customisable and the law is not. An
+operator does not get to rewrite article 39bis. A wording that changes is a
+`valid_to` and a new row, and the view joins on the **document's own date**, so
+a reprint of an old invoice carries the wording of its own year.
+
+**The country of a document is the company's `fiscal_country`**, not its
+address. A Belgian company with a French VAT registration invoices under
+French rules, and that distinction was already in the schema; the view uses it
+rather than adding a second answer.
+
+**The generated seed writes these columns with an `update`, not a second
+insert.** The row is created a few lines above by the same file, and an insert
+would have to restate the name, the currency and the two account roles its
+not-null columns need — the same values twice in one generated file. The
+update touches only the columns this section owns, which also keeps the two
+blocks of the compiler independent of each other.
+
+**What a pack may declare and what it may not.** The closed vocabularies live
+in `packs/schema/pack.1.json`, so an editor sees them and `ekwo pack check`
+enforces them before a seed is written: the nine conditions, the three tax
+points, the four fiscal year openings, the bank formats by name, four digits
+for an ISO 6523 scheme, a date for the obligation. Four things the schema
+cannot say are checked in the reader — a duplicate mention code, a validity
+that runs backwards, a mention with no legal reference, and a number format
+with an unknown token or without a counter — plus one that is a half-declared
+pack: a day an obligation starts with no profile saying what becomes
+obligatory.
+
+**For an accountant to read.** Belgium declares a thirty-day legal term (loi
+du 2 août 2002, art. 4), interest at the ECB rate plus eight points with the
+40 € indemnity (art. 5 and 6), the tax point at the issue of the invoice
+(art. 17 of the VAT code), Peppol BIS 3 mandatory between taxable persons from
+1 January 2026, CODA and camt.053 statements, pain.001 payments, and six
+mentions (AR n° 1 art. 20, art. 39bis, art. 21 § 2, art. 39, art. 56bis, and
+the late payment terms). France declares thirty days (art. L441-10), the same
+40 € indemnity (art. D441-5), the tax point on delivery with the service
+exception on the tax, Factur-X from 1 September 2026 for reception, SIRET and
+the French VAT scheme, camt.053 and CFONB 120 statements, pain.001 and
+CFONB 160 payments, and six mentions (art. 283, 262 ter I, 283-2, 262 I,
+293 B, and the late payment terms). **Three things are deliberately absent.**
+The French *escompte* mention is one: article L441-9 requires the invoice to
+state the discount conditions, and "néant" is a seller's commercial choice
+that a country pack has no business asserting. The emission calendar of the
+French reform is the second: it depends on the size of the company, which the
+core does not hold, so the date in the column is reception — the one that
+binds everybody at once — and the calendar is in the legal reference. The
+third is an `exempt` mention for either country: both packs carry an
+exemption tax, neither law prescribes one sentence for it, and a sentence we
+would have written ourselves is not data.

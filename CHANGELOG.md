@@ -11,6 +11,25 @@ somewhere has already run it.
 
 ### Added
 
+- **What a country requires on a document is data.** Twelve columns on
+  `country_defaults` — `numbering_gapless`, `number_format`,
+  `legal_payment_days`, `late_payment_reference`, `tax_point_rule`,
+  `einvoice_profile`, `einvoice_mandatory_from`, `party_scheme`, `vat_scheme`,
+  `bank_statement_formats`, `payment_formats`, `fiscal_year_default` — and
+  `legal_mention_templates`, the sentences a country puts on an invoice with a
+  closed vocabulary of nine conditions and a validity of their own. The
+  `document_legal_mentions` view decides which of them apply to one document,
+  from its country, its date and the treatments of the taxes on its lines;
+  `document_line_items` gained `tax_treatment`, `tax_exemption_code` (BT-121)
+  and `tax_cash_basis`. `pack.json` compiles its `documents`, `einvoicing` and
+  `bank` sections at last, and `ekwo pack check` enforces their vocabularies —
+  the nine conditions, the three tax points, the bank formats by name, four
+  digits for an ISO 6523 scheme, a number pattern with exactly one counter,
+  and a legal reference on every mention. `get_document` returns the
+  applicable mentions and the country's payment and e-invoicing rules;
+  `ekwo status` prints the e-invoicing profile of each pack. Belgium and
+  France move to 1.2.0. **No function was added**: two views read the data and
+  the numbering engine is untouched. Migration `20260912111751`.
 - **A country has charts of accounts, not one chart.** `chart_templates` lists
   what a country offers, `account_templates.chart_code` says which one an
   account belongs to — the natural key is now `(country, chart_code, code)` —
