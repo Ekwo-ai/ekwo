@@ -65,6 +65,62 @@ the database, which is the rule anyway: **nothing is ever deleted from a
 pack**. An account is deprecated, a tax gets a `valid_to`, a form version gets
 a new `valid_from`.
 
+## What a tax says, and where its postings land
+
+A tax in `taxes.json` says how much and what kind; its `postings` say where
+the money goes, per kind of document.
+
+| Field | What it decides |
+|---|---|
+| `kind` | `vat`, `gst`, `sales_tax`, `withholding`, `other`. A label for the reports, never an input to the calculation. Defaults to `vat`. |
+| `recoverable` | `false` when the buyer never gets the tax back — American sales tax, Canadian PST, a wholly non-deductible VAT. |
+| `price_include` | The unit price already holds the tax (UK and Australian retail). Compiled to a column; the gross-to-net computation waits for the country that needs it. |
+| `jurisdiction` | ISO 3166-2 **with** the country prefix (`CA-QC`, `US-CA`) for a tax levied by a state. Null in Europe. |
+| `cash_basis`, `cash_basis_transition_account` | The tax falls due when the invoice is paid. Compiled to columns; read by P0-6. |
+
+A posting has one of three types:
+
+- **`base`** — the taxed amount itself. It carries no account: the account is
+  the one the document line names.
+- **`tax`** — an amount on a tax account, which it must name.
+- **`tax_on_base`** — a share of the tax that is *not* recoverable. It carries
+  no account either, and for the same reason as `base`: non-deductible VAT is
+  part of what the thing cost, so it lands on the accounts of the lines it
+  taxes, split in proportion to their bases.
+
+`factor` is the share of the amount that reaches the ledger, `box_factor` the
+share reported in the box, and the two are independent because a box is filled
+with the sign and the fraction the form expects. The Belgian vehicle tax uses
+both:
+
+```json
+{
+  "code": "BE-P-21-50-I",
+  "rate": 21,
+  "scope": "purchase",
+  "legal_reference": "Code de la TVA, art. 45, par. 2",
+  "postings": {
+    "invoice": [
+      { "type": "base", "box": "83" },
+      { "type": "tax", "factor": 50, "account": "411000", "box": "59", "box_factor": 50 },
+      { "type": "tax_on_base", "factor": 50, "box": "83", "box_factor": 50 }
+    ]
+  }
+}
+```
+
+On a 1 000 € car: 1 000 on the vehicle, 105 on the deductible VAT account, 105
+more on the vehicle, 1 210 owed to the supplier. Grid 83 reports 1 105 —
+Belgium asks for the base **plus** the non-deductible VAT, which is what the
+form's « TVA déductible non comprise » means. A wholly non-deductible tax is
+the same shape with one `tax_on_base` posting at 100 % and no `tax` posting.
+France needs no `box` on its `tax_on_base` posting at all: the CA3 carries no
+grid for the base of a purchase.
+
+The postings of one side share out the tax of the group, which is rounded once
+(EN 16931 BR-CO-14); the last posting of each side takes the remainder, so two
+halves of 0,63 come out as 0,32 and 0,31 rather than 0,32 twice.
+
 ## Which declaration a box belongs to
 
 A box number is unique inside one form and nowhere else. Belgium and France

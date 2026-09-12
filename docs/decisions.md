@@ -902,3 +902,75 @@ firm that books it directly is not doing anything unusual. And the
 appropriation entry is posted as a separate entry *before* the closing entry,
 so that a statutory income statement can show a movement on 693: merged into
 one entry the two movements cancel and the line disappears.
+
+## P0-5 — one tax engine, several kinds (12 September 2026)
+
+The core knew one tax: European VAT, fully deductible, computed on a price
+that excludes it, rounded to the cent. The pack format already had words for
+everything else — `kind`, `recoverable`, `price_include`, `jurisdiction`,
+`cash_basis`, `rounding_method`, `cash_rounding_unit` were in
+`packs/schema/pack.1.json` marked *deferred*, and the compiler dropped them on
+the floor. This step gives each of them a column, and adds the one behaviour
+that could not be written as a flag.
+
+**A kind is a label, never an input to the calculation.** `tax_kind` is
+`vat | gst | sales_tax | withholding | other` and drives reports only: a GST is
+computed exactly like a VAT, and a report that lists "the VAT" of a Canadian
+company needs to know which of two taxes it is looking at. Deriving that from
+a tax code is how a localisation ends up in application code. Same for
+`recoverable` and `jurisdiction`: they say what a tax *is*, so nothing has to
+guess.
+
+**Non-deductible VAT is a cost, and a cost has an account — the line's.**
+`tax_posting_type` gains `tax_on_base`. Like `base` it carries no account,
+because the account is the one the document line names; unlike `base`, its
+amount is a share of the tax. A Belgian company car at 21 % with the deduction
+capped at 50 % by art. 45 § 2 CTVA books 1 000 on the vehicle, 105 on the
+deductible VAT account, 105 more on the vehicle, and 1 210 to the supplier.
+Belgium's grid 83 comes out at 1 105: the form says « montant (TVA déductible
+non comprise) », which excludes the *deductible* VAT and not all of it, and
+the Intervat notice spells it out. That needed no new column —
+`box_factor_percent` has always been independent from `factor_percent`, so the
+base posting reports 100 % of the base in box 83 and the `tax_on_base` posting
+reports 50 % of the tax in the same box. France needs none of this: the CA3
+has no grid for the base of a purchase at all, so the French fuel tax is
+ledger-only on its non-deductible fifth.
+
+**A `tax_on_base` line is not a tax line.** It sits on a base account and
+belongs to the base side of the declaration, which is exactly why Belgium puts
+it in 82/83. Marking it `tax_line = true` would split one grid into two rows in
+`vat_return()` and would send every reader that filters on `tax_line` looking
+for it among the VAT accounts, where it is not.
+
+**The postings of one side share out the tax of the group; the last takes the
+remainder.** Until now no tax had more than one posting per side, so each one
+could round on its own. Two halves cannot: 3,00 € at 21 % is 0,63, and
+rounding 0,315 twice books 0,64 against a document that totals 3,63. The tax
+of the group is still rounded once (BR-CO-14, unchanged) and is then shared
+out — 0,32 and 0,31. Every tax that existed before comes out to the same cent,
+and `posting.test.ts` was not touched, which is the proof. The same rule runs
+one level down when a `tax_on_base` share is spread over the several accounts
+of an invoice, in proportion to their bases.
+
+**A declaration figure is not a ledger figure.** Box amounts keep rounding per
+posting, so on that 3,00 € invoice the ledger books 0,31 where box 82 reports
+0,32. Only the ledger has to balance, `box_factor_percent` was separate from
+`factor_percent` by design, and the alternative is to let a grid drive a
+posting.
+
+**`cash_basis`, `rounding_method` and `cash_rounding_unit` land without a
+reader.** P0-6 implements VAT on collection; `half_up` is what `round()` on a
+numeric already does in every country, so the default changes nothing; the
+Swiss five-centime unit waits for Switzerland. The alternative was migrating a
+table of tax rows and their postings a second time, which is the argument
+`20260912080311` made for `report_code`. Three columns is where this stops.
+
+**Both packs move to 1.1.0.** Belgium gains the vehicle taxes at 50 % and a
+wholly non-deductible one for frais de réception (art. 45 § 3 CTVA); France
+gains fuel at 20 % with the 80 % deduction of CGI art. 298, 4, 1°. Adding a
+tax is a minor version, and `ekwo pack upgrade` diffs on that number, so a
+pack that grows without saying so is a pack nobody can upgrade to. The P0-1
+before/after test still proves that **nothing that existed changed**: `after`
+is narrowed to the natural keys `before` held, and the four new codes are
+named in a test of their own, so a row that appears without anyone saying so
+still fails.

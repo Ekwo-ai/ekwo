@@ -513,6 +513,8 @@ Which template account plays which role, per country.
 | `misc_journal_code` | `text` | not null |
 | `cash_account_code` | `text` | Ledger account behind the cash journal of this country, from the pack of that country. |
 | `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
+| `rounding_method` | `rounding_method` | not null — How this country rounds a tax amount. half_up is what post_document does today, in every country, so the default changes nothing. |
+| `cash_rounding_unit` | `numeric(8,4)` | not null — Smallest coin when it is not the cent: 0.05 in Switzerland. 0 means the cent, which is every country of phase 0. |
 | `closing_style` | `closing_style` | Which of the three mechanisms close_fiscal_year() follows for a company of this country. Null until the pack says; there is no default, because a default would be one country's answer given to every other. |
 | `current_year_result_profit_code` | `text` | Account the result of the year lands on when the year is profitable. Belgium 693, France 120. Null where the result goes straight to retained earnings. |
 | `current_year_result_loss_code` | `text` | Same, for a loss. Belgium 793, France 129. Both countries keep a profit and a loss apart, so this is a pair and not one account. |
@@ -521,6 +523,7 @@ Which template account plays which role, per country.
 
 Constraints:
 
+- `CHECK ((cash_rounding_unit >= (0)::numeric))`
 - `PRIMARY KEY (country)`
 
 ### `country_packs`
@@ -983,8 +986,11 @@ Constraints:
 
 Constraints:
 
-- `CHECK (((posting_type <> 'base'::tax_posting_type) OR (account_code IS NULL)))`
-- `CHECK (((posting_type <> 'tax'::tax_posting_type) OR (account_code IS NOT NULL)))`
+- `CHECK (
+CASE posting_type
+    WHEN 'tax'::tax_posting_type THEN (account_code IS NOT NULL)
+    ELSE (account_code IS NULL)
+END)`
 - `PRIMARY KEY (id)`
 
 ### `tax_postings`
@@ -1009,8 +1015,11 @@ Where a tax lands: ledger account and VAT-return box, per tax and per document k
 
 Constraints:
 
-- `CHECK (((posting_type <> 'base'::tax_posting_type) OR (account_id IS NULL)))`
-- `CHECK (((posting_type <> 'tax'::tax_posting_type) OR (account_id IS NOT NULL)))`
+- `CHECK (
+CASE posting_type
+    WHEN 'tax'::tax_posting_type THEN (account_id IS NOT NULL)
+    ELSE (account_id IS NULL)
+END)`
 - `PRIMARY KEY (id)`
 
 ### `tax_report_box_templates`
@@ -1086,6 +1095,12 @@ Reference taxes per country, with their period of validity.
 | `vat_category` | `character(2)` |  |
 | `exemption_code` | `text` |  |
 | `sequence` | `integer` | not null |
+| `tax_kind` | `tax_kind` | not null — vat, gst, sales_tax, withholding, other. A label for the reports, never an input to the calculation. |
+| `recoverable` | `boolean` | not null — False when the buyer never gets the tax back: American sales tax, Canadian PST. Where it lands is said by a tax_on_base posting. |
+| `jurisdiction` | `text` | ISO 3166-2 with the country prefix — CA-QC, US-CA — for a tax levied by a state. Null in Europe. |
+| `price_include` | `boolean` | not null — The unit price already holds the tax (UK and Australian retail). `taxes` carried this from the start and the template did not. |
+| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid. Column only: P0-6 implements the behaviour, this migration just stops the pack from losing the value. |
+| `cash_basis_transition_account_code` | `text` | Account the tax waits on until the invoice is paid. Column only, read by P0-6. |
 
 Constraints:
 
@@ -1118,6 +1133,11 @@ VAT and similar taxes, with temporal validity and a legal reference.
 | `active` | `boolean` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `tax_kind` | `tax_kind` | not null — vat, gst, sales_tax, withholding, other. A label for the reports, never an input to the calculation. |
+| `recoverable` | `boolean` | not null — False when the buyer never gets the tax back. The ledger consequence is a tax_on_base posting, not this column. |
+| `jurisdiction` | `text` | ISO 3166-2 with the country prefix, for a tax levied by a state. Null in Europe. |
+| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid. Column only until P0-6. |
+| `cash_basis_transition_account_id` | `uuid` | Account the tax waits on until the invoice is paid. Column only until P0-6. |
 
 Constraints:
 
@@ -1153,15 +1173,15 @@ Constraints:
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. Definer, for the same reason as next_entry_number. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
-| `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings, and a counterpart that balances by construction. |
+| `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — including the non-deductible share, which lands on the accounts of the lines — and a counterpart that balances by construction. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. |
 | `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role. Matches nothing. |
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line for an amount, defaulting to the smaller open amount. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
