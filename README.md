@@ -36,7 +36,11 @@ What we are building, in order:
    the books: read the ledger, raise an invoice, post it, match a payment,
    pull the VAT return or the FEC. Done; see [`packages/mcp`](packages/mcp/).
    A Community web application comes next.
-4. **Format libraries** as independent MIT packages:
+4. **Any country as a versioned pack of data**, with one golden test per
+   country — Belgium and France first, then the United Kingdom, Canada and
+   Québec, the Netherlands, Germany, Luxembourg. The plan is in
+   [`docs/international.md`](docs/international.md).
+5. **Format libraries** as independent MIT packages:
    [Factur-X](https://github.com/Ekwo-ai/factur-x) and
    [XBRL for the NBB](https://github.com/Ekwo-ai/xbrl-cbso) already exist;
    Peppol UBL follows.

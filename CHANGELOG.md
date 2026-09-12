@@ -75,6 +75,9 @@ somewhere has already run it.
 
 ### Added
 
+- `docs/international.md`: the plan for making the core usable in any
+  country — the country pack as data, four phases, the order of countries.
+
 - **`products`, in the core rather than in a module beside it.** Migration
   `20260911195054`: a code unique in the company (EN 16931 BT-155), a name
   (BT-153), a description (BT-154), `service` or `goods`, a unit from UN/ECE
