@@ -14,6 +14,7 @@ import {
   applySeeds,
   availableCountries,
   bootstrap,
+  installedPacks,
   listMigrations,
   schemaIsInstalled,
   type SqlClient,
@@ -36,6 +37,15 @@ describe('before anything is installed', () => {
   it('knows the schema is there and which countries it ships', async () => {
     expect(await schemaIsInstalled(db)).toBe(true);
     expect(await availableCountries(db)).toEqual(['BE', 'FR']);
+  });
+
+  it('offers the packs it holds, named as the pack names itself', async () => {
+    // `ekwo init` has no list of countries and no default one: the question
+    // is built from this, so adding a pack is what adds a choice.
+    expect(await installedPacks(db)).toEqual([
+      { country: 'BE', name: 'Belgium' },
+      { country: 'FR', name: 'France' },
+    ]);
   });
 
   it('has applied the reference seeds but not the demo company', async () => {

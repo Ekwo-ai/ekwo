@@ -20,7 +20,7 @@
 
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
-import { availableCountries, bootstrap, countryCurrency, countryLanguage, countryPack } from '../bootstrap.js';
+import { bootstrap, countryCurrency, countryLanguage, countryPack, installedPacks } from '../bootstrap.js';
 import { describeCertification, needsWarning } from '../pack/certification.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
@@ -88,16 +88,26 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     skipped(`${DEMO_SEED} is sample data and is not applied here`);
 
     // ---- What this installation is -----------------------------------------
-    const countries = await availableCountries(db);
+    //
+    // There is no default country, and there is no list of countries in this
+    // file: both come from the packs this installation holds, named as the
+    // pack names itself. A preselected country would be a choice nobody made,
+    // and the one question whose wrong answer is a chart of accounts.
+    const packs = await installedPacks(db);
+    if (packs.length === 0) {
+      throw new Error(
+        'no_country_pack: this database holds no country pack, so there is no chart of ' +
+          'accounts to install. Apply the reference seeds first.',
+      );
+    }
     const country = (
       stringFlag(args, 'country') ??
       (interactive
         ? await choose(
             'Country whose accounting rules apply?',
-            countries.map((c) => ({ value: c, label: c === 'BE' ? 'PCMN' : c === 'FR' ? 'PCG' : c })),
-            countries[0] ?? 'BE',
+            packs.map((p) => ({ value: p.country, label: p.name })),
           )
-        : required('--country', 'the country'))
+        : requiredCountry(packs))
     ).toUpperCase();
 
     const organization =
@@ -113,21 +123,26 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     const fiscalYear = numberFlag(args, 'fiscal-year') ?? new Date().getUTCFullYear();
 
     // The currency has to be settled before the company row exists:
-    // `companies.currency_code` is `not null default 'EUR'`, so there is no
-    // later moment at which it is empty and the country model could fill it.
-    const countryDefault = (await countryCurrency(db, country)) ?? 'EUR';
+    // `companies.currency_code` is `not null`, so there is no later moment at
+    // which it is empty and the country model could fill it. The pack answers
+    // it; a pack that does not is asked about, never guessed at.
+    const packCurrency = await countryCurrency(db, country);
     const currencyCode = (
       stringFlag(args, 'currency') ??
-      (interactive ? await askText('Currency of the company?', countryDefault) : countryDefault)
+      (interactive
+        ? await askRequired('Currency of the company?', packCurrency)
+        : (packCurrency ?? required('--currency', 'the currency')))
     ).toUpperCase();
 
     // The language of the books, for the same reason as the currency: it is
     // written on the company row, which does not exist yet, and it decides
     // which label of the pack lands in `accounts.name`.
-    const languageDefault = (await countryLanguage(db, country)) ?? 'fr';
+    const packLanguage = await countryLanguage(db, country);
     const language = (
       stringFlag(args, 'language') ??
-      (interactive ? await askText('Language of the books?', languageDefault) : languageDefault)
+      (interactive
+        ? await askRequired('Language of the books?', packLanguage)
+        : (packLanguage ?? required('--language', 'the language of the books')))
     ).toLowerCase();
 
     // What the operator is about to install, and how much anyone has read it.
@@ -240,6 +255,18 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
 
 function required(flag: string, what: string): never {
   throw new NotInteractiveError(what, flag);
+}
+
+/**
+ * The refusal when `--country` is missing and nobody can be asked. It names
+ * the packs this installation holds rather than a country it prefers, because
+ * it has no reason to prefer one.
+ */
+function requiredCountry(packs: { country: string; name: string }[]): never {
+  throw new Error(
+    'missing_input: the country was not given and this is not a terminal. Pass --country, ' +
+      `one of: ${packs.map((p) => `${p.country} (${p.name})`).join(', ')}.`,
+  );
 }
 
 /** An unanswered optional question is not an empty string. */

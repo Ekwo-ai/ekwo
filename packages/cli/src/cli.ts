@@ -67,7 +67,9 @@ ${bold('Connecting')} ${dim('(every command)')}
   --service-role-key <key>  Project Settings → API. Needed to create a user.
 
 ${bold('ekwo init')}
-  --country BE|FR           Which chart of accounts and VAT rules.
+  --country <cc>            Which pack: its chart of accounts and its VAT rules.
+                            Required unless the terminal can ask, which lists
+                            the packs this installation holds, by name.
   --org <name>              Your organisation. Written on the instance row.
   --company <name>          The first company. Defaults to --org.
   --admin-email <address>   The first administrator, created in your Supabase Auth.

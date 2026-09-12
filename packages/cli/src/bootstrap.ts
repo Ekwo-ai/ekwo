@@ -134,6 +134,29 @@ export async function availableCountries(db: SqlClient): Promise<string[]> {
   return rows.map((r) => r.country);
 }
 
+/** A country offered at install time: its code, and what the pack calls it. */
+export interface InstalledPack {
+  country: string;
+  name: string;
+}
+
+/**
+ * What this installation can install a company on, in the order it is
+ * offered: the packs it holds, by name.
+ *
+ * The name comes from the pack — `country_packs.name` — so no list of
+ * countries and no label for one is ever written in this code. A database
+ * seeded before `country_packs` existed still has charts, so the codes of
+ * `account_templates` are the fallback, each standing as its own label.
+ */
+export async function installedPacks(db: SqlClient): Promise<InstalledPack[]> {
+  const rows = await db.query<{ country: string; name: string }>(
+    'select country, name from country_packs order by name, country',
+  );
+  if (rows.length > 0) return rows.map((r) => ({ country: r.country, name: r.name }));
+  return (await availableCountries(db)).map((country) => ({ country, name: country }));
+}
+
 /** Whether the schema has been installed at all. */
 export async function schemaIsInstalled(db: SqlClient): Promise<boolean> {
   const present = await scalar<boolean>(

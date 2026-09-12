@@ -93,11 +93,17 @@ export async function confirm(question: string, defaultValue = false): Promise<b
   return answer === 'y' || answer === 'yes';
 }
 
-/** One of a short list. Returns the chosen value, not its index. */
+/**
+ * One of a short list. Returns the chosen value, not its index.
+ *
+ * `defaultValue` is optional on purpose: a question whose answer decides what
+ * the books are — the country — has no right answer to preselect, and Enter
+ * on it would be a choice nobody made.
+ */
 export async function choose(
   question: string,
   options: { value: string; label: string }[],
-  defaultValue: string,
+  defaultValue?: string,
 ): Promise<string> {
   const labels = options.map((o) => `${o.value} (${o.label})`).join(', ');
   for (;;) {
