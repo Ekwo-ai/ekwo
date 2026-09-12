@@ -55,6 +55,14 @@ one line wait for the countries that need them.
    French CA3 totals are pack data, and no function in the core holds a
    country code any more, which a test now enforces.
 4. Financial statements as data, a generic statement by account type.
+   **Done** — `statement_templates`, `statement_line_templates` and
+   `statement_line_rules` filled by the packs, `financial_statement()` and
+   `unmapped_accounts()`; the NBB abbreviated schemes and the French liasse
+   2050-2053; a country-less `packs/generic/` whose rules are all account
+   types, which gives any chart a balance sheet that ties out. A country also
+   gained **several charts of accounts** — `chart_templates`, `chart_code` on
+   the template accounts and on `company_packs`, `ekwo init --chart` — with
+   the Belgian association chart as the first second chart.
 5. The generalised tax engine: kind, recoverability, jurisdiction,
    tax-inclusive prices, non-deductible VAT, rounding rules. **Done** (P0-5,
    12 September 2026): `tax_kind`, `recoverable`, `jurisdiction`,

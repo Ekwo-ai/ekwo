@@ -192,6 +192,30 @@ export function buildServer(backend: Backend): McpServer {
   );
 
   server.registerTool(
+    'list_statements',
+    {
+      title: 'List financial statements',
+      description:
+        'The schemes this company can be presented on: those of its country and of its chart of accounts, plus the generic framework by account type that fits any chart. Ask this before financial_statement rather than guessing a code.',
+      inputSchema: read.ListStatementsInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.listStatements(backend, args)),
+  );
+
+  server.registerTool(
+    'financial_statement',
+    {
+      title: 'Financial statement',
+      description:
+        'A balance sheet or an income statement for a period, on the scheme the country pack declares — the Belgian abbreviated model, the French liasse — or on the generic framework by account type. Each line is summed from the accounts its rules catch and the totals are derived from the lines; no country rule lives in this tool. It also returns the accounts no line catches: if that list is not empty, say so instead of presenting a statement that does not tie out. It prepares figures; it files nothing.',
+      inputSchema: read.FinancialStatementInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.financialStatement(backend, args)),
+  );
+
+  server.registerTool(
     'generate_fec',
     {
       title: 'Generate the French FEC',

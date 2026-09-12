@@ -30,6 +30,12 @@
       "minItems": 1,
       "items": { "$ref": "#/$defs/journal" }
     },
+    "charts": {
+      "type": "array",
+      "minItems": 1,
+      "description": "The charts of accounts this country offers. Exactly one is the default. Left out entirely, the pack has one chart called `default` whose accounts are in accounts.csv — which is what a pack written before charts existed says.",
+      "items": { "$ref": "#/$defs/chart" }
+    },
     "documents": { "$ref": "#/$defs/documents" },
     "einvoicing": { "$ref": "#/$defs/einvoicing" },
     "bank": { "$ref": "#/$defs/bank" }
@@ -142,6 +148,28 @@
       }
     },
 
+    "chart": {
+      "type": "object",
+      "description": "One chart of accounts of a country. A country has one or several; its taxes, its journals and its declaration form are common to them, and its financial statements are per chart when they differ — a Belgian ASBL and a French association keep different books from a company and file the same VAT return.",
+      "required": ["code", "name", "accounts"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "$ref": "#/$defs/code", "description": "Immutable once published. `default` on the chart a country shipped before this list existed." },
+        "name": { "type": "string", "minLength": 1, "description": "What the chart is called where such a name belongs: PCMN, PCG, SKR04." },
+        "name_i18n": { "type": "object", "additionalProperties": { "type": "string" } },
+        "accounts": { "type": "string", "minLength": 1, "description": "CSV file of this chart, relative to the pack directory. The default chart keeps accounts.csv." },
+        "default": { "type": "boolean", "description": "Exactly one chart of a pack has it. `ekwo init` installs it when nobody names another." },
+        "audience": { "type": "string", "description": "Who keeps books on it — companies, nonprofits, a profession. The core does nothing with it; an installer shows it." },
+        "statements": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/code" },
+          "description": "Financial statements this chart reports on, by their code in statements.json. A statement named by exactly one chart belongs to that chart; one named by several, or by none, fits every chart of the country."
+        },
+        "certification": { "$ref": "#/$defs/certification", "description": "How much this chart in particular has been read, when it differs from the pack as a whole. Left out, the pack's own status stands." },
+        "legal_reference": { "type": ["string", "null"] }
+      }
+    },
+
     "documents": {
       "type": "object",
       "description": "What the law of this country says about an invoice. Data only: the renderer prints the mentions, the pack says which and when.",
@@ -210,7 +238,7 @@
         "reconcilable": { "type": "boolean" },
         "name": { "type": "string", "minLength": 1, "description": "In the pack's own language. Other languages live in i18n/<lang>.json." },
         "sequence": { "type": "integer", "minimum": 0 },
-        "statement_hint": { "type": ["string", "null"], "description": "Deferred (P0-4): the statement line this account falls under when no rule catches it." }
+        "statement_hint": { "type": ["string", "null"], "description": "Free note: the statement line this account is meant for. Read by nothing today — the rules of a statement decide — and kept so a chart can carry the intent." }
       }
     },
 
@@ -327,10 +355,28 @@
       }
     },
 
+    "framework": {
+      "type": "object",
+      "title": "packs/generic/pack.json",
+      "description": "A pack with no country: a framework of financial statements that reports by account type and fits any chart of any country. It carries statements and nothing else — no chart, no tax, no journal — which is why it is not the manifest above.",
+      "required": ["code", "name", "version", "schema_min"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "code": { "$ref": "#/$defs/code", "description": "IFRS-SME. Names the framework, not a country." },
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "$ref": "#/$defs/semver" },
+        "schema_min": { "type": "string", "pattern": "^[0-9]{14}$" },
+        "released_at": { "$ref": "#/$defs/date" },
+        "language": { "$ref": "#/$defs/language", "description": "Language the labels below are written in. A translation goes in i18n/, like any pack." },
+        "certification": { "$ref": "#/$defs/certification" }
+      }
+    },
+
     "statements": {
       "type": "object",
       "title": "statements.json",
-      "description": "Deferred (P0-4): accepted and validated here, compiled when statement_templates exists. An empty list is a valid pack — a country without statements reports on the generic framework by account type, which is what the eighteen account types buy.",
+      "description": "The financial statements of a pack. An empty list is a valid pack — a country without statements reports on the generic framework by account type, which is what the eighteen account types buy.",
       "required": ["statements"],
       "additionalProperties": false,
       "properties": {
@@ -345,12 +391,13 @@
       "additionalProperties": false,
       "properties": {
         "code": { "$ref": "#/$defs/code" },
-        "kind": { "enum": ["balance_sheet", "income_statement", "cash_flow"] },
+        "kind": { "enum": ["balance_sheet", "income_statement", "cash_flow", "allocation"] },
         "framework": { "type": "string", "description": "BE-GAAP, FR-PCG, UK-FRS102, IFRS-SME." },
         "name": { "type": "string" },
         "valid_from": { "$ref": "#/$defs/date" },
         "valid_to": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
-        "lines": { "type": "array", "items": { "$ref": "#/$defs/statement_line" } }
+        "legal_reference": { "type": ["string", "null"] },
+        "lines": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/statement_line" } }
       }
     },
 
@@ -367,7 +414,8 @@
         "is_total": { "type": "boolean" },
         "plus": { "type": "array", "items": { "$ref": "#/$defs/code" } },
         "minus": { "type": "array", "items": { "$ref": "#/$defs/code" } },
-        "xbrl": { "type": ["string", "null"] },
+        "xbrl": { "type": ["string", "null"], "description": "What an XBRL filing writes for this line. The NBB CBSO taxonomy is dimensional, so the value is a fact key — a metric and its dimension members, `met:am1|bas:m2` — not an element name. Null where nothing is verified." },
+        "legal_reference": { "type": ["string", "null"] },
         "rules": { "type": "array", "items": { "$ref": "#/$defs/statement_rule" } }
       }
     },
@@ -375,6 +423,7 @@
     "statement_rule": {
       "type": "object",
       "description": "How accounts reach a line. Presentation may map by code range — the NBB schema, the liasse and every XBRL taxonomy do — where choosing an account to post to by prefix stays forbidden.",
+      "required": ["kind"],
       "additionalProperties": false,
       "properties": {
         "kind": { "enum": ["code_range", "code_prefix", "account_type", "account_code"] },

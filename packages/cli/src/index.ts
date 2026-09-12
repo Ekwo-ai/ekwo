@@ -18,10 +18,12 @@ export {
 export {
   availableCountries,
   bootstrap,
+  countryCharts,
   countryLanguage,
   countryPack,
   installedPacks,
   schemaIsInstalled,
+  type ChartChoice,
   type InstalledPack,
   type PackSummary,
   type BootstrapOptions,
@@ -30,23 +32,32 @@ export {
 } from './bootstrap.js';
 export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js';
 export { describeCertification, needsWarning, type Certification, type CertificationFacts } from './pack/certification.js';
-export { compilePack, seedFileName } from './pack/compile.js';
+export { compileFrameworkPack, compilePack, frameworkSeedFileName, seedFileName } from './pack/compile.js';
 export {
+  DEFAULT_CHART,
+  GENERIC_PACK,
   listPacks,
   packsDir,
   parseCsv,
+  readFrameworkPack,
   readPack,
   readSchema,
   repoRootDir,
   resolveBoxRef,
   seedOutputDir,
   PackError,
+  type FrameworkManifest,
+  type FrameworkPack,
   type Manifest,
   type Pack,
   type PackAccount,
+  type PackChart,
   type PackPosting,
   type PackReport,
   type PackReportBox,
+  type PackStatement,
+  type PackStatementLine,
+  type PackStatementRule,
   type PackTax,
 } from './pack/read.js';
 export { validate, type Issue } from './pack/schema.js';

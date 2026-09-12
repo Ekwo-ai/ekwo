@@ -18,6 +18,7 @@ schema_paths = []
 enabled = true
 sql_paths = [
   "./seed/00_currencies.sql",
+  "./seed/05_framework_generic.sql",
   "./seed/10_pack_be.sql",
   "./seed/11_pack_fr.sql",
 ]

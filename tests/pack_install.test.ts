@@ -32,9 +32,11 @@ describe('country_packs', () => {
     );
     expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR']);
     for (const pack of loaded) {
-      // 1.1.0 since P0-5: both packs gained taxes, which the format calls a
-      // minor version. `ekwo pack upgrade` diffs on this number, so a pack
-      // that grows without announcing it is a pack nobody can upgrade to.
+      // 1.1.0 since P0-5 and P0-4: both packs gained taxes, Belgium a second
+      // chart of accounts and both their financial statements — each of which
+      // the format calls a minor version. `ekwo pack upgrade` diffs on this
+      // number, so a pack that grows without announcing it is a pack nobody
+      // can upgrade to.
       expect(pack.version).toBe('1.1.0');
       // `maintained`, never `ekwo`: Ekwo maintains these two packs and no
       // accountant has read them. Certified describes a review, or nothing.
@@ -203,15 +205,19 @@ describe('a seed applied again', () => {
     const pack = await readPack('be', packs);
     const edited = {
       ...pack,
-      accounts: pack.accounts.map((a) =>
-        a.code === '700000' ? { ...a, name: 'Ventes de marchandises ou de services (corrigé)' } : a,
-      ),
+      charts: pack.charts.map((chart) => ({
+        ...chart,
+        accounts: chart.accounts.map((a) =>
+          a.code === '700000' ? { ...a, name: 'Ventes de marchandises ou de services (corrigé)' } : a,
+        ),
+      })),
     };
     await db.exec(compilePack(edited));
 
     const template = await one<{ name: string }>(
       db,
-      `select name from account_templates where country = 'BE' and code = '700000'`,
+      `select name from account_templates
+        where country = 'BE' and chart_code = 'default' and code = '700000'`,
     );
     expect(template.name).toBe('Ventes de marchandises ou de services (corrigé)');
 

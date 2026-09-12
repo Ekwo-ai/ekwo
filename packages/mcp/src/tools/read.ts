@@ -131,8 +131,16 @@ export async function getCompany(
     return typeof id === 'string' ? (byId.get(id) ?? { id }) : null;
   };
 
+  const packs = await backend.select<Row>({
+    table: 'company_packs',
+    columns: ['country', 'version', 'chart_code', 'installed_at'],
+    where: [{ column: 'company_id', op: 'eq', value: args.company_id }],
+    order: [{ column: 'country' }],
+  });
+
   return {
     company,
+    country_packs: packs,
     locks: {
       lock_date: company['lock_date'],
       tax_lock_date: company['tax_lock_date'],
@@ -592,6 +600,72 @@ export async function vatReturn(
     boxes: moneyFields(rows, ['amount']),
     note:
       'A box flagged computed is a total the form derives from the others, following the plus and minus lists of the country pack; hidden means the form does not print it. Everything else is summed from what the tax postings wrote on the ledger lines.',
+  };
+}
+
+export const ListStatementsInput = z.object({
+  company_id: companyId,
+  at: isoDate
+    .optional()
+    .describe('The day to read the schemes in force at. Defaults to today.'),
+});
+
+export async function listStatements(
+  backend: Backend,
+  args: z.infer<typeof ListStatementsInput>,
+): Promise<unknown> {
+  const rows = await backend.rpc<Record<string, unknown>>('available_statements', {
+    p_company_id: args.company_id,
+    p_at: args.at ?? null,
+  });
+  return {
+    statements: rows,
+    note:
+      rows.length === 0
+        ? 'No statement applies to this company. Its country pack declares none and the generic framework has not been seeded.'
+        : 'is_default marks the schemes the chart of accounts of this company reports on. The ones with no country are the generic framework by account type, which fits any chart.',
+  };
+}
+
+export const FinancialStatementInput = z.object({
+  company_id: companyId,
+  statement_code: z
+    .string()
+    .min(1)
+    .describe('Which scheme, from list_statements (BE-BNB-ABBR-BS, FR-2050, IFRS-SME-BS).'),
+  from: isoDate,
+  to: isoDate,
+});
+
+export async function financialStatement(
+  backend: Backend,
+  args: z.infer<typeof FinancialStatementInput>,
+): Promise<unknown> {
+  const [lines, unmapped] = await Promise.all([
+    backend.rpc<Record<string, unknown>>('financial_statement', {
+      p_company_id: args.company_id,
+      p_statement_code: args.statement_code,
+      p_from: args.from,
+      p_to: args.to,
+    }),
+    backend.rpc<Record<string, unknown>>('unmapped_accounts', {
+      p_company_id: args.company_id,
+      p_statement_code: args.statement_code,
+      p_from: args.from,
+      p_to: args.to,
+    }),
+  ]);
+
+  return {
+    period: { from: args.from, to: args.to },
+    statement_code: args.statement_code,
+    lines: moneyFields(lines, ['amount']),
+    unmapped_accounts: moneyFields(unmapped, ['balance']),
+    note:
+      'Every line of the scheme is returned, nil included, in the order it is printed; a line flagged is_total is derived from the others. ' +
+      (unmapped.length === 0
+        ? 'No account of this company falls outside the scheme, so it ties out.'
+        : 'unmapped_accounts lists accounts this scheme catches on no line — say so rather than presenting a statement that does not tie out.'),
   };
 }
 

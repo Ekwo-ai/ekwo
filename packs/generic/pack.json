@@ -1,0 +1,16 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/framework",
+  "code": "IFRS-SME",
+  "name": "Generic framework",
+  "version": "1.0.0",
+  "schema_min": "20260912100412",
+  "released_at": "2026-09-12",
+  "language": "en",
+  "certification": {
+    "status": "maintained",
+    "sources": [
+      "IFRS for SMEs Accounting Standard (2015), section 4 — Statement of Financial Position",
+      "IFRS for SMEs Accounting Standard (2015), section 5 — Statement of Comprehensive Income"
+    ]
+  }
+}

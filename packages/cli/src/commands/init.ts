@@ -20,7 +20,7 @@
 
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
-import { bootstrap, countryCurrency, countryLanguage, countryPack, installedPacks } from '../bootstrap.js';
+import { bootstrap, countryCharts, countryCurrency, countryLanguage, countryPack, installedPacks } from '../bootstrap.js';
 import { describeCertification, needsWarning } from '../pack/certification.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
@@ -37,6 +37,7 @@ import { bold, cyan, dim, heading, line, note, pairs, skipped, step, warn } from
 export const INIT_FLAGS = [
   ...CONNECTION_FLAGS,
   'country',
+  'chart',
   'org',
   'company',
   'admin-email',
@@ -134,6 +135,34 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
         : (packCurrency ?? required('--currency', 'the currency')))
     ).toUpperCase();
 
+    // Which chart of accounts. A country with one chart is not a question:
+    // there is nothing to choose. A country with two is asked about, with
+    // nothing preselected beyond the default the pack itself declares — the
+    // wrong answer here is a whole plan of accounts.
+    const charts = await countryCharts(db, country);
+    const askedChart = stringFlag(args, 'chart');
+    if (askedChart !== undefined && !charts.some((c) => c.code === askedChart)) {
+      throw new Error(
+        `unknown_chart: ${country} has no chart ${askedChart}. ` +
+          `It has: ${charts.map((c) => c.code).join(', ') || 'none'}.`,
+      );
+    }
+    const chartCode =
+      askedChart ??
+      (charts.length > 1 && interactive
+        ? await choose(
+            'Which chart of accounts?',
+            charts.map((c) => ({
+              value: c.code,
+              label:
+                `${c.name}${c.audience === null ? '' : ` — ${c.audience}`}` +
+                ` (${c.accounts} accounts${c.certificationStatus === null ? '' : `, ${c.certificationStatus}`})`,
+            })),
+          )
+        : charts.length > 1
+          ? requiredChart(country, charts)
+          : undefined);
+
     // The language of the books, for the same reason as the currency: it is
     // written on the company row, which does not exist yet, and it decides
     // which label of the pack lands in `accounts.name`.
@@ -200,6 +229,7 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       adminUserId,
       currencyCode,
       language,
+      ...(chartCode === undefined ? {} : { chartCode }),
       bankAccount,
     });
     for (const s of outcome.steps) {
@@ -232,6 +262,14 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     pairs([
       ['organisation', organization],
       ['company', `${company} (${country}, ${outcome.currencyCode}, ${outcome.language})`],
+      [
+        'chart of accounts',
+        `${outcome.chartCode ?? 'unknown'}${
+          charts.find((c) => c.code === outcome.chartCode)?.name === undefined
+            ? ''
+            : ` — ${charts.find((c) => c.code === outcome.chartCode)?.name}`
+        }`,
+      ],
       [
         'country pack',
         pack === undefined
@@ -266,6 +304,23 @@ function requiredCountry(packs: { country: string; name: string }[]): never {
   throw new Error(
     'missing_input: the country was not given and this is not a terminal. Pass --country, ' +
       `one of: ${packs.map((p) => `${p.country} (${p.name})`).join(', ')}.`,
+  );
+}
+
+/**
+ * The refusal when a country offers several charts, `--chart` is missing and
+ * nobody can be asked. It lists them rather than picking the default: a
+ * non-interactive install that meant the other one would find out a year later.
+ */
+function requiredChart(
+  country: string,
+  charts: { code: string; name: string; isDefault: boolean }[],
+): never {
+  throw new Error(
+    `missing_input: ${country} offers several charts of accounts and this is not a terminal. ` +
+      `Pass --chart, one of: ${charts
+        .map((c) => `${c.code} (${c.name}${c.isDefault ? ', the default' : ''})`)
+        .join(', ')}.`,
   );
 }
 

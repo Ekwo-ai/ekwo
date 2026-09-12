@@ -13,6 +13,14 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, type Issue } from './schema.js';
 
+/**
+ * The chart a pack has when it declares none, and the name of the framework
+ * pack. Both are mechanism words: `default` is not a country and `generic` is
+ * not a language — a pack says its chart is called PCMN, in its own data.
+ */
+export const DEFAULT_CHART = 'default';
+export const GENERIC_PACK = 'generic';
+
 export interface PackAccount {
   code: string;
   parent: string | null;
@@ -69,6 +77,61 @@ export interface PackTax {
   group?: string[];
 }
 
+/** One chart of accounts of a country, and the accounts it holds. */
+export interface PackChart {
+  code: string;
+  name: string;
+  name_i18n: Record<string, string>;
+  /** File the accounts were read from, relative to the pack directory. */
+  file: string;
+  accounts: PackAccount[];
+  is_default: boolean;
+  audience: string | null;
+  /** Codes of the statements this chart reports on. */
+  statements: string[];
+  certification: { status: string; by?: string | null; on?: string; sources?: string[] } | null;
+  legal_reference: string | null;
+}
+
+/** One rule bringing accounts of a chart to a line of a statement. */
+export interface PackStatementRule {
+  kind: 'code_range' | 'code_prefix' | 'account_type' | 'account_code';
+  code_from: string | null;
+  code_to: string | null;
+  account_type: string | null;
+  side: 'debit' | 'credit' | 'any';
+  sequence: number;
+}
+
+/** One line of a financial statement. */
+export interface PackStatementLine {
+  code: string;
+  parent: string | null;
+  name: string;
+  sequence: number;
+  sign: 1 | -1;
+  is_total: boolean;
+  plus: string[];
+  minus: string[];
+  xbrl: string | null;
+  legal_reference: string | null;
+  rules: PackStatementRule[];
+}
+
+/** `statements.json`: the financial statements of a pack. */
+export interface PackStatement {
+  code: string;
+  kind: string;
+  framework: string | null;
+  name: string;
+  valid_from: string;
+  valid_to: string | null;
+  legal_reference: string | null;
+  /** Chart this statement belongs to, or null for every chart of the country. */
+  chart_code: string | null;
+  lines: PackStatementLine[];
+}
+
 /** One box of a declaration form. A total carries the lists it is added from. */
 export interface PackReportBox {
   box: string;
@@ -99,14 +162,21 @@ export interface Pack {
   slug: string;
   dir: string;
   manifest: Manifest;
+  /** Charts of this country, the default one first. Never empty. */
+  charts: PackChart[];
+  /** Accounts of the default chart. The chart a pack has when it declares only one. */
   accounts: PackAccount[];
   taxes: PackTax[];
+  /** `statements.json`, with every line and rule normalised. */
+  statements: PackStatement[];
   /** Languages found under `i18n/`, whether or not they hold anything yet. */
   languages: string[];
   /** Account labels by code, then by language, gathered from `i18n/`. */
   accountLabels: Record<string, Record<string, string>>;
   /** Box labels by `box|kind`, then by language, gathered from `i18n/`. */
   boxLabels: Record<string, Record<string, string>>;
+  /** Statement line labels by `statement:line`, then by language, from `i18n/`. */
+  lineLabels: Record<string, Record<string, string>>;
   /** The periodic return of this pack, from `tax_report.json`. */
   report: PackReport | null;
   /** Code of the periodic return. The default of every box. */
@@ -132,7 +202,38 @@ export interface Manifest {
     [key: string]: unknown;
   };
   journals: { code: string; type: string; name: string; sequence?: number }[];
+  charts?: {
+    code: string;
+    name: string;
+    name_i18n?: Record<string, string>;
+    accounts: string;
+    default?: boolean;
+    audience?: string;
+    statements?: string[];
+    certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+    legal_reference?: string | null;
+  }[];
   [key: string]: unknown;
+}
+
+/** `packs/generic/pack.json`: a framework of statements, with no country. */
+export interface FrameworkManifest {
+  code: string;
+  name: string;
+  version: string;
+  schema_min: string;
+  released_at?: string;
+  language?: string;
+  certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+}
+
+/** A pack with no country: statements by account type, and nothing else. */
+export interface FrameworkPack {
+  slug: string;
+  dir: string;
+  manifest: FrameworkManifest;
+  statements: PackStatement[];
+  checksum: string;
 }
 
 export class PackError extends Error {}
@@ -190,21 +291,47 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   const manifest = (await readJson(join(root, 'pack.json'))) as unknown as Manifest;
   issues.push(...validate(manifest, schema, schema));
 
-  const rows = parseCsv(await readFile(join(root, 'accounts.csv'), 'utf8'), `${slug}/accounts.csv`);
-  const accounts = rows.map((row, index) => {
-    const account = {
-      code: row['code'] ?? '',
-      parent: emptyToNull(row['parent']),
-      type: row['type'] ?? '',
-      reconcilable: parseBoolean(row['reconcilable'], `${slug}/accounts.csv line ${index + 2}`),
-      name: row['name'] ?? '',
-      sequence: parseInteger(row['sequence'], `${slug}/accounts.csv line ${index + 2}`, (index + 1) * 10),
-    } satisfies PackAccount;
-    issues.push(
-      ...validate(account, defs['accounts_csv'] ?? {}, schema, `accounts.csv[${index + 2}]`),
-    );
-    return account;
-  });
+  // The charts. A pack that declares none has exactly one, `default`, whose
+  // accounts are in accounts.csv — which is what every pack written before
+  // charts existed says, without changing a line of it.
+  const declared = manifest.charts ?? [
+    { code: DEFAULT_CHART, name: DEFAULT_CHART, accounts: 'accounts.csv', default: true },
+  ];
+  const charts: PackChart[] = [];
+  for (const entry of declared) {
+    const file = entry.accounts;
+    if (!existsSync(join(root, file))) {
+      issues.push({ path: `pack.json charts.${entry.code}`, message: `${file} does not exist` });
+      continue;
+    }
+    const rows = parseCsv(await readFile(join(root, file), 'utf8'), `${slug}/${file}`);
+    const accounts = rows.map((row, index) => {
+      const account = {
+        code: row['code'] ?? '',
+        parent: emptyToNull(row['parent']),
+        type: row['type'] ?? '',
+        reconcilable: parseBoolean(row['reconcilable'], `${slug}/${file} line ${index + 2}`),
+        name: row['name'] ?? '',
+        sequence: parseInteger(row['sequence'], `${slug}/${file} line ${index + 2}`, (index + 1) * 10),
+      } satisfies PackAccount;
+      issues.push(...validate(account, defs['accounts_csv'] ?? {}, schema, `${file}[${index + 2}]`));
+      return account;
+    });
+    charts.push({
+      code: entry.code,
+      name: entry.name,
+      name_i18n: entry.name_i18n ?? {},
+      file,
+      accounts,
+      is_default: entry.default === true,
+      audience: entry.audience ?? null,
+      statements: entry.statements ?? [],
+      certification: entry.certification ?? null,
+      legal_reference: entry.legal_reference ?? null,
+    });
+  }
+  charts.sort((a, b) => (a.is_default === b.is_default ? a.code.localeCompare(b.code) : a.is_default ? -1 : 1));
+  const accounts = charts.find((c) => c.is_default)?.accounts ?? charts[0]?.accounts ?? [];
 
   const rawTaxes = (await readJson(join(root, 'taxes.json'))) as unknown[];
   issues.push(...validate(rawTaxes, defs['taxes'] ?? {}, schema, 'taxes.json'));
@@ -218,17 +345,17 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   }
   const reportCode = report?.code ?? null;
 
-  // Accepted, validated, not compiled by this release.
+  let statements: PackStatement[] = [];
   if (existsSync(join(root, 'statements.json'))) {
-    const statements = await readJson(join(root, 'statements.json'));
-    issues.push(...validate(statements, defs['statements'] ?? {}, schema, 'statements.json'));
-    const lines = (statements as { statements?: unknown[] }).statements ?? [];
-    if (lines.length > 0) deferred.push('statements.json — financial statements as data (P0-4)');
+    const raw = await readJson(join(root, 'statements.json'));
+    issues.push(...validate(raw, defs['statements'] ?? {}, schema, 'statements.json'));
+    statements = normaliseStatements(raw as Record<string, unknown>, charts);
   }
 
   const languages: string[] = [];
   const accountLabels: Record<string, Record<string, string>> = {};
   const boxLabels: Record<string, Record<string, string>> = {};
+  const lineLabels: Record<string, Record<string, string>> = {};
   const i18nDir = join(root, 'i18n');
   if (existsSync(i18nDir)) {
     for (const file of (await readdir(i18nDir)).filter((f) => f.endsWith('.json')).sort()) {
@@ -238,6 +365,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
         journals?: Record<string, string>;
         taxes?: Record<string, string>;
         tax_report_boxes?: Record<string, string>;
+        statement_lines?: Record<string, string>;
       };
       issues.push(...validate(translations, defs['i18n'] ?? {}, schema, `i18n/${file}`));
       const language = translations.language ?? file.replace(/\.json$/, '');
@@ -245,7 +373,9 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
       for (const [code, label] of Object.entries(translations.accounts ?? {})) {
         (accountLabels[code] ??= {})[language] = label;
       }
-      const untranslated = Object.keys(translations.accounts ?? {}).filter((code) => !codesOf(accounts).has(code));
+      const untranslated = Object.keys(translations.accounts ?? {}).filter(
+        (code) => !codesOfCharts(charts).has(code),
+      );
       for (const code of untranslated) {
         issues.push({ path: `i18n/${file}`, message: `account ${code} is not in this chart` });
       }
@@ -259,11 +389,27 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
         }
         (boxLabels[`${resolved.box}|${resolved.kind}`] ??= {})[language] = label;
       }
+      // A statement line is translated by `<statement>:<line>`, which is how a
+      // line is named everywhere else once two statements carry a line `20`.
+      for (const [ref, label] of Object.entries(translations.statement_lines ?? {})) {
+        const [statementCode, lineCode] = ref.includes(':') ? ref.split(':') : [undefined, undefined];
+        const line = statements
+          .find((st) => st.code === statementCode)
+          ?.lines.find((l) => l.code === lineCode);
+        if (line === undefined) {
+          issues.push({
+            path: `i18n/${file} ${ref}`,
+            message: 'is not a line of any statement of this pack; write <statement>:<line>',
+          });
+          continue;
+        }
+        (lineLabels[`${statementCode as string}:${lineCode as string}`] ??= {})[language] = label;
+      }
       if (
         Object.keys(translations.journals ?? {}).length > 0 ||
         Object.keys(translations.taxes ?? {}).length > 0
       ) {
-        deferred.push(`i18n/${file} — only account and box labels are compiled; journals and taxes wait for their column`);
+        deferred.push(`i18n/${file} — only account, box and statement labels are compiled; journals and taxes wait for their column`);
       }
     }
   }
@@ -284,8 +430,9 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     }
   }
 
-  issues.push(...crossReferences(manifest, accounts, taxes));
+  issues.push(...crossReferences(manifest, charts, taxes));
   issues.push(...reportReferences(report, taxes));
+  issues.push(...statementReferences(statements, charts));
 
   if (issues.length > 0) {
     const shown = issues.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
@@ -297,11 +444,14 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     slug,
     dir: root,
     manifest,
+    charts,
     accounts,
     taxes,
+    statements,
     languages,
     accountLabels,
     boxLabels,
+    lineLabels,
     report,
     reportCode,
     checksum: await checksum(root),
@@ -309,8 +459,56 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   };
 }
 
-function codesOf(accounts: PackAccount[]): Set<string> {
-  return new Set(accounts.map((a) => a.code));
+/**
+ * The framework pack: statements by account type, no country, no chart.
+ *
+ * It is read and compiled beside the country packs because it is the same
+ * kind of thing — declarative lines an accountant can read — and because the
+ * fallback that gives any chart a readable balance sheet should not be the one
+ * object of the system that lives in a migration.
+ */
+export async function readFrameworkPack(slug = GENERIC_PACK, dir = packsDir()): Promise<FrameworkPack> {
+  const root = join(dir, slug);
+  const schema = await readSchema(dir);
+  const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
+  const issues: Issue[] = [];
+
+  const manifest = (await readJson(join(root, 'pack.json'))) as unknown as FrameworkManifest;
+  issues.push(...validate(manifest, defs['framework'] ?? {}, schema));
+
+  const raw = await readJson(join(root, 'statements.json'));
+  issues.push(...validate(raw, defs['statements'] ?? {}, schema, 'statements.json'));
+  const statements = normaliseStatements(raw as Record<string, unknown>, []);
+
+  for (const statement of statements) {
+    for (const line of statement.lines) {
+      for (const rule of line.rules) {
+        if (rule.kind !== 'account_type') {
+          issues.push({
+            path: `statements.json ${statement.code}.${line.code}`,
+            message:
+              `a ${rule.kind} rule names a chart, and this framework has none. ` +
+              'The generic statements are what the eighteen account types buy: account_type rules only.',
+          });
+        }
+      }
+    }
+  }
+  issues.push(...statementReferences(statements, []));
+
+  if (issues.length > 0) {
+    const shown = issues.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
+    const more = issues.length > shown.length ? `\n  … and ${issues.length - shown.length} more` : '';
+    throw new PackError(`pack_invalid: packs/${slug} — ${issues.length} problem(s)\n${shown.join('\n')}${more}`);
+  }
+
+  return { slug, dir: root, manifest, statements, checksum: await checksum(root) };
+}
+
+function codesOfCharts(charts: PackChart[]): Set<string> {
+  const codes = new Set<string>();
+  for (const chart of charts) for (const account of chart.accounts) codes.add(account.code);
+  return codes;
 }
 
 /**
@@ -417,6 +615,226 @@ function declarationKind(type: PackPosting['type']): 'base' | 'tax' {
 }
 
 /**
+ * `statements.json`, normalised.
+ *
+ * A statement belongs to the chart that names it: listed by exactly one chart
+ * it is that chart's, listed by several or by none it fits every chart of the
+ * country. One list, in `pack.json`, decides both what a chart reports on and
+ * what a statement applies to — there is no second place to keep in step.
+ */
+function normaliseStatements(raw: Record<string, unknown>, charts: PackChart[]): PackStatement[] {
+  const owners = (code: string): string[] =>
+    charts.filter((c) => c.statements.includes(code)).map((c) => c.code);
+
+  return ((raw['statements'] ?? []) as Record<string, unknown>[]).map((statement) => {
+    const code = String(statement['code']);
+    const named = owners(code);
+    const lines = ((statement['lines'] ?? []) as Record<string, unknown>[]).map((line, index) => ({
+      code: String(line['code']),
+      parent: (line['parent'] as string | undefined) ?? null,
+      name: String(line['name']),
+      sequence: typeof line['sequence'] === 'number' ? line['sequence'] : (index + 1) * 10,
+      sign: (line['sign'] === -1 ? -1 : 1) as 1 | -1,
+      is_total: line['is_total'] === true,
+      plus: (line['plus'] as string[] | undefined) ?? [],
+      minus: (line['minus'] as string[] | undefined) ?? [],
+      xbrl: (line['xbrl'] as string | undefined) ?? null,
+      legal_reference: (line['legal_reference'] as string | undefined) ?? null,
+      rules: ((line['rules'] ?? []) as Record<string, unknown>[]).map((rule, position) => ({
+        kind: rule['kind'] as PackStatementRule['kind'],
+        code_from: (rule['code_from'] as string | undefined) ?? null,
+        code_to: (rule['code_to'] as string | undefined) ?? null,
+        account_type: (rule['account_type'] as string | undefined) ?? null,
+        side: ((rule['side'] as string | undefined) ?? 'any') as PackStatementRule['side'],
+        sequence: typeof rule['sequence'] === 'number' ? rule['sequence'] : (position + 1) * 10,
+      })),
+    })) satisfies PackStatementLine[];
+
+    return {
+      code,
+      kind: String(statement['kind']),
+      framework: (statement['framework'] as string | undefined) ?? null,
+      name: String(statement['name'] ?? code),
+      valid_from: String(statement['valid_from'] ?? '1970-01-01'),
+      valid_to: (statement['valid_to'] as string | undefined) ?? null,
+      legal_reference: (statement['legal_reference'] as string | undefined) ?? null,
+      chart_code: named.length === 1 ? (named[0] as string) : null,
+      lines,
+    } satisfies PackStatement;
+  });
+}
+
+/** Does this rule catch this account code? The same comparison the SQL makes. */
+function ruleCatches(rule: PackStatementRule, code: string): boolean {
+  const from = rule.code_from ?? '';
+  const to = rule.code_to ?? '';
+  switch (rule.kind) {
+    case 'account_code':
+      return code === from;
+    case 'code_prefix':
+      return code.slice(0, from.length) === from;
+    case 'code_range':
+      return code.slice(0, from.length) >= from && code.slice(0, to.length) <= to;
+    default:
+      return false;
+  }
+}
+
+/**
+ * What the schema cannot say about a statement.
+ *
+ * The first four are the rules a declaration form already lives by: a line
+ * code is unique, a parent exists, a formula names lines of the same
+ * statement, and it never names a total computed after it.
+ *
+ * The fifth is the one that makes a statement tie out: **every leaf account of
+ * every chart it applies to reaches exactly one line**. Two lines may share an
+ * account only when their sides exclude each other — a suspense account is a
+ * receivable in debit and a payable in credit, and that is one account on one
+ * line at a time. A heading account, one with children in the chart, is
+ * allowed to reach none: it straddles the lines its children are split over,
+ * and nothing is ever posted to it.
+ */
+function statementReferences(statements: PackStatement[], charts: PackChart[]): Issue[] {
+  const issues: Issue[] = [];
+  const seenStatements = new Set<string>();
+
+  for (const statement of statements) {
+    const where = `statements.json ${statement.code}`;
+    if (seenStatements.has(statement.code)) {
+      issues.push({ path: where, message: 'duplicate statement code' });
+    }
+    seenStatements.add(statement.code);
+
+    const byCode = new Map<string, PackStatementLine>();
+    for (const line of statement.lines) {
+      if (byCode.has(line.code)) {
+        issues.push({ path: `${where} ${line.code}`, message: 'duplicate line code' });
+      }
+      byCode.set(line.code, line);
+      if (line.is_total && line.rules.length > 0) {
+        issues.push({
+          path: `${where} ${line.code}`,
+          message: 'a total is computed from other lines; it takes no rule of its own',
+        });
+      }
+      if (!line.is_total && line.plus.length + line.minus.length > 0) {
+        issues.push({
+          path: `${where} ${line.code}`,
+          message: 'only a total is computed from other lines; mark it is_total or drop the formula',
+        });
+      }
+    }
+
+    for (const line of statement.lines) {
+      if (line.parent !== null && !byCode.has(line.parent)) {
+        issues.push({ path: `${where} ${line.code}`, message: `parent ${line.parent} is not a line of this statement` });
+      }
+      for (const [list, refs] of [
+        ['plus', line.plus],
+        ['minus', line.minus],
+      ] as const) {
+        for (const ref of refs) {
+          const target = byCode.get(ref);
+          if (target === undefined) {
+            issues.push({ path: `${where} ${line.code}.${list}`, message: `${ref} is not a line of this statement` });
+            continue;
+          }
+          if (ref === line.code) {
+            issues.push({ path: `${where} ${line.code}.${list}`, message: `${ref} is the line itself` });
+          }
+        }
+      }
+    }
+
+    // Totals are evaluated in the order they depend on each other, not the
+    // order they are printed in — a balance sheet prints a subtotal above the
+    // lines it adds up. What that cannot survive is a cycle.
+    const resolved = new Set(statement.lines.filter((l) => !l.is_total).map((l) => l.code));
+    let pending = statement.lines.filter((l) => l.is_total);
+    for (;;) {
+      const ready = pending.filter((l) => [...l.plus, ...l.minus].every((ref) => resolved.has(ref)));
+      if (ready.length === 0) break;
+      for (const line of ready) resolved.add(line.code);
+      pending = pending.filter((l) => !resolved.has(l.code));
+    }
+    if (pending.length > 0 && pending.every((l) => [...l.plus, ...l.minus].every((ref) => byCode.has(ref)))) {
+      issues.push({
+        path: where,
+        message:
+          `the totals ${pending.map((l) => l.code).join(', ')} depend on each other and on nothing else. ` +
+          'A total is computed from lines that can be computed without it.',
+      });
+    }
+
+    // No account on two lines of the same statement. Two lines may share one
+    // only when their sides exclude each other: a suspense account is a
+    // receivable while it is in debit and a payable while it is in credit, and
+    // that is still one line at a time.
+    const applicable = charts.filter(
+      (c) => statement.chart_code === null || statement.chart_code === c.code,
+    );
+    for (const chart of applicable) {
+      for (const account of chart.accounts) {
+        const hits = statement.lines.filter((line) => line.rules.some((rule) => ruleCatches(rule, account.code)));
+        if (hits.length < 2) continue;
+        const sides = hits.flatMap((line) =>
+          line.rules.filter((rule) => ruleCatches(rule, account.code)).map((rule) => rule.side),
+        );
+        const exclusive = sides.length === 2 && sides.includes('debit') && sides.includes('credit');
+        if (!exclusive) {
+          issues.push({
+            path: `${where} ${chart.code}`,
+            message:
+              `account ${account.code} reaches ${hits.length} lines (${hits.map((l) => l.code).join(', ')}). ` +
+              'Two lines may share an account only when one takes it in debit and the other in credit.',
+          });
+        }
+      }
+    }
+  }
+
+  // And nothing falls off the edge: every account a chart can be posted to
+  // reaches a line of *some* statement of that chart. A heading — an account
+  // with children — may reach none, because it straddles the lines its
+  // children are split over and nothing is posted to it. This is the check
+  // that makes a balance sheet tie out, and the reason `unmapped_accounts()`
+  // answers empty on a company that never left the pack.
+  for (const chart of charts) {
+    const covering = statements.filter(
+      (st) => st.chart_code === null || st.chart_code === chart.code,
+    );
+    if (covering.length === 0) continue;
+    const parents = new Set(chart.accounts.map((a) => a.parent).filter((c): c is string => c !== null));
+    for (const account of chart.accounts) {
+      if (account.type === 'off_balance') continue;
+      if (parents.has(account.code)) continue;
+      const found = covering.some((st) =>
+        st.lines.some((line) => line.rules.some((rule) => ruleCatches(rule, account.code))),
+      );
+      if (!found) {
+        issues.push({
+          path: `statements.json ${chart.code}`,
+          message: `account ${account.code} (${account.name}) reaches no line of any statement of this chart`,
+        });
+      }
+    }
+  }
+
+  // A chart may only name statements the pack carries.
+  const known = new Set(statements.map((s) => s.code));
+  for (const chart of charts) {
+    for (const code of chart.statements) {
+      if (!known.has(code)) {
+        issues.push({ path: `pack.json charts.${chart.code}`, message: `${code} is not a statement of this pack` });
+      }
+    }
+  }
+
+  return issues;
+}
+
+/**
  * A reference in a plus/minus list, or in an i18n key, to the one box it
  * names. Bare, it has to match exactly one box of the form; qualified
  * (`08:tax`), it names the kind itself — the French CA3 carries a base and a
@@ -510,19 +928,73 @@ function reportReferences(report: PackReport | null, taxes: PackTax[]): Issue[] 
 }
 
 /** What no schema can check: a code has to name something this pack carries. */
-function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: PackTax[]): Issue[] {
+function crossReferences(manifest: Manifest, charts: PackChart[], taxes: PackTax[]): Issue[] {
   const issues: Issue[] = [];
-  const codes = new Set(accounts.map((a) => a.code));
   const journals = new Set(manifest.journals.map((j) => j.code));
 
-  for (const account of accounts) {
-    if (account.parent !== null && !codes.has(account.parent)) {
-      issues.push({ path: `accounts.csv ${account.code}`, message: `parent ${account.parent} is not in this chart` });
+  // Exactly one default chart, and no code claimed twice inside one chart.
+  const defaults = charts.filter((c) => c.is_default);
+  if (defaults.length !== 1) {
+    issues.push({
+      path: 'pack.json charts',
+      message:
+        defaults.length === 0
+          ? 'no chart is the default; `ekwo init` would have nothing to install when nobody names one'
+          : `${defaults.length} charts are the default (${defaults.map((c) => c.code).join(', ')}); exactly one is`,
+    });
+  }
+  const chartCodes = new Set<string>();
+  for (const chart of charts) {
+    if (chartCodes.has(chart.code)) {
+      issues.push({ path: `pack.json charts.${chart.code}`, message: 'duplicate chart code' });
+    }
+    chartCodes.add(chart.code);
+
+    const codes = new Set<string>();
+    for (const account of chart.accounts) {
+      if (codes.has(account.code)) {
+        issues.push({ path: `${chart.file} ${account.code}`, message: 'duplicate account code' });
+      }
+      codes.add(account.code);
+    }
+    for (const account of chart.accounts) {
+      if (account.parent !== null && !codes.has(account.parent)) {
+        issues.push({
+          path: `${chart.file} ${account.code}`,
+          message: `parent ${account.parent} is not in this chart`,
+        });
+      }
     }
   }
-  for (const [role, code] of Object.entries(manifest.defaults.roles)) {
-    if (code !== null && code !== undefined && !codes.has(code)) {
-      issues.push({ path: `defaults.roles.${role}`, message: `${code} is not in this chart` });
+
+  // A role and a tax account have to exist in *every* chart: the taxes, the
+  // journals and the roles of a country are common to its charts, so a chart
+  // that misses one is a company that installs with no payable account or a
+  // VAT posting with nowhere to book.
+  for (const chart of charts) {
+    const codes = new Set(chart.accounts.map((a) => a.code));
+    for (const [role, code] of Object.entries(manifest.defaults.roles)) {
+      if (code !== null && code !== undefined && !codes.has(code)) {
+        issues.push({ path: `defaults.roles.${role}`, message: `${code} is not in chart ${chart.code}` });
+      }
+    }
+    for (const tax of taxes) {
+      if (tax.cash_basis_transition_account !== null && !codes.has(tax.cash_basis_transition_account)) {
+        issues.push({
+          path: `taxes.json ${tax.code}`,
+          message: `cash_basis_transition_account ${tax.cash_basis_transition_account} is not in chart ${chart.code}`,
+        });
+      }
+      for (const [kind, postings] of Object.entries(tax.postings)) {
+        for (const posting of postings) {
+          if (posting.account !== null && !codes.has(posting.account)) {
+            issues.push({
+              path: `taxes.json ${tax.code}.${kind}`,
+              message: `account ${posting.account} is not in chart ${chart.code}`,
+            });
+          }
+        }
+      }
     }
   }
   for (const [role, code] of Object.entries(manifest.defaults.journal_roles ?? {})) {
@@ -541,12 +1013,6 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
         message: 'a tax group is reserved for phase 1 and the core does not carry it yet',
       });
     }
-    if (tax.cash_basis_transition_account !== null && !codes.has(tax.cash_basis_transition_account)) {
-      issues.push({
-        path: `taxes.json ${tax.code}`,
-        message: `cash_basis_transition_account ${tax.cash_basis_transition_account} is not in this chart`,
-      });
-    }
     for (const [kind, postings] of Object.entries(tax.postings)) {
       const bases = postings.filter((p) => p.type === 'base');
       if (bases.length > 1) {
@@ -560,12 +1026,6 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
           issues.push({
             path: `taxes.json ${tax.code}.${kind}`,
             message: `a ${posting.type} posting takes no account: it lands on the account of the document line`,
-          });
-        }
-        if (posting.account !== null && !codes.has(posting.account)) {
-          issues.push({
-            path: `taxes.json ${tax.code}.${kind}`,
-            message: `account ${posting.account} is not in this chart`,
           });
         }
       }
