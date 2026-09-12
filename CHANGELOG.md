@@ -168,7 +168,11 @@ somewhere has already run it.
   opening entry on top of it would count each balance twice —
   `docs/decisions.md` carries the reasoning and what reversing it would cost.
   `fiscal_years.is_closed` is no longer an ordinary column: a trigger refuses
-  the transition to anyone but those two functions. **None of the five new
+  the transition to anyone but those two functions, and `entries.kind`
+  (`normal | opening | closing`) says what an entry is for so a statement of a
+  closed year can leave the year-end entries out without a heuristic — written
+  by those three functions, refused to everyone else by a trigger, and carried
+  by a reversal from what it undoes. **None of the five new
   `country_defaults` columns carries a default**: a default closing style is
   one country's mechanism handed to every country that has not spoken, so a
   pack that says nothing is refused by name — `no_closing_defaults`,

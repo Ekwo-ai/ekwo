@@ -1133,7 +1133,7 @@ export async function openingBalance(
 
   const entries = await backend.select<Row>({
     table: 'entries',
-    columns: ['id', 'number', 'entry_date::text', 'description', 'state', 'total_debit::text', 'total_credit::text'],
+    columns: ['id', 'number', 'entry_date::text', 'description', 'state', 'kind', 'total_debit::text', 'total_credit::text'],
     where: [{ column: 'id', op: 'eq', value: entryId }],
   });
   return {
