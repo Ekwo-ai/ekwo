@@ -61,7 +61,7 @@ describe('the charts the packs carry', () => {
         name: 'PCG — plan comptable général',
         is_default: true,
         audience: 'companies',
-        accounts: 392,
+        accounts: 394,
       },
     ]);
   });

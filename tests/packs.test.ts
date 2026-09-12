@@ -134,16 +134,28 @@ describe('the compiled packs against the seeds they replace', () => {
       return (right[table] ?? []).filter((row) => !held.has(key(row)));
     };
 
-    expect(added('account_templates')).toEqual([]);
     expect(added('journal_templates')).toEqual([]);
     expect(added('country_defaults')).toEqual([]);
+    // The two accounts a French cash-basis tax waits on, under the 4458 head
+    // the PCG calls "à régulariser ou en attente".
+    expect(added('account_templates').map((r) => `${r['country']}/${r['code']}`)).toEqual([
+      'FR/445860',
+      'FR/445870',
+    ]);
     // Belgian cars and receptions, French fuel: the partially and the wholly
-    // non-deductible VAT the engine could not express before.
+    // non-deductible VAT the engine could not express before P0-5. Then the
+    // six French services taxes of P0-6, which fall due when they are paid.
     expect(added('tax_templates').map((r) => `${r['country']}/${r['code']}`)).toEqual([
       'BE/BE-P-21-50-I',
       'BE/BE-P-21-50-S',
       'BE/BE-P-21-ND',
+      'FR/FR-P-055-ENC',
+      'FR/FR-P-10-ENC',
       'FR/FR-P-20-CARB',
+      'FR/FR-P-20-ENC',
+      'FR/FR-S-055-ENC',
+      'FR/FR-S-10-ENC',
+      'FR/FR-S-20-ENC',
     ]);
   });
 
@@ -151,9 +163,9 @@ describe('the compiled packs against the seeds they replace', () => {
     const right = await templateRows(after);
     const accounts = right['account_templates'] ?? [];
     expect(accounts.filter((a) => a['country'] === 'BE')).toHaveLength(353);
-    expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(392);
-    expect(right['tax_templates']).toHaveLength(40);
-    expect(right['tax_posting_templates']).toHaveLength(148);
+    expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(394);
+    expect(right['tax_templates']).toHaveLength(46);
+    expect(right['tax_posting_templates']).toHaveLength(166);
     expect(right['journal_templates']).toHaveLength(12);
     expect(right['country_defaults']).toHaveLength(2);
   });

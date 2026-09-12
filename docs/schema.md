@@ -559,6 +559,8 @@ Which template account plays which role, per country.
 | `bank_statement_formats` | `text[]` | Statement formats a bank of this country delivers, most usual first. A list, because a country rarely has one. |
 | `payment_formats` | `text[]` | Payment initiation formats a bank of this country accepts, most usual first. |
 | `fiscal_year_default` | `text` | Month the financial year usually opens on: calendar, april, july, october. A default offered, never imposed — fiscal_years holds what a company actually keeps. |
+| `fx_gain_code` | `text` | Account a realised exchange gain is booked on, from the pack. Null until the pack names one, and then a matching that realises a gain is refused rather than booked somewhere plausible. |
+| `fx_loss_code` | `text` | The same for a realised loss. A pair, because every chart in scope keeps the gain and the loss apart. |
 
 Constraints:
 
@@ -681,7 +683,7 @@ Sales and purchase invoices, credit notes, quotes and orders. `state` is the doc
 | `accounting_date` | `date` | Date the entry is booked on; defaults to document_date. |
 | `due_date` | `date` |  |
 | `currency_code` | `character(3)` | not null |
-| `exchange_rate` | `numeric(18,8)` | not null |
+| `exchange_rate` | `numeric(18,8)` | not null — Units of the document currency for one unit of the company currency, as currency_rates states it. The ledger amount is the document amount divided by it. 1 when the document is in the company currency. |
 | `buyer_reference` | `text` |  |
 | `project_reference` | `text` |  |
 | `contract_reference` | `text` |  |
@@ -784,13 +786,13 @@ Ledger lines. Amounts are always positive; a reversal flips the side, it never n
 | `credit` | `numeric(16,2)` | not null |
 | `balance` | `numeric(16,2)` | generated |
 | `currency_code` | `character(3)` |  |
-| `amount_currency` | `numeric(16,2)` |  |
+| `amount_currency` | `numeric(16,2)` | The amount of this line in its own currency, written whenever that currency is not the company's. Positive like debit and credit; the side carries the sign. |
 | `contact_id` | `uuid` |  |
 | `date_maturity` | `date` |  |
 | `tax_id` | `uuid` |  |
 | `tax_line` | `boolean` | not null |
 | `declaration_box` | `text` | VAT-return box this line feeds, copied from the tax posting that produced it. |
-| `box_amount` | `numeric(16,2)` | Amount to report in that box, in the sign the form expects. |
+| `box_amount` | `numeric(16,2)` | Amount to report in that box, in the sign the form expects. A line of a cash-basis tax carries the amount with no box: it is computed when the document is posted and waits for the matching that names the box it is finally reported in. |
 | `matching_number` | `text` | Reconciliation letter shared by matched lines. Exported as EcritureLet in the FEC. |
 | `matched_amount` | `numeric(16,2)` | not null |
 | `created_at` | `timestamp with time zone` | not null |
@@ -977,10 +979,12 @@ Money in and out. Amounts are positive; `direction` carries the sign.
 | `state` | `payment_state_t` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `exchange_rate` | `numeric(18,8)` | not null — Units of the payment currency for one unit of the company currency, as currency_rates states it. The ledger amount is the payment amount divided by it. 1 when the payment is in the company currency. |
 
 Constraints:
 
 - `CHECK ((amount > (0)::numeric))`
+- `CHECK ((exchange_rate > (0)::numeric))`
 - `PRIMARY KEY (id)`
 
 ### `products`
@@ -1030,6 +1034,8 @@ One row per pairing of a debit with a credit. Full matching is the sum of partia
 | `matching_number` | `text` | not null |
 | `matched_at` | `date` | not null |
 | `created_at` | `timestamp with time zone` | not null |
+| `fx_entry_id` | `uuid` | Entry that booked the exchange difference this matching realised, when there was one. |
+| `tax_transfer_entry_id` | `uuid` | Entry that moved the cash-basis tax this matching made due, when there was one. |
 
 Constraints:
 
@@ -1322,20 +1328,22 @@ Constraints:
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. Definer, for the same reason as next_entry_number. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
-| `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — including the non-deductible share, which lands on the accounts of the lines — and a counterpart that balances by construction. |
+| `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. |
-| `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role. Matches nothing. |
-| `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line for an amount, defaulting to the smaller open amount. |
+| `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role, both in the company currency at the payment's rate. Matches nothing. |
+| `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line, in the currency the two share when it is not the company's, and books what the matching reveals: the realised exchange difference, and the share of a cash-basis tax that has become due. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
+| `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
 | `unmapped_accounts(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Accounts this statement is answerable for that carry a balance and that no rule of it catches. Empty is what makes the statement tie out; a row is an account somebody opened outside the pack. |
+| `unreconcile(p_reconciliation_id uuid)` | Undoes a matching, and with it what the matching had booked: the exchange difference it realised and the share of a cash-basis tax it had made due. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. No country rule lives in this function. |
 

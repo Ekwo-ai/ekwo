@@ -57,11 +57,15 @@ describe('the columns of the generalised engine', () => {
   });
 
   it('defaults every existing tax to a fully recoverable VAT on a price without it', async () => {
+    // P0-6 gave the French services taxes a cash basis, and they are the only
+    // ones: everything else falls due when it is invoiced, and a tax that
+    // waits names the account it waits on.
     const odd = await rows(
       db,
       `select code from taxes
-        where tax_kind <> 'vat' or price_include or cash_basis
-           or jurisdiction is not null or cash_basis_transition_account_id is not null`,
+        where tax_kind <> 'vat' or price_include or jurisdiction is not null
+           or (cash_basis and cash_basis_transition_account_id is null)
+           or (not cash_basis and cash_basis_transition_account_id is not null)`,
     );
     expect(odd).toEqual([]);
 
@@ -447,7 +451,7 @@ describe('no country decided anywhere but in a pack', () => {
       },
     };
     const sql = compilePack(swiss);
-    expect(sql).toContain("'half_even', 0.05)");
+    expect(sql).toContain("'half_even', 0.05,");
   });
 
   it('lets the column decide when a pack declares nothing, instead of picking a country', async () => {
@@ -459,7 +463,7 @@ describe('no country decided anywhere but in a pack', () => {
     const sql = compilePack({ ...pack, manifest: { ...pack.manifest, defaults } });
     // `default, default`, never `'half_up', 0` written by the compiler: the
     // mechanism lives in the migration and in one place only.
-    expect(sql).toContain('default, default)');
+    expect(sql).toContain('default, default,');
     expect(sql).not.toContain("'half_up'");
   });
 

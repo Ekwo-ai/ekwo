@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.2.0, do not edit.
+-- Generated from packs/fr at version 1.3.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -15,6 +15,8 @@
 --   Code général des impôts, ann. II, art. 242 nonies A — mentions obligatoires et numérotation continue
 --   Code de commerce, art. L441-9, L441-10 et D441-5 — délais de paiement, pénalités et indemnité forfaitaire
 --   Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique
+--   Code general des impots, art. 269-2-c — exigibilite sur les encaissements
+--   Code general des impots, art. 271-I-2 — naissance du droit a deduction
 --
 -- Reference data: `install_country_template()` copies it into a company,
 -- nothing here belongs to a company.
@@ -23,7 +25,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.2.0', date '2026-09-12', '20260912111751', 'maintained', null, null, 'cb43d10ce80900c3435fd2656d27c8b358c9032ec28311d7c719c24d3547619c')
+  ('FR', 'France', '1.3.0', date '2026-09-12', '20260912112132', 'maintained', null, null, '829758c7be59dc83979f67d5f49ed3d06a11f353c99c43cdd1b4d86efc7a524a')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -227,6 +229,8 @@ values
   ('FR', 'default', '445670', 'Crédit de TVA à reporter', '{}'::jsonb, 'asset_current', false, '445', 1730),
   ('FR', 'default', '445710', 'TVA collectée', '{}'::jsonb, 'liability_current', false, '445', 1740),
   ('FR', 'default', '445800', 'Taxes sur le chiffre d''affaires à régulariser ou en attente', '{}'::jsonb, 'asset_current', false, '445', 1750),
+  ('FR', 'default', '445860', 'TVA déductible sur décaissements — en attente', '{}'::jsonb, 'asset_current', false, '445', 1752),
+  ('FR', 'default', '445870', 'TVA collectée sur encaissements — en attente', '{}'::jsonb, 'liability_current', false, '445', 1754),
   ('FR', 'default', '447', 'Autres impôts, taxes et versements assimilés', '{}'::jsonb, 'liability_current', false, '44', 1760),
   ('FR', 'default', '447000', 'Autres impôts, taxes et versements assimilés', '{}'::jsonb, 'liability_current', false, '447', 1770),
   ('FR', 'default', '448', 'État — Charges à payer et produits à recevoir', '{}'::jsonb, 'liability_current', false, '44', 1780),
@@ -472,9 +476,12 @@ insert into tax_templates
 values
   ('FR', 'FR-P-00', 'Achat exonere', 'Sans TVA', 'percent', 0, 'purchase', 'exempt', date '1993-01-01', null, 'CGI, art. 261', 'E', 'VATEX-EU-132', 150, 'vat', true, null, false, false, null),
   ('FR', 'FR-P-055', 'Achat 5,5 %', 'Autres biens et services', 'percent', 5.5, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 140, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-055-ENC', 'Achat de services 5,5 % — TVA déductible au décaissement', 'Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-055.', 'percent', 5.5, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278-0 bis', 'S', null, 141, 'vat', true, null, false, true, '445860'),
   ('FR', 'FR-P-10', 'Achat 10 %', 'Autres biens et services', 'percent', 10, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 130, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-10-ENC', 'Achat de services 10 % — TVA déductible au décaissement', 'Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-10.', 'percent', 10, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278 bis', 'S', null, 131, 'vat', true, null, false, true, '445860'),
   ('FR', 'FR-P-20', 'Achat 20 %', 'Autres biens et services', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 110, 'vat', true, null, false, false, null),
   ('FR', 'FR-P-20-CARB', 'Carburant vehicule de tourisme 20 % — deduction 80 %', 'Essences et gazoles des vehicules exclus du droit a deduction. La TVA non deductible suit le compte de la ligne ; la CA3 ne porte aucune grille de base a l''entree.', 'percent', 20, 'purchase', 'domestic', date '2021-01-01', null, 'CGI, art. 298, 4, 1 a et b', 'S', null, 200, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-20-ENC', 'Achat de services 20 % — TVA déductible au décaissement', 'Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-20.', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278', 'S', null, 111, 'vat', true, null, false, true, '445860'),
   ('FR', 'FR-P-20-I', 'Achat immobilisation 20 %', 'Immobilisations', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 120, 'vat', true, null, false, false, null),
   ('FR', 'FR-P-AL-20', 'Achat autoliquidation 20 %', 'Assujetti non etabli, lignes 3C/08/20', 'percent', 20, 'purchase', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-1', 'AE', 'VATEX-EU-AE', 180, 'vat', true, null, false, false, null),
   ('FR', 'FR-P-ICG-20', 'Acquisition intracom. biens 20 %', 'Autoliquidation, lignes 03/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'CGI, art. 256 bis', 'AE', 'VATEX-EU-AE', 160, 'vat', true, null, false, false, null),
@@ -482,8 +489,11 @@ values
   ('FR', 'FR-P-IMP-20', 'Importation autoliquidee 20 %', 'Lignes 3A/08/20', 'percent', 20, 'purchase', 'import', date '2022-01-01', null, 'CGI, art. 293 A', 'S', null, 190, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-021', 'Vente 2,1 %', 'Taux particulier', 'percent', 2.1, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 281 quater', 'S', null, 40, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-055', 'Vente 5,5 %', 'Taux reduit', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 30, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-055-ENC', 'Prestation de services 5,5 % — TVA sur les encaissements', 'Régime de droit commun des prestations de services : la TVA est exigible à l''encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-055.', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 269-2-c ; CGI, art. 278-0 bis', 'S', null, 31, 'vat', true, null, false, true, '445870'),
   ('FR', 'FR-S-10', 'Vente 10 %', 'Taux reduit', 'percent', 10, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 20, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-10-ENC', 'Prestation de services 10 % — TVA sur les encaissements', 'Régime de droit commun des prestations de services : la TVA est exigible à l''encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-10.', 'percent', 10, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 269-2-c ; CGI, art. 278 bis', 'S', null, 21, 'vat', true, null, false, true, '445870'),
   ('FR', 'FR-S-20', 'Vente 20 %', 'Taux normal', 'percent', 20, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 10, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-20-ENC', 'Prestation de services 20 % — TVA sur les encaissements', 'Régime de droit commun des prestations de services : la TVA est exigible à l''encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-20.', 'percent', 20, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 269-2-c ; CGI, art. 278', 'S', null, 11, 'vat', true, null, false, true, '445870'),
   ('FR', 'FR-S-AL', 'Vente autoliquidation', 'TVA due par le preneur', 'percent', 0, 'sale', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-2 nonies', 'AE', 'VATEX-EU-AE', 50, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-EXP', 'Exportation hors UE', 'Exoneree', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'CGI, art. 262 I', 'G', 'VATEX-EU-G', 80, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-ICG', 'Livraison intracommunautaire', 'Biens, exoneree', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'CGI, art. 262 ter I', 'K', 'VATEX-EU-IC', 60, 'vat', true, null, false, false, null),
@@ -523,14 +533,20 @@ select t.id,
   from (values
     ('FR-P-055', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
     ('FR-P-055', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
+    ('FR-P-055-ENC', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
+    ('FR-P-055-ENC', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
     ('FR-P-10', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
     ('FR-P-10', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
+    ('FR-P-10-ENC', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
+    ('FR-P-10-ENC', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
     ('FR-P-20', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
     ('FR-P-20', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
     ('FR-P-20-CARB', 'invoice', 'tax', 80, '445660', '20', 80, 'FR-CA3', 20),
     ('FR-P-20-CARB', 'invoice', 'tax_on_base', 20, null, null, 100, null, 30),
     ('FR-P-20-CARB', 'credit_note', 'tax', 80, '445660', '20', -80, 'FR-CA3', 20),
     ('FR-P-20-CARB', 'credit_note', 'tax_on_base', 20, null, null, 100, null, 30),
+    ('FR-P-20-ENC', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
+    ('FR-P-20-ENC', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
     ('FR-P-20-I', 'invoice', 'tax', 100, '445662', '19', 100, 'FR-CA3', 20),
     ('FR-P-20-I', 'credit_note', 'tax', 100, '445662', '19', -100, 'FR-CA3', 20),
     ('FR-P-AL-20', 'invoice', 'base', 100, null, '3C', 100, 'FR-CA3', 10),
@@ -565,14 +581,26 @@ select t.id,
     ('FR-S-055', 'invoice', 'tax', 100, '445710', '09', 100, 'FR-CA3', 20),
     ('FR-S-055', 'credit_note', 'base', 100, null, '09', -100, 'FR-CA3', 10),
     ('FR-S-055', 'credit_note', 'tax', 100, '445710', '09', -100, 'FR-CA3', 20),
+    ('FR-S-055-ENC', 'invoice', 'base', 100, null, '09', 100, 'FR-CA3', 10),
+    ('FR-S-055-ENC', 'invoice', 'tax', 100, '445710', '09', 100, 'FR-CA3', 20),
+    ('FR-S-055-ENC', 'credit_note', 'base', 100, null, '09', -100, 'FR-CA3', 10),
+    ('FR-S-055-ENC', 'credit_note', 'tax', 100, '445710', '09', -100, 'FR-CA3', 20),
     ('FR-S-10', 'invoice', 'base', 100, null, '9B', 100, 'FR-CA3', 10),
     ('FR-S-10', 'invoice', 'tax', 100, '445710', '9B', 100, 'FR-CA3', 20),
     ('FR-S-10', 'credit_note', 'base', 100, null, '9B', -100, 'FR-CA3', 10),
     ('FR-S-10', 'credit_note', 'tax', 100, '445710', '9B', -100, 'FR-CA3', 20),
+    ('FR-S-10-ENC', 'invoice', 'base', 100, null, '9B', 100, 'FR-CA3', 10),
+    ('FR-S-10-ENC', 'invoice', 'tax', 100, '445710', '9B', 100, 'FR-CA3', 20),
+    ('FR-S-10-ENC', 'credit_note', 'base', 100, null, '9B', -100, 'FR-CA3', 10),
+    ('FR-S-10-ENC', 'credit_note', 'tax', 100, '445710', '9B', -100, 'FR-CA3', 20),
     ('FR-S-20', 'invoice', 'base', 100, null, '08', 100, 'FR-CA3', 10),
     ('FR-S-20', 'invoice', 'tax', 100, '445710', '08', 100, 'FR-CA3', 20),
     ('FR-S-20', 'credit_note', 'base', 100, null, '08', -100, 'FR-CA3', 10),
     ('FR-S-20', 'credit_note', 'tax', 100, '445710', '08', -100, 'FR-CA3', 20),
+    ('FR-S-20-ENC', 'invoice', 'base', 100, null, '08', 100, 'FR-CA3', 10),
+    ('FR-S-20-ENC', 'invoice', 'tax', 100, '445710', '08', 100, 'FR-CA3', 20),
+    ('FR-S-20-ENC', 'credit_note', 'base', 100, null, '08', -100, 'FR-CA3', 10),
+    ('FR-S-20-ENC', 'credit_note', 'tax', 100, '445710', '08', -100, 'FR-CA3', 20),
     ('FR-S-AL', 'invoice', 'base', 100, null, '05', 100, 'FR-CA3', 10),
     ('FR-S-AL', 'credit_note', 'base', 100, null, '05', -100, 'FR-CA3', 10),
     ('FR-S-EXP', 'invoice', 'base', 100, null, '04', 100, 'FR-CA3', 10),
@@ -955,9 +983,9 @@ insert into country_defaults
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
-   rounding_method, cash_rounding_unit)
+   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)
 values
-  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default)
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000')
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -980,7 +1008,9 @@ on conflict (country) do update set
   retained_earnings_loss_code     = excluded.retained_earnings_loss_code,
   opening_journal_code            = excluded.opening_journal_code,
   rounding_method        = excluded.rounding_method,
-  cash_rounding_unit     = excluded.cash_rounding_unit;
+  cash_rounding_unit     = excluded.cash_rounding_unit,
+  fx_gain_code           = excluded.fx_gain_code,
+  fx_loss_code           = excluded.fx_loss_code;
 
 update country_defaults set
   numbering_gapless       = true,

@@ -1246,3 +1246,119 @@ binds everybody at once — and the calendar is in the legal reference. The
 third is an `exempt` mention for either country: both packs carry an
 exemption tax, neither law prescribes one sentence for it, and a sentence we
 would have written ourselves is not data.
+## P0-6 — VAT when the cash moves, and the exchange difference when it settles (12 September 2026)
+
+Two rules a country decides that the core had no way of applying, and they
+meet in one place: the moment a document is settled.
+
+**The French pack was wrong for every service business, and it is the reason
+this sub-task exists.** French VAT on a supply of services falls due when the
+price is collected, not when the invoice is issued (CGI art. 269-2-c); goods
+fall due on delivery. A pack that offers one sale tax per rate offers the
+goods answer to everybody, and a service company filing on it declares its VAT
+one to three months early, every month. The columns to say otherwise landed
+with the tax engine — `cash_basis` and `cash_basis_transition_account_id` —
+and nothing read them. Now something does.
+
+**A tax that waits is booked on an account that says so, and on no box.**
+`post_document` puts the tax of a cash-basis tax on the transition account the
+pack names and writes no declaration box, because nothing is due. The matching
+moves the settled share to the account and the box it is finally declared on,
+dated on the day the settlement completes, as an entry of its own.
+`vat_return()` needed no change at all, which is the proof that the boxes are
+the only thing that moved: it sums lines that name a box, and until the
+transfer there is no such line.
+
+**The base travels with its tax.** A cash-basis return reports the base
+*collected* — line 08 of the CA3 carries a base column and a tax column, and
+they have to be the same operation. So the base line of a cash-basis document
+also waits, and the transfer carries it: a line with a box, an amount to
+report and no debit and no credit. That is not a trick, it is the distinction
+this schema has made since the tax engine — a declaration figure is not a
+ledger figure — used for what it is worth. Revenue is still earned when it is
+invoiced; only the declaration waits. Cash accounting as a *ledger* stays out
+of scope, and a cash-basis report stays derived from matched payments.
+
+**The share is cumulative, and the last payment carries the remainder.**
+`settle_cash_basis_tax()` works out what *should* have been transferred at the
+current settlement ratio, subtracts what earlier matchings already sent on,
+and books the difference. Nothing is stored about the history: the ledger is
+the history. A tax of 200,00 settled in three parts of 400,00 out of 1 200,00
+comes to 66,67 then 66,66 then 66,67, because each step rounds the whole and
+not the step. And because the function only ever books a difference, it is the
+same call when a matching is *undone*: the share falls, the difference is
+negative, and the mirror entry is posted. `unreconcile` needed one line.
+
+**A cash-basis tax takes one tax posting per document kind.** The transition
+lines of a document have to be told apart when the matching sends each of them
+on, and two postings on one transition account cannot be. It is not a
+limitation in practice: a tax whose postings net out is self-assessed, and a
+self-assessed tax has no cash to wait for. `post_document` refuses it by name
+and `ekwo pack check` refuses it before a seed is written — as it does a
+cash-basis tax that names no transition account, and one that also carries a
+non-deductible share, because a cost is not deferred to a payment.
+
+**The French pack gains six taxes and two accounts, and changes none.**
+`FR-S-20-ENC`, `FR-S-10-ENC`, `FR-S-055-ENC` for services sold and
+`FR-P-20-ENC`, `FR-P-10-ENC`, `FR-P-055-ENC` for services bought — the
+purchase side because the right to deduct arises when the tax falls due at the
+supplier (CGI art. 271-I-2), which for a service is the payment. The accounts
+they wait on are `445870` and `445860`, under the 4458 head the PCG calls
+*taxes sur le chiffre d'affaires à régulariser ou en attente*. **The option
+for the debits is the tax that was already there**: a services company that has
+opted for the debits invoices on `FR-S-20`, unchanged, and declaring a second
+identical tax to mean "the same thing without the option" would be two rows
+for one calculation. Belgium gains nothing here: the Belgian regime has no
+general cash-basis option in the socle, and inventing one would be a country
+rule written by us.
+
+**The ledger did not convert, and now it does.** A document in a foreign
+currency booked its foreign figures into `debit` and `credit` as if they were
+the company's own, and `entry_lines.amount_currency` — which the FEC exports —
+was written by nothing. Without that, an exchange difference cannot exist,
+because both sides are already equal. So `post_document` and `post_payment`
+book the company's currency in the ledger and the document's beside it, at the
+rate carried by `documents.exchange_rate` and by the new
+`payments.exchange_rate`: units of the foreign currency for one of the
+company's, which is how `currency_rates` has always stated one. There is no
+rate feed and there will not be one here; the rate is an input.
+
+**Every amount is worked out in the document's currency and divided once.**
+The share-out of a tax between postings, the rounding of the group, the split
+of a non-deductible share over the accounts of the lines: all unchanged, in
+the document's currency, and each result divided by the rate as it is written.
+At a rate of 1 the division is the identity, which is why `posting.test.ts`
+was not touched and is green. The counterpart still balances by construction,
+and it balances in both currencies; the total it is checked against is the one
+`documents.amount_total` is stated in, which is the document's.
+
+**A matching between two lines in the same foreign currency is worked out in
+that currency.** That is where they are equal: 1 000,00 USD settles 1 000,00
+USD, whatever each side was booked at. Each side turns it back into the
+company's currency at its own rate, the two figures differ, and the difference
+is realised — booked on `fx_gain_code` / `fx_loss_code` of the country model,
+against the third-party account, so that account goes to nil and the customer
+who has paid in full owes nothing. `p_amount` is read in the shared currency in
+that case, and in the company's in every other, which is every matching made
+before this change. A missing role is a refusal *the day a difference arises*
+and not a day earlier: a pack that never meets a foreign currency never has to
+name an account it does not use.
+
+**The transfer and the difference go on the miscellaneous journal, not the
+bank.** A bank journal has to tie to a bank statement, and neither of these is
+a movement of money. They are dated on the day the settlement completes — the
+later of the two entries matched — and `post_entry` asserts the period is open,
+including the tax lock, so a matching that would move a declared figure is
+refused rather than booked quietly.
+
+**What a matching caused is part of what it returns.** `reconciliations` gains
+`fx_entry_id` and `tax_transfer_entry_id`, the MCP server exposes both, and
+`unreconcile` uses the first to take the difference back: its companion
+matching is deleted and a mirror entry cancels it on its own date.
+
+**Out of scope, said plainly.** Revaluation of open items at a closing date —
+the difference that is *not* realised — is not here; `755`/`655` in Belgium and
+`476`/`477` in France are the accounts it would need, and it is a question for
+audited accounts rather than for a first invoice. Neither is a gross-to-net
+computation for a tax-inclusive price, which waits for the country that sells
+that way.

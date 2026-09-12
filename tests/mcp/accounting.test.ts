@@ -260,10 +260,18 @@ describe('the books, through the tools', () => {
         where l.entry_id = $1 and l.account_id = account_id_by_code($2, '400000')`,
       [entryId, fx.companyId],
     );
-    await writeTools.reconcile(backend, {
-      line_a: invoiceLine.rows[0]?.line_id as string,
-      line_b: payment.rows[0]?.line_id as string,
-    });
+    const again = record(
+      await writeTools.reconcile(backend, {
+        line_a: invoiceLine.rows[0]?.line_id as string,
+        line_b: payment.rows[0]?.line_id as string,
+      }),
+    );
+    // What a matching caused is part of what it returns, so a client can show
+    // it. Nothing here falls due on collection and nothing is in a foreign
+    // currency, so both are empty — and the fields are there to be read.
+    const row = record(again['reconciliation']);
+    expect(row).toHaveProperty('fx_entry_id', null);
+    expect(row).toHaveProperty('tax_transfer_entry_id', null);
 
     const after = record(
       await readTools.agedBalance(backend, { company_id: fx.companyId, at: '2026-08-31' }),
@@ -504,5 +512,65 @@ describe('the currency a tool writes when the caller names none', () => {
         name: 'Nope',
       }),
     ).rejects.toThrow(/not_found: company/);
+  });
+});
+
+describe('an invoice in another currency, settled through the server', () => {
+  it('books the difference the rate made and clears the customer', async () => {
+    const contact = record(
+      record(
+        await writeTools.createContact(backend, {
+          company_id: fx.companyId,
+          name: 'Client Dollar',
+          contact_type: 'customer',
+          country: 'US',
+        }),
+      )['contact'],
+    );
+    const created = record(
+      await writeTools.createDocument(backend, {
+        company_id: fx.companyId,
+        doc_type: 'sale_invoice',
+        contact_id: String(contact['id']),
+        document_date: '2026-09-01',
+        number: 'FAC-2026-USD',
+        lines: [{ name: 'Conseil', unit_price: '1000.00', account_code: '704000', tax_code: 'BE-S-EXP' }],
+      }),
+    );
+    const documentUsd = String(record(created['document'])['id']);
+    await db.query(`update documents set currency_code = 'USD', exchange_rate = 1.1 where id = $1`, [
+      documentUsd,
+    ]);
+    await writeTools.postDocument(backend, { document_id: documentUsd });
+
+    const paid = record(
+      await writeTools.recordPayment(backend, {
+        company_id: fx.companyId,
+        direction: 'inbound',
+        amount: '1000.00',
+        currency_code: 'USD',
+        exchange_rate: '1.05',
+        payment_date: '2026-10-01',
+        contact_id: String(contact['id']),
+        journal_code: 'BNK',
+      }),
+    );
+    const matched = list(paid['matched']);
+    expect(matched).toHaveLength(1);
+    // The matching is worked out on 1 000,00 USD; 909,09 € was booked and
+    // 952,38 € came in, so 43,29 € is a realised gain.
+    expect(record(matched[0])['amount']).toBe('909.09');
+    expect(record(matched[0])['fx_entry_id']).not.toBeNull();
+
+    const gain = await db.query<{ balance: string }>(
+      `select coalesce(sum(l.credit - l.debit), 0)::text as balance
+         from entry_lines l
+        where l.company_id = $1 and l.account_id = account_id_by_code($1, '754000')`,
+      [fx.companyId],
+    );
+    expect(gain.rows[0]?.balance).toBe('43.29');
+
+    const document = record(await readTools.getDocument(backend, { document_id: documentUsd }));
+    expect(record(document['document'])['amount_residual']).toBe('0.00');
   });
 });

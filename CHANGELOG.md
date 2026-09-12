@@ -11,6 +11,35 @@ somewhere has already run it.
 
 ### Added
 
+- **VAT falls due when the cash moves, and the exchange difference when it
+  settles.** A tax marked `cash_basis` is booked by `post_document` on the
+  transition account its pack names and on **no declaration box**, and so is
+  the base it is computed on: a cash-basis return reports the base collected,
+  and a base declared a month before its tax is a return that does not tie
+  out. `settle_cash_basis_tax()`, called by `reconcile()` and by
+  `unreconcile()`, moves the settled share — pro rata, cumulative, the last
+  payment carrying the remainder — to the account and the box it is declared
+  on, dated on the day the settlement completes, on the miscellaneous journal.
+  A cash-basis tax that names no transition account, that splits its tax over
+  two postings or that also carries a non-deductible share is refused at
+  posting and by `ekwo pack check`. `vat_return()` needed no change.
+  **The French pack gains the six services taxes that fall due on collection**
+  (CGI art. 269-2-c, and art. 271-I-2 on the purchase side) and the two
+  accounts they wait on, `445870` and `445860`; the goods taxes are unchanged
+  and are also the option for the debits. Belgium is unchanged: its regime has
+  no general cash-basis option in the socle.
+  **The ledger converts**, which it did not: a document in a foreign currency
+  booked its foreign figures as if they were the company's, and
+  `entry_lines.amount_currency` was written by nothing. `post_document` and
+  `post_payment` now book the company's currency at the rate the document or
+  the payment carries — `payments.exchange_rate` is new — and a matching
+  between two lines in the same foreign currency is worked out in that
+  currency, the difference realised on `country_defaults.fx_gain_code` /
+  `fx_loss_code` so the third-party account goes to nil. Both packs name those
+  accounts and move to 1.2.0. `reconciliations` gains `fx_entry_id` and
+  `tax_transfer_entry_id`, which the MCP server returns. Revaluation of open
+  items and cash accounting as a ledger stay out of scope. Migration
+  `20260912112132`.
 - **What a country requires on a document is data.** Twelve columns on
   `country_defaults` — `numbering_gapless`, `number_format`,
   `legal_payment_days`, `late_payment_reference`, `tax_point_rule`,

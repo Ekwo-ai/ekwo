@@ -648,6 +648,8 @@ export const RecordPaymentInput = z.object({
     .describe('Which bank account the money moved on. list_bank_accounts says what exists. Given alone, it also names the journal; left out, the default account of the journal is used.'),
   reference: z.string().min(1).optional(),
   memo: z.string().min(1).optional(),
+  currency_code: z.string().length(3).optional().describe('Left out: the currency the company keeps its books in.'),
+  exchange_rate: z.union([z.string(), z.number()]).optional().describe('Units of the payment currency for one unit of the company currency, as a rate table states it. Only needed when the payment is in another currency; the realised difference against the invoice is booked at matching.'),
   match_open_items: z.boolean().optional().describe('Default true: match the payment against the oldest open invoices of that contact, up to the amount paid.'),
 });
 
@@ -689,6 +691,12 @@ export async function recordPayment(
           direction: args.direction,
           payment_date: args.payment_date,
           amount: amountIn(args.amount),
+          // Never a literal, for the reason `create_document` gives: a company
+          // that keeps its books in another currency would get a euro payment
+          // out of a euro written here.
+          currency_code:
+            args.currency_code ?? (await companyCurrency(backend, args.company_id)),
+          exchange_rate: args.exchange_rate === undefined ? 1 : String(args.exchange_rate),
           contact_id: args.contact_id ?? null,
           journal_id: journalId,
           bank_account_id: args.bank_account_id ?? null,
@@ -794,21 +802,39 @@ async function matchOpenItems(
   });
   const posted = new Map(entries.filter((entry) => entry.state === 'posted').map((e) => [e.id, e]));
 
+  // Which scale the allocation is worked out on. `reconcile` matches two
+  // lines in the same foreign currency in *that* currency, because that is
+  // where they are equal, and reads `p_amount` the same way. So when the
+  // payment is foreign the amounts below are its currency's, and a candidate
+  // in another currency is left alone rather than matched at the wrong scale.
+  const home = await companyCurrency(backend, company);
+  const currency = paymentLine['currency_code'] as string | null;
+  const foreign =
+    currency !== null && currency !== home && paymentLine['amount_currency'] !== null;
+
+  /** What is still open on a line, on the scale the matching uses. */
+  const openOf = (line: Row): number => {
+    const ledger = Math.abs(Number(line['balance'] ?? 0));
+    const left = ledger - Number(line['matched_amount'] ?? 0);
+    if (!foreign) return left;
+    const inCurrency = Math.abs(Number(line['amount_currency'] ?? 0));
+    return ledger === 0 ? 0 : Math.round((inCurrency * left * 100) / ledger) / 100;
+  };
+
   const open = candidates
     .filter((line) => line['id'] !== paymentLine['id'])
     .filter((line) => posted.has(line['entry_id'] as string))
     .filter((line) => (Number(line['debit'] ?? 0) > 0) !== paymentIsDebit)
+    .filter((line) => !foreign || line['currency_code'] === currency)
     .map((line) => ({
       line,
-      residual:
-        Math.abs(Number(line['balance'] ?? 0)) - Number(line['matched_amount'] ?? 0),
+      residual: openOf(line),
       due: String(line['date_maturity'] ?? posted.get(line['entry_id'] as string)?.entry_date ?? ''),
     }))
     .filter((item) => item.residual > 0.005)
     .sort((a, b) => a.due.localeCompare(b.due));
 
-  let remaining =
-    Math.abs(Number(paymentLine['balance'] ?? 0)) - Number(paymentLine['matched_amount'] ?? 0);
+  let remaining = openOf(paymentLine);
   const done: unknown[] = [];
 
   for (const item of open) {
