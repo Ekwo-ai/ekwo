@@ -233,8 +233,10 @@ a close run too early. `docs/schema.md` describes every table and column;
 
 ## The TypeScript packages
 
-`packages/core` carries the types of the schema and the FEC generator, with
-no runtime dependency beyond an optional `@supabase/supabase-js`.
+`packages/core` carries the types of the schema and a typed client over its
+functions, with no runtime dependency beyond an optional
+`@supabase/supabase-js`. The FEC moved out to `@ekwo-ai/fec`, because a file
+format is MIT; `@ekwo-ai/core` re-exports it for one version.
 `packages/cli` is the `ekwo` command above; it has one runtime dependency, the
 Postgres driver, and never writes a secret to disk.
 

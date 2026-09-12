@@ -12,6 +12,9 @@ export default defineConfig({
       // Same reason for each format brick a test reads. A test that imports a
       // brick imports it by its published name, so what it exercises is what a
       // stranger installs, and not a relative path into a folder.
+      '@ekwo-ai/fec': fileURLToPath(
+        new URL('./packages/formats/fec/src/index.ts', import.meta.url),
+      ),
       '@ekwo-ai/xbrl-cbso': fileURLToPath(
         new URL('./packages/formats/xbrl-cbso/src/index.ts', import.meta.url),
       ),

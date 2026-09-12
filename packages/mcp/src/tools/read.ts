@@ -14,7 +14,7 @@ import {
   fromQueryRow,
   generateFec as renderFec,
   type FecQueryRow,
-} from '@ekwo-ai/core';
+} from '@ekwo-ai/fec';
 import { z } from 'zod';
 import { EkwoMcpError, type Backend, type Filter, type Row } from '../backend.js';
 import * as columns from '../columns.js';

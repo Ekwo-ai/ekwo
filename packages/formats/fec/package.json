@@ -1,0 +1,54 @@
+{
+  "name": "@ekwo-ai/fec",
+  "version": "0.1.0",
+  "description": "The French FEC — fichier des ecritures comptables — in TypeScript: the eighteen columns of the arrete du 29 juillet 2013, from plain ledger rows. Zero dependencies.",
+  "keywords": [
+    "fec",
+    "fichier-des-ecritures-comptables",
+    "france",
+    "dgfip",
+    "accounting",
+    "bookkeeping",
+    "ledger",
+    "export"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo/tree/main/packages/formats/fec#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/ekwo.git",
+    "directory": "packages/formats/fec"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/ekwo/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

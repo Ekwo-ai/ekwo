@@ -309,7 +309,7 @@ above says: `number` → `number` (BT-1), `document_date` → `issueDate` (BT-2)
 ## Producing a FEC
 
 `fec_lines(company_id, from, to)` returns the eighteen columns in
-chronological order. `generateFec()` in `@ekwo-ai/core` turns them into the
+chronological order. `generateFec()` in `@ekwo-ai/fec` turns them into the
 file, and `checkFec()` applies the file-level rules — mandatory fields, one
 side per line, each entry balancing — before you hand it over.
 

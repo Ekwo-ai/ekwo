@@ -148,10 +148,10 @@ describe('the demo books, filed with the National Bank', () => {
     // same books give the same bytes. A diff here is a change in the pack, in
     // the statements function, or in the brick — all three worth reading.
     const xml = generateCbsoXbrl(input);
-    // A golden nobody can regenerate is a golden nobody reads. `WRITE_GOLDEN=1
+    // A golden nobody can regenerate is a golden nobody reads. `UPDATE_GOLDEN=1
     // npm test` rewrites the file; the diff is then the thing to review, and
     // the CI never sets it.
-    if (process.env['WRITE_GOLDEN'] === '1') await writeFile(GOLDEN, xml, 'utf8');
+    if (process.env['UPDATE_GOLDEN'] === '1') await writeFile(GOLDEN, xml, 'utf8');
     expect(xml).toBe(await readFile(GOLDEN, 'utf8'));
   });
 });
