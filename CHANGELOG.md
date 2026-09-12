@@ -92,6 +92,29 @@ somewhere has already run it.
 
 ### Added
 
+- **No default country, anywhere.** `ekwo init` used to label the country
+  question with `PCMN` and `PCG` written in the CLI and to preselect Belgium.
+  The list and the labels now come from `country_packs`, sorted by name, so
+  installing a pack is what adds a choice; there is no preselected value,
+  because the one question whose wrong answer is a chart of accounts has no
+  right default. Non-interactively, `--country` is required and the refusal
+  names the packs installed. The currency and the language come from the pack
+  and are asked for when it carries none, instead of falling back to `EUR`
+  and `fr` written in code.
+
+- **Five country literals removed from published migrations.** The Belgian
+  frame VI inside `vat_return()` in `20260911121000`, and the backfills that
+  named `'BE'` and `'FR'` in `20260911183000` (cash account), `20260912074712`
+  (default language) and `20260912080311` (report code). The first three
+  values are pack data and the compiled seeds upsert them; the fourth needed
+  no backfill at all, since a null `report_code` on a posting means "the
+  periodic return of the country" and `vat_return()` reads it that way. Those
+  files were edited rather than overridden, once, because no installation
+  anywhere had run them — the rule and its exception are written down in
+  `supabase/migrations/README.md`. Three tests now keep it that way: no
+  function in `public`, no file under `supabase/migrations/`, and no source
+  file of the CLI, the MCP server or the core may hold a country code.
+
 - **Declaration boxes are data, and `vat_return()` holds no country (P0-3).**
   Migration `20260912090407` adds `tax_report_templates` — one declaration form
   of one country — and `tax_report_box_templates` — one box, with `plus_boxes`,

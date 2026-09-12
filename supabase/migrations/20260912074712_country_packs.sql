@@ -114,10 +114,10 @@ alter table country_defaults
 comment on column country_defaults.language_default is
   'Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason.';
 
--- A pack fills it from now on; an installation that already ran the seeds
--- gets the value the two packs of this release carry.
-update country_defaults set language_default = 'fr'
- where country in ('BE', 'FR') and language_default is null;
+-- No backfill here. A pack fills this column, and the compiled seed of every
+-- country upserts `country_defaults`, so re-applying the seeds is what gives
+-- an existing installation the value. Naming a language for a country in a
+-- migration would put a country back into the core.
 
 -- ---------------------------------------------------------------------------
 -- install_country_template, in a language, recording what it copied

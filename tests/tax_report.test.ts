@@ -1,5 +1,5 @@
 import type { PGlite } from '@electric-sql/pglite';
-import { cp, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -227,6 +227,37 @@ describe('vat_return on a French company', () => {
 });
 
 describe('no country lives in the core any more', () => {
+  // A country is data: a pack. So a country code has no business being
+  // written down in a function, in a migration, or in the CLI — only in
+  // `packs/`, in the seeds compiled from them, and in a test that picks one.
+  const COUNTRY_LITERAL = /'(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)'|"(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)"/;
+
+  /**
+   * The file without the lines that are purely a comment. A comment may quote
+   * the country rule it replaced — that is documentation, and this guard is
+   * about what runs. A trailing comment on a line of code is *not* stripped,
+   * which makes the guard stricter rather than looser.
+   */
+  function code(text: string, marker: '--' | '//'): string {
+    return text
+      .split('\n')
+      .filter((line) => {
+        const trimmed = line.trimStart();
+        return !trimmed.startsWith(marker) && !trimmed.startsWith('*') && !trimmed.startsWith('/*');
+      })
+      .join('\n');
+  }
+
+  async function filesUnder(dir: string, ending: string): Promise<string[]> {
+    const out: string[] = [];
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) out.push(...(await filesUnder(path, ending)));
+      else if (entry.name.endsWith(ending)) out.push(path);
+    }
+    return out.sort();
+  }
+
   it('has no SQL function holding a country code', async () => {
     const guilty = await rows<{ proname: string }>(
       db,
@@ -237,6 +268,30 @@ describe('no country lives in the core any more', () => {
         order by 1`,
     );
     expect(guilty.map((r) => r.proname)).toEqual([]);
+  });
+
+  it('has no migration holding a country code', async () => {
+    // The seeds are excluded on purpose: one seed per country is the whole
+    // design, and the demo company is Belgian because sample data has to be
+    // from somewhere. A migration is the core, and the core has no country.
+    const guilty: string[] = [];
+    for (const file of await filesUnder(join(repoRoot, 'supabase', 'migrations'), '.sql')) {
+      const match = COUNTRY_LITERAL.exec(code(await readFile(file, 'utf8'), '--'));
+      if (match !== null) guilty.push(`${file.split('/').at(-1)}: ${match[0]}`);
+    }
+    expect(guilty).toEqual([]);
+  });
+
+  it('has no country code in the source of the CLI, the MCP server or the core', async () => {
+    const guilty: string[] = [];
+    for (const pkg of ['cli', 'mcp', 'core']) {
+      const dir = join(repoRoot, 'packages', pkg, 'src');
+      for (const file of await filesUnder(dir, '.ts')) {
+        const match = COUNTRY_LITERAL.exec(code(await readFile(file, 'utf8'), '//'));
+        if (match !== null) guilty.push(`${pkg}/${file.split('/').at(-1)}: ${match[0]}`);
+      }
+    }
+    expect(guilty).toEqual([]);
   });
 });
 

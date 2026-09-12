@@ -511,7 +511,7 @@ Which template account plays which role, per country.
 | `sales_journal_code` | `text` | not null |
 | `purchase_journal_code` | `text` | not null |
 | `misc_journal_code` | `text` | not null |
-| `cash_account_code` | `text` | Ledger account behind the cash journal of this country. 570000 in the PCMN, 530000 in the PCG. |
+| `cash_account_code` | `text` | Ledger account behind the cash journal of this country, from the pack of that country. |
 | `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
 
 Constraints:

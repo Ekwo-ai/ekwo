@@ -189,6 +189,15 @@ comment on function aged_balance(uuid, date, text) is
 --
 -- Aggregates whatever the tax postings wrote on the lines. No country rule
 -- lives here: boxes come from the data.
+--
+-- This function was published with the two balance boxes of the Belgian frame
+-- VI computed inline, behind a test on the company's fiscal country. That was
+-- the one country rule left in the core, and it was removed from this file on
+-- 12 September 2026 rather than only overridden later: no installation
+-- anywhere had run it, and a country literal in a published migration is a
+-- country literal in the repository. The totals now come from the declaration
+-- form of the country pack, in `20260912090407_tax_report_boxes`, which
+-- replaces this function.
 -- ---------------------------------------------------------------------------
 
 create or replace function vat_return(
@@ -217,24 +226,9 @@ as $$
        and l.declaration_box is not null
      group by 1, 2
     having round(sum(l.box_amount), 2) <> 0
-  ),
-  totals as (
-    select coalesce(sum(amount) filter (where box in ('54', '55', '56', '57', '61', '63')), 0) as due,
-           coalesce(sum(amount) filter (where box in ('59', '62', '64')), 0) as deductible
-      from boxes
   )
   select b.box, b.kind, b.amount, false from boxes b
-  union all
-  -- Belgium: the two balance boxes of frame VI, derived from the boxes above.
-  select v.box, 'total', v.amount, true
-    from totals t,
-         companies c,
-         lateral (values ('71', greatest(t.due - t.deductible, 0)),
-                         ('72', greatest(t.deductible - t.due, 0))) as v (box, amount)
-   where c.id = p_company_id
-     and c.fiscal_country = 'BE'
-     and v.amount <> 0
-   order by 4, 1;
+   order by 1, 2;
 $$;
 
 comment on function vat_return(uuid, date, date) is

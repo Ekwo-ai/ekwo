@@ -763,6 +763,20 @@ periodic return of the company's fiscal country in force on the last day of
 the period, and an error rather than a guess if there are two. A company in a
 country with no pack still gets its ledger boxes and no total.
 
-The guard that keeps this true is a test: no function in `public` may hold a
-country code in its source. It passes today, and it is what makes "a country
-is data" checkable rather than aspirational.
+The guard that keeps this true is three tests: no function in `public`, no
+file under `supabase/migrations/`, and no source file of the CLI, the MCP
+server or the core may hold a country code. They pass today, and they are what
+makes "a country is data" checkable rather than aspirational. Making them pass
+took five deletions beyond `vat_return()` — four backfills that named Belgium
+and France in published migrations, and the `PCMN`/`PCG` labels and Belgian
+default of `ekwo init`. The backfilled values are pack data that the compiled
+seeds upsert, so nothing was lost by deleting them; `ekwo init` now builds its
+question from `country_packs` and **preselects nothing**, because the one
+question whose wrong answer is a chart of accounts has no right default, and a
+system that ships with a country already chosen is not international.
+
+Editing published migrations breaks rule 1 of
+`supabase/migrations/README.md`. It was done once, knowingly, because no
+installation anywhere had run those files, and because a country literal in a
+published migration is a country literal in the repository whatever the file's
+date says. The exception is written into that README beside the rule.

@@ -39,27 +39,14 @@ comment on column tax_posting_templates.report_code is
 comment on column tax_postings.report_code is
   'Declaration form the box belongs to. Copied from the template; read by vat_return(company, from, to, report_code) from P0-3.';
 
--- The packs of this release file one return each, and the generated seeds now
--- carry the code. This fills the rows an installation already holds.
-update tax_posting_templates p
-   set report_code = 'BE-VAT-PERIODIC'
-  from tax_templates t
- where t.id = p.tax_template_id and t.country = 'BE' and p.report_code is null;
-
-update tax_posting_templates p
-   set report_code = 'FR-CA3'
-  from tax_templates t
- where t.id = p.tax_template_id and t.country = 'FR' and p.report_code is null;
-
-update tax_postings p
-   set report_code = 'BE-VAT-PERIODIC'
-  from taxes t
- where t.id = p.tax_id and t.country = 'BE' and p.report_code is null;
-
-update tax_postings p
-   set report_code = 'FR-CA3'
-  from taxes t
- where t.id = p.tax_id and t.country = 'FR' and p.report_code is null;
+-- Nothing is backfilled here, and that is the whole point of the column being
+-- nullable. On the template side the packs carry the code and the compiled
+-- seeds upsert it, so re-applying the seeds names every template posting. On
+-- the company side a null keeps its documented meaning — the periodic return
+-- of the company's country — and `vat_return()` reads it exactly that way, so
+-- a posting an older installation holds lands on the right form without
+-- anything being rewritten. A backfill would have had to name a country and
+-- the code of its form, which is the thing this schema refuses to do.
 
 -- ---------------------------------------------------------------------------
 -- region

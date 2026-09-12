@@ -272,39 +272,43 @@ describe('report_code, and the province a party sits in', () => {
     expect(postings).toEqual([{ report_code: 'BE-VAT-PERIODIC' }]);
   });
 
-  it('backfills the rows an installation already held', async () => {
-    // The statements below are the migration's own, read from it rather than
-    // retyped: an installation seeded before this release has postings with
-    // no form, and they must come out named.
-    const migration = await readFile(
-      join(repoRoot, 'supabase', 'migrations', '20260912080311_report_code_and_region.sql'),
-      'utf8',
+  it('reads a posting that names no form as the periodic return of its country', async () => {
+    // Nothing backfills `report_code` on a company's postings, deliberately:
+    // null is documented as "the periodic return of the country", and that is
+    // how `vat_return()` reads it. An installation seeded before the column
+    // existed therefore files the same return as one seeded today, and no
+    // migration ever had to name a country to make that true.
+    const demo = await one<{ id: string }>(
+      db,
+      `select id from companies where vat_number = 'BE0123456749'`,
     );
-    const backfills = migration
-      .split(';')
-      // Drop the comment lines a statement may follow, keep the statement.
-      .map((statement) => statement.replace(/^(\s*--[^\n]*\n)+/, '').trim())
-      .filter((statement) => /^update tax_(posting_templates|postings)\b[\s\S]*set report_code/.test(statement));
-    expect(backfills).toHaveLength(4);
+    const before = await rows<{ box: string; amount: string }>(
+      db,
+      `select box, amount::text from vat_return($1, date '2026-07-01', date '2026-09-30')`,
+      [demo.id],
+    );
+    expect(before.length).toBeGreaterThan(0);
 
     await db.exec('begin');
-    const { companyId } = await newCompany(db, { name: 'Avant le backfill SRL' });
-    await db.exec('update tax_posting_templates set report_code = null');
-    await db.exec('update tax_postings set report_code = null');
-    for (const statement of backfills) await db.exec(`${statement};`);
+    try {
+      await db.query(`update tax_postings set report_code = null where company_id = $1`, [demo.id]);
+      const orphaned = await one<{ n: number }>(
+        db,
+        `select count(*)::int as n from tax_postings
+          where company_id = $1 and report_code is not null`,
+        [demo.id],
+      );
+      expect(orphaned.n).toBe(0);
 
-    const templates = await one<{ n: number }>(
-      db,
-      'select count(*)::int as n from tax_posting_templates where report_code is null',
-    );
-    expect(templates.n).toBe(0);
-    const company = await one<{ n: number }>(
-      db,
-      'select count(*)::int as n from tax_postings where company_id = $1 and report_code is null',
-      [companyId],
-    );
-    expect(company.n).toBe(0);
-    await db.exec('rollback');
+      const after = await rows<{ box: string; amount: string }>(
+        db,
+        `select box, amount::text from vat_return($1, date '2026-07-01', date '2026-09-30')`,
+        [demo.id],
+      );
+      expect(after).toEqual(before);
+    } finally {
+      await db.exec('rollback');
+    }
   });
 
   it('gives a company and a contact a province, empty in Europe', async () => {

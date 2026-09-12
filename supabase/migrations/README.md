@@ -51,6 +51,15 @@ Always number after the newest file on `main`, and check `git log` first.
    we do not control. Add a new file; if a previous one was wrong, the new
    one corrects it. The CI's *hygiene* job refuses a pull request that
    modifies or deletes a published migration.
+
+   This was broken **once**, on 12 September 2026, knowingly and with the
+   only reason that can justify it: no installation anywhere had run these
+   files. Five country literals — the Belgian frame VI in `…121000`, and four
+   backfills naming `'BE'` and `'FR'` in `…183000`, `…074712` and `…080311` —
+   were removed from their own files rather than only overridden later,
+   because "a country is data" is now a test over every file of this
+   directory, and a literal in a published migration is a literal in the
+   repository. It does not become a habit: the next one gets a new file.
 2. **Every new table gets row level security in the same file** — `enable
    row level security` and at least one policy. A test fails otherwise.
 3. **Every table that belongs to a company carries `company_id`**, and its

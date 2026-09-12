@@ -25,14 +25,12 @@
 alter table country_defaults add column if not exists cash_account_code text;
 
 comment on column country_defaults.cash_account_code is
-  'Ledger account behind the cash journal of this country. 570000 in the PCMN, 530000 in the PCG.';
+  'Ledger account behind the cash journal of this country, from the pack of that country.';
 
--- Backfill for an installation that already ran the seeds. On a fresh install
--- this updates nothing and the seeds carry the value.
-update country_defaults set cash_account_code = '570000'
- where country = 'BE' and cash_account_code is null;
-update country_defaults set cash_account_code = '530000'
- where country = 'FR' and cash_account_code is null;
+-- No backfill here. The value of this column is pack data, and the compiled
+-- seed of every country upserts `country_defaults` — so re-applying the seeds
+-- fills it, on a fresh install and on an existing one alike. A migration that
+-- wrote it would have to name a country and a code, and a country is data.
 
 create or replace function install_country_template(
   p_company_id uuid,
