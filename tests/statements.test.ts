@@ -528,6 +528,118 @@ describe('an account the pack never heard of', () => {
   });
 });
 
+describe('one evaluator, called by both reports', () => {
+  // The rule this repository is built against: one path per calculation. A
+  // declaration form and a financial statement derive their totals the same
+  // way, so they derive them in the same function, and the two differences
+  // between them are arguments.
+  it('is the function both report functions call, by name', async () => {
+    const callers = await rows<{ proname: string }>(
+      db,
+      `select p.proname
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.prosrc like '%evaluate_totals(%'
+        order by 1`,
+    );
+    expect(callers.map((c) => c.proname)).toEqual(['financial_statement', 'vat_return']);
+  });
+
+  it('leaves neither of them working a formula out on its own', async () => {
+    // What a second evaluator looks like: a loop over a plus list inside the
+    // caller. Neither report function has one any more.
+    const own = await rows<{ proname: string }>(
+      db,
+      `select p.proname
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.proname in ('vat_return', 'financial_statement')
+          and (p.prosrc like '%foreach%plus_boxes%' or p.prosrc like '%foreach%plus_lines%')`,
+    );
+    expect(own).toEqual([]);
+  });
+
+  it('keeps a nil total for the totals after it, and prints it only when asked', async () => {
+    // `p_keep_zero` is the whole difference between a return and a statement:
+    // a nil box is left out of a declaration and printed on a scheme, and
+    // either way the total that names it reads a zero and not a gap.
+    const values = { 'A|total': 0, B: 5 };
+    const formulas = [
+      { key: 'T1|total', plus: ['A'], sequence: 10 },
+      { key: 'T2|total', plus: ['T1', 'B'], sequence: 20 },
+    ];
+    const dropped = await one<{ result: Record<string, number> }>(
+      db,
+      'select evaluate_totals($1, $2, false) as result',
+      [JSON.stringify(values), JSON.stringify(formulas)],
+    );
+    expect(dropped.result).toEqual({ 'T2|total': 5 });
+
+    const kept = await one<{ result: Record<string, number> }>(
+      db,
+      'select evaluate_totals($1, $2, true) as result',
+      [JSON.stringify(values), JSON.stringify(formulas)],
+    );
+    expect(kept.result).toEqual({ 'T1|total': 0, 'T2|total': 5 });
+  });
+
+  it('takes a qualified reference and a bare one, which is what a CA3 needs', async () => {
+    const result = await one<{ result: Record<string, number> }>(
+      db,
+      'select evaluate_totals($1, $2, true) as result',
+      [
+        JSON.stringify({ '08|base': 1000, '08|tax': 200 }),
+        JSON.stringify([
+          { key: 'BASE|total', plus: ['08:base'], sequence: 10 },
+          { key: 'BOTH|total', plus: ['08'], sequence: 20 },
+        ]),
+      ],
+    );
+    expect(result.result).toEqual({ 'BASE|total': 1000, 'BOTH|total': 1200 });
+  });
+
+  it('floors before it signs, so a pair that splits a balance still splits it', async () => {
+    const result = await one<{ result: Record<string, number> }>(
+      db,
+      'select evaluate_totals($1, $2, true) as result',
+      [
+        JSON.stringify({ due: 100, deductible: 250 }),
+        JSON.stringify([
+          { key: '71', plus: ['due'], minus: ['deductible'], floor_zero: true, sequence: 10 },
+          { key: '72', plus: ['deductible'], minus: ['due'], floor_zero: true, sequence: 20 },
+          { key: 'signed', plus: ['due'], minus: ['deductible'], factor: -1, sequence: 30 },
+        ]),
+      ],
+    );
+    expect(result.result).toEqual({ '71': 0, '72': 150, signed: 150 });
+  });
+
+  it('refuses two totals that depend only on each other', async () => {
+    const message = await expectError(
+      db,
+      `select evaluate_totals('{}'::jsonb, $1::jsonb, true)`,
+      [
+        JSON.stringify([
+          { key: 'X', plus: ['Y'], sequence: 10 },
+          { key: 'Y', plus: ['X'], sequence: 20 },
+        ]),
+      ],
+    );
+    expect(message).toMatch(/formula_cycle: these totals depend on each other and on nothing else: X, Y/);
+  });
+
+  it('is closed to the anonymous role and to PUBLIC', async () => {
+    const open = await rows(
+      db,
+      `select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.proname = 'evaluate_totals'
+          and (p.proacl is null
+               or has_function_privilege('anon', p.oid, 'EXECUTE'))`,
+    );
+    expect(open).toEqual([]);
+  });
+});
+
 describe('the statement tables under row level security', () => {
   it('let a signed-in user read them, and nobody write them', async () => {
     const { ownerId } = await newCompany(db, { country: 'BE', name: 'Lectrice d’états SRL' });

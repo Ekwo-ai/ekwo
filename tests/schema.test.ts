@@ -66,6 +66,7 @@ describe('migrations', () => {
       'post_document', 'post_entry', 'next_entry_number', 'assert_period_open',
       'reconcile', 'unreconcile', 'next_matching_number',
       'trial_balance', 'general_ledger', 'aged_balance', 'vat_return', 'fec_lines',
+      'evaluate_totals', 'financial_statement', 'unmapped_accounts', 'available_statements',
       'install_country_template', 'account_id_by_code', 'commercial_entity',
       'init_instance', 'claim_instance_admin', 'register_instance', 'unregister_instance',
       'is_instance_admin', 'is_any_company_member', 'ekwo_schema_version',
