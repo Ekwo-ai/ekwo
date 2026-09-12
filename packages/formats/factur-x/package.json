@@ -16,13 +16,14 @@
   ],
   "license": "MIT",
   "author": "Ekwo AI",
-  "homepage": "https://github.com/Ekwo-ai/factur-x#readme",
+  "homepage": "https://github.com/Ekwo-ai/ekwo/tree/main/packages/formats/factur-x#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ekwo-ai/factur-x.git"
+    "url": "git+https://github.com/Ekwo-ai/ekwo.git",
+    "directory": "packages/formats/factur-x"
   },
   "bugs": {
-    "url": "https://github.com/Ekwo-ai/factur-x/issues"
+    "url": "https://github.com/Ekwo-ai/ekwo/issues"
   },
   "type": "module",
   "sideEffects": false,
