@@ -2,9 +2,10 @@
 
 > The plan for making the core usable in any country, decided on
 > 12 September 2026. The format of a country pack — the one taxonomy in this
-> plan we will not get to redo — is being decided separately and will be
-> written up in `decisions.md` before any code lands. This document is the
-> map; that decision is the first step on it.
+> plan we will not get to redo — was decided the same day, before any code,
+> and is written up in `decisions.md` with the full analysis in
+> `decisions/`. This document is the map; that decision is the first step
+> on it.
 
 ## The premise
 
