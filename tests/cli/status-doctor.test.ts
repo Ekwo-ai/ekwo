@@ -64,6 +64,9 @@ describe('status', () => {
     expect(report.companies[0]?.country).toBe('BE');
     expect(report.companies[0]?.accounts).toBeGreaterThan(300);
     expect(report.companies[0]?.fiscalYears).toBe(1);
+    // A fresh installation has nothing closed; `close_fiscal_year` is the
+    // only thing that changes this number.
+    expect(report.companies[0]?.closedFiscalYears).toBe(0);
   });
 
   it('shows the gap when a migration has not been applied', async () => {

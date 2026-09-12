@@ -82,8 +82,8 @@
         "rounding_method": { "enum": ["half_up", "half_even", "down", "up"] },
         "cash_rounding_unit": { "type": ["number", "null"], "minimum": 0, "description": "0.05 in Switzerland. Null everywhere the cent is the unit." },
         "closing_style": {
-          "enum": ["retained_earnings", "result_accounts", "affectation_accounts"],
-          "description": "How the year-end close moves the result: straight to retained earnings (UK, US), through a result account (FR 120/129), or through the affectation accounts (BE 693/793)."
+          "enum": ["retained_earnings", "result_accounts", "appropriation_accounts"],
+          "description": "How the year-end close moves the result. retained_earnings: straight into retained earnings (UK, US). result_accounts: into a current-year result account that sits on the balance sheet and waits for the meeting that allocates it (FR 120/129). appropriation_accounts: through an appropriation account that is itself part of the income statement, and from there to retained earnings (BE 693/793 to 140/141). Named after the mechanism, never after a country."
         },
         "fiscal_year_default": { "enum": ["calendar", "april", "july", "october"] },
         "region": {
@@ -112,7 +112,9 @@
         "cash": { "type": ["string", "null"] },
         "fx_gain": { "type": ["string", "null"] },
         "fx_loss": { "type": ["string", "null"] },
-        "current_year_result": { "type": ["string", "null"] }
+        "retained_earnings_loss": { "type": ["string", "null"], "description": "Where an accumulated loss sits, where the chart keeps one apart from the profit account (BE 141, FR 119). Null falls back to `retained_earnings`." },
+        "current_year_result_profit": { "type": ["string", "null"], "description": "Account the result of the year lands on when the year is profitable (BE 693, FR 120). Null under `retained_earnings` closing." },
+        "current_year_result_loss": { "type": ["string", "null"], "description": "The same for a loss (BE 793, FR 129). Belgium and France both keep the two apart, so this is a pair and not one account." }
       }
     },
 
@@ -123,7 +125,8 @@
       "properties": {
         "sales": { "$ref": "#/$defs/code" },
         "purchase": { "$ref": "#/$defs/code" },
-        "miscellaneous": { "$ref": "#/$defs/code" }
+        "miscellaneous": { "$ref": "#/$defs/code" },
+        "opening": { "$ref": "#/$defs/code", "description": "Journal the opening entry and the year-end entries are booked on. Its type is `opening`." }
       }
     },
 

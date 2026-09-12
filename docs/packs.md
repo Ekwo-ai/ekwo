@@ -195,10 +195,30 @@ that it is legally right, and no test can. So:
    and suspense, rounding, retained earnings, sales, purchase, bank and cash
    are what the installer wires. Every code must exist in your chart; the
    compiler refuses the pack before writing any SQL if one does not.
-4. `ekwo pack build <cc>`, then add the generated file to
+4. Say how the year is closed. `defaults.closing_style` is one of
+   `retained_earnings`, `result_accounts` or `appropriation_accounts`, and
+   with it come `current_year_result_profit`, `current_year_result_loss` and
+   `retained_earnings_loss` in `defaults.roles`, plus
+   `defaults.journal_roles.opening`. The table below says which style a chart
+   needs; `close_fiscal_year()` asserts the answer rather than trusting it.
+5. `ekwo pack build <cc>`, then add the generated file to
    `supabase/config.toml` under `[db.seed].sql_paths`.
-5. Set `certification.status` honestly. `community` is the right answer until
+6. Set `certification.status` honestly. `community` is the right answer until
    an accountant has read it.
+
+### Which closing style a chart needs
+
+| Style | The result goes | Chosen when |
+|---|---|---|
+| `retained_earnings` | straight into retained earnings | the chart has no current-year result account (United Kingdom, United States) |
+| `result_accounts` | into a current-year result account on the balance sheet | the chart keeps the result of the year apart until a meeting allocates it (France: 120 and 129) |
+| `appropriation_accounts` | through an appropriation account of the income statement, then to retained earnings | the statutory income statement ends on an appropriation section (Belgium: 693 and 793, to 140 and 141) |
+
+The accounts a style names have to be of the right kind, and the close says so
+rather than finding out later: `appropriation_accounts` needs accounts that do
+*not* carry forward, the other two need accounts that do. What a general
+meeting then decides — a dividend, a reserve — is never part of a close, in
+any country.
 
 ## What is not in a pack
 

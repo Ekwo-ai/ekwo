@@ -221,8 +221,12 @@ and `edition` gates no feature.
 
 `post_document(id)` turns a document into an entry. `trial_balance`,
 `general_ledger`, `aged_balance`, `vat_return` and `fec_lines` read it back.
-`docs/schema.md` describes every table and column; `docs/mapping.md` lines
-each one up against Odoo, EN 16931 and the FEC.
+`opening_balance(company, year, lines)` takes the trial balance of whatever
+kept the books before, and `close_fiscal_year(year)` closes a year the way the
+country pack says — straight to retained earnings, into a current-year result
+account, or through the appropriation accounts — with `reopen_fiscal_year` for
+a close run too early. `docs/schema.md` describes every table and column;
+`docs/mapping.md` lines each one up against Odoo, EN 16931 and the FEC.
 
 ## The TypeScript packages
 
@@ -247,8 +251,8 @@ const fec     = await ekwo.generateFec({ companyId, from: '2026-01-01', to: '202
 `@ekwo-ai/mcp`. It is the same idea as the client above, for an assistant
 rather than for your code: tools over stdio — read the chart of accounts,
 create a draft invoice, post it, register a bank account, record and match a
-payment, pull the trial balance, the aged balance, the VAT return or the FEC
-— plus the chart of accounts and the taxes as resources, and two prompts for
+payment, import an opening balance, close a year, pull the trial balance, the
+aged balance, the VAT return or the FEC — plus the chart of accounts and the taxes as resources, and two prompts for
 closing a month and preparing a return.
 
 It runs **as the user**, never as `service_role`: it signs in with their

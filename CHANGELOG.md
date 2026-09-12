@@ -41,6 +41,15 @@ somewhere has already run it.
 
 ### Fixed
 
+- **A `jsonb` argument crossed the direct-Postgres route as a Postgres array.**
+  PostgREST posts the arguments of a function as JSON, so a `jsonb` parameter
+  receives a real array there; a driver handed a JavaScript array builds an
+  array *literal* instead, and `node-postgres` turns an array of objects into
+  `{"[object Object]"}`. The SQL backend now stringifies an object or array
+  argument and casts the placeholder to `jsonb`, so the two routes agree
+  rather than agreeing by accident on one driver. Found while adding
+  `opening_balance`, which is the first function to take one.
+
 - `record_payment` (MCP) asked for a journal even when `bank_account_id` was
   given, although the account carries its journal. It now takes the journal
   from the account. Found on the first run against a real Supabase project.
@@ -140,6 +149,28 @@ somewhere has already run it.
   could mean two boxes, a total that names itself or a total computed after it,
   a formula on a box that is summed from the ledger, a box declared twice, and
   a tax that posts to a box the form does not declare.
+
+- **Opening balances and a year-end close that is a parameter, not a branch**
+  (migration `20260912094412`). `opening_balance(company, year, lines)` takes
+  the trial balance of whatever kept the books before and posts it as the
+  opening entry of a year, on the opening journal, dated on its first day;
+  balance-sheet accounts only, unless the caller says it is taking books over
+  mid-year. `close_fiscal_year(year)` moves the result out of the income
+  statement the way `country_defaults.closing_style` says — straight to
+  retained earnings, into a current-year result account on the balance sheet,
+  or through an appropriation account of the income statement — zeroes every
+  income and expense account, and closes the year. `reopen_fiscal_year(year)`
+  reverses what it wrote, never deletes it, and is refused once a later year
+  is closed or booked into. Belgium's 693/793 to 140/141 and France's 120/129
+  are values in `packs/be` and `packs/fr`, and a test asserts that no function
+  of this change holds a country code or an account code. The close writes no
+  *à-nouveaux*: every report here reads the ledger from the beginning, so an
+  opening entry on top of it would count each balance twice —
+  `docs/decisions.md` carries the reasoning and what reversing it would cost.
+  `fiscal_years.is_closed` is no longer an ordinary column: a trigger refuses
+  the transition to anyone but those two functions. Three MCP tools —
+  `opening_balance`, `close_fiscal_year`, `reopen_fiscal_year` — and
+  `ekwo status` now says how many financial years are open.
 
 - `DISCLAIMER.md`: software, not advice; the books are yours; what a pack
   and a review are and are not; estimates are estimates.
