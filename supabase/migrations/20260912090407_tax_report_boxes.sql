@@ -2,9 +2,9 @@
 --
 -- `vat_return()` summed whatever the tax postings wrote on the ledger lines,
 -- which is country-free, and then hard-coded the Belgian frame VI: boxes 71
--- and 72, their two lists of boxes, and `c.fiscal_country = 'BE'`. It was the
--- last country rule left in the core. A French company got no total at all,
--- and a British one never would have.
+-- and 72, their two lists of boxes, and a test on the company's fiscal
+-- country. It was the last country rule left in the core. A French company
+-- got no total at all, and a British one never would have.
 --
 -- A form is now data, like a chart of accounts and a tax:
 --

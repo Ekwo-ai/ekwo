@@ -43,7 +43,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912080311_report_code_and_region` | `report_code` on `tax_posting_templates` and `tax_postings`, backfilled; `region` on `companies` and `contacts`. Both are for the Canadian pack, added now so that table migrates once |
 | `20260912081014_pack_certification_maintained` | `pack_certification` gains `maintained`; `ekwo` is deprecated and nothing writes it |
 | `20260912081015_pack_certification_backfill` | the packs that held `ekwo` become `maintained`, `certified_by` emptied. Its own file: a new enum value cannot be used in the transaction that added it |
-| `20260912090407_tax_report_boxes` | `tax_report_templates` and `tax_report_box_templates`, filled by the packs; `vat_return(company, from, to, report_code)` reads their plus/minus formulas, and the last `fiscal_country = 'BE'` leaves the core |
+| `20260912090407_tax_report_boxes` | `tax_report_templates` and `tax_report_box_templates`, filled by the packs; `vat_return(company, from, to, report_code)` reads their plus/minus formulas, and the last test on a fiscal country leaves the core |
 
 ## Rules for a new migration
 
@@ -55,7 +55,7 @@ Always number after the newest file on `main`, and check `git log` first.
    This was broken **once**, on 12 September 2026, knowingly and with the
    only reason that can justify it: no installation anywhere had run these
    files. Five country literals — the Belgian frame VI in `…121000`, and four
-   backfills naming `'BE'` and `'FR'` in `…183000`, `…074712` and `…080311` —
+   backfills naming two countries in `…183000`, `…074712` and `…080311` —
    were removed from their own files rather than only overridden later,
    because "a country is data" is now a test over every file of this
    directory, and a literal in a published migration is a literal in the

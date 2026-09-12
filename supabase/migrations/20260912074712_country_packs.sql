@@ -28,7 +28,7 @@
 -- Additive throughout: new tables, `add column if not exists`, and one
 -- function replaced. `install_country_template` gains a third argument, so
 -- the two-argument version is dropped first — an overload with a default
--- would make `install_country_template(company, 'BE')` ambiguous, and
+-- would make a two-argument `install_country_template` call ambiguous, and
 -- Postgres would refuse the call that works today.
 
 -- ---------------------------------------------------------------------------
