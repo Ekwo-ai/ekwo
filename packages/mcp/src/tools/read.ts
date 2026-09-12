@@ -567,6 +567,12 @@ export const VatReturnInput = z.object({
   company_id: companyId,
   from: isoDate,
   to: isoDate,
+  report_code: z
+    .string()
+    .optional()
+    .describe(
+      'Which declaration form, when the country files more than one (BE-VAT-PERIODIC, FR-CA3). Leave it out and the periodic return of the company country is used.',
+    ),
 });
 
 export async function vatReturn(
@@ -577,11 +583,15 @@ export async function vatReturn(
     p_company_id: args.company_id,
     p_from: args.from,
     p_to: args.to,
+    p_report_code: args.report_code ?? null,
   });
+  const form = rows.find((row) => row['report_code'] !== null)?.['report_code'] ?? null;
   return {
     period: { from: args.from, to: args.to },
+    report_code: form,
     boxes: moneyFields(rows, ['amount']),
-    note: 'Boxes are summed from what the tax postings wrote on the ledger lines. A box flagged computed is derived from the others.',
+    note:
+      'A box flagged computed is a total the form derives from the others, following the plus and minus lists of the country pack; hidden means the form does not print it. Everything else is summed from what the tax postings wrote on the ledger lines.',
   };
 }
 

@@ -184,7 +184,7 @@ export function buildServer(backend: Backend): McpServer {
     {
       title: 'VAT return',
       description:
-        'The boxes of the VAT return for a period, summed from the declaration boxes written on the ledger lines when the documents were posted. No country rule lives in this tool — the boxes come from the tax configuration of the company. It prepares figures; it files nothing.',
+        'The boxes of the VAT return for a period, with their names: the base and tax boxes are summed from what the postings wrote on the ledger lines, the totals are derived from them by the declaration form of the country pack. No country rule lives in this tool, nor in the function behind it. Name a report_code only where a country files several declarations. It prepares figures; it files nothing.',
       inputSchema: read.VatReturnInput.shape,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },

@@ -270,6 +270,33 @@ describe('the books, through the tools', () => {
     expect(amount('54')).toBe('210.00');
     // Belgium's frame VI: what is due, derived from the other boxes.
     expect(amount('71')).toBe('210.00');
+
+    // The form says which one it is and what each box is called, so an
+    // assistant can read the return out without knowing the country.
+    expect(vat['report_code']).toBe('BE-VAT-PERIODIC');
+    expect(boxes.find((row) => row['box'] === '54')?.['name']).toBe(
+      'TVA due sur les opérations des grilles 01, 02 et 03',
+    );
+    expect(boxes.find((row) => row['box'] === 'XX')?.['hidden']).toBe(true);
+  });
+
+  it('takes the form by name where a country files more than one', async () => {
+    const named = record(
+      await readTools.vatReturn(backend, {
+        company_id: fx.companyId,
+        from: '2026-04-01',
+        to: '2026-06-30',
+        report_code: 'BE-VAT-PERIODIC',
+      }),
+    );
+    const implied = record(
+      await readTools.vatReturn(backend, {
+        company_id: fx.companyId,
+        from: '2026-04-01',
+        to: '2026-06-30',
+      }),
+    );
+    expect(named['boxes']).toEqual(implied['boxes']);
   });
 
   it('generates a FEC that passes its own checks', async () => {
