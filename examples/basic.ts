@@ -6,9 +6,9 @@
  */
 import { writeFileSync } from 'node:fs';
 import { checkBnbEquations, generateCbsoXbrl } from '../src/index.js';
-import { exampleInput } from '../test/fixtures/example-input.js';
+import { exampleInput, exampleValues } from '../test/fixtures/example-input.js';
 
-const violations = checkBnbEquations(exampleInput.values);
+const violations = checkBnbEquations(exampleValues);
 if (violations.length > 0) {
   for (const v of violations) {
     console.error(`✗ ${v.rule} (${v.column}): expected ${v.expected}, got ${v.actual}`);

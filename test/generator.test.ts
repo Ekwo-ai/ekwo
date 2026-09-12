@@ -6,9 +6,9 @@ import {
   generateCbsoXbrl,
   unknownCodes,
   XbrlCbso,
-  CBSO_25_M01F,
+  CBSO_26_M01F,
 } from '../src/index.js';
-import { exampleInput } from './fixtures/example-input.js';
+import { exampleInput, exampleValues } from './fixtures/example-input.js';
 
 const GOLDEN = new URL('./fixtures/example.xbrl', import.meta.url);
 
@@ -17,7 +17,7 @@ describe('generateCbsoXbrl', () => {
 
   it('is a well-formed XBRL instance of the m01-f model', () => {
     expect(xml.startsWith('<?xml version="1.0" encoding="UTF-8"?>\n<xbrl xml:lang="fr"')).toBe(true);
-    expect(xml).toContain(`<link:schemaRef xlink:type="simple" xlink:href="${CBSO_25_M01F.schemaRef}"/>`);
+    expect(xml).toContain(`<link:schemaRef xlink:type="simple" xlink:href="${CBSO_26_M01F.schemaRef}"/>`);
     expect(xml.trim().endsWith('</xbrl>')).toBe(true);
   });
 
@@ -32,9 +32,9 @@ describe('generateCbsoXbrl', () => {
   });
 
   it('carries the reporting code in the dimensions, not in the element name', () => {
-    // 20/58 (total assets) current year → bas:m25 / part:m3 / prd:m1
+    // 20/58 (total assets) current year → bas:m25 / part:m1 / prd:m1
     const ctx = xml.match(
-      /<context id="(c\d+)"><entity>.*?<\/entity><period><instant>2025-12-31<\/instant><\/period><scenario><xbrldi:explicitMember dimension="dim:bas">bas:m25<\/xbrldi:explicitMember><xbrldi:explicitMember dimension="dim:part">part:m3<\/xbrldi:explicitMember><xbrldi:explicitMember dimension="dim:prd">prd:m1<\/xbrldi:explicitMember><\/scenario><\/context>/,
+      /<context id="(c\d+)"><entity>.*?<\/entity><period><instant>2025-12-31<\/instant><\/period><scenario><xbrldi:explicitMember dimension="dim:bas">bas:m25<\/xbrldi:explicitMember><xbrldi:explicitMember dimension="dim:part">part:m1<\/xbrldi:explicitMember><xbrldi:explicitMember dimension="dim:prd">prd:m1<\/xbrldi:explicitMember><\/scenario><\/context>/,
     );
     expect(ctx).not.toBeNull();
     expect(xml).toContain(`<met:am1 contextRef="${ctx?.[1]}" unitRef="EUR" decimals="INF">201500.00</met:am1>`);
@@ -43,7 +43,7 @@ describe('generateCbsoXbrl', () => {
   it('only emits facts that have a value', () => {
     expect(xml).not.toContain('bas:m1"'); // no stock (code 3 / 30/36) provided
     const facts = xml.match(/<met:/g) ?? [];
-    const provided = Object.values(exampleInput.values).flatMap((v) => [v.n, v.p]).filter((x) => x != null).length;
+    const provided = Object.values(exampleValues).flatMap((v) => [v.n, v.p]).filter((x) => x != null).length;
     expect(facts.length).toBeGreaterThan(provided);
   });
 
@@ -54,9 +54,13 @@ describe('generateCbsoXbrl', () => {
   });
 
   it('lists the codes the model does not know, instead of failing silently', () => {
-    expect(unknownCodes({ '20/58': { n: 1 }, '694': { n: 1 }, '694/7': { n: 1 } })).toEqual(['694', '694/7']);
-    // '44' (trade debts heading) and the dividend lines exist on the full model only
-    expect(unknownCodes(exampleInput.values)).toEqual(['44', '694', '694/7']);
+    // 20/28, 70/74 and 9902 are pre-2016 codes that the current scheme dropped.
+    expect(unknownCodes({ '20/58': { n: 1 }, '20/28': { n: 1 }, '9902': { n: 1 } })).toEqual([
+      '20/28',
+      '9902',
+    ]);
+    // Sorted, so the answer does not depend on the order of the input keys.
+    expect(unknownCodes(exampleValues)).toEqual([]);
   });
 
   it('deduplicates contexts', () => {
@@ -106,14 +110,14 @@ describe('generateCbsoXbrl', () => {
   });
 
   it('accepts a custom template through the class API', () => {
-    const template = { schemaRef: CBSO_25_M01F.schemaRef, facts: CBSO_25_M01F.facts.slice(0, 1) };
+    const template = { schemaRef: CBSO_26_M01F.schemaRef, facts: CBSO_26_M01F.facts.slice(0, 1) };
     const out = new XbrlCbso(exampleInput, template).generate();
     expect(out).toContain('0123456749');
     expect(out).not.toContain('201500.00');
   });
 
   it('example input satisfies the arithmetic identities', () => {
-    expect(checkBnbEquations(exampleInput.values)).toEqual([]);
+    expect(checkBnbEquations(exampleValues)).toEqual([]);
   });
 });
 

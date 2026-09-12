@@ -2,13 +2,17 @@
  * XBRL instance generator for the Belgian standardised annual accounts
  * (National Bank of Belgium, Central Balance Sheet Office — CBSO).
  *
- * Template-driven: every emitted fact reproduces a signature observed in a
- * filing accepted by the Filing application (generic `met:*` element, explicit
- * dimensions, period, unit). The generator materialises the dimensional
- * contexts (deduplicated) and only emits the facts for which a value is
- * provided, so a partial form stays importable, as in the Filing editor.
+ * Template-driven: every emitted fact carries the signature the taxonomy gives
+ * it — generic `met:*` element, explicit dimension members, period, unit. The
+ * reporting codes come from the taxonomy package itself (see `docs/sources.md`);
+ * the identification fields, which carry no reporting code, reproduce a filing
+ * the NBB accepted. The generator materialises the dimensional contexts
+ * (deduplicated) and only emits the facts for which a value is provided, so a
+ * partial form stays importable, as in the Filing editor.
  */
-import { NAMESPACES, CBSO_25_M01F } from './taxonomy/index.js';
+import { NAMESPACES, CBSO_26_M01F } from './taxonomy/index.js';
+import { valuesFromFactKeys } from './fact-keys.js';
+import { CbsoInputError } from './errors.js';
 import { normalizeEnterpriseNumber } from './enterprise-number.js';
 import { validateInput } from './validate.js';
 import type {
@@ -18,6 +22,7 @@ import type {
   GenerateOptions,
   PostalAddress,
   TemplateFact,
+  YearValues,
 } from './types.js';
 
 const XML_HEADER = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -66,15 +71,17 @@ function prefixOf(qname: string): string | null {
 export class XbrlCbso {
   private readonly entityNumber: string;
   private readonly administrators: readonly Administrator[];
+  private readonly values: Record<string, YearValues>;
 
   constructor(
     private readonly input: CbsoInput,
-    private readonly template: CbsoTemplate = CBSO_25_M01F,
+    private readonly template: CbsoTemplate = CBSO_26_M01F,
     private readonly options: GenerateOptions = {},
   ) {
     if (options.validate !== false) validateInput(input);
     this.entityNumber = normalizeEnterpriseNumber(input.entityNumber);
     this.administrators = input.administrators ?? [];
+    this.values = mergeValues(input, template);
   }
 
   /** The XBRL document, as a UTF-8 string ready to be imported in Filing. */
@@ -152,7 +159,7 @@ export class XbrlCbso {
     const [kind, key, col] = t.role.split(':');
     if (!key) return null;
     if (kind === 'rubrique') {
-      const v = col === 'P' ? this.input.values[key]?.p : this.input.values[key]?.n;
+      const v = col === 'P' ? this.values[key]?.p : this.values[key]?.n;
       return v == null ? null : formatNumber(v, t.elem);
     }
     if (kind !== 'ident') return null;
@@ -363,6 +370,31 @@ export function formatNumber(v: number, elem: string): string {
 }
 
 /**
+ * The figures a filing will actually carry: {@link CbsoInput.values} plus the
+ * lines of {@link CbsoInput.lines} resolved against the template. A code given
+ * on both sides with two different figures is an error rather than a silent
+ * overwrite.
+ */
+export function mergeValues(
+  input: CbsoInput,
+  template: CbsoTemplate = CBSO_26_M01F,
+): Record<string, YearValues> {
+  const fromLines = input.lines ? valuesFromFactKeys(input.lines, template) : {};
+  const merged: Record<string, YearValues> = { ...fromLines };
+  for (const [code, value] of Object.entries(input.values ?? {})) {
+    const line = fromLines[code];
+    if (line && (line.n !== (value.n ?? null) || line.p !== (value.p ?? null))) {
+      throw new CbsoInputError(
+        'given both as a reporting code and as a statement line, with different figures',
+        `values.${code}`,
+      );
+    }
+    merged[code] = value;
+  }
+  return merged;
+}
+
+/**
  * Codes of `values` that the template does not know and that
  * {@link generateCbsoXbrl} would therefore not emit. Useful to surface, before
  * filing, figures that belong to another model (full, micro) or to an annex
@@ -370,14 +402,44 @@ export function formatNumber(v: number, elem: string): string {
  */
 export function unknownCodes(
   values: Record<string, unknown>,
-  template: CbsoTemplate = CBSO_25_M01F,
+  template: CbsoTemplate = CBSO_26_M01F,
 ): string[] {
   const known = new Set<string>();
   for (const t of template.facts) {
     const [kind, code] = t.role.split(':');
     if (kind === 'rubrique' && code) known.add(code);
   }
-  return Object.keys(values).filter((code) => !known.has(code));
+  return Object.keys(values).filter((code) => !known.has(code)).sort();
+}
+
+/**
+ * Figures that would be dropped: a code the model does not have, or a code
+ * whose column the model does not have — the annex boxes the NBB itself
+ * suffixes with `P` (`8059P`, `1003P`) exist only in the previous-year column,
+ * so a figure left under `n` would never reach the filing.
+ */
+export function unfiledValues(
+  input: CbsoInput,
+  template: CbsoTemplate = CBSO_26_M01F,
+): Array<{ code: string; column: 'n' | 'p'; reason: 'unknown code' | 'no such column' }> {
+  const columns = new Map<string, Set<'n' | 'p'>>();
+  for (const t of template.facts) {
+    const [kind, code, col] = t.role.split(':');
+    if (kind !== 'rubrique' || !code) continue;
+    const set = columns.get(code) ?? new Set<'n' | 'p'>();
+    set.add(col === 'P' ? 'p' : 'n');
+    columns.set(code, set);
+  }
+  const out: Array<{ code: string; column: 'n' | 'p'; reason: 'unknown code' | 'no such column' }> = [];
+  for (const [code, value] of Object.entries(mergeValues(input, template))) {
+    const known = columns.get(code);
+    for (const column of ['n', 'p'] as const) {
+      if (value[column] == null) continue;
+      if (!known) out.push({ code, column, reason: 'unknown code' });
+      else if (!known.has(column)) out.push({ code, column, reason: 'no such column' });
+    }
+  }
+  return out.sort((a, b) => a.code.localeCompare(b.code) || a.column.localeCompare(b.column));
 }
 
 /**
@@ -385,5 +447,5 @@ export function unknownCodes(
  * `filing.cbso.nbb.be` (« Import one or more XBRL forms »).
  */
 export function generateCbsoXbrl(input: CbsoInput, options?: GenerateOptions): string {
-  return new XbrlCbso(input, CBSO_25_M01F, options).generate();
+  return new XbrlCbso(input, CBSO_26_M01F, options).generate();
 }

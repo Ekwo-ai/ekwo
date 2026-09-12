@@ -1,7 +1,11 @@
 import type { CbsoTemplate } from '../types.js';
-import { CBSO_25_M01F_FACTS } from './cbso-25-m01-f.js';
+import { CBSO_26_M01F_FACTS } from './cbso-26-m01-f.js';
+import { IDENTIFICATION_FACTS } from './identification.js';
 
-/** XML namespaces of the CBSO 25.0 taxonomy, keyed by prefix (`''` = default). */
+/** Framework of the CBSO taxonomy this package targets. */
+export const FRAMEWORK = '26.0';
+
+/** XML namespaces of the CBSO 26.0 taxonomy, keyed by prefix (`''` = default). */
 export const NAMESPACES: Readonly<Record<string, string>> = {
   '': 'http://www.xbrl.org/2003/instance',
   link: 'http://www.xbrl.org/2003/linkbase',
@@ -46,23 +50,23 @@ export const NAMESPACES: Readonly<Record<string, string>> = {
   typ: 'http://www.nbb.be/be/fr/cbso/dict/dom/typ',
   wkr: 'http://www.nbb.be/be/fr/cbso/dict/dom/wkr',
   wrg: 'http://www.nbb.be/be/fr/cbso/dict/dom/wrg',
-  'atc-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/atc-enum',
-  'cct-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/cct-enum',
-  'cty-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/cty-enum',
-  'fct-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/fct-enum',
-  'jcc-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/jcc-enum',
-  'lgf-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/lgf-enum',
-  'nmt-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/nmt-enum',
-  'pcd-enum': 'http://www.nbb.be/be/fr/cbso/25.0/enum/pcd-enum',
+  'atc-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/atc-enum',
+  'cct-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/cct-enum',
+  'cty-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/cty-enum',
+  'fct-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/fct-enum',
+  'jcc-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/jcc-enum',
+  'lgf-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/lgf-enum',
+  'nmt-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/nmt-enum',
+  'pcd-enum': 'http://www.nbb.be/be/fr/cbso/26.0/enum/pcd-enum',
 };
 
 /**
  * Template of the abridged model for companies with capital
- * (framework 25.0, model `m01-f`).
+ * (framework 26.0, model `m01-f`).
  */
-export const CBSO_25_M01F: CbsoTemplate = {
-  schemaRef: 'http://www.nbb.be/be/fr/cbso/fws/25.0/mod/m01/m01-f.xsd',
-  facts: CBSO_25_M01F_FACTS,
+export const CBSO_26_M01F: CbsoTemplate = {
+  schemaRef: `http://www.nbb.be/be/fr/cbso/fws/${FRAMEWORK}/mod/m01/m01-f.xsd`,
+  facts: [...IDENTIFICATION_FACTS, ...CBSO_26_M01F_FACTS],
 };
 
 /**
