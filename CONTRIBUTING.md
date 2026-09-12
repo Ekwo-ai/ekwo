@@ -3,6 +3,27 @@
 Thank you for being here. This file is short and every line of it is a rule
 that has cost somebody a day.
 
+## Ways to help
+
+Ekwo is built by a network, not a vendor ([MANIFESTO.md](MANIFESTO.md)).
+You do not have to write TypeScript to matter here:
+
+- **You keep books for a living.** Review the pack for your country — the
+  chart, the taxes, the declaration boxes — against the law you apply every
+  day, and put your name on it. A pack is *reviewed* when a named
+  professional has read it, and never before. Open an issue titled
+  "Review: <country>".
+- **You know your country's rules.** Propose a pack: `packs/<cc>/` is JSON
+  and CSV, and `docs/packs.md` walks you through it. Start from Belgium or
+  France and change what differs.
+- **You speak a language we do not.** Translate a chart of accounts or the
+  labels of a declaration in `packs/<cc>/i18n/`.
+- **You write software.** A bank-statement parser, an exchange export
+  parser, a format library, a connector, a module in its own schema: the
+  `good first issue` label lists what is small and self-contained.
+- **You run Ekwo.** Say what broke and what you expected. A precise bug
+  report is a contribution.
+
 ## Before you start
 
 - Open an issue first for anything that changes the schema. A migration is a

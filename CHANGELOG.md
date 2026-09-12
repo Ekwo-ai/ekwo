@@ -92,6 +92,11 @@ somewhere has already run it.
 
 ### Added
 
+- `MANIFESTO.md`: why Ekwo exists — financial autonomy for every business,
+  accounting as a commons, a network rather than a vendor — and a "Ways to
+  help" section in `CONTRIBUTING.md` for accountants, translators and
+  people who run it.
+
 - **Ekwo maintains a pack; only an accountant reviews one.** The certification
   scale had a value `ekwo` that read as "certified by Ekwo", which is a claim
   nobody here can make: writing a pack and proving it internally coherent is

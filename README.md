@@ -7,6 +7,9 @@ Built and maintained by **Ekwo**. A fully managed edition — your own instance,
 
 ## Why Ekwo
 
+> The long version — financial autonomy for every business, accounting as a
+> commons, a network rather than a vendor — is in [MANIFESTO.md](MANIFESTO.md).
+
 Accounting software has settled into two shapes, and both take something
 from you. The SaaS keeps your books on its servers, behind its API and its
 price list, and leaving means exporting a PDF. The open-source ERP gives you
