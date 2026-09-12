@@ -695,6 +695,21 @@ describe('the packs', () => {
     ]);
   });
 
+  it('make the column P0-7 exposes on a document line say something true', async () => {
+    // `document_line_items.tax_cash_basis` reads `taxes.cash_basis`, which
+    // until this change nothing ever set. It answers now.
+    const seen = await rows<{ tax_cash_basis: boolean }>(
+      db,
+      `select distinct i.tax_cash_basis
+         from document_line_items i
+         join documents d on d.id = i.document_id
+        where d.company_id = $1 and i.tax_cash_basis
+        limit 1`,
+      [fr.companyId],
+    );
+    expect(seen).toEqual([{ tax_cash_basis: true }]);
+  });
+
   it('cite the article that makes a service fall due on collection', async () => {
     const row = await one<{ legal_reference: string }>(
       db,
