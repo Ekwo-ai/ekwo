@@ -1,0 +1,701 @@
+[
+  {
+    "code": "BE-S-21",
+    "name": "Vente 21 %",
+    "description": "Taux normal",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, art. 1",
+    "vat_category": "S",
+    "sequence": 10,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "03"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "54"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "64"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-12",
+    "name": "Vente 12 %",
+    "description": "Taux reduit, tableau B",
+    "kind": "vat",
+    "rate": 12,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau B",
+    "vat_category": "S",
+    "sequence": 20,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "02"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "54"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "64"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-06",
+    "name": "Vente 6 %",
+    "description": "Taux reduit, tableau A",
+    "kind": "vat",
+    "rate": 6,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau A",
+    "vat_category": "S",
+    "sequence": 30,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "01"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "54"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        },
+        {
+          "type": "tax",
+          "account": "451000",
+          "box": "64"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-00",
+    "name": "Vente 0 %",
+    "description": "Taux zero",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau C",
+    "vat_category": "Z",
+    "sequence": 40,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "00"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-CC",
+    "name": "Vente cocontractant",
+    "description": "TVA due par le cocontractant",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 1, art. 20",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 50,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "45"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-ICG",
+    "name": "Livraison intracommunautaire",
+    "description": "Biens, exemptee",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_goods",
+    "valid_from": "1993-01-01",
+    "legal_reference": "Code TVA, art. 39bis",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
+    "sequence": 60,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "46"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "48"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-ICS",
+    "name": "Service intracommunautaire",
+    "description": "Autoliquidation par le preneur",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_services",
+    "valid_from": "2010-01-01",
+    "legal_reference": "Code TVA, art. 21 par. 2",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 70,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "44"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "48"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-S-EXP",
+    "name": "Exportation hors UE",
+    "description": "Exemptee",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "export",
+    "valid_from": "1993-01-01",
+    "legal_reference": "Code TVA, art. 39",
+    "vat_category": "G",
+    "exemption_code": "VATEX-EU-G",
+    "sequence": 80,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "47"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "49"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-21-G",
+    "name": "Achat marchandises 21 %",
+    "description": "Biens, grille 81",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, art. 1",
+    "vat_category": "S",
+    "sequence": 110,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "81"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-21-S",
+    "name": "Achat services 21 %",
+    "description": "Services et biens divers, grille 82",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, art. 1",
+    "vat_category": "S",
+    "sequence": 120,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-21-I",
+    "name": "Achat investissement 21 %",
+    "description": "Biens d'investissement, grille 83",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, art. 1",
+    "vat_category": "S",
+    "sequence": 130,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "83"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-12-S",
+    "name": "Achat services 12 %",
+    "description": "Services et biens divers",
+    "kind": "vat",
+    "rate": 12,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau B",
+    "vat_category": "S",
+    "sequence": 140,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-06-G",
+    "name": "Achat marchandises 6 %",
+    "description": "Biens",
+    "kind": "vat",
+    "rate": 6,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau A",
+    "vat_category": "S",
+    "sequence": 150,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "81"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-06-S",
+    "name": "Achat services 6 %",
+    "description": "Services et biens divers",
+    "kind": "vat",
+    "rate": 6,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 20, tableau A",
+    "vat_category": "S",
+    "sequence": 160,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-00",
+    "name": "Achat exonere",
+    "description": "Sans TVA",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "purchase",
+    "treatment": "exempt",
+    "valid_from": "1993-01-01",
+    "legal_reference": "Code TVA, art. 44",
+    "vat_category": "E",
+    "exemption_code": "VATEX-EU-132",
+    "sequence": 170,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-ICG-21",
+    "name": "Acquisition intracom. biens 21 %",
+    "description": "Report de perception, grilles 86/55/59",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_goods",
+    "valid_from": "1993-01-01",
+    "legal_reference": "Code TVA, art. 25ter",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 180,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "86"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "55"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "84"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "62"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-ICS-21",
+    "name": "Service intracom. recu 21 %",
+    "description": "Report de perception, grilles 88/55/59",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_services",
+    "valid_from": "2010-01-01",
+    "legal_reference": "Code TVA, art. 51 par. 2",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 190,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "88"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "55"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "84"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "62"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-CC-21",
+    "name": "Achat cocontractant 21 %",
+    "description": "Report de perception, grilles 87/56/59",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 1, art. 20",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 200,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "87"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "56"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "62"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "63"
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-IMP-21",
+    "name": "Importation report de perception",
+    "description": "Licence ET 14000, grilles 87/57/59",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "import",
+    "valid_from": "1996-01-01",
+    "legal_reference": "AR n. 7, art. 5",
+    "vat_category": "S",
+    "sequence": 210,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "87"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "59"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "57"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "account": "411000",
+          "box": "62"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "451000",
+          "box": "63"
+        }
+      ]
+    }
+  }
+]

@@ -115,10 +115,30 @@ instead if the account already exists, and no key is needed.
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
 | `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
+| `ekwo pack` | Compiles a country pack into its seed, and refuses a seed that is no longer the output of its pack. Runs in a checkout of the repository only. |
 
 There is no `eject`, because there is nothing to eject from. The schema is in
 your database, the migrations are in the repository under AGPL-3.0, and
 `supabase db push` applies them without this CLI ever running again.
+
+## `ekwo pack`, in a checkout
+
+A country is data: `packs/<cc>/` holds a manifest, the chart of accounts as
+CSV, the taxes as JSON, and — accepted today, compiled by later sub-tasks —
+the declaration boxes, the financial statements and the translations. The
+compiler turns one into `supabase/seed/<n>_pack_<cc>.sql`, which is committed.
+
+```sh
+ekwo pack list           # the packs this checkout carries, and their certification
+ekwo pack build be       # write supabase/seed/10_pack_be.sql from packs/be
+ekwo pack build --all
+ekwo pack check --all    # exit 1 if a committed seed is not the output of its pack
+```
+
+`check` is what the CI runs, so the SQL cannot drift from the pack. Neither
+touches a database: the seed is applied by `ekwo init`, `supabase db push` or
+`psql -f`, like every other seed. A published installation has the compiled
+seeds and no `packs/` folder, and the command says so rather than guessing.
 
 ## Flags
 

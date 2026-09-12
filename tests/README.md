@@ -20,6 +20,7 @@ npm test
 | `instance.test.ts` | the instance row is a true singleton, only an instance administrator creates a company, registration is optional and reversible, no table carries a `tenant_id` |
 | `line_defaults.test.ts` | the account a line with none falls back to — the line, the company default, the country model — including under `set role authenticated`, and the refusal when nothing anywhere has an answer |
 | `fec.test.ts` | the eighteen columns in order, the formats, `checkFec()`, and a golden file against the demo company |
+| `packs.test.ts` | the compiled country packs against the four hand-written seeds they replace, row by row on the five template tables; the round trip pack → seed → database → pack; the committed seeds being the exact output of their pack; and the format itself — the CSV subset, a manifest field nobody defined, and the absence of any field through which a pack could execute something |
 
 The installer and the MCP server have their own folders, `tests/cli/` and
 `tests/mcp/`, which run their code against the same PGlite.
@@ -66,6 +67,11 @@ sequence that exercises the PostgREST route against a real project.
   will not create without it, and it never ships.
 - `fixtures/demo-fec.txt` — the golden FEC of the demo company. If a change
   to the seeds moves it, regenerate it on purpose and say so in the commit.
+- `fixtures/seeds-before-packs/` — the four chart and tax seeds as they were
+  written by hand, before `packs/` compiled them. `packs.test.ts` loads them
+  into one database and the generated pair into another and compares every
+  template row. They are frozen: they are the *before* of that comparison, not
+  a second source of truth.
 - `cli/helpers.ts` — PGlite behind the CLI's `SqlClient`, an `auth.users` row
   standing in for an account GoTrue created, and a `fetch` that answers from a
   table of routes and records what it was sent.

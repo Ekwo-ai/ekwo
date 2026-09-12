@@ -1,0 +1,56 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
+  "code": "BE-VAT-PERIODIC",
+  "name": "Déclaration périodique à la TVA",
+  "period": "month_or_quarter",
+  "valid_from": "2024-01-01",
+  "legal_reference": "AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI",
+  "boxes": [
+    { "box": "00", "kind": "base", "name": "Opérations soumises à un régime particulier", "sequence": 10 },
+    { "box": "01", "kind": "base", "name": "Opérations à 6 %", "sequence": 20 },
+    { "box": "02", "kind": "base", "name": "Opérations à 12 %", "sequence": 30 },
+    { "box": "03", "kind": "base", "name": "Opérations à 21 %", "sequence": 40 },
+    { "box": "44", "kind": "base", "name": "Services intracommunautaires pour lesquels la TVA est due par le preneur", "sequence": 50 },
+    { "box": "45", "kind": "base", "name": "Opérations pour lesquelles la TVA est due par le cocontractant", "sequence": 60 },
+    { "box": "46", "kind": "base", "name": "Livraisons intracommunautaires exemptées", "sequence": 70 },
+    { "box": "47", "kind": "base", "name": "Autres opérations exemptées", "sequence": 80 },
+    { "box": "48", "kind": "base", "name": "Notes de crédit relatives aux opérations des grilles 44 et 46", "sequence": 90 },
+    { "box": "49", "kind": "base", "name": "Notes de crédit relatives aux autres opérations du cadre II", "sequence": 100 },
+
+    { "box": "81", "kind": "base", "name": "Marchandises, matières premières et auxiliaires", "sequence": 110 },
+    { "box": "82", "kind": "base", "name": "Services et biens divers", "sequence": 120 },
+    { "box": "83", "kind": "base", "name": "Biens d'investissement", "sequence": 130 },
+    { "box": "84", "kind": "base", "name": "Notes de crédit reçues relatives aux grilles 86 et 88", "sequence": 140 },
+    { "box": "85", "kind": "base", "name": "Notes de crédit reçues relatives aux autres opérations du cadre III", "sequence": 150 },
+    { "box": "86", "kind": "base", "name": "Acquisitions intracommunautaires de biens", "sequence": 160 },
+    { "box": "87", "kind": "base", "name": "Autres opérations à l'entrée pour lesquelles la TVA est due par le déclarant", "sequence": 170 },
+    { "box": "88", "kind": "base", "name": "Services intracommunautaires reçus", "sequence": 180 },
+
+    { "box": "54", "kind": "tax", "name": "TVA due sur les opérations des grilles 01, 02 et 03", "sequence": 200 },
+    { "box": "55", "kind": "tax", "name": "TVA due sur les opérations des grilles 86 et 88", "sequence": 210 },
+    { "box": "56", "kind": "tax", "name": "TVA due sur les opérations de la grille 87, importations exclues", "sequence": 220 },
+    { "box": "57", "kind": "tax", "name": "TVA due sur les importations avec report de perception", "sequence": 230 },
+    { "box": "61", "kind": "tax", "name": "Diverses régularisations en faveur de l'État", "sequence": 240 },
+    { "box": "63", "kind": "tax", "name": "TVA à reverser mentionnée sur les notes de crédit reçues", "sequence": 250 },
+    { "box": "59", "kind": "tax", "name": "TVA déductible", "sequence": 260 },
+    { "box": "62", "kind": "tax", "name": "Diverses régularisations en faveur du déclarant", "sequence": 270 },
+    { "box": "64", "kind": "tax", "name": "TVA à récupérer mentionnée sur les notes de crédit délivrées", "sequence": 280 },
+
+    {
+      "box": "XX", "kind": "total", "name": "Total de la TVA due", "sequence": 300,
+      "plus": ["54", "55", "56", "57", "61", "63"], "hidden": true
+    },
+    {
+      "box": "YY", "kind": "total", "name": "Total de la TVA déductible", "sequence": 310,
+      "plus": ["59", "62", "64"], "hidden": true
+    },
+    {
+      "box": "71", "kind": "total", "name": "TVA à payer à l'État", "sequence": 320,
+      "plus": ["XX"], "minus": ["YY"], "floor_zero": true
+    },
+    {
+      "box": "72", "kind": "total", "name": "Sommes dues par l'État", "sequence": 330,
+      "plus": ["YY"], "minus": ["XX"], "floor_zero": true
+    }
+  ]
+}

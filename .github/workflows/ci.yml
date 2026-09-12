@@ -43,6 +43,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - run: npm ci
+      # The country seeds are compiled from packs/. A seed that is no longer
+      # the exact output of its pack means the two have drifted, and the pack
+      # is the source.
+      - name: The country seeds are the output of their packs
+        run: |
+          npm run build --workspace ekwo
+          node packages/cli/dist/bin.js pack check --all
       - name: No private data in the repository
         run: node scripts/check-no-private-data.mjs
       - name: No secret committed in .env.example

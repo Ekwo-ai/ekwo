@@ -18,10 +18,8 @@ schema_paths = []
 enabled = true
 sql_paths = [
   "./seed/00_currencies.sql",
-  "./seed/10_chart_be.sql",
-  "./seed/11_chart_fr.sql",
-  "./seed/20_taxes_be.sql",
-  "./seed/21_taxes_fr.sql",
+  "./seed/10_pack_be.sql",
+  "./seed/11_pack_fr.sql",
 ]
 
 [api]

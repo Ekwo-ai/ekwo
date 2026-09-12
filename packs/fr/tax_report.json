@@ -1,0 +1,47 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
+  "code": "FR-VAT-CA3",
+  "name": "Déclaration de TVA 3310-CA3",
+  "period": "month_or_quarter",
+  "valid_from": "2022-01-01",
+  "legal_reference": "CGI, art. 287 — formulaire 3310-CA3",
+  "boxes": [
+    { "box": "01", "kind": "total", "name": "Ventes, prestations de services", "sequence": 10, "plus": ["08:base", "09:base", "9B:base", "13:base"] },
+    { "box": "03", "kind": "base", "name": "Acquisitions intracommunautaires", "sequence": 20 },
+    { "box": "2A", "kind": "base", "name": "Achats de prestations de services intracommunautaires", "sequence": 30 },
+    { "box": "3A", "kind": "base", "name": "Importations autoliquidées", "sequence": 40 },
+    { "box": "3C", "kind": "base", "name": "Achats de biens ou de prestations auprès d'un assujetti non établi en France", "sequence": 50 },
+    { "box": "04", "kind": "base", "name": "Exportations hors Union européenne", "sequence": 60 },
+    { "box": "05", "kind": "base", "name": "Autres opérations non imposables", "sequence": 70 },
+    { "box": "06", "kind": "base", "name": "Livraisons intracommunautaires", "sequence": 80 },
+
+    { "box": "08", "kind": "base", "name": "Taux normal 20 % — base hors taxe", "sequence": 100 },
+    { "box": "09", "kind": "base", "name": "Taux réduit 5,5 % — base hors taxe", "sequence": 110 },
+    { "box": "9B", "kind": "base", "name": "Taux réduit 10 % — base hors taxe", "sequence": 120 },
+    { "box": "13", "kind": "base", "name": "Taux particulier 2,1 % — base hors taxe", "sequence": 130 },
+
+    { "box": "08", "kind": "tax", "name": "Taux normal 20 % — TVA due", "sequence": 140 },
+    { "box": "09", "kind": "tax", "name": "Taux réduit 5,5 % — TVA due", "sequence": 150 },
+    { "box": "9B", "kind": "tax", "name": "Taux réduit 10 % — TVA due", "sequence": 160 },
+    { "box": "13", "kind": "tax", "name": "Taux particulier 2,1 % — TVA due", "sequence": 170 },
+
+    {
+      "box": "16", "kind": "total", "name": "Total de la TVA brute due", "sequence": 200,
+      "plus": ["08:tax", "09:tax", "9B:tax", "13:tax"]
+    },
+    { "box": "19", "kind": "tax", "name": "TVA déductible sur immobilisations", "sequence": 210 },
+    { "box": "20", "kind": "tax", "name": "TVA déductible sur autres biens et services", "sequence": 220 },
+    {
+      "box": "23", "kind": "total", "name": "Total de la TVA déductible", "sequence": 230,
+      "plus": ["19", "20"]
+    },
+    {
+      "box": "28", "kind": "total", "name": "TVA nette due", "sequence": 240,
+      "plus": ["16"], "minus": ["23"], "floor_zero": true
+    },
+    {
+      "box": "25", "kind": "total", "name": "Crédit de TVA", "sequence": 250,
+      "plus": ["23"], "minus": ["16"], "floor_zero": true
+    }
+  ]
+}

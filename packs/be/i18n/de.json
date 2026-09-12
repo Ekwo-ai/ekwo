@@ -1,0 +1,8 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/i18n",
+  "language": "de",
+  "accounts": {},
+  "journals": {},
+  "taxes": {},
+  "tax_report_boxes": {}
+}

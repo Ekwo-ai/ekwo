@@ -24,6 +24,23 @@ export {
   type Step,
 } from './bootstrap.js';
 export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js';
+export { compilePack, seedFileName } from './pack/compile.js';
+export {
+  listPacks,
+  packsDir,
+  parseCsv,
+  readPack,
+  readSchema,
+  repoRootDir,
+  seedOutputDir,
+  PackError,
+  type Manifest,
+  type Pack,
+  type PackAccount,
+  type PackPosting,
+  type PackTax,
+} from './pack/read.js';
+export { validate, type Issue } from './pack/schema.js';
 export { COMMANDS, help, run, version } from './cli.js';
 export { CONFIG_FILE, readConfig, writeConfig, type EkwoConfig } from './config.js';
 export {

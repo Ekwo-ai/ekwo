@@ -1,0 +1,105 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "country": "BE",
+  "name": "Belgium",
+  "version": "1.0.0",
+  "schema_min": "20260911121100",
+  "certification": {
+    "status": "ekwo",
+    "by": "Ekwo AI",
+    "on": "2026-09-12",
+    "sources": [
+      "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
+      "Code de la TVA, art. 37",
+      "Arrêté royal n. 20 du 20 juillet 1970",
+      "Arrêté royal n. 1 du 29 décembre 1992, art. 20"
+    ]
+  },
+  "defaults": {
+    "currency": "EUR",
+    "language": "fr",
+    "rounding_method": "half_up",
+    "roles": {
+      "receivable": "400000",
+      "payable": "440000",
+      "suspense": "499000",
+      "rounding": "664000",
+      "retained_earnings": "140000",
+      "sales": "700000",
+      "purchase": "610000",
+      "bank": "550000",
+      "cash": "570000"
+    },
+    "journal_roles": {
+      "sales": "SAL",
+      "purchase": "PUR",
+      "miscellaneous": "MISC"
+    }
+  },
+  "journals": [
+    {
+      "code": "SAL",
+      "type": "sales",
+      "name": "Journal des ventes",
+      "sequence": 10
+    },
+    {
+      "code": "PUR",
+      "type": "purchase",
+      "name": "Journal des achats",
+      "sequence": 20
+    },
+    {
+      "code": "BNK",
+      "type": "bank",
+      "name": "Journal financier",
+      "sequence": 30
+    },
+    {
+      "code": "CSH",
+      "type": "cash",
+      "name": "Journal de caisse",
+      "sequence": 40
+    },
+    {
+      "code": "MISC",
+      "type": "general",
+      "name": "Opérations diverses",
+      "sequence": 50
+    },
+    {
+      "code": "OPN",
+      "type": "opening",
+      "name": "Journal d'ouverture",
+      "sequence": 60
+    }
+  ],
+  "documents": {
+    "numbering": "gapless_per_year",
+    "number_format": "{CODE}/{YYYY}/{NNNN}",
+    "legal_payment_days": 30,
+    "tax_point": "invoice_date",
+    "mentions": [
+      {
+        "code": "reverse_charge",
+        "when": "treatment=domestic_reverse_charge",
+        "text": "Autoliquidation — TVA à acquitter par le cocontractant, AR n. 1, art. 20"
+      }
+    ]
+  },
+  "einvoicing": {
+    "profile": "peppol-bis-3",
+    "mandatory_from": "2026-01-01",
+    "party_scheme": "0208",
+    "vat_scheme": "BE:VAT"
+  },
+  "bank": {
+    "statement_formats": [
+      "coda",
+      "camt.053"
+    ],
+    "payment_formats": [
+      "pain.001"
+    ]
+  }
+}

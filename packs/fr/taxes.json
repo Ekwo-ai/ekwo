@@ -1,0 +1,628 @@
+[
+  {
+    "code": "FR-S-20",
+    "name": "Vente 20 %",
+    "description": "Taux normal",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278",
+    "vat_category": "S",
+    "sequence": 10,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "08"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "08",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-10",
+    "name": "Vente 10 %",
+    "description": "Taux reduit",
+    "kind": "vat",
+    "rate": 10,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278 bis",
+    "vat_category": "S",
+    "sequence": 20,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "9B"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "9B"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "9B",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "9B",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-055",
+    "name": "Vente 5,5 %",
+    "description": "Taux reduit",
+    "kind": "vat",
+    "rate": 5.5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278-0 bis",
+    "vat_category": "S",
+    "sequence": 30,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "09"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "09"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "09",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "09",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-021",
+    "name": "Vente 2,1 %",
+    "description": "Taux particulier",
+    "kind": "vat",
+    "rate": 2.1,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 281 quater",
+    "vat_category": "S",
+    "sequence": 40,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "13"
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "13"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "13",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445710",
+          "box": "13",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-AL",
+    "name": "Vente autoliquidation",
+    "description": "TVA due par le preneur",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 283-2 nonies",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 50,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "05"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "05",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-ICG",
+    "name": "Livraison intracommunautaire",
+    "description": "Biens, exoneree",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_goods",
+    "valid_from": "1993-01-01",
+    "legal_reference": "CGI, art. 262 ter I",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
+    "sequence": 60,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "06"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "06",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-ICS",
+    "name": "Service intracommunautaire",
+    "description": "Autoliquidation par le preneur",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_services",
+    "valid_from": "2010-01-01",
+    "legal_reference": "CGI, art. 259-1",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 70,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "05"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "05",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-S-EXP",
+    "name": "Exportation hors UE",
+    "description": "Exoneree",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "export",
+    "valid_from": "1993-01-01",
+    "legal_reference": "CGI, art. 262 I",
+    "vat_category": "G",
+    "exemption_code": "VATEX-EU-G",
+    "sequence": 80,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "04"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "04",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-20",
+    "name": "Achat 20 %",
+    "description": "Autres biens et services",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278",
+    "vat_category": "S",
+    "sequence": 110,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-20-I",
+    "name": "Achat immobilisation 20 %",
+    "description": "Immobilisations",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278",
+    "vat_category": "S",
+    "sequence": 120,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445662",
+          "box": "19",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445662",
+          "box": "19",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-10",
+    "name": "Achat 10 %",
+    "description": "Autres biens et services",
+    "kind": "vat",
+    "rate": 10,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278 bis",
+    "vat_category": "S",
+    "sequence": 130,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-055",
+    "name": "Achat 5,5 %",
+    "description": "Autres biens et services",
+    "kind": "vat",
+    "rate": 5.5,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 278-0 bis",
+    "vat_category": "S",
+    "sequence": 140,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "sequence": 20
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100,
+          "sequence": 20
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-00",
+    "name": "Achat exonere",
+    "description": "Sans TVA",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "purchase",
+    "treatment": "exempt",
+    "valid_from": "1993-01-01",
+    "legal_reference": "CGI, art. 261",
+    "vat_category": "E",
+    "exemption_code": "VATEX-EU-132",
+    "sequence": 150,
+    "postings": {}
+  },
+  {
+    "code": "FR-P-ICG-20",
+    "name": "Acquisition intracom. biens 20 %",
+    "description": "Autoliquidation, lignes 03/08/20",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_goods",
+    "valid_from": "1993-01-01",
+    "legal_reference": "CGI, art. 256 bis",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 160,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "03"
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "03",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-ICS-20",
+    "name": "Service intracom. recu 20 %",
+    "description": "Autoliquidation, lignes 2A/08/20",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_services",
+    "valid_from": "2010-01-01",
+    "legal_reference": "CGI, art. 283-2",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 170,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "2A"
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "2A",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-AL-20",
+    "name": "Achat autoliquidation 20 %",
+    "description": "Assujetti non etabli, lignes 3C/08/20",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2014-01-01",
+    "legal_reference": "CGI, art. 283-1",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 180,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "3C"
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "3C",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "FR-P-IMP-20",
+    "name": "Importation autoliquidee 20 %",
+    "description": "Lignes 3A/08/20",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "import",
+    "valid_from": "2022-01-01",
+    "legal_reference": "CGI, art. 293 A",
+    "vat_category": "S",
+    "sequence": 190,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "3A"
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "3A",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "445660",
+          "box": "20",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "445200",
+          "box": "08",
+          "box_factor": -100
+        }
+      ]
+    }
+  }
+]

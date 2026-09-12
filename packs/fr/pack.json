@@ -1,0 +1,88 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "country": "FR",
+  "name": "France",
+  "version": "1.0.0",
+  "schema_min": "20260911121100",
+  "certification": {
+    "status": "ekwo",
+    "by": "Ekwo AI",
+    "on": "2026-09-12",
+    "sources": [
+      "Règlement ANC 2022-06 — plan comptable général",
+      "Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater",
+      "Formulaire 3310-CA3"
+    ]
+  },
+  "defaults": {
+    "currency": "EUR",
+    "language": "fr",
+    "rounding_method": "half_up",
+    "roles": {
+      "receivable": "411000",
+      "payable": "401000",
+      "suspense": "471000",
+      "rounding": "658000",
+      "retained_earnings": "110000",
+      "sales": "706000",
+      "purchase": "606300",
+      "bank": "512000",
+      "cash": "530000"
+    },
+    "journal_roles": {
+      "sales": "SAL",
+      "purchase": "PUR",
+      "miscellaneous": "MISC"
+    }
+  },
+  "journals": [
+    {
+      "code": "SAL",
+      "type": "sales",
+      "name": "Journal des ventes",
+      "sequence": 10
+    },
+    {
+      "code": "PUR",
+      "type": "purchase",
+      "name": "Journal des achats",
+      "sequence": 20
+    },
+    {
+      "code": "BNK",
+      "type": "bank",
+      "name": "Journal de banque",
+      "sequence": 30
+    },
+    {
+      "code": "CSH",
+      "type": "cash",
+      "name": "Journal de caisse",
+      "sequence": 40
+    },
+    {
+      "code": "MISC",
+      "type": "general",
+      "name": "Opérations diverses",
+      "sequence": 50
+    },
+    {
+      "code": "OPN",
+      "type": "opening",
+      "name": "Journal des à-nouveaux",
+      "sequence": 60
+    }
+  ],
+  "documents": {
+    "numbering": "gapless_per_year",
+    "number_format": "{CODE}/{YYYY}/{NNNN}",
+    "legal_payment_days": 30,
+    "mentions": [
+      {
+        "code": "reverse_charge",
+        "when": "treatment=domestic_reverse_charge",
+        "text": "Autoliquidation — TVA due par le preneur, CGI art. 283-2"
+      }
+    ]
+  }
+}

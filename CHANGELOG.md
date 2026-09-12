@@ -75,6 +75,32 @@ somewhere has already run it.
 
 ### Added
 
+- **Country packs, and the compiler that turns one into a seed.** A country
+  now lives in `packs/<cc>/`: `pack.json` (manifest, defaults, roles,
+  journals), `accounts.csv` (the chart, in the CSV subset every accounting
+  tool exchanges), `taxes.json` (taxes and their postings), plus
+  `tax_report.json`, `statements.json` and `i18n/`, which this release
+  validates and does not yet compile. `packs/schema/pack.1.json` is the
+  published JSON Schema (draft 2020-12) for all of them, and it has no field
+  through which a pack could execute anything — a test asserts that.
+
+  `ekwo pack build <cc>|--all` compiles a pack into
+  `supabase/seed/<n>_pack_<cc>.sql`, which is committed; `ekwo pack check
+  --all` recompiles in memory and refuses a stale seed, and the CI's *hygiene*
+  job runs it. The SQL is a build artefact like `docs/schema.md`, and
+  `supabase db push` and `psql -f` still install a country without this CLI
+  ever running. The CLI gained no dependency: the schema validator is a
+  hundred and eighty lines of the subset the pack schema uses.
+
+  Belgium and France were extracted from the four seeds that held them, with
+  no change of content: `10_pack_be.sql` and `11_pack_fr.sql` replace
+  `10_chart_be.sql`, `11_chart_fr.sql`, `20_taxes_be.sql` and
+  `21_taxes_fr.sql`, which move to `tests/fixtures/seeds-before-packs/` where
+  a test loads the old four into one database and the new two into another and
+  compares every row of `account_templates` (353 + 392), `journal_templates`
+  (12), `tax_templates` (36), `tax_posting_templates` (128) and
+  `country_defaults` (2).
+
 - `docs/international.md`: the plan for making the core usable in any
   country — the country pack as data, four phases, the order of countries.
 
