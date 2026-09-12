@@ -85,6 +85,12 @@ the only way two lines may share an account.
 scheme prints it: `1` on an asset or an expense, `-1` on a liability, equity or
 income line.
 
+A `balance_sheet` reads balances cumulative to the end of the period; an
+`income_statement` reads the movements inside it, **less the entries
+`close_fiscal_year()` marks `kind = 'closing'`**, so a closed year still
+reports what it earned. A balance sheet keeps those entries: they are what
+carries the result onto the line it shows.
+
 **A chart names the statements it reports on.** A statement named by exactly
 one chart belongs to that chart; one named by several, or by none, fits every
 chart of the country. A chart that names none falls back to `packs/generic/`,

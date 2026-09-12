@@ -83,7 +83,7 @@ describe('the statements the packs carry', () => {
       { code: 'BE-BNB-ABBR-IS', country: 'BE', chart_code: 'default', kind: 'income_statement', lines: 16, rules: 14 },
       { code: 'FR-2050', country: 'FR', chart_code: 'default', kind: 'balance_sheet', lines: 63, rules: 100 },
       { code: 'FR-2052', country: 'FR', chart_code: 'default', kind: 'income_statement', lines: 49, rules: 51 },
-      { code: 'IFRS-SME-BS', country: null, chart_code: null, kind: 'balance_sheet', lines: 17, rules: 12 },
+      { code: 'IFRS-SME-BS', country: null, chart_code: null, kind: 'balance_sheet', lines: 18, rules: 17 },
       { code: 'IFRS-SME-IS', country: null, chart_code: null, kind: 'income_statement', lines: 7, rules: 5 },
     ]);
   });
@@ -304,12 +304,19 @@ describe('the generic framework, on any chart', () => {
   it('gives the same totals as the Belgian scheme on a Belgian company', async () => {
     const be = await amounts(demo, 'BE-BNB-ABBR-BS', from, to);
     const generic = await amounts(demo, 'IFRS-SME-BS', from, to);
-    expect(generic['A-TOT']).toBeCloseTo(be['20/58']!, 2);
-    expect(generic['EL-TOT']).toBeCloseTo(be['10/49']!, 2);
-
     const beIs = await amounts(demo, 'BE-BNB-ABBR-IS', from, to);
     const genericIs = await amounts(demo, 'IFRS-SME-IS', from, to);
+
+    expect(generic['A-TOT']).toBeCloseTo(be['20/58']!, 2);
     expect(genericIs['PROFIT']).toBeCloseTo(beIs['9905']!, 2);
+
+    // The two balance sheets differ on one line, deliberately. The NBB frame
+    // is filed after the year is closed, so it shows the result only once the
+    // meeting has put it somewhere; the generic one derives it from the
+    // movements and balances on its own, whether or not the year is closed.
+    expect(generic['E-RESULT']).toBeCloseTo(beIs['9905']!, 2);
+    expect(generic['EL-TOT']).toBeCloseTo(be['10/49']! + beIs['9905']!, 2);
+    expect(generic['A-TOT']).toBeCloseTo(generic['EL-TOT']!, 2);
   });
 
   it('works on a chart that declares no statement of its own', async () => {
@@ -355,7 +362,8 @@ describe('the generic framework, on any chart', () => {
     const bs = await amounts(company.id, 'IFRS-SME-BS', from, to);
     const is = await amounts(company.id, 'IFRS-SME-IS', from, to);
     expect(is['PROFIT']).toBeCloseTo(300, 2);
-    expect(bs['A-TOT']).toBeCloseTo(bs['EL-TOT']! + is['PROFIT']!, 2);
+    expect(bs['E-RESULT']).toBeCloseTo(300, 2);
+    expect(bs['A-TOT']).toBeCloseTo(bs['EL-TOT']!, 2);
 
     const left = await rows(db, `select * from unmapped_accounts($1, 'IFRS-SME-BS', $2, $3)`, [
       company.id,
@@ -390,6 +398,92 @@ describe('the generic framework, on any chart', () => {
       'IFRS-SME-BS',
       'IFRS-SME-IS',
     ]);
+  });
+});
+
+describe('a year that has been closed', () => {
+  // `close_fiscal_year()` books the mirror image of every income and expense
+  // account, on the last day of the year, marked `kind = 'closing'`. The
+  // income statement has to leave that entry out or a closed year reads as a
+  // result of nil; the balance sheet has to keep it, because it is what moves
+  // the result onto the line the balance sheet shows it on.
+  const from = '2026-01-01';
+  const to = '2026-12-31';
+  let company: string;
+  let owner: string;
+  let before: Record<string, number>;
+
+  beforeAll(async () => {
+    const fx = await newCompany(db, { country: 'BE', name: 'Clôturée SRL' });
+    company = fx.companyId;
+    owner = fx.ownerId;
+
+    const customer = await newContact(db, company, { name: 'Client', country: 'BE' });
+    const invoice = await newDocument(db, company, {
+      docType: 'sale_invoice',
+      number: 'FA-2026-0001',
+      contactId: customer,
+      date: '2026-04-05',
+      lines: [{ unitPrice: 4000, taxCode: 'BE-S-21', accountCode: '700000' }],
+    });
+    await db.query('select post_document($1)', [invoice]);
+
+    const supplier = await newContact(db, company, {
+      name: 'Fournisseur',
+      type: 'supplier',
+      country: 'BE',
+    });
+    const bill = await newDocument(db, company, {
+      docType: 'purchase_invoice',
+      number: 'ACH-2026-0001',
+      contactId: supplier,
+      date: '2026-04-10',
+      lines: [{ unitPrice: 1000, taxCode: 'BE-P-21', accountCode: '610000' }],
+    });
+    await db.query('select post_document($1)', [bill]);
+
+    before = await amounts(company, 'BE-BNB-ABBR-IS', from, to);
+
+    const year = await one<{ id: string }>(
+      db,
+      `select id from fiscal_years where company_id = $1 and start_date = date '2026-01-01'`,
+      [company],
+    );
+    await asUser(db, owner, () => db.query('select close_fiscal_year($1)', [year.id]));
+  }, 60_000);
+
+  it('still reports the result the year earned, not the nil the ledger now shows', async () => {
+    expect(before['9905']).toBeCloseTo(3000, 2);
+
+    const after = await amounts(company, 'BE-BNB-ABBR-IS', from, to);
+    expect(after['9905']).toBeCloseTo(3000, 2);
+    expect(after['9900']).toBeCloseTo(before['9900']!, 2);
+
+    // And the ledger really is back to nil, which is what the exclusion is for.
+    const ledger = await one<{ balance: string }>(
+      db,
+      `select coalesce(sum(t.closing_balance), 0)::text as balance
+         from trial_balance($1, $2, $3) t
+        where t.internal_group in ('income', 'expense')`,
+      [company, from, to],
+    );
+    expect(Number(ledger.balance)).toBeCloseTo(0, 2);
+  });
+
+  it('shows the result where the close put it, on the balance sheet', async () => {
+    // Belgium appropriates through 693, which the closing entry then zeroes,
+    // so the result lands on 140 — rubric 14 of the scheme.
+    const bs = await amounts(company, 'BE-BNB-ABBR-BS', from, to);
+    expect(bs['14']).toBeCloseTo(3000, 2);
+    expect(bs['20/58']).toBeCloseTo(bs['10/49']!, 2);
+  });
+
+  it('leaves the generic balance sheet balancing, closed or not', async () => {
+    const bs = await amounts(company, 'IFRS-SME-BS', from, to);
+    // Derived from the movements, so it is nil once the close has moved them.
+    expect(bs['E-RESULT']).toBeCloseTo(0, 2);
+    expect(bs['E-RET']).toBeCloseTo(3000, 2);
+    expect(bs['A-TOT']).toBeCloseTo(bs['EL-TOT']!, 2);
   });
 });
 
