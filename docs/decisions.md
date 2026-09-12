@@ -558,3 +558,58 @@ signed-in user. Self sign-up is on by default on a Supabase project, so a
 signed-in stranger is an ordinary thing; administrators are visible to the
 members of a company, to administrators, and to oneself. The README now says
 to turn public sign-ups off, which the schema cannot do by itself.
+
+
+## A country is a pack of data, compiled into SQL (12 September 2026)
+
+The one taxonomy in the international plan we will not get to redo, decided
+before any code, after a dedicated analysis (the full French text is in
+`docs/decisions/2026-09-12-country-pack-format.fr.md`).
+
+**The truth of a country lives in `packs/<cc>/`**: JSON with a published JSON
+schema for everything structured, one `accounts.csv` for the chart, an
+`i18n/` folder of labels, a `golden/` folder of expected results. No YAML, no
+TOML, no package per country: the CLI has one dependency and Node reads JSON.
+`ekwo pack build` compiles a pack into a seed SQL file that is committed, and
+the CI refuses a seed that is not the exact output of its pack — the SQL is
+a build artefact, like `docs/schema.md`. `supabase db push` and `psql -f`
+remain enough to install without the CLI. The runtime stays the existing
+`*_templates` tables, extended additively; a company still copies them at
+install time.
+
+**A pack is versioned** (semver in its manifest); `country_packs` records what
+the instance holds and `company_packs` what each company copied.
+`ekwo pack upgrade` diffs by natural key `(country, code)` and follows three
+rules: an addition is applied, a validity that closes is applied, everything
+else is listed and never applied without explicit consent. A new VAT rate is
+a new tax plus a `valid_to` on the old one, never an edit. Once published, an
+account code and its type, a tax code and its meaning, and a box in a form
+version are immutable: things are retired, never renamed or deleted.
+
+**Two findings that changed the plan.** The seeds were `on conflict do
+nothing`, so an installed instance received no pack change at all — not even
+for a company created afterwards; generated seeds upsert on the template
+tables only. And the French pack is wrong today for every service business,
+because French VAT on services is due on collection; cash-basis VAT is a
+Belgian-French hole before it is a British option.
+
+**Declaration boxes and financial statements become data** with declarative
+formulas — lists of boxes to add and subtract and a floor at zero, no
+expression language — which removes the last `fiscal_country = 'BE'` from
+`vat_return()`. A test asserts that no function of the schema contains a
+country code. A generic statement by account type gives a readable balance
+sheet on any chart, including the code-less charts of the UK and the US.
+
+**Kept in phase 0**: the pack format; opening balances and a parameterised
+year-end close; cash-basis VAT and non-deductible VAT (`tax_on_base`);
+realised exchange differences at matching; an append-only `audit_log` by
+trigger; translated labels. **Deferred**: revaluation of open items, cash
+accounting as a ledger (a report derived from matched payments instead), the
+cash-flow statement (indirect, when it comes), several taxes on one line
+(`document_line_taxes`, with Canada). Shifted and 52/53-week years were
+already covered by `fiscal_years`.
+
+**A golden test is the contract of a pack, not proof of legal truth.** Each
+box and each tax cites its legal source, the manifest carries a certification
+status that `ekwo init` prints, and a pack moves to *reviewed* only after a
+named professional has read it. Ekwo certifies Belgium and France.

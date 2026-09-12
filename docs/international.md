@@ -37,7 +37,30 @@ and a generator.
 ### Phase 0 — a complete, country-agnostic core (by the end of 2026)
 
 The phase that decides everything. Nothing country-specific is added until
-it is done.
+it is done. The format of the pack was decided on 12 September 2026 and is
+written up in `decisions.md`; the twelve steps below are its execution order,
+and they recut the first list in three places: opening balances come first
+because they block adoption in Belgium and France; cash-basis VAT comes
+before any new country because the French pack is wrong for services today;
+the cash-flow statement, the revaluation of open items and several taxes on
+one line wait for the countries that need them.
+
+1. Pack format and compiler; Belgium and France extracted into `packs/`.
+2. The pack migration: `country_packs`, `company_packs`, translated labels,
+   seeds that upsert the template tables.
+3. Declaration boxes as data, a generic `vat_return()`.
+4. Financial statements as data, a generic statement by account type.
+5. The generalised tax engine: kind, recoverability, jurisdiction,
+   tax-inclusive prices, non-deductible VAT, rounding rules.
+6. Cash-basis VAT and realised exchange differences.
+7. Document rules, e-invoicing profiles and bank formats as data.
+8. Opening balances and a parameterised year-end close.
+9. Pack versioning, `ekwo pack upgrade`, an append-only audit log.
+10. One golden test per pack, a certification status.
+11. End-to-end test, including an upgrade from the published version.
+12. Documentation: `docs/packs.md`, the contributor's guide.
+
+The original six-item list, for the record:
 
 1. **The country pack format** — chart of accounts with translations, taxes
    and boxes, financial-statement mappings per framework, document rules,
