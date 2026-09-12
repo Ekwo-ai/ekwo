@@ -35,6 +35,9 @@ already exists.
 
 ## What to check before you rely on the tax files
 
+A pack is our reading of the rules at a date; you are responsible for what
+you file. See [DISCLAIMER.md](../../DISCLAIMER.md).
+
 The boxes and lines are a **working starting point, not a legal opinion**.
 Each tax names the article it comes from (`legal_reference` in `taxes.json`)
 and each manifest carries a certification status, but two mappings in

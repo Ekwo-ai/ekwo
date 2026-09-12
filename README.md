@@ -314,6 +314,13 @@ Three things the schema cannot do for you:
   It bypasses row level security by construction. The CLI needs it once, to
   create the first administrator; nothing else in this repository does.
 
+## What this is not
+
+Ekwo is software, not advice. Your books, returns and filings are yours; a
+country pack is our reading of the rules at a date, and a review is a
+professional's good-faith reading, not a guarantee. [DISCLAIMER.md](DISCLAIMER.md)
+says this in full. Read it before you file anything.
+
 ## Finding your way
 
 Each folder carries a short README saying what lives there and the rule

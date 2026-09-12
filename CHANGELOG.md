@@ -92,6 +92,9 @@ somewhere has already run it.
 
 ### Added
 
+- `DISCLAIMER.md`: software, not advice; the books are yours; what a pack
+  and a review are and are not; estimates are estimates.
+
 - `MANIFESTO.md`: why Ekwo exists — financial autonomy for every business,
   accounting as a commons, a network rather than a vendor — and a "Ways to
   help" section in `CONTRIBUTING.md` for accountants, translators and
