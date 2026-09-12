@@ -70,6 +70,7 @@
           "parent": "22/27",
           "name": "Terrains et constructions",
           "sequence": 50,
+          "xbrl": "met:am1|bas:m3|ntr:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -83,6 +84,7 @@
           "parent": "22/27",
           "name": "Installations, machines et outillage",
           "sequence": 60,
+          "xbrl": "met:am1|bas:m4|ntr:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -110,6 +112,7 @@
           "parent": "22/27",
           "name": "Location-financement et droits similaires",
           "sequence": 80,
+          "xbrl": "met:am1|bas:m6|ntr:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -123,6 +126,7 @@
           "parent": "22/27",
           "name": "Autres immobilisations corporelles",
           "sequence": 90,
+          "xbrl": "met:am1|bas:m2|ntr:m2|typ:m1",
           "rules": [
             {
               "kind": "code_range",
@@ -136,6 +140,7 @@
           "parent": "22/27",
           "name": "Immobilisations en cours et acomptes versés",
           "sequence": 100,
+          "xbrl": "met:am1|bas:m7|ntr:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -193,6 +198,7 @@
           "parent": "29/58",
           "name": "Stocks et commandes en cours d'exécution",
           "sequence": 140,
+          "xbrl": "met:am1|bas:m13|sts:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -228,6 +234,7 @@
           "parent": "29/58",
           "name": "Placements de trésorerie",
           "sequence": 160,
+          "xbrl": "met:am1|bas:m22",
           "rules": [
             {
               "kind": "code_range",
@@ -297,6 +304,7 @@
           "name": "Apport",
           "sequence": 210,
           "sign": -1,
+          "xbrl": "met:am1|bas:m38|ntr:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -356,6 +364,7 @@
           "name": "Subsides en capital",
           "sequence": 250,
           "sign": -1,
+          "xbrl": "met:am1|bas:m45|ntr:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -504,6 +513,7 @@
           "code": "630",
           "name": "Amortissements et réductions de valeur sur frais d'établissement, immobilisations incorporelles et corporelles",
           "sequence": 30,
+          "xbrl": "met:am1|bas:m1|bkd:m1|ntr:m6|spec:m9",
           "rules": [
             {
               "kind": "code_range",
@@ -516,6 +526,7 @@
           "code": "631/4",
           "name": "Réductions de valeur sur stocks, commandes en cours d'exécution et créances commerciales : dotations (reprises)",
           "sequence": 40,
+          "xbrl": "met:am2|bas:m1|bkd:m2|mdp:m2|ntr:m6|spec:m10",
           "rules": [
             {
               "kind": "code_range",
@@ -528,6 +539,7 @@
           "code": "635/8",
           "name": "Provisions pour risques et charges : dotations (utilisations et reprises)",
           "sequence": 50,
+          "xbrl": "met:am2|bas:m48|typ:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -540,6 +552,7 @@
           "code": "640/8",
           "name": "Autres charges d'exploitation",
           "sequence": 60,
+          "xbrl": "met:am1|bas:m1|ntr:m6|typ:m2",
           "rules": [
             {
               "kind": "code_range",
@@ -552,6 +565,7 @@
           "code": "649",
           "name": "Charges d'exploitation portées à l'actif au titre de frais de restructuration",
           "sequence": 70,
+          "xbrl": "met:am3|bas:m1|mdp:m3|ntr:m6|spec:m11",
           "rules": [
             {
               "kind": "code_range",
@@ -583,6 +597,7 @@
           "name": "Produits financiers",
           "sequence": 90,
           "sign": -1,
+          "xbrl": "met:am1|bas:m52|ntr:m3",
           "rules": [
             {
               "kind": "code_range",
@@ -595,6 +610,7 @@
           "code": "65/66B",
           "name": "Charges financières",
           "sequence": 100,
+          "xbrl": "met:am2|bas:m1|ntr:m3",
           "rules": [
             {
               "kind": "code_range",
@@ -655,6 +671,7 @@
           "name": "Prélèvement sur les réserves immunisées",
           "sequence": 140,
           "sign": -1,
+          "xbrl": "met:am1|bas:m43|mdp:m4|sts:m6",
           "rules": [
             {
               "kind": "code_range",
@@ -667,6 +684,7 @@
           "code": "689",
           "name": "Transfert aux réserves immunisées",
           "sequence": 150,
+          "xbrl": "met:am1|bas:m43|mdp:m5|sts:m6",
           "rules": [
             {
               "kind": "code_range",
@@ -703,6 +721,7 @@
           "name": "Bénéfice (Perte) reporté(e) de l'exercice précédent",
           "sequence": 10,
           "sign": -1,
+          "xbrl": "met:am2|bas:m61|sts:m8",
           "rules": [
             {
               "kind": "code_range",
@@ -716,6 +735,7 @@
           "name": "Prélèvement sur les capitaux propres",
           "sequence": 20,
           "sign": -1,
+          "xbrl": "met:am1|bas:m37|mdp:m4|ntr:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -728,6 +748,7 @@
           "code": "691/2",
           "name": "Affectation aux capitaux propres",
           "sequence": 30,
+          "xbrl": "met:am1|bas:m37|mdp:m5|ntr:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -740,6 +761,7 @@
           "code": "14",
           "name": "Bénéfice (Perte) à reporter",
           "sequence": 40,
+          "xbrl": "met:am2|bas:m44|ntr:m4",
           "rules": [
             {
               "kind": "code_range",
@@ -759,6 +781,7 @@
           "code": "694/7",
           "name": "Bénéfice à distribuer",
           "sequence": 50,
+          "xbrl": "met:am1|bas:m63|sts:m12",
           "rules": [
             {
               "kind": "code_range",
@@ -772,6 +795,7 @@
           "name": "Intervention des associés dans la perte",
           "sequence": 60,
           "sign": -1,
+          "xbrl": "met:am1|bas:m62",
           "rules": [
             {
               "kind": "code_range",

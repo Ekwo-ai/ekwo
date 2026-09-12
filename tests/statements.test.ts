@@ -107,8 +107,10 @@ describe('the statements the packs carry', () => {
       `select count(*)::int as total, count(xbrl_element)::int as named
          from statement_line_templates where statement_code like 'BE-BNB-ABBR-%'`,
     );
+    // Every line of the Belgian schemes now names its fact. A line losing its
+    // key is a regression, and so is a line gaining one nobody sourced.
     expect(filled.total).toBe(53);
-    expect(filled.named).toBe(29);
+    expect(filled.named).toBe(53);
 
     const receivables = await one<{ xbrl_element: string }>(
       db,
@@ -856,6 +858,29 @@ describe('what `ekwo pack check` refuses in a statement', () => {
     expect(keyOf('10/49')).toBe('met:am1|bas:m25|part:m3');
     expect(keyOf('490/1')).toBe('met:am1|bas:m24|part:m1');
     expect(keyOf('492/3')).toBe('met:am1|bas:m24|part:m3');
+
+    // 22/27 is the tangible nature of the fixed-assets base, 24 a base of its
+    // own, 26 the remainder of the base — three lines nobody can tell apart
+    // from the reporting code alone.
+    expect(keyOf('22/27')).toBe('met:am1|bas:m2|ntr:m2');
+    expect(keyOf('24')).toBe('met:am1|bas:m5|ntr:m2');
+    expect(keyOf('26')).toBe('met:am1|bas:m2|ntr:m2|typ:m1');
+
+    // The result carried forward is one fact, shown on the balance sheet and
+    // again at the foot of the appropriation section. One fact, one key.
+    const af = be.statements.find((st) => st.code === 'BE-BNB-ABBR-AF')!;
+    expect(af.lines.find((l) => l.code === '14')!.xbrl).toBe(keyOf('14'));
+  });
+
+  it('names the fact of every Belgian line, in all three schemes', async () => {
+    const be = await readPack('be', packs);
+    const schemes = be.statements.filter((st) => st.code.startsWith('BE-BNB-ABBR-'));
+    expect(schemes).toHaveLength(3);
+    const unnamed = schemes.flatMap((st) =>
+      st.lines.filter((l) => l.xbrl === null).map((l) => `${st.code} ${l.code}`),
+    );
+    expect(unnamed).toEqual([]);
+    expect(schemes.reduce((n, st) => n + st.lines.length, 0)).toBe(53);
   });
 
   it('refuses two lines of one statement carrying the same fact key', async () => {
