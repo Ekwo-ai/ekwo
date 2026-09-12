@@ -27,6 +27,7 @@ and a generator.
 | Gap | Why it matters outside Belgium and France |
 |---|---|
 | No pack object | UK, US or Canada would each add a third place where a country lives |
+| ~~Nothing on the invoice itself~~ — done in P0-7: numbering, payment terms, tax point, e-invoicing profile, bank formats and the legal mentions are pack data | Every country prescribes different sentences on an invoice, and a renderer that hard-codes them is a renderer per country |
 | ~~No year-end close, no opening balances~~ — done in P0-8; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
 | Currencies without realised gains or revaluation | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
@@ -74,7 +75,20 @@ one line wait for the countries that need them.
    behaviour of `cash_basis` are not: the first waits for the country that
    sells that way, the second is P0-6.
 6. Cash-basis VAT and realised exchange differences.
-7. Document rules, e-invoicing profiles and bank formats as data.
+7. Document rules, e-invoicing profiles and bank formats as data. **Done**
+   (P0-7): twelve columns on the country model — gapless numbering and the
+   number pattern, the legal payment term and where its interest comes from,
+   the tax point, the e-invoicing profile and the day it becomes obligatory,
+   the ISO 6523 party and VAT schemes, the bank statement and payment
+   formats, the usual opening of the financial year — plus
+   `legal_mention_templates`, the sentences a country requires on an invoice
+   with a closed vocabulary of nine conditions. `document_legal_mentions`
+   decides which of them apply to one document from its country, its date and
+   the treatments of the taxes on its lines; `document_line_items` gained the
+   treatment and the exemption reason. Nothing executable: no function was
+   added, and the numbering engine still builds its own number — the pattern
+   is declared so that the engine which reads one changes nothing when it
+   arrives.
 8. Opening balances and a parameterised year-end close. **Done** —
    `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()`, and
    `closing_style` with its four account roles in the pack.

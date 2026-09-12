@@ -52,6 +52,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912104719_one_formula_evaluator` | `vat_return()` rewritten onto `evaluate_totals()`, so a declaration form and a financial statement derive their totals in one function. Its own file because `vat_return` was published before |
 | `20260912105720_entry_kind_appropriation` | `entry_kind` gains `appropriation`. Its own file: a new enum value cannot be used in the transaction that added it |
 | `20260912105721_appropriation_entry_kind` | `close_fiscal_year()` marks the entry that moves the result `appropriation` and keeps `closing` for the one that empties the income statement; `reopen_fiscal_year()` undoes both; `statement_account_matches()` leaves `closing` out of an income statement and of an allocation section |
+| `20260912111751_document_rules` | twelve `country_defaults` columns for what a country requires on a document — gapless numbering and the number pattern, the legal payment term and its interest reference, the tax point, the e-invoicing profile and the day it becomes obligatory, the ISO 6523 party and VAT schemes, the bank statement and payment formats, the usual opening of the financial year, none of them with a default; `legal_mention_templates` and its closed `applies_when` vocabulary; the `document_legal_mentions` view; `document_line_items` gains the treatment and the exemption reason of its tax. No function |
 
 ## Rules for a new migration
 

@@ -267,6 +267,115 @@ Canadian pack; the declarative rules that turn a region into a *suggested*
 tax, and the group tax that puts GST and QST on one line, are phase 1. The
 core never chooses a tax for anyone, in any country.
 
+## What a country puts on an invoice
+
+Three sections of the manifest — `documents`, `einvoicing` and `bank` —
+compile into twelve columns of `country_defaults` and into
+`legal_mention_templates`. None of them has a default: a pack that says
+nothing leaves null, and a reader that needs the value says which one is
+missing rather than borrowing another country's law.
+
+```json
+"documents": {
+  "numbering": "gapless_per_year",
+  "number_format": "{CODE}/{YYYY}/{NNNN}",
+  "legal_payment_days": 30,
+  "late_payment_reference": "…où le taux et l'indemnité sont fixés",
+  "tax_point": "invoice_date",
+  "mentions": [
+    {
+      "code": "reverse_charge",
+      "applies_when": "reverse_charge",
+      "text": "Autoliquidation — taxe à acquitter par le cocontractant.",
+      "text_i18n": { "nl": "Btw verlegd — …", "en": "Reverse charge — …" },
+      "sequence": 10,
+      "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20"
+    }
+  ]
+},
+"einvoicing": {
+  "profile": "peppol-bis-3",
+  "mandatory_from": "2026-01-01",
+  "party_scheme": "0208",
+  "vat_scheme": "9925"
+},
+"bank": {
+  "statement_formats": ["coda", "camt.053"],
+  "payment_formats": ["pain.001"]
+}
+```
+
+**The number.** `numbering` is `gapless_per_year`, `gapless`, `sequential` or
+`free`, and the first two compile to `numbering_gapless = true`. Whether the
+counter restarts each year is readable in `number_format`, which carries the
+year or does not. The pattern is four tokens and literal text around them:
+
+| Token | Is |
+|---|---|
+| `{CODE}` | the journal or series code |
+| `{YYYY}`, `{YY}` | the year of the document |
+| `{MM}` | the month |
+| `{NNNN}` | the counter, zero-padded to as many `N` as are written |
+
+Nothing reads the pattern yet — `next_entry_number()` builds `CODE/YYYY/NNNN`
+— so a pack declares what its numbers look like, and the day a numbering
+engine consumes a format it produces the same numbers it always did.
+`ekwo pack check` refuses a token nobody defined and a pattern with no
+counter, or with two.
+
+**The tax point** is the country's general rule: `invoice_date`,
+`delivery_date` or `payment_date`. A tax that departs from it says so itself,
+with `cash_basis` — which is how France taxes goods on delivery and services
+on collection without the country model contradicting itself.
+
+**The schemes** are ISO 6523 identifier codes, four digits, and there are two
+because they are not the same identifier: `party_scheme` is how a party is
+addressed on the network (`0208` the Belgian enterprise number, `0009` the
+French SIRET) and `vat_scheme` is the VAT identifier (`9925`, `9957`). Where a
+country has two registration identifiers, declare the one its invoices carry
+and name the other in the legal reference.
+
+**The bank formats** are a known list rather than free text — `camt.052`,
+`camt.053`, `camt.054`, `mt940`, `mt942`, `coda`, `cfonb120`, `ofx`, `qif`,
+`bai2`, `csv` for statements; `pain.001`, `pain.008`, `cfonb160`, `mt101`,
+`ach`, `bacs`, `eft`, `csv` for payments — because a parser is written against
+a format and not against a name somebody typed. The list grows with the
+country that needs it.
+
+### The mentions, and when each applies
+
+`applies_when` is a closed vocabulary and never an expression: an accountant
+reads the value and knows what it means, and a pack that could write a
+condition would be a pack that executes.
+
+| `applies_when` | Applies when |
+|---|---|
+| `always` | every document of the country |
+| `reverse_charge` | a line carries a tax treated as a domestic reverse charge |
+| `intra_eu_goods` | a line carries an intra-Union supply or acquisition of goods |
+| `intra_eu_services` | the same, for services |
+| `export` | a line carries a supply outside the Union |
+| `exempt` | a line carries an exemption that is none of the above |
+| `late_payment` | the document is one the seller issues |
+| `cash_basis` | a line carries a tax that falls due on collection |
+| `small_business` | never selected — see below |
+
+`document_legal_mentions(document_id)` is the view that decides. It joins on
+the company's **fiscal country**, on the **document's own date** — so a reprint
+of an old invoice carries the wording of its own year — and on the treatments
+of the taxes the lines already carry, which is why nothing extra has to be
+recorded on a document for its mentions to come out right.
+
+`small_business` is the exception and it is deliberate: a franchise regime is a
+property of the seller and the core records no such column, so the sentence is
+in the table for a renderer that knows the regime and the view never selects
+it. The day the regime becomes a column, the view gains one branch.
+
+A mention cites the article that requires it. `ekwo pack check` refuses one
+that does not, a duplicate code, and a validity that runs backwards. Retiring
+a wording is a `valid_to` and a new row, never an edit — the rule that governs
+a tax rate and a box of a form governs a sentence too.
+
 ## Versions, and what a company holds
 
 `pack.json.version` is semver:
@@ -350,9 +459,14 @@ that it is legally right, and no test can. So:
    `retained_earnings_loss` in `defaults.roles`, plus
    `defaults.journal_roles.opening`. The table below says which style a chart
    needs; `close_fiscal_year()` asserts the answer rather than trusting it.
-5. `ekwo pack build <cc>`, then add the generated file to
+5. Say what the country puts on an invoice: `documents`, `einvoicing` and
+   `bank`, described above. All three are optional and none of them has a
+   default — a pack that stays silent leaves the columns null rather than
+   inheriting somebody else's law — and every mention cites the article that
+   requires it.
+6. `ekwo pack build <cc>`, then add the generated file to
    `supabase/config.toml` under `[db.seed].sql_paths`.
-6. Set `certification.status` honestly. `community` is the right answer until
+7. Set `certification.status` honestly. `community` is the right answer until
    an accountant has read it.
 
 ### Which closing style a chart needs

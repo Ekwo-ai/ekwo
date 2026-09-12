@@ -161,6 +161,7 @@ the return say the same thing, because they are the same rows.
 | [`journal_sequences`](#journal_sequences) | Counter behind next_entry_number(). One row per journal and year. |
 | [`journal_templates`](#journal_templates) |  |
 | [`journals`](#journals) | Books of entry. The code is the first segment of every entry number. |
+| [`legal_mention_templates`](#legal_mention_templates) | The sentences a country requires on an invoice, and the closed condition that says when each applies. Reference data filled by a pack, never copied into a company. |
 | [`matching_sequences`](#matching_sequences) |  |
 | [`payments`](#payments) | Money in and out. Amounts are positive; `direction` carries the sign. |
 | [`products`](#products) | What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation. |
@@ -546,10 +547,27 @@ Which template account plays which role, per country.
 | `current_year_result_loss_code` | `text` | Same, for a loss. Belgium 793, France 129. Both countries keep a profit and a loss apart, so this is a pair and not one account. |
 | `retained_earnings_loss_code` | `text` | Retained earnings account for an accumulated loss, where the chart keeps one apart from the profit account. Belgium 141, France 119. Null falls back to retained_earnings_code. |
 | `opening_journal_code` | `text` | Code of the journal the opening and the year-end entries are booked on, from the pack. Null until the pack names one, and then nothing opens or closes: there is no code written into the schema to fall back on. |
+| `numbering_gapless` | `boolean` | True where the law forbids a hole in the sequence of invoice numbers. Null until the pack says so. |
+| `number_format` | `text` | Pattern of a document number: {CODE}, {YYYY} or {YY}, {MM}, {NNNN} zero-padded to as many N as are written, with literal text between them. Read by nothing yet; next_entry_number() produces CODE/YYYY/NNNN. |
+| `legal_payment_days` | `integer` | Payment term the law sets in the absence of an agreement, in days. Not a company's own terms, which are documents.payment_terms. |
+| `late_payment_reference` | `text` | Where the interest rate and the recovery indemnity for a late payment come from, in one sentence a renderer can print or an accountant can follow. |
+| `tax_point_rule` | `text` | When the tax becomes chargeable under this country's general rule. A tax that departs from it says so itself, with cash_basis. |
+| `einvoice_profile` | `text` | The structured invoice this country expects: peppol-bis-3, factur-x-en16931, xrechnung, a PINT profile. Null where electronic invoicing is not a thing. |
+| `einvoice_mandatory_from` | `date` | The day the obligation starts. Where reception and emission start on different days, this is reception, which is what binds every company at once. |
+| `party_scheme` | `text` | ISO 6523 ICD of the identifier a party is addressed by on the network, four digits. The pack carries the value; the core never guesses one. |
+| `vat_scheme` | `text` | ISO 6523 ICD of the VAT identifier, four digits. Distinct from party_scheme: a company is addressed by its registration number and taxed on its VAT number, and they are not the same identifier. |
+| `bank_statement_formats` | `text[]` | Statement formats a bank of this country delivers, most usual first. A list, because a country rarely has one. |
+| `payment_formats` | `text[]` | Payment initiation formats a bank of this country accepts, most usual first. |
+| `fiscal_year_default` | `text` | Month the financial year usually opens on: calendar, april, july, october. A default offered, never imposed — fiscal_years holds what a company actually keeps. |
 
 Constraints:
 
 - `CHECK ((cash_rounding_unit >= (0)::numeric))`
+- `CHECK (((fiscal_year_default IS NULL) OR (fiscal_year_default = ANY (ARRAY['calendar'::text, 'april'::text, 'july'::text, 'october'::text]))))`
+- `CHECK (((legal_payment_days IS NULL) OR (legal_payment_days >= 0)))`
+- `CHECK (((party_scheme IS NULL) OR (party_scheme ~ '^[0-9]{4}$'::text)))`
+- `CHECK (((tax_point_rule IS NULL) OR (tax_point_rule = ANY (ARRAY['invoice_date'::text, 'delivery_date'::text, 'payment_date'::text]))))`
+- `CHECK (((vat_scheme IS NULL) OR (vat_scheme ~ '^[0-9]{4}$'::text)))`
 - `PRIMARY KEY (country)`
 
 ### `country_packs`
@@ -901,6 +919,31 @@ Constraints:
 - `CHECK ((code ~ '^[A-Z0-9]{2,8}$'::text))`
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, code)`
+
+### `legal_mention_templates`
+
+The sentences a country requires on an invoice, and the closed condition that says when each applies. Reference data filled by a pack, never copied into a company.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `country` | `character(2)` | not null |
+| `code` | `text` | not null |
+| `applies_when` | `text` | not null — One of nine conditions. A closed vocabulary and not an expression: a pack that could write a condition would be a pack that executes. |
+| `text` | `text` | not null — The mention in the pack's own language. Other languages are in text_i18n, by language code. |
+| `text_i18n` | `jsonb` | not null |
+| `sequence` | `integer` | not null — Order the mentions are printed in. |
+| `valid_from` | `date` | not null |
+| `valid_to` | `date` |  |
+| `legal_reference` | `text` | The article that requires this sentence. A mention without a source cannot be reviewed. |
+
+Constraints:
+
+- `CHECK ((applies_when = ANY (ARRAY['always'::text, 'reverse_charge'::text, 'intra_eu_goods'::text, 'intra_eu_services'::text, 'export'::text, 'exempt'::text, 'small_business'::text, 'late_payment'::text, 'cash_basis'::text])))`
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (country, code)`
 
 ### `matching_sequences`
 
