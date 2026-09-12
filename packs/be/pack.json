@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.0.0",
-  "schema_min": "20260911121100",
+  "version": "1.1.0",
+  "schema_min": "20260912091918",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -11,7 +11,8 @@
       "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
       "Code de la TVA, art. 37",
       "Arrêté royal n. 20 du 20 juillet 1970",
-      "Arrêté royal n. 1 du 29 décembre 1992, art. 20"
+      "Arrêté royal n. 1 du 29 décembre 1992, art. 20",
+      "Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction"
     ]
   },
   "defaults": {

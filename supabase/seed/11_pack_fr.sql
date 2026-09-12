@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.0.0, do not edit.
+-- Generated from packs/fr at version 1.1.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -9,6 +9,7 @@
 --   Règlement ANC 2022-06 — plan comptable général
 --   Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater
 --   Formulaire 3310-CA3
+--   Code general des impots, art. 298, 4 — produits petroliers
 --
 -- In the pack, not compiled by this release:
 --   documents — country_defaults columns and legal_mention_templates (P0-7)
@@ -20,7 +21,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.0.0', date '2026-09-12', '20260911121100', 'maintained', null, null, 'b135b7b8dd3267fda272cd4a9328f2c6bafd7a4440cc972a2b336622033eee6a')
+  ('FR', 'France', '1.1.0', date '2026-09-12', '20260912091918', 'maintained', null, null, 'bdac03590a84389a1a0d74b3d956f9bbc411656c476d0feba41b6d74aeedcb57')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -448,25 +449,28 @@ on conflict (country, code) do update set
 
 insert into tax_templates
   (country, code, name, description, amount_type, amount, applies_to, treatment,
-   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence)
+   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence,
+   tax_kind, recoverable, jurisdiction, price_include, cash_basis,
+   cash_basis_transition_account_code)
 values
-  ('FR', 'FR-P-00', 'Achat exonere', 'Sans TVA', 'percent', 0, 'purchase', 'exempt', date '1993-01-01', null, 'CGI, art. 261', 'E', 'VATEX-EU-132', 150),
-  ('FR', 'FR-P-055', 'Achat 5,5 %', 'Autres biens et services', 'percent', 5.5, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 140),
-  ('FR', 'FR-P-10', 'Achat 10 %', 'Autres biens et services', 'percent', 10, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 130),
-  ('FR', 'FR-P-20', 'Achat 20 %', 'Autres biens et services', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 110),
-  ('FR', 'FR-P-20-I', 'Achat immobilisation 20 %', 'Immobilisations', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 120),
-  ('FR', 'FR-P-AL-20', 'Achat autoliquidation 20 %', 'Assujetti non etabli, lignes 3C/08/20', 'percent', 20, 'purchase', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-1', 'AE', 'VATEX-EU-AE', 180),
-  ('FR', 'FR-P-ICG-20', 'Acquisition intracom. biens 20 %', 'Autoliquidation, lignes 03/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'CGI, art. 256 bis', 'AE', 'VATEX-EU-AE', 160),
-  ('FR', 'FR-P-ICS-20', 'Service intracom. recu 20 %', 'Autoliquidation, lignes 2A/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'CGI, art. 283-2', 'AE', 'VATEX-EU-AE', 170),
-  ('FR', 'FR-P-IMP-20', 'Importation autoliquidee 20 %', 'Lignes 3A/08/20', 'percent', 20, 'purchase', 'import', date '2022-01-01', null, 'CGI, art. 293 A', 'S', null, 190),
-  ('FR', 'FR-S-021', 'Vente 2,1 %', 'Taux particulier', 'percent', 2.1, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 281 quater', 'S', null, 40),
-  ('FR', 'FR-S-055', 'Vente 5,5 %', 'Taux reduit', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 30),
-  ('FR', 'FR-S-10', 'Vente 10 %', 'Taux reduit', 'percent', 10, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 20),
-  ('FR', 'FR-S-20', 'Vente 20 %', 'Taux normal', 'percent', 20, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 10),
-  ('FR', 'FR-S-AL', 'Vente autoliquidation', 'TVA due par le preneur', 'percent', 0, 'sale', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-2 nonies', 'AE', 'VATEX-EU-AE', 50),
-  ('FR', 'FR-S-EXP', 'Exportation hors UE', 'Exoneree', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'CGI, art. 262 I', 'G', 'VATEX-EU-G', 80),
-  ('FR', 'FR-S-ICG', 'Livraison intracommunautaire', 'Biens, exoneree', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'CGI, art. 262 ter I', 'K', 'VATEX-EU-IC', 60),
-  ('FR', 'FR-S-ICS', 'Service intracommunautaire', 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'CGI, art. 259-1', 'AE', 'VATEX-EU-AE', 70)
+  ('FR', 'FR-P-00', 'Achat exonere', 'Sans TVA', 'percent', 0, 'purchase', 'exempt', date '1993-01-01', null, 'CGI, art. 261', 'E', 'VATEX-EU-132', 150, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-055', 'Achat 5,5 %', 'Autres biens et services', 'percent', 5.5, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 140, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-10', 'Achat 10 %', 'Autres biens et services', 'percent', 10, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 130, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-20', 'Achat 20 %', 'Autres biens et services', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 110, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-20-CARB', 'Carburant vehicule de tourisme 20 % — deduction 80 %', 'Essences et gazoles des vehicules exclus du droit a deduction. La TVA non deductible suit le compte de la ligne ; la CA3 ne porte aucune grille de base a l''entree.', 'percent', 20, 'purchase', 'domestic', date '2021-01-01', null, 'CGI, art. 298, 4, 1 a et b', 'S', null, 200, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-20-I', 'Achat immobilisation 20 %', 'Immobilisations', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 120, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-AL-20', 'Achat autoliquidation 20 %', 'Assujetti non etabli, lignes 3C/08/20', 'percent', 20, 'purchase', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-1', 'AE', 'VATEX-EU-AE', 180, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-ICG-20', 'Acquisition intracom. biens 20 %', 'Autoliquidation, lignes 03/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'CGI, art. 256 bis', 'AE', 'VATEX-EU-AE', 160, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-ICS-20', 'Service intracom. recu 20 %', 'Autoliquidation, lignes 2A/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'CGI, art. 283-2', 'AE', 'VATEX-EU-AE', 170, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-IMP-20', 'Importation autoliquidee 20 %', 'Lignes 3A/08/20', 'percent', 20, 'purchase', 'import', date '2022-01-01', null, 'CGI, art. 293 A', 'S', null, 190, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-021', 'Vente 2,1 %', 'Taux particulier', 'percent', 2.1, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 281 quater', 'S', null, 40, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-055', 'Vente 5,5 %', 'Taux reduit', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 30, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-10', 'Vente 10 %', 'Taux reduit', 'percent', 10, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278 bis', 'S', null, 20, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-20', 'Vente 20 %', 'Taux normal', 'percent', 20, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 10, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-AL', 'Vente autoliquidation', 'TVA due par le preneur', 'percent', 0, 'sale', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-2 nonies', 'AE', 'VATEX-EU-AE', 50, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-EXP', 'Exportation hors UE', 'Exoneree', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'CGI, art. 262 I', 'G', 'VATEX-EU-G', 80, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-ICG', 'Livraison intracommunautaire', 'Biens, exoneree', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'CGI, art. 262 ter I', 'K', 'VATEX-EU-IC', 60, 'vat', true, null, false, false, null),
+  ('FR', 'FR-S-ICS', 'Service intracommunautaire', 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'CGI, art. 259-1', 'AE', 'VATEX-EU-AE', 70, 'vat', true, null, false, false, null)
 on conflict (country, code) do update set
   name            = excluded.name,
   description     = excluded.description,
@@ -479,7 +483,13 @@ on conflict (country, code) do update set
   legal_reference = excluded.legal_reference,
   vat_category    = excluded.vat_category,
   exemption_code  = excluded.exemption_code,
-  sequence        = excluded.sequence;
+  sequence        = excluded.sequence,
+  tax_kind        = excluded.tax_kind,
+  recoverable     = excluded.recoverable,
+  jurisdiction    = excluded.jurisdiction,
+  price_include   = excluded.price_include,
+  cash_basis      = excluded.cash_basis,
+  cash_basis_transition_account_code = excluded.cash_basis_transition_account_code;
 
 insert into tax_posting_templates
   (tax_template_id, document_kind, posting_type, factor_percent, account_code,
@@ -500,6 +510,10 @@ select t.id,
     ('FR-P-10', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
     ('FR-P-20', 'invoice', 'tax', 100, '445660', '20', 100, 'FR-CA3', 20),
     ('FR-P-20', 'credit_note', 'tax', 100, '445660', '20', -100, 'FR-CA3', 20),
+    ('FR-P-20-CARB', 'invoice', 'tax', 80, '445660', '20', 80, 'FR-CA3', 20),
+    ('FR-P-20-CARB', 'invoice', 'tax_on_base', 20, null, null, 100, null, 30),
+    ('FR-P-20-CARB', 'credit_note', 'tax', 80, '445660', '20', -80, 'FR-CA3', 20),
+    ('FR-P-20-CARB', 'credit_note', 'tax_on_base', 20, null, null, 100, null, 30),
     ('FR-P-20-I', 'invoice', 'tax', 100, '445662', '19', 100, 'FR-CA3', 20),
     ('FR-P-20-I', 'credit_note', 'tax', 100, '445662', '19', -100, 'FR-CA3', 20),
     ('FR-P-AL-20', 'invoice', 'base', 100, null, '3C', 100, 'FR-CA3', 10),
@@ -614,9 +628,10 @@ insert into country_defaults
    rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
-   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code)
+   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
+   rounding_method, cash_rounding_unit)
 values
-  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN')
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', 0)
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -637,4 +652,6 @@ on conflict (country) do update set
   current_year_result_profit_code = excluded.current_year_result_profit_code,
   current_year_result_loss_code   = excluded.current_year_result_loss_code,
   retained_earnings_loss_code     = excluded.retained_earnings_loss_code,
-  opening_journal_code            = excluded.opening_journal_code;
+  opening_journal_code            = excluded.opening_journal_code,
+  rounding_method        = excluded.rounding_method,
+  cash_rounding_unit     = excluded.cash_rounding_unit;

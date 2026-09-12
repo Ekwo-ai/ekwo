@@ -191,11 +191,36 @@ describe('resources and prompts', () => {
     });
     const first = result.contents[0] as { text: string };
     const payload = JSON.parse(first.text) as {
-      taxes: { code: string; amount: string; postings: { declaration_box: string | null }[] }[];
+      taxes: {
+        code: string;
+        amount: string;
+        tax_kind: string;
+        recoverable: boolean;
+        price_include: boolean;
+        cash_basis: boolean;
+        jurisdiction: string | null;
+        postings: { posting_type: string; account_id: string | null; declaration_box: string | null }[];
+      }[];
     };
     const sale = payload.taxes.find((tax) => tax.code === 'BE-S-21');
     expect(sale?.amount).toBe('21.0000');
     expect(sale?.postings.some((posting) => posting.declaration_box === '54')).toBe(true);
+    // What the tax is, not only how much: a client that has to choose one
+    // should not be reading the code to find out.
+    expect(sale).toMatchObject({
+      tax_kind: 'vat',
+      recoverable: true,
+      price_include: false,
+      cash_basis: false,
+      jurisdiction: null,
+    });
+
+    // A partially deductible tax, with the posting that carries no account
+    // because its share lands on the account of the document line.
+    const car = payload.taxes.find((tax) => tax.code === 'BE-P-21-50-I');
+    const onBase = car?.postings.filter((posting) => posting.posting_type === 'tax_on_base') ?? [];
+    expect(onBase.length).toBeGreaterThan(0);
+    for (const posting of onBase) expect(posting.account_id).toBeNull();
   });
 
   it('offers the two prompts, and they carry a checklist', async () => {

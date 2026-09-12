@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.0.0, do not edit.
+-- Generated from packs/be at version 1.1.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -10,6 +10,7 @@
 --   Code de la TVA, art. 37
 --   Arrêté royal n. 20 du 20 juillet 1970
 --   Arrêté royal n. 1 du 29 décembre 1992, art. 20
+--   Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction
 --
 -- In the pack, not compiled by this release:
 --   documents — country_defaults columns and legal_mention_templates (P0-7)
@@ -23,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.0.0', date '2026-09-12', '20260911121100', 'maintained', null, null, 'b5e75ed5a8126312eaa80c45ad6a3801f4ebd3f4f3c15e236a33ca48b015746d')
+  ('BE', 'Belgium', '1.1.0', date '2026-09-12', '20260912091918', 'maintained', null, null, '1163b7ada622d95f8d820d75609ce2cb43b66d0af25427e4739fb452337b41ae')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -412,27 +413,32 @@ on conflict (country, code) do update set
 
 insert into tax_templates
   (country, code, name, description, amount_type, amount, applies_to, treatment,
-   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence)
+   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence,
+   tax_kind, recoverable, jurisdiction, price_include, cash_basis,
+   cash_basis_transition_account_code)
 values
-  ('BE', 'BE-P-00', 'Achat exonere', 'Sans TVA', 'percent', 0, 'purchase', 'exempt', date '1993-01-01', null, 'Code TVA, art. 44', 'E', 'VATEX-EU-132', 170),
-  ('BE', 'BE-P-06-G', 'Achat marchandises 6 %', 'Biens', 'percent', 6, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 150),
-  ('BE', 'BE-P-06-S', 'Achat services 6 %', 'Services et biens divers', 'percent', 6, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 160),
-  ('BE', 'BE-P-12-S', 'Achat services 12 %', 'Services et biens divers', 'percent', 12, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau B', 'S', null, 140),
-  ('BE', 'BE-P-21-G', 'Achat marchandises 21 %', 'Biens, grille 81', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 110),
-  ('BE', 'BE-P-21-I', 'Achat investissement 21 %', 'Biens d''investissement, grille 83', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 130),
-  ('BE', 'BE-P-21-S', 'Achat services 21 %', 'Services et biens divers, grille 82', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 120),
-  ('BE', 'BE-P-CC-21', 'Achat cocontractant 21 %', 'Report de perception, grilles 87/56/59', 'percent', 21, 'purchase', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 200),
-  ('BE', 'BE-P-ICG-21', 'Acquisition intracom. biens 21 %', 'Report de perception, grilles 86/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'Code TVA, art. 25ter', 'AE', 'VATEX-EU-AE', 180),
-  ('BE', 'BE-P-ICS-21', 'Service intracom. recu 21 %', 'Report de perception, grilles 88/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'Code TVA, art. 51 par. 2', 'AE', 'VATEX-EU-AE', 190),
-  ('BE', 'BE-P-IMP-21', 'Importation report de perception', 'Licence ET 14000, grilles 87/57/59', 'percent', 21, 'purchase', 'import', date '1996-01-01', null, 'AR n. 7, art. 5', 'S', null, 210),
-  ('BE', 'BE-S-00', 'Vente 0 %', 'Taux zero', 'percent', 0, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau C', 'Z', null, 40),
-  ('BE', 'BE-S-06', 'Vente 6 %', 'Taux reduit, tableau A', 'percent', 6, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 30),
-  ('BE', 'BE-S-12', 'Vente 12 %', 'Taux reduit, tableau B', 'percent', 12, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau B', 'S', null, 20),
-  ('BE', 'BE-S-21', 'Vente 21 %', 'Taux normal', 'percent', 21, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 10),
-  ('BE', 'BE-S-CC', 'Vente cocontractant', 'TVA due par le cocontractant', 'percent', 0, 'sale', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 50),
-  ('BE', 'BE-S-EXP', 'Exportation hors UE', 'Exemptee', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'Code TVA, art. 39', 'G', 'VATEX-EU-G', 80),
-  ('BE', 'BE-S-ICG', 'Livraison intracommunautaire', 'Biens, exemptee', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'Code TVA, art. 39bis', 'K', 'VATEX-EU-IC', 60),
-  ('BE', 'BE-S-ICS', 'Service intracommunautaire', 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'Code TVA, art. 21 par. 2', 'AE', 'VATEX-EU-AE', 70)
+  ('BE', 'BE-P-00', 'Achat exonere', 'Sans TVA', 'percent', 0, 'purchase', 'exempt', date '1993-01-01', null, 'Code TVA, art. 44', 'E', 'VATEX-EU-132', 170, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-06-G', 'Achat marchandises 6 %', 'Biens', 'percent', 6, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 150, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-06-S', 'Achat services 6 %', 'Services et biens divers', 'percent', 6, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 160, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-12-S', 'Achat services 12 %', 'Services et biens divers', 'percent', 12, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau B', 'S', null, 140, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-21-50-I', 'Achat vehicule 21 % — deduction 50 %', 'Voiture particuliere, bien d''investissement, grille 83. La TVA non deductible suit le compte de la ligne.', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'Code de la TVA, art. 45, par. 2', 'S', null, 220, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-21-50-S', 'Frais de vehicule 21 % — deduction 50 %', 'Carburant, entretien, leasing et parking d''une voiture particuliere, grille 82. La TVA non deductible suit le compte de la ligne.', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'Code de la TVA, art. 45, par. 2', 'S', null, 230, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-21-G', 'Achat marchandises 21 %', 'Biens, grille 81', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 110, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-21-I', 'Achat investissement 21 %', 'Biens d''investissement, grille 83', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 130, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-21-ND', 'Achat non deductible 21 %', 'Frais de reception, tabac et boissons spiritueuses : aucune deduction. Toute la TVA suit le compte de la ligne.', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'Code de la TVA, art. 45, par. 3', 'S', null, 240, 'vat', false, null, false, false, null),
+  ('BE', 'BE-P-21-S', 'Achat services 21 %', 'Services et biens divers, grille 82', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 120, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-CC-21', 'Achat cocontractant 21 %', 'Report de perception, grilles 87/56/59', 'percent', 21, 'purchase', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 200, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-ICG-21', 'Acquisition intracom. biens 21 %', 'Report de perception, grilles 86/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'Code TVA, art. 25ter', 'AE', 'VATEX-EU-AE', 180, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-ICS-21', 'Service intracom. recu 21 %', 'Report de perception, grilles 88/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'Code TVA, art. 51 par. 2', 'AE', 'VATEX-EU-AE', 190, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-IMP-21', 'Importation report de perception', 'Licence ET 14000, grilles 87/57/59', 'percent', 21, 'purchase', 'import', date '1996-01-01', null, 'AR n. 7, art. 5', 'S', null, 210, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-00', 'Vente 0 %', 'Taux zero', 'percent', 0, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau C', 'Z', null, 40, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-06', 'Vente 6 %', 'Taux reduit, tableau A', 'percent', 6, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 30, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-12', 'Vente 12 %', 'Taux reduit, tableau B', 'percent', 12, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau B', 'S', null, 20, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-21', 'Vente 21 %', 'Taux normal', 'percent', 21, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 10, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-CC', 'Vente cocontractant', 'TVA due par le cocontractant', 'percent', 0, 'sale', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 50, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-EXP', 'Exportation hors UE', 'Exemptee', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'Code TVA, art. 39', 'G', 'VATEX-EU-G', 80, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-ICG', 'Livraison intracommunautaire', 'Biens, exemptee', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'Code TVA, art. 39bis', 'K', 'VATEX-EU-IC', 60, 'vat', true, null, false, false, null),
+  ('BE', 'BE-S-ICS', 'Service intracommunautaire', 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'Code TVA, art. 21 par. 2', 'AE', 'VATEX-EU-AE', 70, 'vat', true, null, false, false, null)
 on conflict (country, code) do update set
   name            = excluded.name,
   description     = excluded.description,
@@ -445,7 +451,13 @@ on conflict (country, code) do update set
   legal_reference = excluded.legal_reference,
   vat_category    = excluded.vat_category,
   exemption_code  = excluded.exemption_code,
-  sequence        = excluded.sequence;
+  sequence        = excluded.sequence,
+  tax_kind        = excluded.tax_kind,
+  recoverable     = excluded.recoverable,
+  jurisdiction    = excluded.jurisdiction,
+  price_include   = excluded.price_include,
+  cash_basis      = excluded.cash_basis,
+  cash_basis_transition_account_code = excluded.cash_basis_transition_account_code;
 
 insert into tax_posting_templates
   (tax_template_id, document_kind, posting_type, factor_percent, account_code,
@@ -474,6 +486,18 @@ select t.id,
     ('BE-P-12-S', 'invoice', 'tax', 100, '411000', '59', 100, 'BE-VAT-PERIODIC', 20),
     ('BE-P-12-S', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
     ('BE-P-12-S', 'credit_note', 'tax', 100, '411000', '63', 100, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-50-I', 'invoice', 'base', 100, null, '83', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-50-I', 'invoice', 'tax', 50, '411000', '59', 50, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-50-I', 'invoice', 'tax_on_base', 50, null, '83', 50, 'BE-VAT-PERIODIC', 30),
+    ('BE-P-21-50-I', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-50-I', 'credit_note', 'tax', 50, '411000', '63', 50, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-50-I', 'credit_note', 'tax_on_base', 50, null, '85', 50, 'BE-VAT-PERIODIC', 30),
+    ('BE-P-21-50-S', 'invoice', 'base', 100, null, '82', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-50-S', 'invoice', 'tax', 50, '411000', '59', 50, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-50-S', 'invoice', 'tax_on_base', 50, null, '82', 50, 'BE-VAT-PERIODIC', 30),
+    ('BE-P-21-50-S', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-50-S', 'credit_note', 'tax', 50, '411000', '63', 50, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-50-S', 'credit_note', 'tax_on_base', 50, null, '85', 50, 'BE-VAT-PERIODIC', 30),
     ('BE-P-21-G', 'invoice', 'base', 100, null, '81', 100, 'BE-VAT-PERIODIC', 10),
     ('BE-P-21-G', 'invoice', 'tax', 100, '411000', '59', 100, 'BE-VAT-PERIODIC', 20),
     ('BE-P-21-G', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
@@ -482,6 +506,10 @@ select t.id,
     ('BE-P-21-I', 'invoice', 'tax', 100, '411000', '59', 100, 'BE-VAT-PERIODIC', 20),
     ('BE-P-21-I', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
     ('BE-P-21-I', 'credit_note', 'tax', 100, '411000', '63', 100, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-ND', 'invoice', 'base', 100, null, '82', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-ND', 'invoice', 'tax_on_base', 100, null, '82', 100, 'BE-VAT-PERIODIC', 20),
+    ('BE-P-21-ND', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
+    ('BE-P-21-ND', 'credit_note', 'tax_on_base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 20),
     ('BE-P-21-S', 'invoice', 'base', 100, null, '82', 100, 'BE-VAT-PERIODIC', 10),
     ('BE-P-21-S', 'invoice', 'tax', 100, '411000', '59', 100, 'BE-VAT-PERIODIC', 20),
     ('BE-P-21-S', 'credit_note', 'base', 100, null, '85', 100, 'BE-VAT-PERIODIC', 10),
@@ -605,9 +633,10 @@ insert into country_defaults
    rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
-   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code)
+   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
+   rounding_method, cash_rounding_unit)
 values
-  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN')
+  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', 0)
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -628,4 +657,6 @@ on conflict (country) do update set
   current_year_result_profit_code = excluded.current_year_result_profit_code,
   current_year_result_loss_code   = excluded.current_year_result_loss_code,
   retained_earnings_loss_code     = excluded.retained_earnings_loss_code,
-  opening_journal_code            = excluded.opening_journal_code;
+  opening_journal_code            = excluded.opening_journal_code,
+  rounding_method        = excluded.rounding_method,
+  cash_rounding_unit     = excluded.cash_rounding_unit;

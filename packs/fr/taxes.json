@@ -624,5 +624,50 @@
         }
       ]
     }
+  },
+  {
+    "code": "FR-P-20-CARB",
+    "name": "Carburant vehicule de tourisme 20 % — deduction 80 %",
+    "description": "Essences et gazoles des vehicules exclus du droit a deduction. La TVA non deductible suit le compte de la ligne ; la CA3 ne porte aucune grille de base a l'entree.",
+    "kind": "vat",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2021-01-01",
+    "legal_reference": "CGI, art. 298, 4, 1 a et b",
+    "vat_category": "S",
+    "sequence": 200,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "factor": 80,
+          "account": "445660",
+          "box": "20",
+          "box_factor": 80,
+          "sequence": 20
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 20,
+          "sequence": 30
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "factor": 80,
+          "account": "445660",
+          "box": "20",
+          "box_factor": -80,
+          "sequence": 20
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 20,
+          "sequence": 30
+        }
+      ]
+    }
   }
 ]

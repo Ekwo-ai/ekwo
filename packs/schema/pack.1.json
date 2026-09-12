@@ -79,8 +79,8 @@
       "properties": {
         "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
         "language": { "$ref": "#/$defs/language", "description": "Language a company of this country is installed in unless it asks for another." },
-        "rounding_method": { "enum": ["half_up", "half_even", "down", "up"] },
-        "cash_rounding_unit": { "type": ["number", "null"], "minimum": 0, "description": "0.05 in Switzerland. Null everywhere the cent is the unit." },
+        "rounding_method": { "enum": ["half_up", "half_even", "down", "up"], "description": "How this country rounds a tax amount. half_up is half away from zero, which is what every posting does today. Defaults to half_up." },
+        "cash_rounding_unit": { "type": ["number", "null"], "minimum": 0, "description": "Smallest coin when it is not the cent: 0.05 in Switzerland. Null, like 0, means the cent is the unit." },
         "closing_style": {
           "enum": ["retained_earnings", "result_accounts", "appropriation_accounts"],
           "description": "How the year-end close moves the result. retained_earnings: straight into retained earnings (UK, US). result_accounts: into a current-year result account that sits on the balance sheet and waits for the meeting that allocates it (FR 120/129). appropriation_accounts: through an appropriation account that is itself part of the income statement, and from there to retained earnings (BE 693/793 to 140/141). Named after the mechanism, never after a country."
@@ -230,7 +230,7 @@
         "description": { "type": ["string", "null"] },
         "kind": {
           "enum": ["vat", "gst", "sales_tax", "withholding", "other"],
-          "description": "Deferred (P0-5): a label that drives the reports, never the calculation."
+          "description": "A label that drives the reports, never the calculation: a GST is computed exactly like a VAT. Defaults to vat."
         },
         "amount_type": { "enum": ["percent", "fixed"] },
         "rate": { "type": "number", "description": "A percentage when amount_type is percent, an amount when it is fixed." },
@@ -247,10 +247,11 @@
         "legal_reference": { "type": ["string", "null"], "description": "The article this rate comes from. A pack without sources cannot be reviewed." },
         "vat_category": { "type": ["string", "null"], "maxLength": 2, "description": "EN 16931 / UNCL5305 category code." },
         "exemption_code": { "type": ["string", "null"], "description": "VATEX-* reason, when the category asks for one." },
-        "price_include": { "type": "boolean", "description": "Deferred (P0-5): the unit price already holds the tax (UK and Australian retail)." },
-        "recoverable": { "type": "boolean", "description": "Deferred (P0-5): false for a sales tax and for non-deductible VAT." },
-        "cash_basis": { "type": "boolean", "description": "Deferred (P0-6): the tax falls due when the invoice is paid." },
-        "jurisdiction": { "type": ["string", "null"], "description": "Deferred (P0-5): ISO 3166-2, US-CA, CA-QC. Null in Europe." },
+        "price_include": { "type": "boolean", "description": "The unit price already holds the tax (UK and Australian retail). Compiled to a column; the gross-to-net computation arrives with the country that needs it." },
+        "recoverable": { "type": "boolean", "description": "False when the buyer never gets the tax back: American sales tax, Canadian PST. Where the money lands is said by a tax_on_base posting, not by this flag." },
+        "cash_basis": { "type": "boolean", "description": "The tax falls due when the invoice is paid. Compiled to a column by P0-5; the behaviour arrives with P0-6." },
+        "cash_basis_transition_account": { "type": ["string", "null"], "description": "Code of the account the tax waits on until the invoice is paid. Compiled to a column by P0-5, read by P0-6." },
+        "jurisdiction": { "type": ["string", "null"], "description": "ISO 3166-2 with the country prefix, US-CA, CA-QC, for a tax levied by a state. Null in Europe, and distinct from a party's region, which carries no prefix." },
         "report_code": { "type": ["string", "null"], "description": "Deferred (P0-3): which declaration the boxes below belong to, when a country files several." },
         "sequence": { "type": "integer", "minimum": 0 },
         "group": {
@@ -278,11 +279,11 @@
       "additionalProperties": false,
       "properties": {
         "type": {
-          "enum": ["base", "tax"],
-          "description": "base carries no account: it is the line itself. tax carries one. (tax_on_base arrives with P0-5.)"
+          "enum": ["base", "tax", "tax_on_base"],
+          "description": "base carries no account: it is the line itself. tax carries one. tax_on_base carries none either, and for the same reason \u2014 a share of the tax that is not recoverable is a cost, so it lands on the accounts of the lines it taxes (Belgian cars at 50 %, French fuel at 80 %)."
         },
-        "factor": { "type": "number", "description": "Percentage of the amount that goes to the ledger. Default 100; -100 flips the side, which is how a self-assessed tax nets to zero." },
-        "account": { "type": ["string", "null"], "description": "Code of the ledger account, from accounts.csv. Only on a tax posting." },
+        "factor": { "type": "number", "description": "Percentage of the amount that goes to the ledger \u2014 of the base on a base posting, of the tax on the two others. Default 100; -100 flips the side, which is how a self-assessed tax nets to zero." },
+        "account": { "type": ["string", "null"], "description": "Code of the ledger account, from accounts.csv. Only on a tax posting: base and tax_on_base take the account of the document line." },
         "box": { "type": ["string", "null"], "pattern": "^[0-9A-Za-z]{1,8}$", "description": "Box of the periodic return this amount lands in." },
         "box_factor": { "type": "number", "description": "Percentage of the amount reported in the box. Default 100; -100 subtracts from the same line." },
         "report": { "type": ["string", "null"], "description": "Declaration form this box belongs to. Defaults to the code of tax_report.json — a box number is only unique inside one form, which matters the day a country files two at once (Canada: the federal GST/HST return and the Québec one)." },

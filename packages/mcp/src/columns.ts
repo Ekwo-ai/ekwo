@@ -71,6 +71,15 @@ export const TAX = [
   'valid_from::text',
   'valid_to::text',
   'legal_reference',
+  // The generalised engine. `tax_kind` and `jurisdiction` say what a tax is
+  // where the code alone would have to be guessed at; `recoverable` and
+  // `price_include` change what a client should show; `cash_basis` is here so
+  // a reader is not surprised by it when P0-6 starts writing it.
+  'tax_kind',
+  'recoverable',
+  'jurisdiction',
+  'price_include',
+  'cash_basis',
   'active',
 ];
 
