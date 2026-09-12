@@ -27,6 +27,7 @@ export {
   type Step,
 } from './bootstrap.js';
 export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js';
+export { describeCertification, needsWarning, type Certification, type CertificationFacts } from './pack/certification.js';
 export { compilePack, seedFileName } from './pack/compile.js';
 export {
   listPacks,

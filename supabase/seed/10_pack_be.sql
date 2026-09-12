@@ -4,7 +4,8 @@
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
--- Certification: ekwo, by Ekwo AI on 2026-09-12.
+-- Maintained by Ekwo — not yet reviewed by an accountant.
+-- Written from:
 --   Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé
 --   Code de la TVA, art. 37
 --   Arrêté royal n. 20 du 20 juillet 1970
@@ -23,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.0.0', date '2026-09-12', '20260911121100', 'ekwo', 'Ekwo AI', date '2026-09-12', '77a20b05f094814be14db2ccb6bb199426843abc566f235e68c9e9d7330c2326')
+  ('BE', 'Belgium', '1.0.0', date '2026-09-12', '20260911121100', 'maintained', null, null, '06dd24ffdee3ef190fb139c3a7d38dde3d2ac33d6b9291a2e30be57055354139')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

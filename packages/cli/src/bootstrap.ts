@@ -97,6 +97,7 @@ export interface PackSummary {
   version: string;
   certificationStatus: string;
   certifiedBy: string | null;
+  certifiedAt: string | null;
 }
 
 export async function countryPack(db: SqlClient, country: string): Promise<PackSummary | undefined> {
@@ -106,9 +107,11 @@ export async function countryPack(db: SqlClient, country: string): Promise<PackS
     version: string;
     certification_status: string;
     certified_by: string | null;
+    certified_at: string | null;
   }>(
     db,
-    `select country, name, version, certification_status::text, certified_by
+    `select country, name, version, certification_status::text, certified_by,
+            certified_at::text
        from country_packs where country = $1`,
     [country.toUpperCase()],
   );
@@ -119,6 +122,7 @@ export async function countryPack(db: SqlClient, country: string): Promise<PackS
     version: row.version,
     certificationStatus: row.certification_status,
     certifiedBy: row.certified_by,
+    certifiedAt: row.certified_at,
   };
 }
 

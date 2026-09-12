@@ -30,6 +30,8 @@ export interface PackStatus {
   name: string;
   version: string;
   certificationStatus: string;
+  certifiedBy: string | null;
+  certifiedAt: string | null;
 }
 
 export interface Status {
@@ -103,8 +105,11 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     name: string;
     version: string;
     certification_status: string;
+    certified_by: string | null;
+    certified_at: string | null;
   }>(
-    `select country, name, version, certification_status::text
+    `select country, name, version, certification_status::text, certified_by,
+            certified_at::text
        from country_packs order by country`,
   );
 
@@ -130,6 +135,8 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       name: p.name,
       version: p.version,
       certificationStatus: p.certification_status,
+      certifiedBy: p.certified_by,
+      certifiedAt: p.certified_at,
     })),
   };
 }

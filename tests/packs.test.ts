@@ -237,7 +237,11 @@ describe('the pack format', () => {
     for (const slug of await listPacks(packs)) {
       const pack = await readPack(slug, packs);
       expect(pack.manifest.version).toMatch(/^\d+\.\d+\.\d+$/);
-      expect(pack.manifest.certification?.status).toBe('ekwo');
+      // Maintained, not certified: writing a pack and testing that it holds
+      // together is not an accountant reading it against the law.
+      expect(pack.manifest.certification?.status).toBe('maintained');
+      expect(pack.manifest.certification?.by, 'only a review names someone').toBeUndefined();
+      expect((pack.manifest.certification?.sources ?? []).length).toBeGreaterThan(0);
       expect(pack.accounts.length).toBeGreaterThan(300);
     }
   });

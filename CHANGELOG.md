@@ -11,6 +11,11 @@ somewhere has already run it.
 
 ### Security
 
+- **A test now fails if any function of `public` is executable by PUBLIC.**
+  The finding below was a README rule and a revoke in one migration; it is a
+  test in `tests/hardening.test.ts`, which reads `proacl` — a null one counts,
+  being the built-in default — so the next migration that forgets the revoke
+  fails in CI rather than on a live project.
 - **A function created after `20260911210131` was open again.** That migration
   changed the default privileges so that "a function added tomorrow starts
   closed", and PostgreSQL does not work that way: `alter default privileges …
@@ -86,6 +91,19 @@ somewhere has already run it.
   installation.
 
 ### Added
+
+- **Ekwo maintains a pack; only an accountant reviews one.** The certification
+  scale had a value `ekwo` that read as "certified by Ekwo", which is a claim
+  nobody here can make: writing a pack and proving it internally coherent is
+  not a professional reading it against the law. `pack_certification` gains
+  `maintained` (migration `20260912081014`), Belgium and France become
+  `maintained` rather than `ekwo`, and migration `20260912081015` moves any row
+  that held the old value and empties `certified_by`, which said "Ekwo AI".
+  `ekwo` stays in the enum — a published column never loses a value — and is
+  deprecated: nothing writes it and the pack schema refuses it. `ekwo init`,
+  `ekwo status` and the header of every generated seed print the same
+  sentence, from one place in the CLI: "maintained by Ekwo — not yet reviewed
+  by an accountant", "reviewed by X on Y", "community pack — not reviewed".
 
 - **Two columns Canada will need, added before Canada.** Migration
   `20260912080311`: `report_code` on `tax_posting_templates` and

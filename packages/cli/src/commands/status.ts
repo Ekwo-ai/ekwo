@@ -4,6 +4,7 @@
 
 import { boolFlag, rejectUnknownFlags, type ParsedArgs } from '../args.js';
 import { migrationsDir } from '../bundle.js';
+import { describeCertification } from '../pack/certification.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { listMigrations } from '../migrations.js';
 import { isInteractive } from '../prompt.js';
@@ -75,7 +76,11 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
       pairs(
         report.packs.map((p) => [
           `${p.country} ${p.name}`,
-          `${p.version} · certification ${p.certificationStatus}`,
+          `${p.version} · ${describeCertification({
+            status: p.certificationStatus,
+            by: p.certifiedBy,
+            on: p.certifiedAt,
+          })}`,
         ]),
       );
     }

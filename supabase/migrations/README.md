@@ -41,6 +41,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `…210131_anon_surface` | `anon` may execute only the eight policy helpers; `instance_admins` visible to members, administrators and oneself |
 | `20260912074712_country_packs` | `country_packs` and `company_packs`, `name_i18n` and `statement_hint` on the chart, `companies.language`, `country_defaults.language_default`, and `install_country_template(company, country, language)` |
 | `20260912080311_report_code_and_region` | `report_code` on `tax_posting_templates` and `tax_postings`, backfilled; `region` on `companies` and `contacts`. Both are for the Canadian pack, added now so that table migrates once |
+| `20260912081014_pack_certification_maintained` | `pack_certification` gains `maintained`; `ekwo` is deprecated and nothing writes it |
+| `20260912081015_pack_certification_backfill` | the packs that held `ekwo` become `maintained`, `certified_by` emptied. Its own file: a new enum value cannot be used in the transaction that added it |
 
 ## Rules for a new migration
 

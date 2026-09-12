@@ -75,6 +75,35 @@ describe('the anonymous role', () => {
       'is_instance_admin',
     ]);
   });
+
+  it('is not handed a function through PUBLIC by a migration that forgot', async () => {
+    // A function created without an explicit revoke comes out executable by
+    // PUBLIC — `anon` included — and `alter default privileges … revoke
+    // execute on functions from public` does *not* prevent it: PostgreSQL
+    // merges the stored default with the built-in one, so the new function
+    // still carries `=X`. Migration 20260911210131 believed otherwise and
+    // 20260912074712 found out, with `install_country_template` published as
+    // an anonymous RPC endpoint for the length of one commit.
+    //
+    // A null `proacl` is the same failure wearing the built-in default.
+    // Every migration that adds a function ends with
+    // `revoke execute on all functions in schema public from public;` —
+    // from PUBLIC, never from `anon`, which holds the grants above.
+    const open = await rows<{ proname: string }>(
+      db,
+      `select p.proname
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public' and p.prokind = 'f'
+          and (p.proacl is null
+               or exists (select 1 from aclexplode(p.proacl) a
+                           where a.grantee = 0 and a.privilege_type = 'EXECUTE'))
+        order by 1`,
+    );
+    expect(
+      open.map((r) => r.proname),
+      'these functions are executable by PUBLIC: add the revoke to the migration that created them',
+    ).toEqual([]);
+  });
 });
 
 describe('a signed-in stranger', () => {

@@ -6,9 +6,7 @@
   "schema_min": "20260911121100",
   "released_at": "2026-09-12",
   "certification": {
-    "status": "ekwo",
-    "by": "Ekwo AI",
-    "on": "2026-09-12",
+    "status": "maintained",
     "sources": [
       "Règlement ANC 2022-06 — plan comptable général",
       "Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater",

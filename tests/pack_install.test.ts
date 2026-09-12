@@ -25,14 +25,18 @@ afterAll(async () => {
 
 describe('country_packs', () => {
   it('holds one row per pack the seeds loaded, with its certification', async () => {
-    const loaded = await rows<{ country: string; version: string; certification_status: string; checksum: string }>(
+    const loaded = await rows<{ country: string; version: string; certification_status: string; certified_by: string | null; checksum: string }>(
       db,
-      'select country, version, certification_status::text, checksum from country_packs order by country',
+      `select country, version, certification_status::text, certified_by, checksum
+         from country_packs order by country`,
     );
     expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR']);
     for (const pack of loaded) {
       expect(pack.version).toBe('1.0.0');
-      expect(pack.certification_status).toBe('ekwo');
+      // `maintained`, never `ekwo`: Ekwo maintains these two packs and no
+      // accountant has read them. Certified describes a review, or nothing.
+      expect(pack.certification_status).toBe('maintained');
+      expect(pack.certified_by).toBeNull();
       expect(pack.checksum).toMatch(/^[0-9a-f]{64}$/);
     }
   });
@@ -47,6 +51,51 @@ describe('country_packs', () => {
       );
       expect(row.checksum, slug).toBe(pack.checksum);
     }
+  });
+});
+
+describe('a pack that used to call itself certified', () => {
+  it('is maintained now, and the migration moves an installation that holds the old value', async () => {
+    // The statement is the migration's own, read from it rather than retyped.
+    const migration = await readFile(
+      join(repoRoot, 'supabase', 'migrations', '20260912081015_pack_certification_backfill.sql'),
+      'utf8',
+    );
+    const [backfill] = migration
+      .split(';')
+      .map((statement) => statement.replace(/^(\s*--[^\n]*\n)+/, '').trim())
+      .filter((statement) => /^update country_packs\b/.test(statement));
+    expect(backfill).toBeDefined();
+
+    await db.exec('begin');
+    await db.exec(
+      `update country_packs set certification_status = 'ekwo', certified_by = 'Ekwo AI',
+                                certified_at = date '2026-09-12'`,
+    );
+    await db.exec(`${backfill};`);
+    const after = await rows<{ certification_status: string; certified_by: string | null; certified_at: string | null }>(
+      db,
+      'select certification_status::text, certified_by, certified_at::text from country_packs order by country',
+    );
+    for (const pack of after) {
+      expect(pack.certification_status).toBe('maintained');
+      // "Ekwo AI" in certified_by was the claim this change exists to stop
+      // making; only a review names anyone.
+      expect(pack.certified_by).toBeNull();
+      expect(pack.certified_at).toBeNull();
+    }
+    await db.exec('rollback');
+  });
+
+  it('keeps the deprecated value in the type, because an enum never loses one', async () => {
+    const values = await rows<{ enumlabel: string }>(
+      db,
+      `select e.enumlabel
+         from pg_enum e join pg_type t on t.oid = e.enumtypid
+        where t.typname = 'pack_certification'
+        order by e.enumsortorder`,
+    );
+    expect(values.map((v) => v.enumlabel)).toEqual(['community', 'maintained', 'reviewed', 'ekwo']);
   });
 });
 

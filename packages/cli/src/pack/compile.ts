@@ -21,6 +21,7 @@
  * pack, an account is deprecated and a tax gets a `valid_to`.
  */
 
+import { describeCertification } from './certification.js';
 import type { Pack } from './read.js';
 
 /** `packs/be` → `10_pack_be.sql`, `packs/fr` → `11_pack_fr.sql`. */
@@ -58,9 +59,8 @@ function header(pack: Pack): string[] {
   ];
   const certification = manifest.certification;
   if (certification !== undefined) {
-    const by = certification.by ?? 'nobody named';
-    const on = certification.on ?? 'no date';
-    lines.push(`-- Certification: ${certification.status}, by ${by} on ${on}.`);
+    lines.push(`-- ${capitalise(describeCertification(certification))}.`);
+    lines.push('-- Written from:');
     for (const source of certification.sources ?? []) lines.push(`--   ${source}`);
     lines.push('--');
   }
@@ -275,6 +275,10 @@ function manifestRow(pack: Pack, country: string): string[] {
     '  checksum             = excluded.checksum;',
     '',
   ];
+}
+
+function capitalise(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function byCode(a: { code: string }, b: { code: string }): number {

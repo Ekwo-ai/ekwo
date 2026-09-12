@@ -129,11 +129,21 @@ that it is legally right, and no test can. So:
 
 - every tax names the article it comes from (`legal_reference`), and the
   manifest lists its sources;
-- the manifest carries `certification.status` — `community` (contributed, not
-  read by an accountant), `reviewed` (read by a named professional), `ekwo`
-  (maintained by Ekwo) — and `ekwo init` prints it, in as many words, before
-  anyone books anything;
-- Belgium and France are `ekwo`. Anything else says what it is.
+- the manifest carries `certification.status`, and `ekwo init` prints it in as
+  many words before anyone books anything:
+
+  | Status | What it means |
+  |---|---|
+  | `community` | contributed, not read by an accountant |
+  | `maintained` | maintained by Ekwo, not yet reviewed by an accountant |
+  | `reviewed` | read by a named professional — `by`, `on` and the sources they worked from |
+
+- **Belgium and France are `maintained`.** Writing a pack and testing that it
+  holds together is not reviewing it: *certified* describes a professional
+  reading it against the law, and nothing else. There is deliberately no
+  status that means "certified by Ekwo"; the value `ekwo` that used to exist
+  is deprecated, refused by the schema, and moved to `maintained` by migration
+  `20260912081015`.
 
 ## Adding a country
 

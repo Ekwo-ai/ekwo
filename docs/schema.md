@@ -527,8 +527,8 @@ Country packs loaded in this installation, with their version and certification.
 | `version` | `text` | not null |
 | `released_at` | `date` |  |
 | `schema_min` | `text` |  |
-| `certification_status` | `pack_certification` | not null — Printed by `ekwo init`: a community pack has not been read by an accountant. |
-| `certified_by` | `text` |  |
+| `certification_status` | `pack_certification` | not null — How much a pack has been read, printed by `ekwo init`: community (contributed, unread), maintained (by Ekwo, not yet reviewed), reviewed (by the professional named in certified_by). |
+| `certified_by` | `text` | The professional who reviewed the pack. Only on a reviewed pack: maintaining is not reviewing. |
 | `certified_at` | `date` |  |
 | `checksum` | `text` | sha256 of the pack files, so a changed pack is visible without a diff. |
 | `installed_at` | `timestamp with time zone` | not null |

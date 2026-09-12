@@ -59,11 +59,11 @@
       "additionalProperties": false,
       "properties": {
         "status": {
-          "enum": ["community", "reviewed", "ekwo"],
-          "description": "community: contributed, not read by an accountant. reviewed: a named professional has read it. ekwo: maintained and certified by Ekwo."
+          "enum": ["community", "maintained", "reviewed"],
+          "description": "community: contributed, not read by an accountant. maintained: maintained by Ekwo and not yet read by one either. reviewed: a named professional has read it, and is named in `by`. Writing the pack is not reviewing it, which is why there is no status that means \"certified by Ekwo\"."
         },
-        "by": { "type": ["string", "null"], "description": "The professional or the organisation that read it." },
-        "on": { "$ref": "#/$defs/date" },
+        "by": { "type": ["string", "null"], "description": "The professional who read the pack. Only on a reviewed pack: maintaining is not reviewing, so it stays empty on a maintained one." },
+        "on": { "$ref": "#/$defs/date", "description": "When they read it. Only on a reviewed pack." },
         "sources": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 },

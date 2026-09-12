@@ -21,6 +21,7 @@
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
 import { availableCountries, bootstrap, countryCurrency, countryLanguage, countryPack } from '../bootstrap.js';
+import { describeCertification, needsWarning } from '../pack/certification.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
@@ -133,18 +134,17 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     const pack = await countryPack(db, country);
     if (pack === undefined) {
       warn(`no country pack is recorded for ${country}; the seeds of this release declare one.`);
-    } else if (pack.certificationStatus === 'community') {
-      warn(
-        `${pack.name} pack ${pack.version} is a community pack: contributed, and not read by an accountant. ` +
-          'Check the boxes against your own situation before you file anything.',
-      );
     } else {
-      note(
-        dim(
-          `${pack.name} pack ${pack.version}, certification ${pack.certificationStatus}` +
-            `${pack.certifiedBy === null ? '' : ` by ${pack.certifiedBy}`}.`,
-        ),
-      );
+      const said = `${pack.name} pack ${pack.version}: ${describeCertification({
+        status: pack.certificationStatus,
+        by: pack.certifiedBy,
+        on: pack.certifiedAt,
+      })}.`;
+      if (needsWarning(pack.certificationStatus)) {
+        warn(`${said} Check the boxes against your own situation before you file anything.`);
+      } else {
+        note(dim(said));
+      }
     }
 
     // The main bank account. Optional everywhere: a company can be installed
@@ -217,7 +217,12 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     pairs([
       ['organisation', organization],
       ['company', `${company} (${country}, ${outcome.currencyCode}, ${outcome.language})`],
-      ['country pack', pack === undefined ? 'none recorded' : `${pack.version} (${pack.certificationStatus})`],
+      [
+        'country pack',
+        pack === undefined
+          ? 'none recorded'
+          : `${pack.version} — ${describeCertification({ status: pack.certificationStatus, by: pack.certifiedBy, on: pack.certifiedAt })}`,
+      ],
       ['financial year', outcome.fiscalYearName],
       ['bank account', bankAccount === undefined ? 'none — ekwo doctor will say so' : bankAccount.iban],
       ['schema version', schemaVersion ?? 'unknown'],

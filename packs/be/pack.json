@@ -6,9 +6,7 @@
   "schema_min": "20260911121100",
   "released_at": "2026-09-12",
   "certification": {
-    "status": "ekwo",
-    "by": "Ekwo AI",
-    "on": "2026-09-12",
+    "status": "maintained",
     "sources": [
       "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
       "Code de la TVA, art. 37",

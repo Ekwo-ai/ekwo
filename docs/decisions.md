@@ -682,3 +682,29 @@ names each one it skipped, in its output and in the header of every seed it
 writes, so nothing is quietly dropped. `tax_report.json` is written for both
 countries already — the Belgian 71/72 and the French CA3 totals — so that P0-3
 has the data it needs on the day it starts.
+
+
+## Ekwo maintains a pack; only an accountant reviews one (12 September 2026)
+
+The certification scale shipped that morning with three values, and `ekwo`
+meant "certified by Ekwo". That is a claim we cannot make: we write the pack,
+a golden test proves it is internally coherent, and neither is an accountant
+reading it against the law. The word *certified* should describe a review by a
+named professional, or nothing.
+
+So `pack_certification` gains **`maintained`** — maintained by Ekwo, not yet
+reviewed by an accountant — which is what Belgium and France are. `reviewed`
+keeps its meaning and now carries who read it and when. `ekwo` stays in the
+enum, because a published column never loses a value, and is deprecated:
+nothing writes it, the pack schema refuses it, and migration `20260912081015`
+moves the rows that hold it, emptying `certified_by` along the way — it held
+"Ekwo AI", which was the claim itself. Migrations `20260912081014` and
+`20260912081015` are two files because PostgreSQL refuses a new enum value in
+the transaction that added it.
+
+One sentence describes a pack, written once in the CLI and printed by
+`ekwo init`, by `ekwo status` and in the header of every generated seed:
+"maintained by Ekwo — not yet reviewed by an accountant", "reviewed by X on
+Y", "community pack — not reviewed". This supersedes the last line of the
+paragraph above, which said Ekwo certifies Belgium and France.
+

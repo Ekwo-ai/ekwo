@@ -193,17 +193,26 @@ describe('splitting a file into statements', () => {
     expect(statements).toHaveLength(1);
   });
 
-  it('splits every real migration into more than one statement', async () => {
+  it('splits every real migration into the statements it holds, losing nothing', async () => {
     const files = (await readdir(migrationsPath)).filter((f) => f.endsWith('.sql'));
+    let multiStatement = 0;
     for (const file of files) {
       const sql = await readFile(join(migrationsPath, file), 'utf8');
       const statements = splitStatements(sql);
-      expect(statements.length, file).toBeGreaterThan(1);
+      // One statement is a real migration — `20260912081015` is a single
+      // update, because a new enum value cannot be used in the transaction
+      // that added it and the two had to be separate files. What would be
+      // wrong is zero, or the whole file handed back as one blob when it
+      // holds several statements, which the round trip below catches.
+      expect(statements.length, file).toBeGreaterThan(0);
+      if (statements.length > 1) multiStatement += 1;
       // Nothing is lost: the statements put back together are the file again,
       // give or take the whitespace between them.
       const rejoined = statements.join('\n').replace(/\s+/g, ' ').trim();
       const original = sql.replace(/\s+/g, ' ').trim().replace(/;?$/, ';');
       expect(rejoined.replace(/;?$/, ';'), file).toBe(original);
     }
+    // And the splitter does split: almost every migration holds several.
+    expect(multiStatement).toBeGreaterThan(files.length - 3);
   });
 });
