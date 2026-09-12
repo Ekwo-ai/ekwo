@@ -19,5 +19,5 @@
       "@ekwo-ai/core": ["./packages/core/src/index.ts"]
     }
   },
-  "include": ["packages/*/src", "tests", "scripts"]
+  "include": ["packages/*/src", "packages/formats/*/src", "packages/formats/*/test", "tests", "scripts"]
 }

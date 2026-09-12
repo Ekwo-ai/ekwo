@@ -363,5 +363,9 @@ own organisation — modified or not — puts no obligation on you. The share-al
 clause bites only if you modify it *and* offer that modified version to people
 outside your organisation over a network.
 
+**The format libraries under [`packages/formats/`](packages/formats/) are
+MIT**, each with its own `LICENSE`. Their value is ubiquity: a file format
+should be readable and writable by anyone, including a competitor.
+
 "Ekwo" and the Ekwo logo are trademarks and are not covered by the licence.
 Fork the code; do not call the fork Ekwo.

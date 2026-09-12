@@ -16,13 +16,14 @@
   ],
   "license": "MIT",
   "author": "Ekwo AI",
-  "homepage": "https://github.com/Ekwo-ai/xbrl-cbso#readme",
+  "homepage": "https://github.com/Ekwo-ai/ekwo/tree/main/packages/formats/xbrl-cbso#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ekwo-ai/xbrl-cbso.git"
+    "url": "git+https://github.com/Ekwo-ai/ekwo.git",
+    "directory": "packages/formats/xbrl-cbso"
   },
   "bugs": {
-    "url": "https://github.com/Ekwo-ai/xbrl-cbso/issues"
+    "url": "https://github.com/Ekwo-ai/ekwo/issues"
   },
   "type": "module",
   "sideEffects": false,

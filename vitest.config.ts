@@ -12,7 +12,10 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['tests/**/*.test.ts'],
+    // The core's tests, and the tests each format brick brought with it. A
+    // brick is published on its own, so its suite stays where it lives; one
+    // `npm test` has to run both, or a brick breaks where nobody looks.
+    include: ['tests/**/*.test.ts', 'packages/formats/*/test/**/*.test.ts'],
     testTimeout: 60_000,
     hookTimeout: 60_000,
   },
