@@ -143,8 +143,10 @@ the return say the same thing, because they are the same rows.
 | [`bank_transactions`](#bank_transactions) | Statement lines. `amount` is signed; `raw` keeps whatever the source sent. |
 | [`companies`](#companies) | Legal entities kept in this instance. One instance may hold several. |
 | [`company_members`](#company_members) | Who may read or write a company. `owner` administers, `accountant` books, `viewer` reads. |
+| [`company_packs`](#company_packs) | Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one. |
 | [`contacts`](#contacts) | Third parties. `contact_type` is explicit rather than two hidden counters. |
 | [`country_defaults`](#country_defaults) | Which template account plays which role, per country. |
+| [`country_packs`](#country_packs) | Country packs loaded in this installation, with their version and certification. |
 | [`currencies`](#currencies) | ISO 4217 currencies known to this instance. |
 | [`currency_rates`](#currency_rates) | Dated exchange rates. A document stores the rate it used; this table is the history. |
 | [`document_lines`](#document_lines) | Document lines in a table, not JSON: EN 16931 needs a VAT category per line and the FEC needs the detail. |
@@ -181,6 +183,8 @@ Reference charts of accounts, one set per country.
 | `reconcilable` | `boolean` | not null |
 | `parent_code` | `text` |  |
 | `sequence` | `integer` | not null |
+| `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. The pack's own language stays in `name`. |
+| `statement_hint` | `text` | Statement line this account falls under when no rule catches it. Read by financial_statement() (P0-4). |
 
 Constraints:
 
@@ -209,6 +213,8 @@ Chart of accounts, one per company.
 | `notes` | `text` |  |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `name_i18n` | `jsonb` | not null — Label by language, copied from the template at install. `name` holds the language the company chose. |
+| `statement_hint` | `text` | Statement line this account falls under when no rule catches it. Read by financial_statement() (P0-4). |
 
 Constraints:
 
@@ -394,6 +400,7 @@ Legal entities kept in this instance. One instance may hold several.
 | `updated_at` | `timestamp with time zone` | not null |
 | `default_sales_account_id` | `uuid` | Income account a sales line falls back to when it names none. Wired from country_defaults.sales_account_code at install. |
 | `default_purchase_account_id` | `uuid` | Expense account a purchase line falls back to when it names none. Wired from country_defaults.purchase_account_code at install. |
+| `language` | `character(2)` | not null — Language this company keeps its books in. Chosen at install; decides which label of name_i18n lands in accounts.name. |
 
 Constraints:
 
@@ -418,6 +425,24 @@ Constraints:
 
 - `CHECK ((role <> 'instance_admin'::member_role))`
 - `PRIMARY KEY (company_id, user_id)`
+
+### `company_packs`
+
+Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one.
+
+| Column | Type | Notes |
+|---|---|---|
+| `company_id` | `uuid` | not null |
+| `country` | `character(2)` | not null |
+| `version` | `text` | not null |
+| `installed_at` | `timestamp with time zone` | not null |
+| `upgraded_at` | `timestamp with time zone` | Last time `install_country_template` or `ekwo pack upgrade` moved this company to another version. |
+
+Constraints:
+
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK ((version ~ '^[0-9]+\.[0-9]+\.[0-9]+$'::text))`
+- `PRIMARY KEY (company_id, country)`
 
 ### `contacts`
 
@@ -483,9 +508,33 @@ Which template account plays which role, per country.
 | `purchase_journal_code` | `text` | not null |
 | `misc_journal_code` | `text` | not null |
 | `cash_account_code` | `text` | Ledger account behind the cash journal of this country. 570000 in the PCMN, 530000 in the PCG. |
+| `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
 
 Constraints:
 
+- `PRIMARY KEY (country)`
+
+### `country_packs`
+
+Country packs loaded in this installation, with their version and certification.
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `name` | `text` | not null |
+| `version` | `text` | not null |
+| `released_at` | `date` |  |
+| `schema_min` | `text` |  |
+| `certification_status` | `pack_certification` | not null — Printed by `ekwo init`: a community pack has not been read by an accountant. |
+| `certified_by` | `text` |  |
+| `certified_at` | `date` |  |
+| `checksum` | `text` | sha256 of the pack files, so a changed pack is visible without a diff. |
+| `installed_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK ((version ~ '^[0-9]+\.[0-9]+\.[0-9]+$'::text))`
 - `PRIMARY KEY (country)`
 
 ### `currencies`
@@ -1029,7 +1078,7 @@ Constraints:
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
-| `install_country_template(p_company_id uuid, p_country character)` | Copies a country chart of accounts, journals and taxes into a company, wires the default roles — third parties, sales and purchase imputation, financial journals. |
+| `install_country_template(p_company_id uuid, p_country character, p_language character)` | Copies a country pack into a company in one language, wires the default roles and the financial journals, and records the pack version in company_packs. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |
@@ -1040,8 +1089,8 @@ Constraints:
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line for an amount, defaulting to the smaller open amount. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |

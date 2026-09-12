@@ -6,6 +6,7 @@
  * financial statements and the translations. Nothing in it executes.
  */
 
+import { createHash } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -58,6 +59,10 @@ export interface Pack {
   taxes: PackTax[];
   /** Languages found under `i18n/`, whether or not they hold anything yet. */
   languages: string[];
+  /** Account labels by code, then by language, gathered from `i18n/`. */
+  accountLabels: Record<string, Record<string, string>>;
+  /** sha256 of every file of the pack, so a change is visible without a diff. */
+  checksum: string;
   /** Sections the schema accepts and this release does not compile. */
   deferred: string[];
 }
@@ -67,6 +72,7 @@ export interface Manifest {
   name: string;
   version: string;
   schema_min: string;
+  released_at?: string;
   certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
   defaults: {
     currency: string;
@@ -168,19 +174,37 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   }
 
   const languages: string[] = [];
+  const accountLabels: Record<string, Record<string, string>> = {};
   const i18nDir = join(root, 'i18n');
   if (existsSync(i18nDir)) {
     for (const file of (await readdir(i18nDir)).filter((f) => f.endsWith('.json')).sort()) {
-      const translations = await readJson(join(i18nDir, file));
+      const translations = (await readJson(join(i18nDir, file))) as {
+        language?: string;
+        accounts?: Record<string, string>;
+        journals?: Record<string, string>;
+        taxes?: Record<string, string>;
+        tax_report_boxes?: Record<string, string>;
+      };
       issues.push(...validate(translations, defs['i18n'] ?? {}, schema, `i18n/${file}`));
-      languages.push(file.replace(/\.json$/, ''));
+      const language = translations.language ?? file.replace(/\.json$/, '');
+      languages.push(language);
+      for (const [code, label] of Object.entries(translations.accounts ?? {})) {
+        (accountLabels[code] ??= {})[language] = label;
+      }
+      const untranslated = Object.keys(translations.accounts ?? {}).filter((code) => !codesOf(accounts).has(code));
+      for (const code of untranslated) {
+        issues.push({ path: `i18n/${file}`, message: `account ${code} is not in this chart` });
+      }
+      if (
+        Object.keys(translations.journals ?? {}).length > 0 ||
+        Object.keys(translations.taxes ?? {}).length > 0 ||
+        Object.keys(translations.tax_report_boxes ?? {}).length > 0
+      ) {
+        deferred.push(`i18n/${file} — only account labels are compiled; journals, taxes and boxes wait for their column`);
+      }
     }
-    if (languages.length > 0) deferred.push(`i18n/ — translated labels, ${languages.join(', ')} (P0-2)`);
   }
 
-  if (manifest.certification !== undefined) {
-    deferred.push('certification — recorded in country_packs (P0-2)');
-  }
   for (const section of ['documents', 'einvoicing', 'bank'] as const) {
     if (manifest[section] !== undefined) {
       deferred.push(`${section} — country_defaults columns and legal_mention_templates (P0-7)`);
@@ -195,7 +219,48 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     throw new PackError(`pack_invalid: packs/${slug} — ${issues.length} problem(s)\n${shown.join('\n')}${more}`);
   }
 
-  return { slug, dir: root, manifest, accounts, taxes, languages, deferred };
+  return {
+    slug,
+    dir: root,
+    manifest,
+    accounts,
+    taxes,
+    languages,
+    accountLabels,
+    checksum: await checksum(root),
+    deferred,
+  };
+}
+
+function codesOf(accounts: PackAccount[]): Set<string> {
+  return new Set(accounts.map((a) => a.code));
+}
+
+/**
+ * sha256 of the whole pack: every file, by relative path, path and bytes both.
+ * It lands in `country_packs.checksum`, so an instance can be compared to a
+ * pack without shipping the pack.
+ */
+async function checksum(dir: string): Promise<string> {
+  const hash = createHash('sha256');
+  for (const file of await filesUnder(dir)) {
+    hash.update(file);
+    hash.update('\0');
+    hash.update(await readFile(join(dir, file)));
+    hash.update('\0');
+  }
+  return hash.digest('hex');
+}
+
+async function filesUnder(dir: string, prefix = ''): Promise<string[]> {
+  const entries = await readdir(join(dir, prefix), { withFileTypes: true });
+  const out: string[] = [];
+  for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
+    const relative = prefix === '' ? entry.name : `${prefix}/${entry.name}`;
+    if (entry.isDirectory()) out.push(...(await filesUnder(dir, relative)));
+    else out.push(relative);
+  }
+  return out.sort();
 }
 
 function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {

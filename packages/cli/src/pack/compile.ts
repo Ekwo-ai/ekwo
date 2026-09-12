@@ -6,6 +6,19 @@
  * country without this CLI ever running, and `ekwo pack check` refuses an
  * output that is no longer what its pack says. The order of every row is
  * fixed here, so the same pack always compiles to the same bytes.
+ *
+ * Every insert **upserts on the template tables and on nothing else**. The
+ * seeds used to say `on conflict do nothing`, which meant an instance
+ * installed last month never received a single pack change — not even for a
+ * company created afterwards, since a company copies the templates at
+ * install. A template is reference data and a seed is allowed to re-state it;
+ * a row that belongs to a company is never touched here, and moving a company
+ * from one pack version to the next is `ekwo pack upgrade` (P0-9), which
+ * shows the diff first.
+ *
+ * What an upsert cannot do is remove: a template dropped from a pack stays in
+ * the database. That is the rule anyway — nothing is ever deleted from a
+ * pack, an account is deprecated and a tax gets a `valid_to`.
  */
 
 import type { Pack } from './read.js';
@@ -23,6 +36,7 @@ export function compilePack(pack: Pack): string {
   const out: string[] = [];
 
   out.push(...header(pack));
+  out.push(...manifestRow(pack, country));
   out.push(...accounts(pack, country));
   out.push(...journals(pack, country));
   out.push(...taxes(pack, country));
@@ -67,13 +81,21 @@ function accounts(pack: Pack, country: string): string[] {
   const rows = [...pack.accounts].sort(byCode);
   const values = rows.map(
     (a) =>
-      `  (${text(country)}, ${text(a.code)}, ${text(a.name)}, ${text(a.type)}, ` +
-      `${a.reconcilable ? 'true' : 'false'}, ${text(a.parent)}, ${a.sequence})`,
+      `  (${text(country)}, ${text(a.code)}, ${text(a.name)}, ${json(pack.accountLabels[a.code])}, ` +
+      `${text(a.type)}, ${a.reconcilable ? 'true' : 'false'}, ${text(a.parent)}, ${a.sequence})`,
   );
   return [
-    'insert into account_templates (country, code, name, account_type, reconcilable, parent_code, sequence) values',
+    'insert into account_templates',
+    '  (country, code, name, name_i18n, account_type, reconcilable, parent_code, sequence)',
+    'values',
     values.join(',\n'),
-    'on conflict (country, code) do nothing;',
+    'on conflict (country, code) do update set',
+    '  name         = excluded.name,',
+    '  name_i18n    = excluded.name_i18n,',
+    '  account_type = excluded.account_type,',
+    '  reconcilable = excluded.reconcilable,',
+    '  parent_code  = excluded.parent_code,',
+    '  sequence     = excluded.sequence;',
     '',
   ];
 }
@@ -87,7 +109,10 @@ function journals(pack: Pack, country: string): string[] {
   return [
     'insert into journal_templates (country, code, name, journal_type, sequence) values',
     values.join(',\n'),
-    'on conflict (country, code) do nothing;',
+    'on conflict (country, code) do update set',
+    '  name         = excluded.name,',
+    '  journal_type = excluded.journal_type,',
+    '  sequence     = excluded.sequence;',
     '',
   ];
 }
@@ -107,7 +132,19 @@ function taxes(pack: Pack, country: string): string[] {
     '   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence)',
     'values',
     values.join(',\n'),
-    'on conflict (country, code) do nothing;',
+    'on conflict (country, code) do update set',
+    '  name            = excluded.name,',
+    '  description     = excluded.description,',
+    '  amount_type     = excluded.amount_type,',
+    '  amount          = excluded.amount,',
+    '  applies_to      = excluded.applies_to,',
+    '  treatment       = excluded.treatment,',
+    '  valid_from      = excluded.valid_from,',
+    '  valid_to        = excluded.valid_to,',
+    '  legal_reference = excluded.legal_reference,',
+    '  vat_category    = excluded.vat_category,',
+    '  exemption_code  = excluded.exemption_code,',
+    '  sequence        = excluded.sequence;',
     '',
   ];
 }
@@ -144,7 +181,11 @@ function postings(pack: Pack, country: string): string[] {
     '  ) as v (tax_code, document_kind, posting_type, factor_percent, account_code,',
     '          declaration_box, box_factor_percent, sequence)',
     `  join tax_templates t on t.country = ${text(country)} and t.code = v.tax_code`,
-    'on conflict (tax_template_id, document_kind, posting_type, sequence) do nothing;',
+    'on conflict (tax_template_id, document_kind, posting_type, sequence) do update set',
+    '  factor_percent     = excluded.factor_percent,',
+    '  account_code       = excluded.account_code,',
+    '  declaration_box    = excluded.declaration_box,',
+    '  box_factor_percent = excluded.box_factor_percent;',
     '',
   ];
 }
@@ -167,16 +208,70 @@ function defaults(pack: Pack, country: string): string[] {
     text(journalRoles['sales'] ?? 'SAL'),
     text(journalRoles['purchase'] ?? 'PUR'),
     text(journalRoles['miscellaneous'] ?? 'MISC'),
+    text(pack.manifest.defaults.language ?? null),
   ];
   return [
     'insert into country_defaults',
     '  (country, name, currency_code, receivable_code, payable_code, suspense_code,',
     '   rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,',
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
-    '   misc_journal_code)',
+    '   misc_journal_code, language_default)',
     'values',
     `  (${row.join(', ')})`,
-    'on conflict (country) do nothing;',
+    'on conflict (country) do update set',
+    '  name                   = excluded.name,',
+    '  currency_code          = excluded.currency_code,',
+    '  receivable_code        = excluded.receivable_code,',
+    '  payable_code           = excluded.payable_code,',
+    '  suspense_code          = excluded.suspense_code,',
+    '  rounding_code          = excluded.rounding_code,',
+    '  retained_earnings_code = excluded.retained_earnings_code,',
+    '  sales_account_code     = excluded.sales_account_code,',
+    '  purchase_account_code  = excluded.purchase_account_code,',
+    '  bank_account_code      = excluded.bank_account_code,',
+    '  cash_account_code      = excluded.cash_account_code,',
+    '  sales_journal_code     = excluded.sales_journal_code,',
+    '  purchase_journal_code  = excluded.purchase_journal_code,',
+    '  misc_journal_code      = excluded.misc_journal_code,',
+    '  language_default       = excluded.language_default;',
+  ];
+}
+
+/**
+ * `country_packs`: which pack this installation holds, and how much anyone
+ * has read it. `ekwo init` prints the certification status, `ekwo status`
+ * compares this version to what each company copied.
+ */
+function manifestRow(pack: Pack, country: string): string[] {
+  const { manifest } = pack;
+  const certification = manifest.certification;
+  const row = [
+    text(country),
+    text(manifest.name),
+    text(manifest.version),
+    date(manifest.released_at ?? null),
+    text(manifest.schema_min),
+    text(certification?.status ?? 'community'),
+    text(certification?.by ?? null),
+    date(certification?.on ?? null),
+    text(pack.checksum),
+  ];
+  return [
+    'insert into country_packs',
+    '  (country, name, version, released_at, schema_min, certification_status,',
+    '   certified_by, certified_at, checksum)',
+    'values',
+    `  (${row.join(', ')})`,
+    'on conflict (country) do update set',
+    '  name                 = excluded.name,',
+    '  version              = excluded.version,',
+    '  released_at          = excluded.released_at,',
+    '  schema_min           = excluded.schema_min,',
+    '  certification_status = excluded.certification_status,',
+    '  certified_by         = excluded.certified_by,',
+    '  certified_at         = excluded.certified_at,',
+    '  checksum             = excluded.checksum;',
+    '',
   ];
 }
 
@@ -189,10 +284,18 @@ function text(value: string | null | undefined): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
 
-function date(value: string | null): string {
-  return value === null ? 'null' : `date '${value}'`;
+function date(value: string | null | undefined): string {
+  return value === null || value === undefined ? 'null' : `date '${value}'`;
 }
 
 function number(value: number): string {
   return String(value);
+}
+
+/** A jsonb literal, with its keys in a fixed order so the output is stable. */
+function json(value: Record<string, string> | undefined): string {
+  const entries = Object.entries(value ?? {}).sort(([a], [b]) => (a < b ? -1 : 1));
+  const object: Record<string, string> = {};
+  for (const [key, item] of entries) object[key] = item;
+  return `${text(JSON.stringify(object))}::jsonb`;
 }

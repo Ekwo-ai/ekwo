@@ -613,3 +613,56 @@ already covered by `fiscal_years`.
 box and each tax cites its legal source, the manifest carries a certification
 status that `ekwo init` prints, and a pack moves to *reviewed* only after a
 named professional has read it. Ekwo certifies Belgium and France.
+
+
+## The pack format, built: `packs/`, a compiler, and two tables (12 September 2026)
+
+What the decision above became, in two changes, and what it deliberately left
+for later.
+
+**Built.** `packs/be/` and `packs/fr/` hold a manifest, the chart as
+`accounts.csv`, the taxes and their postings as `taxes.json`, the boxes of the
+periodic return as `tax_report.json`, an empty `statements.json` and an
+`i18n/` folder. `packs/schema/pack.1.json` is the published JSON Schema for
+all of them. `ekwo pack build` compiles a pack into a committed seed and
+`ekwo pack check --all` — which the CI runs — refuses one that is stale. The
+CLI gained no dependency: its validator walks the subset of JSON Schema the
+format uses, because a binary handed a `service_role` key should not grow a
+package tree.
+
+Belgium and France carry over with no change of content, and the proof is a
+test rather than a promise: the four hand-written seeds are kept in
+`tests/fixtures/seeds-before-packs/`, loaded into one database while the
+compiled pair is loaded into another, and every row of the five template
+tables is compared — 353 and 392 accounts, 12 journals, 36 taxes, 128
+postings, 2 country models.
+
+Then migration `20260912074712`: `country_packs` (what this installation
+holds, with a sha256 of the pack and the certification status `ekwo init`
+prints), `company_packs` (what each company copied, backfilled at `1.0.0`),
+`name_i18n` and `statement_hint` on `account_templates` and `accounts`,
+`companies.language`, `country_defaults.language_default`, and
+`install_country_template(company, country, language)` — which copies
+`coalesce(name_i18n->>language, name)` into `accounts.name` and records the
+version in `company_packs`. **The generated seeds upsert** on the template
+tables and on nothing else, which closes the hole the analysis found: an
+installed instance used to receive no pack change at all, not even for a
+company created afterwards.
+
+**Found on the way.** `alter default privileges … revoke execute on functions
+from public` does not close a function created later — PostgreSQL merges the
+stored default with the built-in one — so `20260911210131` did not keep the
+promise it made, and `install_country_template` came out of its migration
+executable by PUBLIC. Every migration that adds a function now ends with
+`revoke execute on all functions in schema public from public;`, from PUBLIC
+and never from `anon`, which holds explicit grants on the eight policy
+helpers.
+
+**Accepted, validated, not yet compiled**, because the tables they need do not
+exist: `tax_report.json` (P0-3), `statements.json` (P0-4), the `documents`,
+`einvoicing` and `bank` sections of the manifest (P0-7), and the journal, tax
+and box labels of `i18n/` (only account labels are compiled). The compiler
+names each one it skipped, in its output and in the header of every seed it
+writes, so nothing is quietly dropped. `tax_report.json` is written for both
+countries already — the Belgian 71/72 and the French CA3 totals — so that P0-3
+has the data it needs on the day it starts.

@@ -22,6 +22,7 @@
       "pattern": "^[0-9]{14}$",
       "description": "Timestamp of the oldest migration this pack needs."
     },
+    "released_at": { "$ref": "#/$defs/date", "description": "When this version of the pack was published. Recorded in country_packs." },
     "certification": { "$ref": "#/$defs/certification" },
     "defaults": { "$ref": "#/$defs/defaults" },
     "journals": {

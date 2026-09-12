@@ -18,7 +18,10 @@ export {
 export {
   availableCountries,
   bootstrap,
+  countryLanguage,
+  countryPack,
   schemaIsInstalled,
+  type PackSummary,
   type BootstrapOptions,
   type BootstrapResult,
   type Step,

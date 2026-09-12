@@ -68,6 +68,18 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
       ]);
     }
 
+    heading(`Country packs (${report.packs.length})`);
+    if (report.packs.length === 0) {
+      note(dim('none recorded — this installation was seeded before packs, or the seeds have not run'));
+    } else {
+      pairs(
+        report.packs.map((p) => [
+          `${p.country} ${p.name}`,
+          `${p.version} · certification ${p.certificationStatus}`,
+        ]),
+      );
+    }
+
     heading(`Companies (${report.companies.length})`);
     if (report.companies.length === 0) {
       note(dim('none yet'));
@@ -75,9 +87,22 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
       pairs(
         report.companies.map((c) => [
           c.name,
-          `${c.country} · ${c.accounts} accounts · ${c.entries} entries · ${c.fiscalYears} financial year(s)`,
+          `${c.country} · pack ${c.packVersion ?? 'unknown'} · ${c.accounts} accounts · ` +
+            `${c.entries} entries · ${c.fiscalYears} financial year(s)`,
         ]),
       );
+      const behind = report.companies.filter((c) => {
+        const loaded = report.packs.find((p) => p.country === c.country);
+        return loaded !== undefined && c.packVersion !== null && c.packVersion !== loaded.version;
+      });
+      for (const company of behind) {
+        const loaded = report.packs.find((p) => p.country === company.country);
+        line();
+        warn(
+          `${company.name} copied ${company.country} pack ${company.packVersion}, this installation holds ` +
+            `${loaded?.version}. \`ekwo pack upgrade\` will show the difference.`,
+        );
+      }
     }
 
     line();

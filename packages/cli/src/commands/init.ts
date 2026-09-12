@@ -20,7 +20,7 @@
 
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
-import { availableCountries, bootstrap, countryCurrency } from '../bootstrap.js';
+import { availableCountries, bootstrap, countryCurrency, countryLanguage, countryPack } from '../bootstrap.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
@@ -43,6 +43,7 @@ export const INIT_FLAGS = [
   'admin-user-id',
   'fiscal-year',
   'currency',
+  'language',
   'iban',
   'bic',
   'bank-name',
@@ -119,6 +120,33 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       (interactive ? await askText('Currency of the company?', countryDefault) : countryDefault)
     ).toUpperCase();
 
+    // The language of the books, for the same reason as the currency: it is
+    // written on the company row, which does not exist yet, and it decides
+    // which label of the pack lands in `accounts.name`.
+    const languageDefault = (await countryLanguage(db, country)) ?? 'fr';
+    const language = (
+      stringFlag(args, 'language') ??
+      (interactive ? await askText('Language of the books?', languageDefault) : languageDefault)
+    ).toLowerCase();
+
+    // What the operator is about to install, and how much anyone has read it.
+    const pack = await countryPack(db, country);
+    if (pack === undefined) {
+      warn(`no country pack is recorded for ${country}; the seeds of this release declare one.`);
+    } else if (pack.certificationStatus === 'community') {
+      warn(
+        `${pack.name} pack ${pack.version} is a community pack: contributed, and not read by an accountant. ` +
+          'Check the boxes against your own situation before you file anything.',
+      );
+    } else {
+      note(
+        dim(
+          `${pack.name} pack ${pack.version}, certification ${pack.certificationStatus}` +
+            `${pack.certifiedBy === null ? '' : ` by ${pack.certifiedBy}`}.`,
+        ),
+      );
+    }
+
     // The main bank account. Optional everywhere: a company can be installed
     // and book sales without one, and `ekwo doctor` is what notices later.
     const iban =
@@ -156,6 +184,7 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       fiscalYear,
       adminUserId,
       currencyCode,
+      language,
       bankAccount,
     });
     for (const s of outcome.steps) {
@@ -187,7 +216,8 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     heading('Done');
     pairs([
       ['organisation', organization],
-      ['company', `${company} (${country}, ${outcome.currencyCode})`],
+      ['company', `${company} (${country}, ${outcome.currencyCode}, ${outcome.language})`],
+      ['country pack', pack === undefined ? 'none recorded' : `${pack.version} (${pack.certificationStatus})`],
       ['financial year', outcome.fiscalYearName],
       ['bank account', bankAccount === undefined ? 'none — ekwo doctor will say so' : bankAccount.iban],
       ['schema version', schemaVersion ?? 'unknown'],

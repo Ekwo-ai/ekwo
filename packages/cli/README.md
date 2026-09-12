@@ -110,7 +110,7 @@ instead if the account already exists, and no key is needed.
 |---|---|
 | `ekwo init` | The whole installation, interactive or not. |
 | `ekwo migrate` | Applies the migrations this release adds, after showing the gap. Re-applies the reference seeds, which are idempotent. |
-| `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, its companies. Exits 1 when something is pending. |
+| `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, the country packs it holds and, per company, the pack version it copied. Exits 1 when something is pending. |
 | `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
@@ -176,6 +176,7 @@ dashboard under Connect → Session pooler, is the form that is never derived.
 | `--admin-user-id <uuid>` | Use an account that already exists, instead of creating one. |
 | `--fiscal-year <year>` | Calendar year of the first financial year. Defaults to this year. |
 | `--currency <code>` | Currency of the company. Defaults to what the country model says: `EUR` for both countries shipped. |
+| `--language <xx>` | Language of the books, two letters. Defaults to `country_defaults.language_default`, which the pack fills. It decides which label of the pack lands on each account; the others are kept in `name_i18n`. |
 | `--iban <iban>` | Creates the main bank account, wired to the bank journal and its ledger account. Omitted, no bank account is created and `ekwo doctor` says so. |
 | `--bic <bic>` | Optional, on that account. |
 | `--bank-name <name>` | Optional. It also names the account in the books. |

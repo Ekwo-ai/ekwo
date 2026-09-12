@@ -4,6 +4,7 @@
   "name": "Belgium",
   "version": "1.0.0",
   "schema_min": "20260911121100",
+  "released_at": "2026-09-12",
   "certification": {
     "status": "ekwo",
     "by": "Ekwo AI",

@@ -43,6 +43,8 @@ export interface BootstrapOptions {
   adminUserId: string;
   /** ISO 4217 code. Left out, the country model decides; it is `EUR` for both countries shipped. */
   currencyCode?: string | undefined;
+  /** Two letters. Left out, the country model decides. Chooses which label of the pack lands in `accounts.name`. */
+  language?: string | undefined;
   /** The main bank account, when the operator has one to give. */
   bankAccount?: BankAccountOptions | undefined;
 }
@@ -53,6 +55,10 @@ export interface BootstrapResult {
   fiscalYearName: string;
   /** The currency the company was created with. */
   currencyCode: string;
+  /** The language the chart of accounts was copied in. */
+  language: string;
+  /** Version of the country pack the company copied, from `company_packs`. */
+  packVersion?: string | undefined;
   /** The bank account, when one was asked for. */
   bankAccountId?: string | undefined;
   steps: Step[];
@@ -70,6 +76,50 @@ export async function countryCurrency(db: SqlClient, country: string): Promise<s
   return scalar<string>(db, 'select currency_code from country_defaults where country = $1', [
     country.toUpperCase(),
   ]);
+}
+
+/**
+ * The language the country model proposes, for the same reason as the
+ * currency: `companies.language` is `not null default 'fr'`, so the choice
+ * has to be made before the insert. It is what `country_defaults.
+ * language_default` is for.
+ */
+export async function countryLanguage(db: SqlClient, country: string): Promise<string | undefined> {
+  return scalar<string>(db, 'select language_default from country_defaults where country = $1', [
+    country.toUpperCase(),
+  ]);
+}
+
+/** What a pack says about itself: version and how much anyone has read it. */
+export interface PackSummary {
+  country: string;
+  name: string;
+  version: string;
+  certificationStatus: string;
+  certifiedBy: string | null;
+}
+
+export async function countryPack(db: SqlClient, country: string): Promise<PackSummary | undefined> {
+  const row = await first<{
+    country: string;
+    name: string;
+    version: string;
+    certification_status: string;
+    certified_by: string | null;
+  }>(
+    db,
+    `select country, name, version, certification_status::text, certified_by
+       from country_packs where country = $1`,
+    [country.toUpperCase()],
+  );
+  if (row === undefined) return undefined;
+  return {
+    country: row.country,
+    name: row.name,
+    version: row.version,
+    certificationStatus: row.certification_status,
+    certifiedBy: row.certified_by,
+  };
 }
 
 /** Countries with a chart of accounts seeded in this database. */
@@ -163,6 +213,12 @@ export async function bootstrap(
     'EUR'
   ).toUpperCase();
 
+  const language = (
+    options.language ??
+    (await countryLanguage(db, country)) ??
+    'fr'
+  ).toLowerCase();
+
   const existingCompany = await first<{ id: string; currency_code: string }>(
     db,
     'select id, currency_code from companies where name = $1 order by created_at limit 1',
@@ -172,10 +228,10 @@ export async function bootstrap(
   if (existingCompany === undefined) {
     const created = await first<{ id: string }>(
       db,
-      `insert into companies (name, country, fiscal_country, currency_code)
-       values ($1, $2, $2, $3)
+      `insert into companies (name, country, fiscal_country, currency_code, language)
+       values ($1, $2, $2, $3, $4)
        returning id`,
-      [options.company, country, currencyCode],
+      [options.company, country, currencyCode, language],
     );
     if (created === undefined) throw new Error('company_insert_failed: no row returned');
     companyId = created.id;
@@ -214,16 +270,21 @@ export async function bootstrap(
     'select count(*)::text from accounts where company_id = $1',
     [companyId],
   );
-  await db.query('select install_country_template($1, $2)', [companyId, country]);
+  await db.query('select install_country_template($1, $2, $3)', [companyId, country, language]);
   const accountsAfter = await scalar<string>(
     db,
     'select count(*)::text from accounts where company_id = $1',
     [companyId],
   );
+  const packVersion = await scalar<string>(
+    db,
+    'select version from company_packs where company_id = $1 and country = $2',
+    [companyId, country],
+  );
   steps.push({
     name: 'country template',
     outcome: accountsBefore === accountsAfter ? 'already' : 'created',
-    detail: `${accountsAfter ?? '0'} accounts, ${country}`,
+    detail: `${accountsAfter ?? '0'} accounts, ${country} pack ${packVersion ?? '?'} in ${language}`,
   });
 
   // 6. The first financial year. Calendar year: a different one is a single
@@ -261,7 +322,16 @@ export async function bootstrap(
     });
   }
 
-  return { instanceId, companyId, fiscalYearName, currencyCode, bankAccountId, steps };
+  return {
+    instanceId,
+    companyId,
+    fiscalYearName,
+    currencyCode,
+    language,
+    packVersion,
+    bankAccountId,
+    steps,
+  };
 }
 
 interface BankAccountOutcome {

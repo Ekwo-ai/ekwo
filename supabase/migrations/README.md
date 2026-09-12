@@ -39,6 +39,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `…193853_line_account_defaults` | the account a document line falls back to: the line, the company default, the country model — and the two `country_defaults` columns that had no reader |
 | `…195054_products` | `products`, `document_lines.product_id` and `.description`, the product step of `resolve_line_account`, and the `document_line_items` view (BT-153, BT-154, BT-155) |
 | `…210131_anon_surface` | `anon` may execute only the eight policy helpers; `instance_admins` visible to members, administrators and oneself |
+| `20260912074712_country_packs` | `country_packs` and `company_packs`, `name_i18n` and `statement_hint` on the chart, `companies.language`, `country_defaults.language_default`, and `install_country_template(company, country, language)` |
 
 ## Rules for a new migration
 
@@ -58,7 +59,15 @@ Always number after the newest file on `main`, and check `git log` first.
 5. **No extension that PGlite lacks.** `gen_random_uuid()` is core Postgres;
    `pgcrypto` and `btree_gist` are not available in the test runner, so the
    schema does without them.
-6. **Regenerate the docs**: `npm run docs:schema` rewrites `docs/schema.md`
+6. **A migration that adds a function ends with**
+   `revoke execute on all functions in schema public from public;` — from
+   PUBLIC, and never from `anon`, which holds explicit grants on the eight
+   policy helpers. `alter default privileges … revoke execute on functions
+   from public` does *not* close a function created later: PostgreSQL merges
+   the stored default with the built-in one, so the new function comes out
+   with `=X` and Supabase publishes it as an anonymous RPC endpoint.
+   `20260911210131` believed otherwise and `20260912074712` found out.
+7. **Regenerate the docs**: `npm run docs:schema` rewrites `docs/schema.md`
    from the migrations. Commit it with the migration.
 
 Write the migration, then the test that proves it in `tests/`, then the

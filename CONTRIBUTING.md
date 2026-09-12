@@ -34,10 +34,16 @@ that has cost somebody a day.
 
 ## Country rules
 
-A tax régime is data, not code. Add rows to `tax_templates` and
-`tax_posting_templates`, with the ledger accounts and the declaration boxes.
-If a régime cannot be expressed that way, that is a design discussion worth
-having in an issue before any SQL is written.
+A tax régime is data, not code, and the data lives in `packs/<cc>/` — a
+manifest, the chart of accounts as CSV, the taxes and their postings as JSON.
+Change the pack, run `ekwo pack build <cc>`, and commit the generated seed
+alongside it; never edit the seed, the CI recompiles it and compares. The
+format, and what a pack may not do, is in [`docs/packs.md`](docs/packs.md).
+
+If a régime cannot be expressed as rows, that is a design discussion worth
+having in an issue before any SQL is written. It is a gap in the core, not a
+reason to add a field that executes something: a pack has none, and adding one
+is how a localisation becomes a plugin that breaks on every major version.
 
 ## Working on the installer
 

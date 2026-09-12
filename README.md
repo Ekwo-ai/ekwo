@@ -128,7 +128,8 @@ insert into company_members (company_id, user_id, role)
 values ('<company-id>', auth.uid(), 'owner');
 
 -- 5. Chart of accounts, journals, taxes and the company's default accounts.
-select install_country_template('<company-id>', 'BE');
+--    The third argument is the language of the labels; left out, the company's.
+select install_country_template('<company-id>', 'BE', 'fr');
 
 -- 6. The first financial year.
 insert into fiscal_years (company_id, name, start_date, end_date)
@@ -142,7 +143,13 @@ database rather than in whichever client happens to run first.
 
 `install_country_template` copies the chart of accounts, the journals and the
 taxes, and wires the company's default accounts — receivable, payable,
-suspense, retained earnings — and its journals.
+suspense, retained earnings — and its journals. It also records, in
+`company_packs`, which version of which country pack this company copied, so
+a later release can say what has moved since.
+
+Those seeds are compiled from [`packs/`](packs/): a country is a manifest, a
+chart of accounts as CSV and a taxes file, and `ekwo pack build` turns one
+into the SQL above. The format is in [`docs/packs.md`](docs/packs.md).
 
 The installer does steps 1 and 2 in a particular order for a reason worth
 knowing. It holds a database connection, not a session, so `auth.uid()` is
@@ -158,8 +165,7 @@ git clone https://github.com/Ekwo-ai/ekwo.git && cd ekwo
 supabase link --project-ref <your-project-ref>
 supabase db push                       # applies supabase/migrations in order
 psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
-psql "$DATABASE_URL" -f supabase/seed/10_chart_be.sql   # or 11_chart_fr.sql
-psql "$DATABASE_URL" -f supabase/seed/20_taxes_be.sql   # or 21_taxes_fr.sql
+psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql
 ```
 
 Skip `supabase/seed/90_demo_company.sql` unless you want the sample data, and

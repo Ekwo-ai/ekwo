@@ -42,7 +42,15 @@ const QUERIES: Record<string, string> = {
                             from tax_posting_templates p
                             join tax_templates t on t.id = p.tax_template_id
                            order by t.country, t.code, p.document_kind, p.sequence, p.posting_type`,
-  country_defaults: `select * from country_defaults order by country`,
+  // Named column by column rather than `select *`: the comparison is
+  // "nothing that existed changed", and a column added after the packs
+  // (language_default) has no value in the *before* database by construction.
+  country_defaults: `select country, name, currency_code, receivable_code, payable_code,
+                            suspense_code, rounding_code, retained_earnings_code,
+                            sales_account_code, purchase_account_code, bank_account_code,
+                            cash_account_code, sales_journal_code, purchase_journal_code,
+                            misc_journal_code
+                       from country_defaults order by country`,
 };
 
 async function templateRows(db: PGlite): Promise<Record<string, TemplateRow[]>> {

@@ -20,6 +20,16 @@ export interface CompanySummary {
   accounts: number;
   entries: number;
   fiscalYears: number;
+  /** Version of the country pack this company copied, from `company_packs`. */
+  packVersion: string | null;
+}
+
+/** A country pack loaded in this installation. */
+export interface PackStatus {
+  country: string;
+  name: string;
+  version: string;
+  certificationStatus: string;
 }
 
 export interface Status {
@@ -34,6 +44,8 @@ export interface Status {
   instance: InstanceRow | undefined;
   admins: number;
   companies: CompanySummary[];
+  /** What `country_packs` holds: the version each pack is loaded at. */
+  packs: PackStatus[];
 }
 
 export async function status(db: SqlClient, migrations: Migration[]): Promise<Status> {
@@ -59,6 +71,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       instance: undefined,
       admins: 0,
       companies: [],
+      packs: [],
     };
   }
 
@@ -72,14 +85,27 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     accounts: string;
     entries: string;
     fiscal_years: string;
+    pack_version: string | null;
   }>(
     `select c.name,
             c.country,
             (select count(*) from accounts a where a.company_id = c.id)::text as accounts,
             (select count(*) from entries e where e.company_id = c.id)::text as entries,
-            (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years
+            (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years,
+            (select p.version from company_packs p
+              where p.company_id = c.id and p.country = c.country) as pack_version
        from companies c
       order by c.name`,
+  );
+
+  const packs = await db.query<{
+    country: string;
+    name: string;
+    version: string;
+    certification_status: string;
+  }>(
+    `select country, name, version, certification_status::text
+       from country_packs order by country`,
   );
 
   return {
@@ -97,6 +123,13 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       accounts: Number(c.accounts),
       entries: Number(c.entries),
       fiscalYears: Number(c.fiscal_years),
+      packVersion: c.pack_version,
+    })),
+    packs: packs.map((p) => ({
+      country: p.country,
+      name: p.name,
+      version: p.version,
+      certificationStatus: p.certification_status,
     })),
   };
 }

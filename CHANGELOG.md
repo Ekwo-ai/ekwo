@@ -11,6 +11,18 @@ somewhere has already run it.
 
 ### Security
 
+- **A function created after `20260911210131` was open again.** That migration
+  changed the default privileges so that "a function added tomorrow starts
+  closed", and PostgreSQL does not work that way: `alter default privileges …
+  revoke execute on functions from public` does not delete the built-in world
+  default, it is merged with it, so the next function created came out with
+  `=X` — EXECUTE for PUBLIC, which on Supabase is an anonymous RPC endpoint.
+  `install_country_template` was that function, for the length of one commit.
+  Migration `20260912074712` repeats the revoke from PUBLIC (never from
+  `anon`, which holds explicit grants on the eight policy helpers), and
+  `supabase/migrations/README.md` makes it a rule for every migration that
+  adds a function. `tests/hardening.test.ts` pins the list of functions
+  `anon` may execute and is what caught it.
 - The anonymous role could execute every function of the schema (Postgres
   grants EXECUTE to PUBLIC; Supabase exposes `public` functions as RPC). It
   now executes only the eight helpers the policies evaluate, and the default
@@ -74,6 +86,37 @@ somewhere has already run it.
   installation.
 
 ### Added
+
+- **An installation knows which country pack it holds, and each company
+  knows which one it copied.** Migration `20260912074712` adds `country_packs`
+  — version, release date, sha256 of the pack files, certification status and
+  who signed it — written by the generated seed; and `company_packs`, written
+  by `install_country_template`, backfilled at `1.0.0` for companies that
+  already exist. `ekwo status` prints both and warns when a company is behind
+  the pack the instance holds; `ekwo init` prints the certification status
+  before anything is booked, in as many words when a pack is a community one.
+
+  **The generated seeds upsert**, on the template tables and on nothing that
+  belongs to a company. Until now they said `on conflict do nothing`, so an
+  instance installed last month received no pack correction at all — not even
+  for a company created afterwards, since a company copies the templates at
+  install time. Applying a seed twice still changes nothing; applying a
+  corrected pack now corrects the template and leaves every company alone,
+  which is a test.
+
+  Labels can be translated: `account_templates.name_i18n` and `accounts.name_i18n`
+  (jsonb, from `packs/<cc>/i18n/`), `companies.language`,
+  `country_defaults.language_default`, and
+  `install_country_template(company, country, language)` — a third argument,
+  defaulting to the company's own language — which copies
+  `coalesce(name_i18n->>language, name)` into `accounts.name` and keeps the
+  whole object beside it. `ekwo init --language nl` chooses it. The
+  two-argument form is dropped rather than overloaded: an overload with a
+  default argument makes `install_country_template(company, 'BE')` ambiguous,
+  and Postgres refuses the call that works today.
+
+  `accounts.statement_hint` and `account_templates.statement_hint` are added
+  in the same migration; `financial_statement()` reads them in P0-4.
 
 - **Country packs, and the compiler that turns one into a seed.** A country
   now lives in `packs/<cc>/`: `pack.json` (manifest, defaults, roles,

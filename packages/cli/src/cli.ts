@@ -74,6 +74,7 @@ ${bold('ekwo init')}
   --admin-password <pw>     Their password. Omitted: an invite link is generated.
   --admin-user-id <uuid>    Use an account that already exists instead.
   --fiscal-year <year>      First financial year, calendar. Defaults to this year.
+  --language <xx>           Language of the books. Defaults to the country pack's.
   --demo                    Also load the sample company.
   --register                Register without being asked. --register-email sets
                             the address; otherwise --admin-email is used.
