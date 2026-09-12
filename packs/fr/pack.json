@@ -2,15 +2,16 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.0.0",
-  "schema_min": "20260911121100",
+  "version": "1.1.0",
+  "schema_min": "20260912091918",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
     "sources": [
       "Règlement ANC 2022-06 — plan comptable général",
       "Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater",
-      "Formulaire 3310-CA3"
+      "Formulaire 3310-CA3",
+      "Code general des impots, art. 298, 4 — produits petroliers"
     ]
   },
   "defaults": {

@@ -44,6 +44,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912081014_pack_certification_maintained` | `pack_certification` gains `maintained`; `ekwo` is deprecated and nothing writes it |
 | `20260912081015_pack_certification_backfill` | the packs that held `ekwo` become `maintained`, `certified_by` emptied. Its own file: a new enum value cannot be used in the transaction that added it |
 | `20260912090407_tax_report_boxes` | `tax_report_templates` and `tax_report_box_templates`, filled by the packs; `vat_return(company, from, to, report_code)` reads their plus/minus formulas, and the last test on a fiscal country leaves the core |
+| `20260912091917_tax_on_base_value` | `tax_posting_type` gains `tax_on_base`. Its own file, for the same reason as the pair above |
+| `20260912091918_tax_engine_columns` | the generalised tax engine: `tax_kind`, `recoverable`, `jurisdiction`, `price_include`, `cash_basis` on the taxes and their templates; `rounding_method` and `cash_rounding_unit` on the country model; one constraint per table saying which posting type carries an account; `post_document` books the non-deductible share on the accounts of the lines |
 | `20260912094412_opening_and_closing` | `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()`; the `closing_style` enum and five `country_defaults` columns that carry the year-end accounts, none with a default; `entries.kind` (`normal`/`opening`/`closing`); `is_closed` and `kind` writable only through those functions |
 
 ## Rules for a new migration

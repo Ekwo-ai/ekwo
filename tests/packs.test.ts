@@ -53,6 +53,24 @@ const QUERIES: Record<string, string> = {
                        from country_defaults order by country`,
 };
 
+/**
+ * The natural key of a row, per table.
+ *
+ * P0-5 added taxes to both packs, so the two databases no longer hold the
+ * same *number* of rows and `toEqual` on the whole table would only prove
+ * that. The claim this file makes is narrower and is the one that matters:
+ * **nothing that existed changed**. So `after` is narrowed to the keys
+ * `before` held, and the rows that are new are named in a test of their own —
+ * a row that appeared without anybody saying so still fails.
+ */
+const KEYS: Record<string, (row: TemplateRow) => string> = {
+  account_templates: (r) => `${r['country']}/${r['code']}`,
+  journal_templates: (r) => `${r['country']}/${r['code']}`,
+  tax_templates: (r) => `${r['country']}/${r['code']}`,
+  tax_posting_templates: (r) => `${r['country']}/${r['tax_code']}`,
+  country_defaults: (r) => String(r['country']),
+};
+
 async function templateRows(db: PGlite): Promise<Record<string, TemplateRow[]>> {
   const out: Record<string, TemplateRow[]> = {};
   for (const [table, sql] of Object.entries(QUERIES)) {
@@ -85,12 +103,36 @@ describe('the compiled packs against the seeds they replace', () => {
     await after.close();
   });
 
-  it('load the same template rows, table by table', async () => {
+  it('leave every row they already held exactly as it was', async () => {
     const left = await templateRows(before);
     const right = await templateRows(after);
     for (const table of Object.keys(QUERIES)) {
-      expect(right[table], table).toEqual(left[table]);
+      const key = KEYS[table]!;
+      const held = new Set((left[table] ?? []).map(key));
+      expect((right[table] ?? []).filter((row) => held.has(key(row))), table).toEqual(left[table]);
     }
+  });
+
+  it('add the four taxes P0-5 brought, and not a row more', async () => {
+    const left = await templateRows(before);
+    const right = await templateRows(after);
+    const added = (table: string): TemplateRow[] => {
+      const key = KEYS[table]!;
+      const held = new Set((left[table] ?? []).map(key));
+      return (right[table] ?? []).filter((row) => !held.has(key(row)));
+    };
+
+    expect(added('account_templates')).toEqual([]);
+    expect(added('journal_templates')).toEqual([]);
+    expect(added('country_defaults')).toEqual([]);
+    // Belgian cars and receptions, French fuel: the partially and the wholly
+    // non-deductible VAT the engine could not express before.
+    expect(added('tax_templates').map((r) => `${r['country']}/${r['code']}`)).toEqual([
+      'BE/BE-P-21-50-I',
+      'BE/BE-P-21-50-S',
+      'BE/BE-P-21-ND',
+      'FR/FR-P-20-CARB',
+    ]);
   });
 
   it('load the counts the packs claim', async () => {
@@ -98,8 +140,8 @@ describe('the compiled packs against the seeds they replace', () => {
     const accounts = right['account_templates'] ?? [];
     expect(accounts.filter((a) => a['country'] === 'BE')).toHaveLength(353);
     expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(392);
-    expect(right['tax_templates']).toHaveLength(36);
-    expect(right['tax_posting_templates']).toHaveLength(128);
+    expect(right['tax_templates']).toHaveLength(40);
+    expect(right['tax_posting_templates']).toHaveLength(148);
     expect(right['journal_templates']).toHaveLength(12);
     expect(right['country_defaults']).toHaveLength(2);
   });

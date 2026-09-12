@@ -23,7 +23,12 @@ export interface PackAccount {
 }
 
 export interface PackPosting {
-  type: 'base' | 'tax';
+  /**
+   * `base` is the line itself and `tax_on_base` is the share of the tax that
+   * is not recoverable; neither carries an account, because both land on the
+   * account the document line names.
+   */
+  type: 'base' | 'tax' | 'tax_on_base';
   factor: number;
   account: string | null;
   box: string | null;
@@ -37,6 +42,8 @@ export interface PackTax {
   code: string;
   name: string;
   description: string | null;
+  /** vat | gst | sales_tax | withholding | other. A label for the reports. */
+  kind: string;
   amount_type: string;
   rate: number;
   scope: string;
@@ -46,6 +53,16 @@ export interface PackTax {
   legal_reference: string | null;
   vat_category: string | null;
   exemption_code: string | null;
+  /** False when the buyer never gets the tax back. */
+  recoverable: boolean;
+  /** The unit price already holds the tax. */
+  price_include: boolean;
+  /** ISO 3166-2 with the country prefix, for a tax levied by a state. */
+  jurisdiction: string | null;
+  /** Due on collection. Compiled to a column; read by P0-6. */
+  cash_basis: boolean;
+  /** Account the tax waits on until the invoice is paid. Read by P0-6. */
+  cash_basis_transition_account: string | null;
   sequence: number;
   postings: { invoice: PackPosting[]; credit_note: PackPosting[] };
   /** Reserved for phase 1: several taxes on one line. Refused until the core carries it. */
@@ -327,7 +344,7 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
   const postings = (raw['postings'] ?? {}) as Record<string, Record<string, unknown>[] | undefined>;
   const kind = (name: 'invoice' | 'credit_note'): PackPosting[] =>
     (postings[name] ?? []).map((p, position) => ({
-      type: p['type'] as 'base' | 'tax',
+      type: p['type'] as 'base' | 'tax' | 'tax_on_base',
       factor: typeof p['factor'] === 'number' ? p['factor'] : 100,
       account: (p['account'] as string | undefined) ?? null,
       box: (p['box'] as string | undefined) ?? null,
@@ -340,6 +357,7 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
     code: String(raw['code']),
     name: String(raw['name']),
     description: (raw['description'] as string | undefined) ?? null,
+    kind: (raw['kind'] as string | undefined) ?? 'vat',
     amount_type: (raw['amount_type'] as string | undefined) ?? 'percent',
     rate: Number(raw['rate']),
     scope: String(raw['scope']),
@@ -349,6 +367,11 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
     vat_category: (raw['vat_category'] as string | undefined) ?? null,
     exemption_code: (raw['exemption_code'] as string | undefined) ?? null,
+    recoverable: typeof raw['recoverable'] === 'boolean' ? raw['recoverable'] : true,
+    price_include: typeof raw['price_include'] === 'boolean' ? raw['price_include'] : false,
+    jurisdiction: (raw['jurisdiction'] as string | undefined) ?? null,
+    cash_basis: typeof raw['cash_basis'] === 'boolean' ? raw['cash_basis'] : false,
+    cash_basis_transition_account: (raw['cash_basis_transition_account'] as string | undefined) ?? null,
     sequence: typeof raw['sequence'] === 'number' ? raw['sequence'] : (index + 1) * 10,
     postings: { invoice: kind('invoice'), credit_note: kind('credit_note') },
     ...(Array.isArray(raw['group']) ? { group: raw['group'] as string[] } : {}),
@@ -378,6 +401,19 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
     boxes,
   };
+}
+
+/**
+ * Which kind of box a posting feeds. A form knows `base`, `tax` and `total`;
+ * a posting knows `base`, `tax` and `tax_on_base`. The share of a tax that
+ * nobody recovers reports on the **base** side — it is a cost sitting on a
+ * base account, which is exactly why the Belgian grids 82 and 83 carry it
+ * together with the base. `vat_return()` says the same thing the other way
+ * round, deriving the kind of a ledger line from `tax_line`, which a
+ * `tax_on_base` line does not set.
+ */
+function declarationKind(type: PackPosting['type']): 'base' | 'tax' {
+  return type === 'tax' ? 'tax' : 'base';
 }
 
 /**
@@ -462,7 +498,7 @@ function reportReferences(report: PackReport | null, taxes: PackTax[]): Issue[] 
     for (const [kind, postings] of Object.entries(tax.postings)) {
       for (const posting of postings) {
         if (posting.box === null || posting.report !== report.code) continue;
-        const target = resolveBoxRef(`${posting.box}:${posting.type}`, report.boxes);
+        const target = resolveBoxRef(`${posting.box}:${declarationKind(posting.type)}`, report.boxes);
         if (typeof target === 'string') {
           issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: `box ${target}` });
         }
@@ -505,6 +541,12 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
         message: 'a tax group is reserved for phase 1 and the core does not carry it yet',
       });
     }
+    if (tax.cash_basis_transition_account !== null && !codes.has(tax.cash_basis_transition_account)) {
+      issues.push({
+        path: `taxes.json ${tax.code}`,
+        message: `cash_basis_transition_account ${tax.cash_basis_transition_account} is not in this chart`,
+      });
+    }
     for (const [kind, postings] of Object.entries(tax.postings)) {
       const bases = postings.filter((p) => p.type === 'base');
       if (bases.length > 1) {
@@ -514,8 +556,11 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
         if (posting.type === 'tax' && posting.account === null) {
           issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: 'a tax posting needs an account' });
         }
-        if (posting.type === 'base' && posting.account !== null) {
-          issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: 'a base posting takes no account' });
+        if (posting.type !== 'tax' && posting.account !== null) {
+          issues.push({
+            path: `taxes.json ${tax.code}.${kind}`,
+            message: `a ${posting.type} posting takes no account: it lands on the account of the document line`,
+          });
         }
         if (posting.account !== null && !codes.has(posting.account)) {
           issues.push({

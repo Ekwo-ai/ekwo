@@ -32,7 +32,10 @@ describe('country_packs', () => {
     );
     expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR']);
     for (const pack of loaded) {
-      expect(pack.version).toBe('1.0.0');
+      // 1.1.0 since P0-5: both packs gained taxes, which the format calls a
+      // minor version. `ekwo pack upgrade` diffs on this number, so a pack
+      // that grows without announcing it is a pack nobody can upgrade to.
+      expect(pack.version).toBe('1.1.0');
       // `maintained`, never `ekwo`: Ekwo maintains these two packs and no
       // accountant has read them. Certified describes a review, or nothing.
       expect(pack.certification_status).toBe('maintained');
@@ -107,7 +110,7 @@ describe('installing a company', () => {
       'select country, version, upgraded_at from company_packs where company_id = $1',
       [companyId],
     );
-    expect(row).toMatchObject({ country: 'BE', version: '1.0.0', upgraded_at: null });
+    expect(row).toMatchObject({ country: 'BE', version: '1.1.0', upgraded_at: null });
   });
 
   it('changes nothing the second time', async () => {
@@ -256,9 +259,15 @@ describe('report_code, and the province a party sits in', () => {
          join tax_templates t on t.id = p.tax_template_id
         group by 1, 2 order by 1`,
     );
+    // 72 + 16 and 56 + 2, from the Belgian vehicle and non-deductible taxes
+    // and the French fuel tax. The two French postings with no form are the
+    // `tax_on_base` share of the fuel tax: the CA3 carries no grid for the
+    // base of a purchase, so that amount is ledger only — which is why the
+    // test above asks for a form on a *boxed* posting and not on every one.
     expect(forms).toEqual([
-      { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 72 },
-      { country: 'FR', report_code: 'FR-CA3', n: 56 },
+      { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 88 },
+      { country: 'FR', report_code: 'FR-CA3', n: 58 },
+      { country: 'FR', report_code: null, n: 2 },
     ]);
   });
 
@@ -383,7 +392,7 @@ describe('row level security on the two new tables', () => {
       'select version from company_packs where company_id = $1',
       [companyId],
     );
-    expect(after.version).toBe('1.0.0');
+    expect(after.version).toBe('1.1.0');
 
     const message = await asUser(db, viewerId, () =>
       expectError(

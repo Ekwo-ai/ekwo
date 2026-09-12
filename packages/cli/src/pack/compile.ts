@@ -125,12 +125,16 @@ function taxes(pack: Pack, country: string): string[] {
       `  (${text(country)}, ${text(t.code)}, ${text(t.name)}, ${text(t.description)}, ` +
       `${text(t.amount_type)}, ${number(t.rate)}, ${text(t.scope)}, ${text(t.treatment)}, ` +
       `${date(t.valid_from)}, ${date(t.valid_to)}, ${text(t.legal_reference)}, ` +
-      `${text(t.vat_category)}, ${text(t.exemption_code)}, ${t.sequence})`,
+      `${text(t.vat_category)}, ${text(t.exemption_code)}, ${t.sequence}, ` +
+      `${text(t.kind)}, ${bool(t.recoverable)}, ${text(t.jurisdiction)}, ` +
+      `${bool(t.price_include)}, ${bool(t.cash_basis)}, ${text(t.cash_basis_transition_account)})`,
   );
   return [
     'insert into tax_templates',
     '  (country, code, name, description, amount_type, amount, applies_to, treatment,',
-    '   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence)',
+    '   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence,',
+    '   tax_kind, recoverable, jurisdiction, price_include, cash_basis,',
+    '   cash_basis_transition_account_code)',
     'values',
     values.join(',\n'),
     'on conflict (country, code) do update set',
@@ -145,7 +149,13 @@ function taxes(pack: Pack, country: string): string[] {
     '  legal_reference = excluded.legal_reference,',
     '  vat_category    = excluded.vat_category,',
     '  exemption_code  = excluded.exemption_code,',
-    '  sequence        = excluded.sequence;',
+    '  sequence        = excluded.sequence,',
+    '  tax_kind        = excluded.tax_kind,',
+    '  recoverable     = excluded.recoverable,',
+    '  jurisdiction    = excluded.jurisdiction,',
+    '  price_include   = excluded.price_include,',
+    '  cash_basis      = excluded.cash_basis,',
+    '  cash_basis_transition_account_code = excluded.cash_basis_transition_account_code;',
     '',
   ];
 }
@@ -275,6 +285,8 @@ function defaults(pack: Pack, country: string): string[] {
     text(roles['current_year_result_loss'] ?? null),
     text(roles['retained_earnings_loss'] ?? null),
     text(journalRoles['opening'] ?? null),
+    text((pack.manifest.defaults['rounding_method'] as string | undefined) ?? 'half_up'),
+    number((pack.manifest.defaults['cash_rounding_unit'] as number | null | undefined) ?? 0),
   ];
   return [
     'insert into country_defaults',
@@ -282,7 +294,8 @@ function defaults(pack: Pack, country: string): string[] {
     '   rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,',
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
     '   misc_journal_code, language_default, closing_style, current_year_result_profit_code,',
-    '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code)',
+    '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,',
+    '   rounding_method, cash_rounding_unit)',
     'values',
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
@@ -305,7 +318,9 @@ function defaults(pack: Pack, country: string): string[] {
     '  current_year_result_profit_code = excluded.current_year_result_profit_code,',
     '  current_year_result_loss_code   = excluded.current_year_result_loss_code,',
     '  retained_earnings_loss_code     = excluded.retained_earnings_loss_code,',
-    '  opening_journal_code            = excluded.opening_journal_code;',
+    '  opening_journal_code            = excluded.opening_journal_code,',
+    '  rounding_method        = excluded.rounding_method,',
+    '  cash_rounding_unit     = excluded.cash_rounding_unit;',
   ];
 }
 
@@ -372,6 +387,10 @@ function number(value: number): string {
 function array(values: readonly string[]): string {
   if (values.length === 0) return `'{}'::text[]`;
   return `array[${values.map((value) => text(value)).join(', ')}]::text[]`;
+}
+
+function bool(value: boolean): string {
+  return value ? 'true' : 'false';
 }
 
 /** A jsonb literal, with its keys in a fixed order so the output is stable. */

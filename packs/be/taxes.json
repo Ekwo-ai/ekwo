@@ -697,5 +697,147 @@
         }
       ]
     }
+  },
+  {
+    "code": "BE-P-21-50-I",
+    "name": "Achat vehicule 21 % — deduction 50 %",
+    "description": "Voiture particuliere, bien d'investissement, grille 83. La TVA non deductible suit le compte de la ligne.",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "Code de la TVA, art. 45, par. 2",
+    "vat_category": "S",
+    "sequence": 220,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "83"
+        },
+        {
+          "type": "tax",
+          "factor": 50,
+          "account": "411000",
+          "box": "59",
+          "box_factor": 50
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 50,
+          "box": "83",
+          "box_factor": 50
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "factor": 50,
+          "account": "411000",
+          "box": "63",
+          "box_factor": 50
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 50,
+          "box": "85",
+          "box_factor": 50
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-21-50-S",
+    "name": "Frais de vehicule 21 % — deduction 50 %",
+    "description": "Carburant, entretien, leasing et parking d'une voiture particuliere, grille 82. La TVA non deductible suit le compte de la ligne.",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1996-01-01",
+    "legal_reference": "Code de la TVA, art. 45, par. 2",
+    "vat_category": "S",
+    "sequence": 230,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        },
+        {
+          "type": "tax",
+          "factor": 50,
+          "account": "411000",
+          "box": "59",
+          "box_factor": 50
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 50,
+          "box": "82",
+          "box_factor": 50
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax",
+          "factor": 50,
+          "account": "411000",
+          "box": "63",
+          "box_factor": 50
+        },
+        {
+          "type": "tax_on_base",
+          "factor": 50,
+          "box": "85",
+          "box_factor": 50
+        }
+      ]
+    }
+  },
+  {
+    "code": "BE-P-21-ND",
+    "name": "Achat non deductible 21 %",
+    "description": "Frais de reception, tabac et boissons spiritueuses : aucune deduction. Toute la TVA suit le compte de la ligne.",
+    "kind": "vat",
+    "rate": 21,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "recoverable": false,
+    "valid_from": "1996-01-01",
+    "legal_reference": "Code de la TVA, art. 45, par. 3",
+    "vat_category": "S",
+    "sequence": 240,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "82"
+        },
+        {
+          "type": "tax_on_base",
+          "box": "82"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "85"
+        },
+        {
+          "type": "tax_on_base",
+          "box": "85"
+        }
+      ]
+    }
   }
 ]

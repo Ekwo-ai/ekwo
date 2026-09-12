@@ -457,7 +457,7 @@ export function buildServer(backend: Backend): McpServer {
     {
       title: 'Taxes',
       description:
-        'The taxes of a company with their rates, validity periods and treatment, and the ledger account and declaration box each posting feeds.',
+        'The taxes of a company with their rates, validity periods, kind and recoverability, and the ledger account and declaration box each posting feeds. A tax_on_base posting names no account: its share of the tax lands on the account of the document line, which is how non-deductible VAT is booked.',
       mimeType: 'application/json',
     },
     async (uri, variables) => {
@@ -479,6 +479,7 @@ export function buildServer(backend: Backend): McpServer {
           'account_id',
           'declaration_box',
           'box_factor_percent::text',
+          'report_code',
           'sequence',
         ],
         where: [{ column: 'company_id', op: 'eq', value: companyId }],
