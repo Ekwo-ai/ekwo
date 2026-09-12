@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.1.0",
-  "schema_min": "20260912100412",
+  "version": "1.2.0",
+  "schema_min": "20260912111751",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -11,7 +11,12 @@
       "Règlement ANC 2022-06 — plan comptable général",
       "Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater",
       "Formulaire 3310-CA3",
-      "Code general des impots, art. 298, 4 — produits petroliers"
+      "Code general des impots, art. 298, 4 — produits petroliers",
+      "Code général des impôts, art. 269 — fait générateur et exigibilité",
+      "Code général des impôts, art. 262, I, 262 ter, I, 283 et 293 B — exonérations, autoliquidation et franchise en base",
+      "Code général des impôts, ann. II, art. 242 nonies A — mentions obligatoires et numérotation continue",
+      "Code de commerce, art. L441-9, L441-10 et D441-5 — délais de paiement, pénalités et indemnité forfaitaire",
+      "Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique"
     ]
   },
   "defaults": {
@@ -38,7 +43,8 @@
       "purchase": "PUR",
       "miscellaneous": "MISC",
       "opening": "OPN"
-    }
+    },
+    "fiscal_year_default": "calendar"
   },
   "journals": [
     {
@@ -96,12 +102,86 @@
     "numbering": "gapless_per_year",
     "number_format": "{CODE}/{YYYY}/{NNNN}",
     "legal_payment_days": 30,
+    "late_payment_reference": "Code de commerce, art. L441-10, II — taux appliqué par la Banque centrale européenne à son opération de refinancement la plus récente majoré de dix points, sans pouvoir être inférieur à trois fois le taux d'intérêt légal ; art. D441-5 — indemnité forfaitaire de 40 € pour frais de recouvrement",
+    "tax_point": "delivery_date",
     "mentions": [
       {
         "code": "reverse_charge",
-        "when": "treatment=domestic_reverse_charge",
-        "text": "Autoliquidation — TVA due par le preneur, CGI art. 283-2"
+        "applies_when": "reverse_charge",
+        "text": "Autoliquidation — TVA due par le preneur.",
+        "text_i18n": {
+          "en": "Reverse charge — VAT to be accounted for by the customer."
+        },
+        "sequence": 10,
+        "legal_reference": "Code général des impôts, art. 283"
+      },
+      {
+        "code": "intracom_goods",
+        "applies_when": "intra_eu_goods",
+        "text": "Exonération de TVA — livraison intracommunautaire.",
+        "text_i18n": {
+          "en": "Exempt intra-Community supply."
+        },
+        "sequence": 20,
+        "legal_reference": "Code général des impôts, art. 262 ter, I"
+      },
+      {
+        "code": "intracom_services",
+        "applies_when": "intra_eu_services",
+        "text": "Autoliquidation — TVA due par le preneur.",
+        "text_i18n": {
+          "en": "Reverse charge — VAT due by the customer."
+        },
+        "sequence": 30,
+        "legal_reference": "Code général des impôts, art. 283-2 ; directive 2006/112/CE, art. 44 et 196"
+      },
+      {
+        "code": "export",
+        "applies_when": "export",
+        "text": "Exonération de TVA — exportation hors de l'Union européenne.",
+        "text_i18n": {
+          "en": "Exempt export outside the European Union."
+        },
+        "sequence": 40,
+        "legal_reference": "Code général des impôts, art. 262, I"
+      },
+      {
+        "code": "small_business",
+        "applies_when": "small_business",
+        "text": "TVA non applicable, art. 293 B du CGI.",
+        "text_i18n": {
+          "en": "VAT not applicable, article 293 B of the French tax code."
+        },
+        "sequence": 50,
+        "legal_reference": "Code général des impôts, art. 293 B"
+      },
+      {
+        "code": "late_payment",
+        "applies_when": "late_payment",
+        "text": "En cas de retard de paiement, des pénalités sont exigibles sans qu'un rappel soit nécessaire, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement.",
+        "text_i18n": {
+          "en": "Late payment gives rise to interest without any reminder being necessary, together with a fixed recovery indemnity of 40 €."
+        },
+        "sequence": 60,
+        "legal_reference": "Code de commerce, art. L441-10 et D441-5"
       }
+    ]
+  },
+  "einvoicing": {
+    "profile": "factur-x-en16931",
+    "mandatory_from": "2026-09-01",
+    "party_scheme": "0009",
+    "vat_scheme": "9957",
+    "legal_reference": "Ordonnance n° 2021-1190 du 15 septembre 2021, modifiée par la loi de finances pour 2024, art. 91 — réception obligatoire par toutes les entreprises au 1er septembre 2026 ; émission au 1er septembre 2026 pour les grandes entreprises et les entreprises de taille intermédiaire, au 1er septembre 2027 pour les petites et moyennes entreprises et les microentreprises. Le schéma de partie déclaré est le SIRET (0009), identifiant porté par les factures et par Chorus Pro ; le SIREN (0002) désigne la même entreprise sans son établissement"
+  },
+  "bank": {
+    "statement_formats": [
+      "camt.053",
+      "cfonb120"
+    ],
+    "payment_formats": [
+      "pain.001",
+      "cfonb160"
     ]
   }
 }

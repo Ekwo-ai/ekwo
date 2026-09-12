@@ -146,6 +146,48 @@ export interface PackReportBox {
   legal_reference: string | null;
 }
 
+/** One sentence a country requires on an invoice, and when it applies. */
+export interface PackMention {
+  code: string;
+  /** One of the nine conditions of the closed vocabulary. */
+  applies_when: string;
+  text: string;
+  text_i18n: Record<string, string>;
+  sequence: number;
+  valid_from: string;
+  valid_to: string | null;
+  legal_reference: string | null;
+}
+
+/**
+ * The `documents`, `einvoicing` and `bank` sections of the manifest, read as
+ * one thing because they compile to one row: what a country requires on a
+ * document, how it is exchanged, and the formats its banks speak.
+ *
+ * Every field is null where the pack said nothing, and null is what reaches
+ * the column. There is no fallback here and there is none in the schema: a
+ * legal payment term or an e-invoicing profile invented for a country that
+ * has not spoken would be one country's law printed on another's invoice.
+ */
+export interface PackDocumentRules {
+  /** True where the law forbids a hole in the sequence. Null if unsaid. */
+  numbering_gapless: boolean | null;
+  number_format: string | null;
+  legal_payment_days: number | null;
+  late_payment_reference: string | null;
+  /** invoice_date | delivery_date | payment_date. */
+  tax_point_rule: string | null;
+  einvoice_profile: string | null;
+  einvoice_mandatory_from: string | null;
+  /** ISO 6523 ICD, four digits. */
+  party_scheme: string | null;
+  vat_scheme: string | null;
+  bank_statement_formats: string[];
+  payment_formats: string[];
+  fiscal_year_default: string | null;
+  mentions: PackMention[];
+}
+
 /** `tax_report.json`: one declaration form and its boxes. */
 export interface PackReport {
   code: string;
@@ -177,6 +219,8 @@ export interface Pack {
   boxLabels: Record<string, Record<string, string>>;
   /** Statement line labels by `statement:line`, then by language, from `i18n/`. */
   lineLabels: Record<string, Record<string, string>>;
+  /** What this country requires on a document, how it is exchanged, and its bank formats. */
+  documents: PackDocumentRules;
   /** The periodic return of this pack, from `tax_report.json`. */
   report: PackReport | null;
   /** Code of the periodic return. The default of every box. */
@@ -414,11 +458,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     }
   }
 
-  for (const section of ['documents', 'einvoicing', 'bank'] as const) {
-    if (manifest[section] !== undefined) {
-      deferred.push(`${section} — country_defaults columns and legal_mention_templates (P0-7)`);
-    }
-  }
+  const documents = normaliseDocumentRules(manifest);
 
   // A posting with a box belongs to a form. The pack names one in
   // `tax_report.json`; a posting may override it the day a country files two.
@@ -433,6 +473,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   issues.push(...crossReferences(manifest, charts, taxes));
   issues.push(...reportReferences(report, taxes));
   issues.push(...statementReferences(statements, charts));
+  issues.push(...documentReferences(documents));
 
   if (issues.length > 0) {
     const shown = issues.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
@@ -452,6 +493,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     accountLabels,
     boxLabels,
     lineLabels,
+    documents,
     report,
     reportCode,
     checksum: await checksum(root),
@@ -599,6 +641,134 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
     boxes,
   };
+}
+
+/**
+ * The tokens a document number may be built from, and the one that counts.
+ *
+ * `{CODE}` is the series, `{YYYY}` or `{YY}` the year, `{MM}` the month, and
+ * a run of `N` is the counter, zero-padded to its own length. Nothing reads
+ * the pattern yet — `next_entry_number()` produces `CODE/YYYY/NNNN` — so the
+ * check here is that the pattern is *readable*: no token nobody defined, and
+ * a counter somewhere, because a number without one is not a number.
+ */
+const NUMBER_FORMAT_TOKEN = /\{([^{}]*)\}/g;
+const KNOWN_NUMBER_TOKEN = /^(CODE|YYYY|YY|MM|N+)$/;
+
+/** The two numbering styles that forbid a hole. The other two allow one. */
+const GAPLESS_NUMBERING = new Set(['gapless_per_year', 'gapless']);
+
+/**
+ * `documents`, `einvoicing` and `bank`, normalised into the row they compile
+ * to. A section left out is not an error and not a default: every field comes
+ * out null, and `country_defaults` holds null, and a reader that needs the
+ * value raises rather than borrowing another country's answer.
+ */
+function normaliseDocumentRules(manifest: Manifest): PackDocumentRules {
+  const documents = (manifest['documents'] ?? {}) as Record<string, unknown>;
+  const einvoicing = (manifest['einvoicing'] ?? {}) as Record<string, unknown>;
+  const bank = (manifest['bank'] ?? {}) as Record<string, unknown>;
+  const numbering = documents['numbering'] as string | undefined;
+
+  const mentions = ((documents['mentions'] ?? []) as Record<string, unknown>[]).map(
+    (mention, index) =>
+      ({
+        code: String(mention['code']),
+        applies_when: String(mention['applies_when']),
+        text: String(mention['text']),
+        text_i18n: (mention['text_i18n'] as Record<string, string> | undefined) ?? {},
+        sequence: typeof mention['sequence'] === 'number' ? mention['sequence'] : (index + 1) * 10,
+        valid_from: String(mention['valid_from'] ?? '1970-01-01'),
+        valid_to: (mention['valid_to'] as string | undefined) ?? null,
+        legal_reference: (mention['legal_reference'] as string | undefined) ?? null,
+      }) satisfies PackMention,
+  );
+
+  return {
+    numbering_gapless: numbering === undefined ? null : GAPLESS_NUMBERING.has(numbering),
+    number_format: (documents['number_format'] as string | undefined) ?? null,
+    legal_payment_days: (documents['legal_payment_days'] as number | null | undefined) ?? null,
+    late_payment_reference: (documents['late_payment_reference'] as string | null | undefined) ?? null,
+    tax_point_rule: (documents['tax_point'] as string | undefined) ?? null,
+    einvoice_profile: (einvoicing['profile'] as string | null | undefined) ?? null,
+    einvoice_mandatory_from: (einvoicing['mandatory_from'] as string | null | undefined) ?? null,
+    party_scheme: (einvoicing['party_scheme'] as string | null | undefined) ?? null,
+    vat_scheme: (einvoicing['vat_scheme'] as string | null | undefined) ?? null,
+    bank_statement_formats: (bank['statement_formats'] as string[] | undefined) ?? [],
+    payment_formats: (bank['payment_formats'] as string[] | undefined) ?? [],
+    fiscal_year_default: (manifest.defaults['fiscal_year_default'] as string | undefined) ?? null,
+    mentions,
+  };
+}
+
+/**
+ * What the schema cannot say about the document rules.
+ *
+ * The closed vocabularies — the condition of a mention, the tax point, the
+ * bank formats, the four digits of an ISO 6523 scheme, the shape of a date —
+ * are all in `packs/schema/pack.1.json`, so they are checked before this runs
+ * and an editor sees them too. What is left is the handful of things one
+ * field cannot know about another.
+ */
+function documentReferences(rules: PackDocumentRules): Issue[] {
+  const issues: Issue[] = [];
+  const where = 'pack.json documents';
+
+  const seen = new Set<string>();
+  for (const mention of rules.mentions) {
+    if (seen.has(mention.code)) {
+      issues.push({ path: `${where}.mentions.${mention.code}`, message: 'duplicate mention code' });
+    }
+    seen.add(mention.code);
+    if (mention.valid_to !== null && mention.valid_to < mention.valid_from) {
+      issues.push({
+        path: `${where}.mentions.${mention.code}`,
+        message: `valid_to ${mention.valid_to} is before valid_from ${mention.valid_from}`,
+      });
+    }
+    if (mention.legal_reference === null) {
+      issues.push({
+        path: `${where}.mentions.${mention.code}`,
+        message: 'names no legal_reference; a sentence the law requires cites the article that requires it',
+      });
+    }
+  }
+
+  const format = rules.number_format;
+  if (format !== null) {
+    let counters = 0;
+    for (const [, token] of format.matchAll(NUMBER_FORMAT_TOKEN)) {
+      const name = token ?? '';
+      if (!KNOWN_NUMBER_TOKEN.test(name)) {
+        issues.push({
+          path: `${where}.number_format`,
+          message: `{${name}} is not a token; write {CODE}, {YYYY}, {YY}, {MM} or a run of N for the counter`,
+        });
+        continue;
+      }
+      if (name.startsWith('N')) counters += 1;
+    }
+    if (counters !== 1) {
+      issues.push({
+        path: `${where}.number_format`,
+        message:
+          counters === 0
+            ? 'carries no counter; write {NNNN} where the sequence goes'
+            : `carries ${counters} counters, and a number is drawn from one`,
+      });
+    }
+  }
+
+  // A date for an obligation nobody named, or the other way round: both are a
+  // half-declared pack, and both come out as a column that cannot be read.
+  if (rules.einvoice_mandatory_from !== null && rules.einvoice_profile === null) {
+    issues.push({
+      path: 'pack.json einvoicing',
+      message: 'mandatory_from names a day an obligation starts, and no profile says what becomes obligatory',
+    });
+  }
+
+  return issues;
 }
 
 /**

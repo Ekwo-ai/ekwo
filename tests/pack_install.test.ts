@@ -13,6 +13,16 @@ import { newCompany, newUser } from './helpers/factory.js';
 
 const packs = join(repoRoot, 'packs');
 
+/**
+ * The version a pack declares, read from the pack itself. A literal here
+ * would make every minor version of Belgium or France a test edit, and the
+ * assertion is not "the version is 1.1.0" — it is "the database holds the
+ * version the pack announces", which is what `ekwo pack upgrade` diffs on.
+ */
+async function versionOf(country: string): Promise<string> {
+  return (await readPack(country.toLowerCase(), packs)).manifest.version;
+}
+
 let db: PGlite;
 
 beforeAll(async () => {
@@ -32,12 +42,12 @@ describe('country_packs', () => {
     );
     expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR']);
     for (const pack of loaded) {
-      // 1.1.0 since P0-5 and P0-4: both packs gained taxes, Belgium a second
-      // chart of accounts and both their financial statements — each of which
-      // the format calls a minor version. `ekwo pack upgrade` diffs on this
-      // number, so a pack that grows without announcing it is a pack nobody
-      // can upgrade to.
-      expect(pack.version).toBe('1.1.0');
+      // Both packs have moved in minor steps since they were extracted —
+      // taxes, a second chart, financial statements, document rules — and
+      // each of those is what the format calls a minor version. `ekwo pack
+      // upgrade` diffs on this number, so a pack that grows without
+      // announcing it is a pack nobody can upgrade to.
+      expect(pack.version).toBe(await versionOf(pack.country));
       // `maintained`, never `ekwo`: Ekwo maintains these two packs and no
       // accountant has read them. Certified describes a review, or nothing.
       expect(pack.certification_status).toBe('maintained');
@@ -112,7 +122,7 @@ describe('installing a company', () => {
       'select country, version, upgraded_at from company_packs where company_id = $1',
       [companyId],
     );
-    expect(row).toMatchObject({ country: 'BE', version: '1.1.0', upgraded_at: null });
+    expect(row).toMatchObject({ version: await versionOf(row.country), upgraded_at: null });
   });
 
   it('changes nothing the second time', async () => {
@@ -393,12 +403,12 @@ describe('row level security on the two new tables', () => {
     await asUser(db, viewerId, async () => {
       await db.query(`update company_packs set version = '9.9.9' where company_id = $1`, [companyId]);
     });
-    const after = await one<{ version: string }>(
+    const after = await one<{ country: string; version: string }>(
       db,
-      'select version from company_packs where company_id = $1',
+      'select country, version from company_packs where company_id = $1',
       [companyId],
     );
-    expect(after.version).toBe('1.1.0');
+    expect(after.version).toBe(await versionOf(after.country));
 
     const message = await asUser(db, viewerId, () =>
       expectError(

@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.1.0",
-  "schema_min": "20260912100412",
+  "version": "1.2.0",
+  "schema_min": "20260912111751",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -12,7 +12,12 @@
       "Code de la TVA, art. 37",
       "Arrêté royal n. 20 du 20 juillet 1970",
       "Arrêté royal n. 1 du 29 décembre 1992, art. 20",
-      "Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction"
+      "Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction",
+      "Code de la TVA, art. 17 — exigibilité de la taxe à l'émission de la facture",
+      "Code de la TVA, art. 39, 39bis et 56bis — exonérations et régime de la franchise",
+      "Arrêté royal n° 1 du 29 décembre 1992, art. 5 — numérotation séquentielle des factures",
+      "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 4, 5 et 6",
+      "Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée"
     ]
   },
   "defaults": {
@@ -39,7 +44,8 @@
       "purchase": "PUR",
       "miscellaneous": "MISC",
       "opening": "OPN"
-    }
+    },
+    "fiscal_year_default": "calendar"
   },
   "journals": [
     {
@@ -113,12 +119,80 @@
     "numbering": "gapless_per_year",
     "number_format": "{CODE}/{YYYY}/{NNNN}",
     "legal_payment_days": 30,
+    "late_payment_reference": "Loi du 2 août 2002, art. 5 — intérêt au taux directeur de la Banque centrale européenne majoré de huit points, publié semestriellement au Moniteur belge ; art. 6 — indemnité forfaitaire de 40 € pour frais de recouvrement",
     "tax_point": "invoice_date",
     "mentions": [
       {
         "code": "reverse_charge",
-        "when": "treatment=domestic_reverse_charge",
-        "text": "Autoliquidation — TVA à acquitter par le cocontractant, AR n. 1, art. 20"
+        "applies_when": "reverse_charge",
+        "text": "Autoliquidation — taxe à acquitter par le cocontractant.",
+        "text_i18n": {
+          "nl": "Btw verlegd — belasting te voldoen door de medecontractant.",
+          "de": "Steuerschuldnerschaft des Leistungsempfängers.",
+          "en": "Reverse charge — VAT to be accounted for by the customer."
+        },
+        "sequence": 10,
+        "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20"
+      },
+      {
+        "code": "intracom_goods",
+        "applies_when": "intra_eu_goods",
+        "text": "Livraison intracommunautaire exonérée — autoliquidation par l'acquéreur.",
+        "text_i18n": {
+          "nl": "Vrijgestelde intracommunautaire levering — btw verlegd naar de afnemer.",
+          "de": "Steuerfreie innergemeinschaftliche Lieferung — Steuerschuldnerschaft des Erwerbers.",
+          "en": "Exempt intra-Community supply — reverse charge by the customer."
+        },
+        "sequence": 20,
+        "legal_reference": "Code de la TVA, art. 39bis"
+      },
+      {
+        "code": "intracom_services",
+        "applies_when": "intra_eu_services",
+        "text": "Autoliquidation — TVA due par le preneur.",
+        "text_i18n": {
+          "nl": "Btw verlegd — belasting verschuldigd door de afnemer.",
+          "de": "Steuerschuldnerschaft des Leistungsempfängers.",
+          "en": "Reverse charge — VAT due by the customer."
+        },
+        "sequence": 30,
+        "legal_reference": "Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196"
+      },
+      {
+        "code": "export",
+        "applies_when": "export",
+        "text": "Exportation exonérée de TVA.",
+        "text_i18n": {
+          "nl": "Van btw vrijgestelde uitvoer.",
+          "de": "Steuerfreie Ausfuhrlieferung.",
+          "en": "Exempt export."
+        },
+        "sequence": 40,
+        "legal_reference": "Code de la TVA, art. 39"
+      },
+      {
+        "code": "small_business",
+        "applies_when": "small_business",
+        "text": "Régime particulier de franchise des petites entreprises — TVA non applicable.",
+        "text_i18n": {
+          "nl": "Bijzondere vrijstellingsregeling voor kleine ondernemingen — btw niet van toepassing.",
+          "de": "Sonderregelung für Kleinunternehmen — keine Mehrwertsteuer.",
+          "en": "Small business exemption scheme — no VAT charged."
+        },
+        "sequence": 50,
+        "legal_reference": "Code de la TVA, art. 56bis"
+      },
+      {
+        "code": "late_payment",
+        "applies_when": "late_payment",
+        "text": "À défaut de paiement à l'échéance, un intérêt au taux légal applicable aux transactions commerciales et une indemnité forfaitaire de 40 € pour frais de recouvrement sont dus de plein droit et sans mise en demeure.",
+        "text_i18n": {
+          "nl": "Bij niet-betaling op de vervaldag zijn van rechtswege en zonder ingebrekestelling interesten tegen de wettelijke rentevoet voor handelstransacties verschuldigd, alsook een forfaitaire vergoeding van 40 € voor invorderingskosten.",
+          "de": "Bei Zahlungsverzug sind von Rechts wegen und ohne Mahnung Zinsen zum gesetzlichen Satz für Handelsgeschäfte sowie eine Pauschale von 40 € für Beitreibungskosten geschuldet.",
+          "en": "If not paid when due, interest at the statutory rate for commercial transactions and a fixed recovery indemnity of 40 € fall due by law and without notice."
+        },
+        "sequence": 60,
+        "legal_reference": "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 5 et 6"
       }
     ]
   },
@@ -126,7 +200,8 @@
     "profile": "peppol-bis-3",
     "mandatory_from": "2026-01-01",
     "party_scheme": "0208",
-    "vat_scheme": "BE:VAT"
+    "vat_scheme": "9925",
+    "legal_reference": "Loi du 6 février 2024 modifiant le Code de la TVA, art. 53, § 2 — facturation électronique structurée entre assujettis établis en Belgique à partir du 1er janvier 2026"
   },
   "bank": {
     "statement_formats": [
