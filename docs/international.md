@@ -30,7 +30,7 @@ and a generator.
 | ~~No year-end close, no opening balances~~ — done in P0-8; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
 | Currencies without realised gains or revaluation | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
-| A tax engine that knows only EU VAT | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
+| ~~A tax engine that knows only EU VAT~~ — closed by P0-5, except stacked taxes on one line | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec, phase 1); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
 | No cash-flow statement, no audit log | Expected before tax compliance in the English-speaking world |
 
 ## Four phases
@@ -56,7 +56,15 @@ one line wait for the countries that need them.
    country code any more, which a test now enforces.
 4. Financial statements as data, a generic statement by account type.
 5. The generalised tax engine: kind, recoverability, jurisdiction,
-   tax-inclusive prices, non-deductible VAT, rounding rules.
+   tax-inclusive prices, non-deductible VAT, rounding rules. **Done** (P0-5,
+   12 September 2026): `tax_kind`, `recoverable`, `jurisdiction`,
+   `price_include`, `cash_basis` on the taxes and their templates;
+   `rounding_method` and `cash_rounding_unit` on the country model; the
+   `tax_on_base` posting, which books non-deductible VAT on the account of the
+   line it taxes. Belgian cars at 50 % and French fuel at 80 % are in the
+   packs. The gross-to-net computation of a tax-inclusive price and the
+   behaviour of `cash_basis` are not: the first waits for the country that
+   sells that way, the second is P0-6.
 6. Cash-basis VAT and realised exchange differences.
 7. Document rules, e-invoicing profiles and bank formats as data.
 8. Opening balances and a parameterised year-end close. **Done** —

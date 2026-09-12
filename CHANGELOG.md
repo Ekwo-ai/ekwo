@@ -99,7 +99,43 @@ somewhere has already run it.
   a test now applies every reference seed twice. Found on the first real
   installation.
 
+### Changed
+
+- **The postings of one side of a tax share out the amount of the group**, the
+  last taking the remainder, instead of each rounding on its own. No tax had
+  more than one posting per side before, so nothing that exists moves; two
+  halves of 0,63 now come out as 0,32 and 0,31 rather than 0,32 twice, which
+  would have been refused as `document_total_mismatch`.
+- **`document_tax_summary.tax_charged` counts `tax_on_base` postings**, so the
+  supplier of a partially deductible purchase is owed the whole invoice.
+- **The two constraints on a posting's account become one**,
+  `tax_postings_account_by_type` (and its twin on the templates): a `tax`
+  posting needs an account, every other type must have none. A value added to
+  the enum later has to come back to it rather than slip through.
+- **`list_taxes` and the `ekwo://companies/{id}/taxes` resource expose the new
+  columns**, and the postings carry their `report_code`.
+
 ### Added
+
+- **One tax engine, several kinds (P0-5).** `tax_kind`
+  (`vat`/`gst`/`sales_tax`/`withholding`/`other`), `recoverable`,
+  `jurisdiction`, `price_include` and `cash_basis` on `taxes` and
+  `tax_templates`; `rounding_method` and `cash_rounding_unit` on
+  `country_defaults`. All of them were already words in the pack format,
+  marked deferred, and the compiler dropped them; they now reach the database.
+  Every default is today's behaviour, so no existing tax changes by a cent.
+- **`tax_on_base`, a posting that books non-deductible VAT on the account of
+  the line.** A Belgian company car at 21 % with the deduction capped at 50 %
+  books 1 000 on the vehicle, 105 on the deductible VAT account, 105 more on
+  the vehicle and 1 210 to the supplier; Belgian grid 83 reports 1 105,
+  because the form asks for the base plus the non-deductible VAT. The posting
+  carries no account, exactly like `base`, and is split across the accounts of
+  the lines it taxes in proportion to their bases.
+- **Belgium and France gain the taxes that needed it**, both packs moving to
+  `1.1.0`: `BE-P-21-50-I` and `BE-P-21-50-S` (vehicles and their running
+  costs, art. 45 § 2 CTVA), `BE-P-21-ND` (frais de réception, art. 45 § 3),
+  and `FR-P-20-CARB` (fuel at 20 % with the 80 % deduction of CGI art. 298,
+  4, 1°).
 
 - **No currency and no language written into the code either.** The MCP tools
   that create a product, a document or a bank account fell back to `'EUR'`
