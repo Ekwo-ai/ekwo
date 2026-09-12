@@ -1050,15 +1050,27 @@ the account somebody opened outside the pack, and the MCP tool returns that
 list beside the statement so a model cannot present a balance sheet that does
 not balance.
 
+**One evaluator, called twice.** A declaration form and a financial statement
+derive their totals the same way, so they derive them in one function:
+`evaluate_totals(values, formulas, keep_zero)`, which `vat_return()` and
+`financial_statement()` both call. The first draft of this sub-task wrote the
+evaluation a second time and argued that the two differed — a return omits a
+box that comes to nothing, a statement prints its whole frame. They are one
+argument (`p_keep_zero`) and, for the sign a scheme reads a line with, a
+second (`factor`). Two implementations of one calculation is the thing this
+repository is built against, and the cost of undoing it — replacing a function
+published the same morning, in a file of its own because it was published —
+was an hour.
+
 **The totals are evaluated in the order they depend on each other**, not the
 order they are printed in: a balance sheet prints `ACTIFS IMMOBILISÉS` above
 the three lines it adds up, and one of those three is itself a total. Each
-pass takes every total whose parts are known; a pass that settles nothing is a
-cycle, and says so. That is where this parts company with `vat_return()`,
-whose totals are strictly in sequence — and the reason the two evaluators were
-left as two. Factoring them would have meant rewriting a function published
-two hours earlier while two other branches waited to merge beside it, and they
-differ anyway: a declaration drops a nil box, a statement prints its frame.
+pass takes every total whose parts are known; a reference that names no
+formula is a value, present or nil, so a total over ledger boxes is ready on
+the first pass; a pass that settles nothing is a cycle and names the totals in
+it. `vat_return()` gains that: it used to evaluate strictly in the order the
+form declares, where a forward reference read a silent zero — which
+`ekwo pack check` refuses anyway, so no pack changes answer.
 
 **A closing entry is not what a period earned.** `close_fiscal_year()` books
 the mirror image of every income and expense account so the next year starts

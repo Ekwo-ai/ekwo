@@ -42,7 +42,15 @@ somewhere has already run it.
   a company sits on. An income statement leaves out the entries
   `close_fiscal_year()` marks `kind = 'closing'`, so a closed year still
   reports what it earned; a balance sheet keeps them, because that entry is
-  what carries the result onto the line it shows. Migration `20260912100412`.
+  what carries the result onto the line it shows. Migrations `20260912100412`
+  and `20260912104719`.
+- **One evaluator for both reports.** `evaluate_totals(values, formulas,
+  keep_zero)` is the single place a plus/minus formula is worked out;
+  `vat_return()` was rewritten onto it rather than have the calculation exist
+  twice. It also gains what the statements needed: totals evaluated in the
+  order they depend on each other rather than in the order the form declares
+  them, and a cycle that raises `formula_cycle` instead of quietly reading
+  zero. No pack changes answer.
 
 ### Security
 

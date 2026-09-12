@@ -85,6 +85,11 @@ the only way two lines may share an account.
 scheme prints it: `1` on an asset or an expense, `-1` on a liability, equity or
 income line.
 
+The totals of a scheme and the totals of a declaration form are worked out by
+the same function, `evaluate_totals()`, in the order they depend on each other.
+A statement prints its whole frame and a return omits a box that comes to
+nothing, which is one argument to it and not a second evaluator.
+
 A `balance_sheet` reads balances cumulative to the end of the period; an
 `income_statement` reads the movements inside it, **less the entries
 `close_fiscal_year()` marks `kind = 'closing'`**, so a closed year still

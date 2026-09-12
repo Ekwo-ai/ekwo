@@ -51,12 +51,14 @@
 -- reference data `financial_statement()` reads directly, which is also why
 -- they carry no `company_id`.
 --
--- The evaluation of the plus/minus lists is deliberately a second copy of what
--- `vat_return()` does rather than a shared helper. Factoring it would mean
--- rewriting a function published two hours ago, on a branch that two other
--- branches are about to merge beside; the two evaluators differ anyway — a
--- declaration drops a nil box, a statement prints its whole frame — and one
--- of them is going to grow a comparative column before they could ever be one.
+-- **One evaluator, called twice.** A declaration form and a financial statement
+-- derive their totals the same way — a list to add, a list to subtract — and
+-- the two differences between them are parameters, not engines: a return omits
+-- a box that comes to nothing where a statement prints its whole frame
+-- (`p_keep_zero`), and a statement multiplies a line by the sign the scheme
+-- reads it with (`factor`). `evaluate_totals()` below is that engine;
+-- `vat_return()` is rewritten onto it in the migration that follows this one,
+-- its own file because it was published before this.
 
 -- ---------------------------------------------------------------------------
 -- The statements
@@ -261,6 +263,152 @@ comment on function statement_account_matches(uuid, text, date, date) is
   'Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. The single decision financial_statement() and unmapped_accounts() both read.';
 
 -- ---------------------------------------------------------------------------
+-- evaluate_totals — the one place a plus/minus formula is worked out
+--
+-- `p_values`   what is already known, as `{ "<key>": <amount> }`.
+-- `p_formulas` the totals to derive, as an array of
+--              `{ key, plus[], minus[], floor_zero, factor, sequence }`.
+-- `p_keep_zero` whether a total that comes to nothing is in the answer. It is
+--              always in the working set either way, so a later total that
+--              names it reads a zero and not a gap.
+--
+-- **A reference is resolved the way a declaration form needs it**, which costs
+-- a statement nothing: `08:tax` names one key exactly, a bare `08` sums every
+-- key whose head is `08` — the French CA3 carries a base and a tax on one
+-- line, and a statement whose keys hold no separator gets a plain equality out
+-- of the same rule.
+--
+-- **The totals are evaluated in the order they depend on each other**, not the
+-- order they are declared: a balance sheet prints a subtotal above the lines it
+-- adds up, and a declaration names a total computed before it. A reference that
+-- names no formula is a value — present or nil, it is known already — so a
+-- total over ledger boxes is ready on the first pass. A pass that settles
+-- nothing is a cycle, and says which totals are in it.
+-- ---------------------------------------------------------------------------
+
+create or replace function evaluate_totals(
+  p_values    jsonb,
+  p_formulas  jsonb,
+  p_keep_zero boolean default false
+)
+returns jsonb
+language plpgsql
+immutable
+as $$
+declare
+  v_values  jsonb := coalesce(p_values, '{}'::jsonb);
+  v_out     jsonb := '{}'::jsonb;
+  v_done    jsonb := '{}'::jsonb;
+  v_all     jsonb := coalesce(p_formulas, '[]'::jsonb);
+  v_left    integer;
+  v_settled integer;
+  v_ready   boolean;
+  v_amount  numeric;
+  v_part    numeric;
+  v_refs    text[];
+  v_ref     text;
+  v_key     text;
+  v_stuck   text;
+  f         jsonb;
+begin
+  select count(*) into v_left from jsonb_array_elements(v_all);
+
+  while v_left > 0 loop
+    v_settled := 0;
+
+    for f in
+      select t.x from jsonb_array_elements(v_all) with ordinality as t(x, ord)
+       order by coalesce((t.x ->> 'sequence')::integer, 0), t.ord
+    loop
+      v_key := f ->> 'key';
+      if v_done ? v_key then
+        continue;
+      end if;
+
+      select coalesce(array_agg(e.value), '{}'::text[]) into v_refs
+        from (
+          select jsonb_array_elements_text(coalesce(f -> 'plus', '[]'::jsonb)) as value
+          union all
+          select jsonb_array_elements_text(coalesce(f -> 'minus', '[]'::jsonb))
+        ) as e;
+
+      -- Ready when every reference that names another formula has been worked
+      -- out already.
+      v_ready := true;
+      foreach v_ref in array v_refs loop
+        if exists (
+          select 1 from jsonb_array_elements(v_all) as g(x)
+           where (g.x ->> 'key') <> v_key
+             and not (v_done ? (g.x ->> 'key'))
+             and case when strpos(v_ref, ':') > 0
+                      then (g.x ->> 'key') = replace(v_ref, ':', '|')
+                      else split_part((g.x ->> 'key'), '|', 1) = v_ref
+                 end
+        ) then
+          v_ready := false;
+        end if;
+      end loop;
+      if not v_ready then
+        continue;
+      end if;
+
+      v_amount := 0;
+      for v_ref in
+        select jsonb_array_elements_text(coalesce(f -> 'plus', '[]'::jsonb))
+      loop
+        select coalesce(sum(e.value::numeric), 0) into v_part
+          from jsonb_each_text(v_values) as e(key, value)
+         where case when strpos(v_ref, ':') > 0
+                    then e.key = replace(v_ref, ':', '|')
+                    else split_part(e.key, '|', 1) = v_ref
+               end;
+        v_amount := v_amount + v_part;
+      end loop;
+      for v_ref in
+        select jsonb_array_elements_text(coalesce(f -> 'minus', '[]'::jsonb))
+      loop
+        select coalesce(sum(e.value::numeric), 0) into v_part
+          from jsonb_each_text(v_values) as e(key, value)
+         where case when strpos(v_ref, ':') > 0
+                    then e.key = replace(v_ref, ':', '|')
+                    else split_part(e.key, '|', 1) = v_ref
+               end;
+        v_amount := v_amount - v_part;
+      end loop;
+
+      -- The floor belongs to the pair it splits — the Belgian 71 and 72, the
+      -- French 25 and 28 — so it applies before the sign the caller reads the
+      -- line with.
+      if coalesce((f ->> 'floor_zero')::boolean, false) then
+        v_amount := greatest(v_amount, 0);
+      end if;
+      v_amount := round(v_amount * coalesce((f ->> 'factor')::numeric, 1), 2);
+
+      v_values := v_values || jsonb_build_object(v_key, v_amount);
+      v_done   := v_done   || jsonb_build_object(v_key, true);
+      if p_keep_zero or v_amount <> 0 then
+        v_out := v_out || jsonb_build_object(v_key, v_amount);
+      end if;
+      v_settled := v_settled + 1;
+      v_left := v_left - 1;
+    end loop;
+
+    if v_settled = 0 then
+      select string_agg(t.x ->> 'key', ', ' order by t.x ->> 'key') into v_stuck
+        from jsonb_array_elements(v_all) as t(x)
+       where not (v_done ? (t.x ->> 'key'));
+      raise exception 'formula_cycle: these totals depend on each other and on nothing else: %', v_stuck;
+    end if;
+  end loop;
+
+  return v_out;
+end;
+$$;
+
+comment on function evaluate_totals(jsonb, jsonb, boolean) is
+  'Works out the plus/minus totals of a declaration form or of a financial statement, in the order they depend on each other. The one place that calculation lives: vat_return() and financial_statement() both call it.';
+
+-- ---------------------------------------------------------------------------
 -- financial_statement
 -- ---------------------------------------------------------------------------
 
@@ -283,17 +431,12 @@ language plpgsql
 stable
 as $$
 declare
-  -- line code -> amount, for every line evaluated so far. The totals are
-  -- taken in sequence order, so a total may name one computed before it.
-  v_values jsonb := '{}'::jsonb;
-  v_rows   jsonb := '[]'::jsonb;
-  v_amount  numeric;
-  v_ref     text;
-  v_left    integer;
-  v_settled integer;
-  v_ready   boolean;
-  v_cycle   text;
-  r         record;
+  -- line code -> amount: the lines summed from the ledger, then the totals
+  -- `evaluate_totals()` derives from them.
+  v_values   jsonb := '{}'::jsonb;
+  v_formulas jsonb := '[]'::jsonb;
+  v_rows     jsonb := '[]'::jsonb;
+  r          record;
 begin
   if not exists (select 1 from companies c where c.id = p_company_id) then
     raise exception 'unknown_company: %', p_company_id;
@@ -305,74 +448,32 @@ begin
   -- 1. The lines summed from the ledger. All of them first, whatever their
   --    place in the scheme: a scheme prints a subtotal above the lines it adds
   --    up — every balance sheet does — and only a total that names another
-  --    total depends on an order, which step 2 keeps.
-  for r in
-    with summed as (
+  --    total depends on an order, which the evaluator keeps.
+  select coalesce(jsonb_object_agg(l.code, round(coalesce(s.balance, 0) * l.sign, 2)), '{}'::jsonb)
+    into v_values
+    from statement_line_templates l
+    left join (
       select m.line_code, round(sum(m.balance), 2) as balance
         from statement_account_matches(p_company_id, p_statement_code, p_from, p_to) m
        where m.line_code is not null
        group by m.line_code
-    )
-    select l.code, l.sign, coalesce(s.balance, 0) as balance
-      from statement_line_templates l
-      left join summed s on s.line_code = l.code
-     where l.statement_code = p_statement_code
-       and not l.is_total
-  loop
-    v_values := v_values || jsonb_build_object(r.code, round(r.balance * r.sign, 2));
-  end loop;
+    ) s on s.line_code = l.code
+   where l.statement_code = p_statement_code
+     and not l.is_total;
 
-  -- 2. The totals, in the order they depend on each other rather than the
-  --    order they are printed in: a balance sheet prints `ACTIFS IMMOBILISÉS`
-  --    above the three lines it adds up, and one of those three is itself a
-  --    total. Each pass takes every total whose parts are all known; when a
-  --    pass settles nothing, what is left is a cycle and says so.
-  select count(*) into v_left
+  -- 2. The totals, worked out by the one evaluator the declaration forms use.
+  --    A statement prints its whole frame, so every total comes back, and the
+  --    sign it reads the line with is the factor.
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'key', l.code, 'plus', to_jsonb(l.plus_lines), 'minus', to_jsonb(l.minus_lines),
+           'factor', l.sign, 'sequence', l.sequence
+         ) order by l.sequence, l.code), '[]'::jsonb)
+    into v_formulas
     from statement_line_templates l
-   where l.statement_code = p_statement_code and l.is_total;
+   where l.statement_code = p_statement_code
+     and l.is_total;
 
-  while v_left > 0 loop
-    v_settled := 0;
-    for r in
-      select l.code, l.sign, l.plus_lines, l.minus_lines
-        from statement_line_templates l
-       where l.statement_code = p_statement_code
-         and l.is_total
-         and not (v_values ? l.code)
-       order by l.sequence, l.code
-    loop
-      v_ready := true;
-      foreach v_ref in array r.plus_lines || r.minus_lines loop
-        if not (v_values ? v_ref) then
-          v_ready := false;
-        end if;
-      end loop;
-      if not v_ready then
-        continue;
-      end if;
-
-      v_amount := 0;
-      foreach v_ref in array r.plus_lines loop
-        v_amount := v_amount + (v_values ->> v_ref)::numeric;
-      end loop;
-      foreach v_ref in array r.minus_lines loop
-        v_amount := v_amount - (v_values ->> v_ref)::numeric;
-      end loop;
-      v_values := v_values || jsonb_build_object(r.code, round(v_amount * r.sign, 2));
-      v_settled := v_settled + 1;
-      v_left := v_left - 1;
-    end loop;
-
-    if v_settled = 0 then
-      select string_agg(l.code, ', ' order by l.code) into v_cycle
-        from statement_line_templates l
-       where l.statement_code = p_statement_code
-         and l.is_total
-         and not (v_values ? l.code);
-      raise exception 'statement_cycle: totals of % depend on each other and on nothing else: %',
-        p_statement_code, v_cycle;
-    end if;
-  end loop;
+  v_values := v_values || evaluate_totals(v_values, v_formulas, true);
 
   -- 3. The frame, in the order it is printed. Every line is returned, nil
   --    included: a statement is read top to bottom and tied out, where a

@@ -1264,6 +1264,7 @@ Constraints:
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `entries_guard_kind()` | Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on. |
+| `evaluate_totals(p_values jsonb, p_formulas jsonb, p_keep_zero boolean)` | Works out the plus/minus totals of a declaration form or of a financial statement, in the order they depend on each other. The one place that calculation lives: vat_return() and financial_statement() both call it. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
 | `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
@@ -1293,7 +1294,7 @@ Constraints:
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
 | `unmapped_accounts(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Accounts this statement is answerable for that carry a balance and that no rule of it catches. Empty is what makes the statement tie out; a row is an account somebody opened outside the pack. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
-| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form evaluated in sequence order. No country rule lives in this function. |
+| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. No country rule lives in this function. |
 
 ---
 
