@@ -1,0 +1,7 @@
+node_modules/
+.claude/
+dist/
+*.tgz
+.DS_Store
+*.xbrl
+!test/fixtures/*.xbrl
