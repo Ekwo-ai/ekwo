@@ -792,6 +792,129 @@ describe('the three functions', () => {
 });
 
 // ---------------------------------------------------------------------------
+// entries.kind
+// ---------------------------------------------------------------------------
+
+describe('what an entry is for', () => {
+  async function kindOf(entryId: string): Promise<string> {
+    return (
+      await one<{ kind: string }>(db, `select kind::text as kind from entries where id = $1`, [
+        entryId,
+      ])
+    ).kind;
+  }
+
+  it('is `opening` on an imported opening balance', async () => {
+    const fx = await companyWithTwoYears('BE');
+    const year = await fiscalYear(fx.companyId, 'Exercice 2026');
+    const entryId = await asUser(db, fx.ownerId, async () =>
+      (
+        await one<{ opening_balance: string }>(db, `select opening_balance($1, $2, $3::jsonb)`, [
+          fx.companyId,
+          year,
+          JSON.stringify([
+            { account_code: '550000', debit: '100.00', credit: '0' },
+            { account_code: '100000', debit: '0', credit: '100.00' },
+          ]),
+        ])
+      ).opening_balance,
+    );
+    expect(await kindOf(entryId)).toBe('opening');
+  });
+
+  it('is `closing` on both entries a close writes, and on their reversals', async () => {
+    const fx = await companyWithTwoYears('BE');
+    await tradingYear(fx, 'BE', 10000, 4000);
+    const year = await fiscalYear(fx.companyId, 'Exercice 2026');
+    const result = await close(fx, year);
+
+    expect(await kindOf(result.appropriation_entry_id as string)).toBe('closing');
+    expect(await kindOf(result.closing_entry_id)).toBe('closing');
+
+    const undone = await asUser(db, fx.ownerId, () =>
+      one<{ reopen_fiscal_year: { reversal_entry_ids: string[] } }>(
+        db,
+        `select reopen_fiscal_year($1)`,
+        [year],
+      ),
+    );
+    for (const id of undone.reopen_fiscal_year.reversal_entry_ids) {
+      expect(await kindOf(id)).toBe('closing');
+    }
+  });
+
+  it('is `normal` on everything a business writes', async () => {
+    const fx = await companyWithTwoYears('BE');
+    await tradingYear(fx, 'BE', 10000, 4000);
+    const kinds = await rows<{ kind: string; count: string }>(
+      db,
+      `select kind::text as kind, count(*)::text as count
+         from entries where company_id = $1 group by kind`,
+      [fx.companyId],
+    );
+    expect(kinds).toEqual([{ kind: 'normal', count: '2' }]);
+  });
+
+  it('cannot be written by hand, on insert or on update', async () => {
+    const fx = await companyWithTwoYears('BE');
+    const misc = await one<{ id: string }>(
+      db,
+      `select id from journals where company_id = $1 and code = 'MISC'`,
+      [fx.companyId],
+    );
+
+    const inserted = await asUser(db, fx.ownerId, () =>
+      expectError(
+        db,
+        `insert into entries (company_id, journal_id, entry_date, description, state, kind)
+         values ($1, $2, date '2026-05-05', 'Faux', 'draft', 'closing')`,
+        [fx.companyId, misc.id],
+      ),
+    );
+    expect(inserted).toMatch(/entry_kind_not_a_column/);
+
+    await asUser(db, fx.ownerId, () =>
+      db.query(
+        `insert into entries (company_id, journal_id, entry_date, description, state)
+         values ($1, $2, date '2026-05-05', 'Vraie', 'draft')`,
+        [fx.companyId, misc.id],
+      ),
+    );
+    const updated = await asUser(db, fx.ownerId, () =>
+      expectError(db, `update entries set kind = 'closing' where company_id = $1`, [fx.companyId]),
+    );
+    expect(updated).toMatch(/entry_kind_not_a_column/);
+  });
+
+  it('survives post_entry, which changes everything else about an entry', async () => {
+    const fx = await companyWithTwoYears('BE');
+    const year = await fiscalYear(fx.companyId, 'Exercice 2026');
+    const entryId = await asUser(db, fx.ownerId, async () =>
+      (
+        await one<{ opening_balance: string }>(db, `select opening_balance($1, $2, $3::jsonb)`, [
+          fx.companyId,
+          year,
+          JSON.stringify([
+            { account_code: '550000', debit: '100.00', credit: '0' },
+            { account_code: '100000', debit: '0', credit: '100.00' },
+          ]),
+        ])
+      ).opening_balance,
+    );
+    // post_entry ran inside opening_balance: the number is assigned and the
+    // kind did not move.
+    const entry = await one<{ state: string; number: string; kind: string }>(
+      db,
+      `select state::text as state, number, kind::text as kind from entries where id = $1`,
+      [entryId],
+    );
+    expect(entry.state).toBe('posted');
+    expect(entry.number).toMatch(/^OPN\//);
+    expect(entry.kind).toBe('opening');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // The pack says it, or nothing does
 // ---------------------------------------------------------------------------
 

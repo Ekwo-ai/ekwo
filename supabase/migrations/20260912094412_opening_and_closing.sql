@@ -107,6 +107,89 @@ comment on column country_defaults.opening_journal_code is
   'Code of the journal the opening and the year-end entries are booked on, from the pack. Null until the pack names one, and then nothing opens or closes: there is no code written into the schema to fall back on.';
 
 -- ---------------------------------------------------------------------------
+-- What an entry is for
+--
+-- A closing entry is not an ordinary one: it exists to take the income
+-- statement back to zero, so a report that shows the income statement of a
+-- closed year has to leave it out. Until this column, the only way to know
+-- was a heuristic — a journal of type `opening`, dated on the first or the
+-- last day of a fiscal year — and a statement built on a heuristic is a
+-- statement that goes wrong the first time somebody books something by hand
+-- on that journal.
+--
+-- `normal` is every entry a business writes. `opening` is the one entry that
+-- opens a set of books. `closing` is what `close_fiscal_year` writes, the
+-- appropriation entry included, and so are the reversals `reopen_fiscal_year`
+-- posts against them — a reversal belongs to the same report exclusion as
+-- what it undoes.
+--
+-- The column is **not writable by hand**, for the same reason `is_closed` is
+-- not: a label a client may set is a label a report cannot be built on, and
+-- an ordinary purchase invoice quietly marked `closing` would disappear from
+-- an income statement without anything looking wrong. The three functions
+-- below set `ekwo.year_end_entry` while they write; nothing else may move the
+-- column off `normal`.
+-- ---------------------------------------------------------------------------
+
+create type entry_kind as enum ('normal', 'opening', 'closing');
+
+comment on type entry_kind is
+  'What an entry is for. A report of a closed year leaves out what is not normal.';
+
+alter table entries
+  add column if not exists kind entry_kind not null default 'normal';
+
+comment on column entries.kind is
+  'normal, opening or closing. Written by opening_balance(), close_fiscal_year() and reopen_fiscal_year(), and by nothing else.';
+
+create index if not exists entries_kind_idx on entries (company_id, kind) where kind <> 'normal';
+
+-- An installation that already booked its opening by hand keeps it: the
+-- heuristic this column replaces runs once, here, and never again.
+update entries e
+   set kind = case when e.entry_date = f.start_date then 'opening'::entry_kind
+                   else 'closing'::entry_kind end
+  from fiscal_years f
+  join companies c on c.id = f.company_id
+ where f.id = e.fiscal_year_id
+   and e.journal_id in (select j.id from journals j
+                         where j.company_id = e.company_id and j.journal_type = 'opening')
+   and e.entry_date in (f.start_date, f.end_date);
+
+create or replace function entries_guard_kind()
+returns trigger
+language plpgsql
+as $$
+begin
+  if coalesce(current_setting('ekwo.year_end_entry', true), '') = 'on' then
+    return new;
+  end if;
+
+  if tg_op = 'INSERT' then
+    if new.kind <> 'normal' then
+      raise exception 'entry_kind_not_a_column: an opening or closing entry is written by opening_balance() and close_fiscal_year(), not by hand'
+        using errcode = '55006';
+    end if;
+    return new;
+  end if;
+
+  if new.kind is distinct from old.kind then
+    raise exception 'entry_kind_not_a_column: kind is written by opening_balance() and close_fiscal_year(), not by hand'
+      using errcode = '55006';
+  end if;
+
+  return new;
+end;
+$$;
+
+comment on function entries_guard_kind() is
+  'Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on.';
+
+create trigger entries_guard_kind
+  before insert or update on entries
+  for each row execute function entries_guard_kind();
+
+-- ---------------------------------------------------------------------------
 -- Closing a year is an act, not a column
 --
 -- `is_closed` decides whether a whole period accepts entries, and until now
@@ -188,12 +271,9 @@ as $$
   select exists (
     select 1
       from entries e
-      join fiscal_years f on f.id = e.fiscal_year_id
-      join journals j on j.id = e.journal_id
      where e.fiscal_year_id = p_fiscal_year_id
        and e.state = 'posted'
-       and j.journal_type = 'opening'
-       and e.entry_date = f.start_date
+       and e.kind = 'opening'
        and e.reversed_entry_id is null
        and not exists (
          select 1 from entries r
@@ -269,11 +349,13 @@ begin
       using errcode = '55006';
   end if;
 
+  perform set_config('ekwo.year_end_entry', 'on', true);
   insert into entries (company_id, journal_id, fiscal_year_id, entry_date,
-                       description, state)
+                       description, state, kind)
   values (p_company_id, v_journal, p_fiscal_year_id, v_year.start_date,
-          'Opening balance', 'draft')
+          'Opening balance', 'draft', 'opening')
   returning * into v_entry;
+  perform set_config('ekwo.year_end_entry', 'off', true);
 
   for v_line in select * from jsonb_array_elements(p_lines)
   loop
@@ -476,11 +558,13 @@ begin
         v_company.country;
     end if;
 
+    perform set_config('ekwo.year_end_entry', 'on', true);
     insert into entries (company_id, journal_id, fiscal_year_id, entry_date,
-                         description, state)
+                         description, state, kind)
     values (v_year.company_id, v_journal, v_year.id, v_year.end_date,
-            'Result of the year', 'draft')
+            'Result of the year', 'draft', 'closing')
     returning * into v_entry;
+    perform set_config('ekwo.year_end_entry', 'off', true);
     v_appropriate := v_entry.id;
 
     insert into entry_lines (entry_id, company_id, account_id, sequence, name, debit, credit)
@@ -499,11 +583,13 @@ begin
   --    account chosen above; in the third the accounts already net to zero,
   --    because the appropriation entry put the result among them.
 
+  perform set_config('ekwo.year_end_entry', 'on', true);
   insert into entries (company_id, journal_id, fiscal_year_id, entry_date,
-                       description, state)
+                       description, state, kind)
   values (v_year.company_id, v_journal, v_year.id, v_year.end_date,
-          'Closing entry', 'draft')
+          'Closing entry', 'draft', 'closing')
   returning * into v_entry;
+  perform set_config('ekwo.year_end_entry', 'off', true);
   v_closing := v_entry.id;
 
   insert into entry_lines (entry_id, company_id, account_id, sequence, name, debit, credit)
@@ -623,24 +709,27 @@ begin
   for v_original in
     select e.*
       from entries e
-      join journals j on j.id = e.journal_id
      where e.company_id = v_year.company_id
        and e.state = 'posted'
-       and j.journal_type = 'opening'
+       and e.kind = 'closing'
        and e.fiscal_year_id = p_fiscal_year_id
-       and e.entry_date = v_year.end_date
        and e.reversed_entry_id is null
        and not exists (
          select 1 from entries r where r.reversed_entry_id = e.id and r.state = 'posted'
        )
      order by e.entry_date, e.number
   loop
+    -- A reversal carries the kind of what it undoes: it belongs to the same
+    -- report exclusion, and a closing entry undone by a `normal` one would
+    -- reappear in the income statement on its own.
+    perform set_config('ekwo.year_end_entry', 'on', true);
     insert into entries (company_id, journal_id, fiscal_year_id, entry_date,
-                         description, state, reversed_entry_id, currency_code)
+                         description, state, reversed_entry_id, currency_code, kind)
     values (v_original.company_id, v_original.journal_id, v_original.fiscal_year_id,
             v_original.entry_date, 'Reversal of ' || v_original.number, 'draft',
-            v_original.id, v_original.currency_code)
+            v_original.id, v_original.currency_code, v_original.kind)
     returning * into v_reversal;
+    perform set_config('ekwo.year_end_entry', 'off', true);
 
     insert into entry_lines (entry_id, company_id, account_id, sequence, name,
                              debit, credit, contact_id, date_maturity, currency_code)

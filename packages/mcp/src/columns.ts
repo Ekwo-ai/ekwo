@@ -143,6 +143,7 @@ export const ENTRY = [
   'reference',
   'description',
   'state',
+  'kind',
   'document_id',
   'total_debit::text',
   'total_credit::text',

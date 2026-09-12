@@ -846,8 +846,21 @@ One consequence to know: once a year is closed, its income statement read
 from the *movements* of that year is zero, because the closing entry is one of
 them. That is what a post-closing trial balance is, and it is true of every
 system that closes the income statement at all. The statements of P0-4 read a
-closed year by leaving out the entries of the opening journal dated on its
-last day, which is also how `reopen_fiscal_year` finds them.
+closed year by leaving out `entries.kind <> 'normal'`.
+
+**`entries.kind` says what an entry is for, and is not writable by hand.**
+`normal`, `opening`, `closing`. The first draft of this change identified a
+closing entry by a heuristic — a journal of type `opening`, dated on the first
+or the last day of a fiscal year — and a statement built on a heuristic goes
+wrong the first time somebody books something by hand on that journal. The
+column is set by `opening_balance()`, `close_fiscal_year()` and
+`reopen_fiscal_year()` and by nothing else: a trigger refuses any other value
+unless `ekwo.year_end_entry` is set, which only those three do, and only while
+they write. The reason is the one behind `is_closed`: a label any client may
+set is a label a report cannot be built on, and an ordinary purchase invoice
+quietly marked `closing` would leave an income statement without anything
+looking wrong. A reversal carries the kind of what it undoes, so a closing
+entry and its reversal leave a report together.
 
 **The allocation decided by a meeting is never in the close.** A dividend, the
 legal reserve, a French 120 moved to 110 or to 106 — all of it is a later
