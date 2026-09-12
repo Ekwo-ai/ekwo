@@ -46,10 +46,14 @@ before any new country because the French pack is wrong for services today;
 the cash-flow statement, the revaluation of open items and several taxes on
 one line wait for the countries that need them.
 
-1. Pack format and compiler; Belgium and France extracted into `packs/`.
+1. Pack format and compiler; Belgium and France extracted into `packs/`. **Done.**
 2. The pack migration: `country_packs`, `company_packs`, translated labels,
-   seeds that upsert the template tables.
-3. Declaration boxes as data, a generic `vat_return()`.
+   seeds that upsert the template tables. **Done.**
+3. Declaration boxes as data, a generic `vat_return()`. **Done** — the boxes
+   and their plus/minus formulas live in `tax_report_templates` and
+   `tax_report_box_templates`, filled by the pack; the Belgian 71/72 and the
+   French CA3 totals are pack data, and no function in the core holds a
+   country code any more, which a test now enforces.
 4. Financial statements as data, a generic statement by account type.
 5. The generalised tax engine: kind, recoverability, jurisdiction,
    tax-inclusive prices, non-deductible VAT, rounding rules.

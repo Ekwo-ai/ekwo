@@ -28,8 +28,11 @@ row.
 ## What the chart files do
 
 They fill the *template* tables (`account_templates`, `journal_templates`,
-`tax_templates`, `tax_posting_templates`, `country_defaults`). A company gets
-its own copy when `install_country_template(company_id, 'BE')` runs. Changing
+`tax_templates`, `tax_posting_templates`, `country_defaults`) and the two
+declaration-form tables (`tax_report_templates`, `tax_report_box_templates`).
+A company gets its own copy of the templates when
+`install_country_template(company_id, 'BE')` runs; the form tables are read
+where they are, because a declaration form is not customisable. Changing
 a pack changes what future companies receive; it does not touch a company that
 already exists.
 

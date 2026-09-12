@@ -52,8 +52,9 @@ a country without the CLI ever running; the CI's *hygiene* job runs
 the next `pack build` overwrites it and the CI refuses it in the meantime.
 
 The compiler writes `account_templates`, `journal_templates`, `tax_templates`,
-`tax_posting_templates`, `country_defaults` and `country_packs`, and **nothing
-that belongs to a company**. Every insert upserts on the natural key
+`tax_posting_templates`, `tax_report_templates`, `tax_report_box_templates`,
+`country_defaults` and `country_packs`, and **nothing that belongs to a
+company**. Every insert upserts on the natural key
 `(country, code)`, which matters more than it sounds: the seeds used to say
 `on conflict do nothing`, so an instance installed last month received no
 correction at all — not even for a company created afterwards, since a company
@@ -73,6 +74,42 @@ and line `101` of one is not line `101` of the other. Every posting therefore
 carries a `report_code`, which the compiler fills from the `code` of
 `tax_report.json` — `BE-VAT-PERIODIC`, `FR-CA3` — and which a posting may
 override with `"report": "…"` when a country files more than one.
+
+## The boxes of a declaration, and how a total is computed
+
+`tax_report.json` is one form — `BE-VAT-PERIODIC`, `FR-CA3` — and its boxes.
+A `base` or a `tax` box is summed from what the postings wrote on the ledger;
+a `total` is computed from the others:
+
+```json
+{ "box": "71", "kind": "total", "name": "TVA à payer à l'État", "sequence": 320,
+  "plus": ["XX"], "minus": ["YY"], "floor_zero": true }
+```
+
+There is **no expression language**: a list to add, a list to subtract, a
+floor at zero, evaluated in `sequence` order, so a total may name a total
+declared before it. That covers the Belgian 71/72, the French 16, 23, 25 and
+28, and the British box 5. `hidden` marks an intermediate total the form does
+not print — `vat_return()` returns it with the flag rather than dropping it.
+
+A reference is bare (`54`) where the form carries the box once, and qualified
+(`08:tax`) where it carries a base and a tax on the same line, as the CA3
+does. `ekwo pack check` refuses:
+
+- a reference to a box the form does not carry;
+- a bare reference that would match two kinds — qualify it;
+- a total that names itself;
+- a total that names a total computed **after** it in the sequence;
+- a formula on a box that is summed from the ledger;
+- the same box declared twice with the same kind;
+- a tax that posts to a box the form does not declare.
+
+The form is reference data and is never copied into a company: a chart of
+accounts is customisable, a form is not. A new version of a form is a **new
+code** with its own `valid_from`, like a new VAT rate is a new tax code, and
+`vat_return()` takes the one in force at the end of the period.
+
+## Which province a party is in
 
 `defaults.region` is the other half of the same story: Canadian tax follows
 the buyer's province, so `companies.region` and `contacts.region` exist (ISO
@@ -118,9 +155,11 @@ while keeping the whole object beside it — so a company can be installed in
 Dutch and read in English later without importing anything again. A code the
 pack does not translate keeps the pack's own label.
 
-Only account labels are compiled today. Journals, taxes and declaration boxes
-have their `name_i18n` in the format and no column yet; the compiler says so
-when it skips them.
+Account labels and declaration-box labels are compiled today; a box is keyed
+by the same reference its formulas use — `59`, or `08:tax` where a form
+carries a base and a tax on one line. Journals and taxes have their
+`name_i18n` in the format and no column yet; the compiler says so when it
+skips them.
 
 ## Certification
 

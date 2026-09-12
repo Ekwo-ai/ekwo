@@ -681,7 +681,9 @@ and box labels of `i18n/` (only account labels are compiled). The compiler
 names each one it skipped, in its output and in the header of every seed it
 writes, so nothing is quietly dropped. `tax_report.json` is written for both
 countries already — the Belgian 71/72 and the French CA3 totals — so that P0-3
-has the data it needs on the day it starts.
+has the data it needs on the day it starts. *(P0-3 has since landed:
+`tax_report.json` and the box labels of `i18n/` are compiled — see the entry
+at the end of this file.)*
 
 
 ## Ekwo maintains a pack; only an accountant reviews one (12 September 2026)
@@ -708,3 +710,59 @@ One sentence describes a pack, written once in the CLI and printed by
 Y", "community pack — not reviewed". This supersedes the last line of the
 paragraph above, which said Ekwo certifies Belgium and France.
 
+
+
+## P0-3 — declaration boxes are data (12 September 2026)
+
+`vat_return()` summed whatever the tax postings wrote on the ledger lines —
+which never knew a country — and then hard-coded the Belgian frame VI: boxes
+71 and 72, the six boxes that make up what is due, the three that make up what
+is deductible, and `c.fiscal_country = 'BE'`. It was the last country rule in
+the core. A French company got no total at all, and a British one never would
+have.
+
+A form is now two tables filled by a pack. **`tax_report_templates`** is one
+declaration form of one country; **`tax_report_box_templates`** is one box,
+with `plus_boxes`, `minus_boxes` and `floor_zero` where it is a total. There
+is deliberately **no expression language**: a list to add, a list to subtract,
+a floor at zero, evaluated in the `sequence` the form declares. That covers
+the Belgian 71/72, the French 16, 23, 25 and 28, and the British box 5, and an
+accountant can read it. The day a country needs a real expression it is a
+discussion about the core, not a field added to a pack.
+
+Three things follow from the shape.
+
+**A reference names a box and a kind.** `"54"` is enough on a Belgian form;
+the French CA3 carries a base and a tax on line 08, so it writes `"08:base"`
+and `"08:tax"`. `ekwo pack check` refuses a bare reference that would match
+both, one that names a box the form does not carry, one that names the box
+itself, and one that names a total computed later in the sequence — the totals
+are evaluated once, in order, so a forward reference would silently read a
+zero. It also refuses a tax that posts to a box the form does not declare.
+
+**These tables are not copied into a company.** A chart of accounts is
+customisable and a form is not: an operator does not get to redefine box 59.
+They stay reference data that `vat_return()` reads directly, which is also why
+they carry no `company_id`.
+
+**A new version of a form is a new code**, with its own `valid_from` and
+`valid_to`, the way a new VAT rate is a new tax code. The key is
+`(country, code)`, and `vat_return()` takes the form in force at the end of
+the period — so the return of a past period keeps giving the same answer. The
+original sketch keyed the table on `(country, code, valid_from)`; one key and
+one row per form version is the simpler half of the same guarantee.
+
+`vat_return(company, from, to, report_code default null)` returns what it
+always returned — `box`, `kind`, `amount`, `computed` — plus the `name` of the
+box, its `sequence`, `hidden` and `report_code`. Hidden totals (the Belgian XX
+and YY) are **returned and flagged** rather than dropped: a caller that wants
+to check a total the form does not print can, and a renderer filters on one
+column. A nil box is still left out, computed or not, exactly as before.
+`report_code` picks the form where a country files several; without it, the
+periodic return of the company's fiscal country in force on the last day of
+the period, and an error rather than a guess if there are two. A company in a
+country with no pack still gets its ledger boxes and no total.
+
+The guard that keeps this true is a test: no function in `public` may hold a
+country code in its source. It passes today, and it is what makes "a country
+is data" checkable rather than aspirational.

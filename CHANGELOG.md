@@ -92,6 +92,23 @@ somewhere has already run it.
 
 ### Added
 
+- **Declaration boxes are data, and `vat_return()` holds no country (P0-3).**
+  Migration `20260912090407` adds `tax_report_templates` — one declaration form
+  of one country — and `tax_report_box_templates` — one box, with `plus_boxes`,
+  `minus_boxes` and `floor_zero` where it is a total. `ekwo pack build`
+  compiles `packs/<cc>/tax_report.json` and the `tax_report_boxes` labels of
+  `i18n/` into them, so the Belgian 71/72 and the French CA3 totals (01, 16,
+  23, 25, 28) are pack data. `vat_return(company, from, to, report_code)`
+  evaluates the totals in the `sequence` the form declares and returns, beside
+  the four columns it always did, the `name` of each box, its `sequence`,
+  `hidden` and `report_code`; the three-argument call is unchanged. The last
+  `fiscal_country = 'BE'` leaves the core, and a test keeps it out: no function
+  in `public` may hold a country code in its source. `ekwo pack check` refuses
+  a formula that names a box the form does not carry, a bare reference that
+  could mean two boxes, a total that names itself or a total computed after it,
+  a formula on a box that is summed from the ledger, a box declared twice, and
+  a tax that posts to a box the form does not declare.
+
 - `DISCLAIMER.md`: software, not advice; the books are yours; what a pack
   and a review are and are not; estimates are estimates.
 
