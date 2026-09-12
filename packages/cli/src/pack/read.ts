@@ -123,6 +123,13 @@ export interface PackStatement {
   code: string;
   kind: string;
   framework: string | null;
+  /**
+   * Taxonomy the `xbrl` fact keys of this statement are written against, as
+   * `name:version` — `nbb-cbso:26.0`. The format library that reads the keys
+   * carries the table of one version; against another, a key resolves onto a
+   * different line and nothing says so.
+   */
+  taxonomy: string | null;
   name: string;
   valid_from: string;
   valid_to: string | null;
@@ -824,6 +831,7 @@ function normaliseStatements(raw: Record<string, unknown>, charts: PackChart[]):
       code,
       kind: String(statement['kind']),
       framework: (statement['framework'] as string | undefined) ?? null,
+      taxonomy: (statement['taxonomy'] as string | undefined) ?? null,
       name: String(statement['name'] ?? code),
       valid_from: String(statement['valid_from'] ?? '1970-01-01'),
       valid_to: (statement['valid_to'] as string | undefined) ?? null,
@@ -915,6 +923,21 @@ function statementReferences(statements: PackStatement[], charts: PackChart[]): 
     // separates them — the two sides of a balance sheet share every member but
     // one, and `met:am1|bas:m25` alone is both totals at once.
     const byXbrl = new Map<string, string>();
+
+    // A fact key is written against one version of one taxonomy. The library
+    // that reads the keys carries the table of that version; against another,
+    // a key resolves onto a different line and nothing says so. So a statement
+    // that carries keys has to name what they were written against. Which
+    // library implements that taxonomy is no business of this file: the
+    // end-to-end test is where the two are put in the same room.
+    if (statement.lines.some((line) => line.xbrl !== null) && statement.taxonomy === null) {
+      issues.push({
+        path: where,
+        message:
+          'lines carry fact keys but the statement names no taxonomy; add "taxonomy": "<name>:<version>"',
+      });
+    }
+
     for (const line of statement.lines) {
       if (byCode.has(line.code)) {
         issues.push({ path: `${where} ${line.code}`, message: 'duplicate line code' });

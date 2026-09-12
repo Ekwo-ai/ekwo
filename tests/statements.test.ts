@@ -3,6 +3,7 @@ import { cp, mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { CBSO_26_M01F, FRAMEWORK, resolveFactKey } from '@ekwo-ai/xbrl-cbso';
 import { readFrameworkPack, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { demoCompanyId, newCompany, newContact, newDocument, newUser } from './helpers/factory.js';
@@ -880,7 +881,49 @@ describe('what `ekwo pack check` refuses in a statement', () => {
       st.lines.filter((l) => l.xbrl === null).map((l) => `${st.code} ${l.code}`),
     );
     expect(unnamed).toEqual([]);
-    expect(schemes.reduce((n, st) => n + st.lines.length, 0)).toBe(53);
+  });
+
+  it('resolves every one of them against the taxonomy, onto the line that carries it', async () => {
+    // The pack used to state its keys and a test used to count them, which
+    // proved that somebody had typed fifty-three things. What has to be true
+    // is stronger and nobody can type it: each key names exactly one fact of
+    // the published NBB taxonomy, and in the Belgian schemes the line that
+    // fact belongs to is the line the pack wrote it on — a Belgian reporting
+    // code *is* the rubric code of the model.
+    //
+    // The table comes from `@ekwo-ai/xbrl-cbso`, generated from the taxonomy
+    // package the National Bank publishes. This is the only place the pack and
+    // the format library meet, and it is a test rather than a runtime
+    // dependency: the core files nothing.
+    const be = await readPack('be', packs);
+    const schemes = be.statements.filter((st) => st.code.startsWith('BE-BNB-ABBR-'));
+
+    const wrong: string[] = [];
+    let resolved = 0;
+    for (const statement of schemes) {
+      // The keys of a statement are written against one version of one
+      // taxonomy, and this is the version the brick carries.
+      expect(statement.taxonomy, statement.code).toBe(`nbb-cbso:${FRAMEWORK}`);
+      for (const line of statement.lines) {
+        if (line.xbrl === null) continue;
+        resolved += 1;
+        try {
+          // `resolveFactKey` throws when a key names no fact of the model, and
+          // when it names more than one — uniqueness is the resolver's rule,
+          // not a second check here.
+          const code = resolveFactKey(line.xbrl, CBSO_26_M01F);
+          if (code !== line.code) {
+            wrong.push(`${statement.code} ${line.code}: ${line.xbrl} resolves to ${code}`);
+          }
+        } catch (error) {
+          wrong.push(`${statement.code} ${line.code}: ${(error as Error).message}`);
+        }
+      }
+    }
+
+    expect(wrong).toEqual([]);
+    // Nothing was skipped: every line of the three schemes was resolved.
+    expect(resolved).toBe(schemes.reduce((n, st) => n + st.lines.length, 0));
   });
 
   it('refuses two lines of one statement carrying the same fact key', async () => {

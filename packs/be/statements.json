@@ -5,6 +5,7 @@
       "code": "BE-BNB-ABBR-BS",
       "kind": "balance_sheet",
       "framework": "BE-GAAP",
+      "taxonomy": "nbb-cbso:26.0",
       "name": "Bilan — schéma abrégé",
       "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 3",
       "lines": [
@@ -472,6 +473,7 @@
       "code": "BE-BNB-ABBR-IS",
       "kind": "income_statement",
       "framework": "BE-GAAP",
+      "taxonomy": "nbb-cbso:26.0",
       "name": "Compte de résultats — schéma abrégé",
       "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 4",
       "lines": [
@@ -713,6 +715,7 @@
       "code": "BE-BNB-ABBR-AF",
       "kind": "allocation",
       "framework": "BE-GAAP",
+      "taxonomy": "nbb-cbso:26.0",
       "name": "Affectations et prélèvements — schéma abrégé",
       "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 5",
       "lines": [

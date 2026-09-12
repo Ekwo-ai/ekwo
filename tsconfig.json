@@ -16,7 +16,8 @@
     "sourceMap": true,
     "noEmit": true,
     "paths": {
-      "@ekwo-ai/core": ["./packages/core/src/index.ts"]
+      "@ekwo-ai/core": ["./packages/core/src/index.ts"],
+      "@ekwo-ai/xbrl-cbso": ["./packages/formats/xbrl-cbso/src/index.ts"]
     }
   },
   "include": ["packages/*/src", "packages/formats/*/src", "packages/formats/*/test", "tests", "scripts"]

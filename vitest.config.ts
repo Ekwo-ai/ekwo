@@ -9,6 +9,12 @@ export default defineConfig({
       // build, so `npm test` never depends on `npm run build` having run —
       // which is the order the CI uses, and the order a fresh clone has.
       '@ekwo-ai/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
+      // Same reason for each format brick a test reads. A test that imports a
+      // brick imports it by its published name, so what it exercises is what a
+      // stranger installs, and not a relative path into a folder.
+      '@ekwo-ai/xbrl-cbso': fileURLToPath(
+        new URL('./packages/formats/xbrl-cbso/src/index.ts', import.meta.url),
+      ),
     },
   },
   test: {
