@@ -51,6 +51,15 @@ somewhere has already run it.
   order they depend on each other rather than in the order the form declares
   them, and a cycle that raises `formula_cycle` instead of quietly reading
   zero. No pack changes answer.
+- **An appropriation entry is not a closing entry.** `entries.kind` gains
+  `appropriation`, which `close_fiscal_year()` puts on the entry that moves
+  the result into the appropriation accounts; the entry that empties the
+  income statement keeps `closing`. Under one name the two cancelled out and
+  the Belgian "Affectations et prélèvements" section read nil the moment a
+  year was closed. An allocation section now leaves out the closing entry and
+  keeps the appropriation, an income statement leaves out both, and a balance
+  sheet keeps both. `reopen_fiscal_year()` undoes both. Migrations
+  `20260912105720` and `20260912105721`.
 
 ### Security
 

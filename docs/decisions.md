@@ -1077,11 +1077,23 @@ the mirror image of every income and expense account so the next year starts
 at nil, and marks the entry `kind = 'closing'`. An income statement leaves
 those out — a closed year would otherwise read as a result of zero — and a
 balance sheet keeps them, because that entry is what carries the result onto
-the line the balance sheet shows it on. One limit worth writing down: the
-appropriation entry and the entry that zeroes the appropriation accounts are
-both `closing`, so the two net out and a Belgian allocation section reads nil
-after a close. Making it readable needs a kind that tells them apart, which is
-a change to `close_fiscal_year()` and not to a statement.
+the line the balance sheet shows it on.
+
+**And an appropriation entry is not a closing entry.** Where a country
+appropriates through accounts of its own income statement — Belgium, 693 for a
+profit and 793 for a loss — `close_fiscal_year()` writes two entries: one that
+moves the result into those accounts and on to retained earnings, one that
+takes every income and expense account back to zero, that pair included. Both
+were marked `closing`, so they cancelled each other out and the "Affectations
+et prélèvements" section of the Belgian annual accounts read nil the moment a
+year was closed. They are two acts and they now have two names:
+`entries.kind` gains `appropriation`, an allocation section reads it and
+leaves the closing entry out, an income statement leaves out both, and a
+balance sheet keeps both because together they are what puts the result on the
+line it shows. `reopen_fiscal_year()` undoes both, and a reversal keeps the
+kind of what it undoes. The guard on the column needed nothing: it already
+admits any value under the session flag the three year-end functions set, and
+refuses everything but `normal` outside it.
 
 **The generic balance sheet derives the result; the legal ones do not.** The
 NBB frame and the liasse are filed after the year is closed, so they show the
