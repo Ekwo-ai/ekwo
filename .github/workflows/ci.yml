@@ -65,10 +65,13 @@ jobs:
       - name: Migrations are additive
         run: |
           # A released migration must never be edited. On a pull request,
-          # every file under supabase/migrations that changed must be new.
+          # every .sql file under supabase/migrations that changed must be new.
+          # The README of that folder is documentation — it carries the table
+          # of what each migration does, so every pull request that adds one
+          # edits it, and the rule is about the SQL a database has already run.
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" -- supabase/migrations || true)
+            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" -- 'supabase/migrations/*.sql' || true)
             if [ -n "$changed" ]; then
               echo "These migrations were modified or deleted:"
               echo "$changed"
