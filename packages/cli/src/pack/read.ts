@@ -865,6 +865,39 @@ function ruleCatches(rule: PackStatementRule, code: string): boolean {
  * allowed to reach none: it straddles the lines its children are split over,
  * and nothing is ever posted to it.
  */
+/**
+ * Shape of a fact key, without knowing any taxonomy: parts separated by `|`,
+ * each one a `prefix:member`, the metric first and then the domain members, no
+ * prefix twice. `met:am1|bas:m9|rst:m2` is a key; a lone `met:am1` names every
+ * amount of the model, and a prefix given twice is two members of one
+ * dimension, which no fact has.
+ *
+ * What a key means is the taxonomy's business, not this file's: the checker
+ * refuses what cannot be a key, and the uniqueness rule above catches the key
+ * that means two things at once.
+ */
+function xbrlKeyProblem(key: string): string | null {
+  const parts = key.split('|');
+  if (parts.some((part) => part !== part.trim() || part === '')) {
+    return 'a fact key is parts separated by "|", with nothing empty or padded';
+  }
+  if (parts.length < 2) {
+    return 'a fact key is a metric and at least one domain member, e.g. "met:am1|bas:m9"';
+  }
+  const seen = new Set<string>();
+  for (const part of parts) {
+    if (!/^[a-z]+:[a-z0-9]+$/.test(part)) {
+      return `"${part}" is not a qualified name such as "bas:m9"`;
+    }
+    const prefix = part.slice(0, part.indexOf(':'));
+    if (seen.has(prefix)) {
+      return `two parts in the domain "${prefix}"; a fact has one member per dimension`;
+    }
+    seen.add(prefix);
+  }
+  return null;
+}
+
 function statementReferences(statements: PackStatement[], charts: PackChart[]): Issue[] {
   const issues: Issue[] = [];
   const seenStatements = new Set<string>();
@@ -877,11 +910,32 @@ function statementReferences(statements: PackStatement[], charts: PackChart[]): 
     seenStatements.add(statement.code);
 
     const byCode = new Map<string, PackStatementLine>();
+    // A fact key names one fact of the taxonomy, so it names one line. Two
+    // lines carrying the same key means the key is missing the member that
+    // separates them — the two sides of a balance sheet share every member but
+    // one, and `met:am1|bas:m25` alone is both totals at once.
+    const byXbrl = new Map<string, string>();
     for (const line of statement.lines) {
       if (byCode.has(line.code)) {
         issues.push({ path: `${where} ${line.code}`, message: 'duplicate line code' });
       }
       byCode.set(line.code, line);
+      if (line.xbrl !== null) {
+        const malformed = xbrlKeyProblem(line.xbrl);
+        if (malformed !== null) {
+          issues.push({ path: `${where} ${line.code}.xbrl`, message: malformed });
+        }
+        const other = byXbrl.get(line.xbrl);
+        if (other !== undefined) {
+          issues.push({
+            path: `${where} ${line.code}.xbrl`,
+            message:
+              `${line.xbrl} already names line ${other}. A fact key names one fact: ` +
+              'add the member that separates the two lines.',
+          });
+        }
+        byXbrl.set(line.xbrl, line.code);
+      }
       if (line.is_total && line.rules.length > 0) {
         issues.push({
           path: `${where} ${line.code}`,

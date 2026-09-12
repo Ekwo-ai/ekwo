@@ -255,7 +255,7 @@
           "parent": "29/58",
           "name": "Comptes de régularisation",
           "sequence": 180,
-          "xbrl": "met:am1|bas:m24",
+          "xbrl": "met:am1|bas:m24|part:m1",
           "rules": [
             {
               "kind": "code_range",
@@ -274,7 +274,7 @@
             "21/28",
             "29/58"
           ],
-          "xbrl": "met:am1|bas:m25"
+          "xbrl": "met:am1|bas:m25|part:m1"
         },
         {
           "code": "10/15",
@@ -436,7 +436,7 @@
           "name": "Comptes de régularisation",
           "sequence": 300,
           "sign": -1,
-          "xbrl": "met:am1|bas:m24",
+          "xbrl": "met:am1|bas:m24|part:m3",
           "rules": [
             {
               "kind": "code_range",
@@ -455,7 +455,7 @@
             "16",
             "17/49"
           ],
-          "xbrl": "met:am1|bas:m25"
+          "xbrl": "met:am1|bas:m25|part:m3"
         }
       ]
     },

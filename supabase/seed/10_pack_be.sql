@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.3.0', date '2026-09-12', '20260912112132', 'maintained', null, null, '3aa4a9697933cdbcd7f6f033fdcd828d47595803acb038e760c758a43841b567')
+  ('BE', 'Belgium', '1.3.0', date '2026-09-12', '20260912112132', 'maintained', null, null, '5658bd9f2bb58c387a1ae4bbd864ce2b497380bb1f6f34e1a959f87a83e4e21f')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -1036,8 +1036,8 @@ values
   ('BE-BNB-ABBR-BS', '40/41', '29/58', 'Créances à un an au plus', '{}'::jsonb, 150, 1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m9|rst:m2', null),
   ('BE-BNB-ABBR-BS', '50/53', '29/58', 'Placements de trésorerie', '{}'::jsonb, 160, 1, false, '{}'::text[], '{}'::text[], null, null),
   ('BE-BNB-ABBR-BS', '54/58', '29/58', 'Valeurs disponibles', '{}'::jsonb, 170, 1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m23', null),
-  ('BE-BNB-ABBR-BS', '490/1', '29/58', 'Comptes de régularisation', '{}'::jsonb, 180, 1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m24', null),
-  ('BE-BNB-ABBR-BS', '20/58', null, 'TOTAL DE L''ACTIF', '{}'::jsonb, 190, 1, true, array['20', '21/28', '29/58']::text[], '{}'::text[], 'met:am1|bas:m25', null),
+  ('BE-BNB-ABBR-BS', '490/1', '29/58', 'Comptes de régularisation', '{}'::jsonb, 180, 1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m24|part:m1', null),
+  ('BE-BNB-ABBR-BS', '20/58', null, 'TOTAL DE L''ACTIF', '{}'::jsonb, 190, 1, true, array['20', '21/28', '29/58']::text[], '{}'::text[], 'met:am1|bas:m25|part:m1', null),
   ('BE-BNB-ABBR-BS', '10/15', '10/49', 'CAPITAUX PROPRES', '{}'::jsonb, 200, 1, true, array['10/11', '12', '13', '14', '15']::text[], '{}'::text[], 'met:am2|bas:m37|ntr:m4', null),
   ('BE-BNB-ABBR-BS', '10/11', '10/15', 'Apport', '{}'::jsonb, 210, -1, false, '{}'::text[], '{}'::text[], null, null),
   ('BE-BNB-ABBR-BS', '12', '10/15', 'Plus-values de réévaluation', '{}'::jsonb, 220, -1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m42|ntr:m4', null),
@@ -1048,8 +1048,8 @@ values
   ('BE-BNB-ABBR-BS', '17/49', '10/49', 'DETTES', '{}'::jsonb, 270, 1, true, array['17', '42/48', '492/3']::text[], '{}'::text[], 'met:am1|bas:m50', null),
   ('BE-BNB-ABBR-BS', '17', '17/49', 'Dettes à plus d''un an', '{}'::jsonb, 280, -1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m50|rst:m1', null),
   ('BE-BNB-ABBR-BS', '42/48', '17/49', 'Dettes à un an au plus', '{}'::jsonb, 290, -1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m50|rst:m2', null),
-  ('BE-BNB-ABBR-BS', '492/3', '17/49', 'Comptes de régularisation', '{}'::jsonb, 300, -1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m24', null),
-  ('BE-BNB-ABBR-BS', '10/49', null, 'TOTAL DU PASSIF', '{}'::jsonb, 310, 1, true, array['10/15', '16', '17/49']::text[], '{}'::text[], 'met:am1|bas:m25', null),
+  ('BE-BNB-ABBR-BS', '492/3', '17/49', 'Comptes de régularisation', '{}'::jsonb, 300, -1, false, '{}'::text[], '{}'::text[], 'met:am1|bas:m24|part:m3', null),
+  ('BE-BNB-ABBR-BS', '10/49', null, 'TOTAL DU PASSIF', '{}'::jsonb, 310, 1, true, array['10/15', '16', '17/49']::text[], '{}'::text[], 'met:am1|bas:m25|part:m3', null),
   ('BE-BNB-ABBR-IS', '9900', null, 'Marge brute', '{}'::jsonb, 10, -1, false, '{}'::text[], '{}'::text[], 'met:am2|bas:m118|ntr:m17', null),
   ('BE-BNB-ABBR-IS', '62', null, 'Rémunérations, charges sociales et pensions', '{}'::jsonb, 20, 1, false, '{}'::text[], '{}'::text[], 'met:am2|bas:m1|ntr:m7', null),
   ('BE-BNB-ABBR-IS', '630', null, 'Amortissements et réductions de valeur sur frais d''établissement, immobilisations incorporelles et corporelles', '{}'::jsonb, 30, 1, false, '{}'::text[], '{}'::text[], null, null),

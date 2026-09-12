@@ -85,6 +85,16 @@ the only way two lines may share an account.
 scheme prints it: `1` on an asset or an expense, `-1` on a liability, equity or
 income line.
 
+`xbrl` is the **fact key** of the line in the taxonomy the country files in,
+and it is optional: null where nothing could be verified. A taxonomy such as
+the Belgian CBSO has no element per reporting code — it is dimensional, so a
+line is a metric plus a set of domain members, written metric first and
+separated by `|`. One key, one fact, therefore **one line**: `ekwo pack check`
+refuses two lines of a statement carrying the same key, which is how a key
+missing a member shows up. The two sides of a balance sheet are the case to
+watch — `met:am1|bas:m25` is the total of the assets *and* the total of the
+liabilities until `part:m1` or `part:m3` says which.
+
 The totals of a scheme and the totals of a declaration form are worked out by
 the same function, `evaluate_totals()`, in the order they depend on each other.
 A statement prints its whole frame and a return omits a box that comes to
@@ -105,8 +115,9 @@ legal codes a balance sheet that ties out.
 
 `ekwo pack check` refuses a statement whose totals form a cycle, a line that is
 both summed and computed, two lines that catch one account on the same side,
-and — the check that makes a balance sheet balance — **a chart with an account
-that reaches no line of any of its statements**. A heading, an account with
+two lines that carry the same fact key, and — the check that makes a balance
+sheet balance — **a chart with an account that reaches no line of any of its
+statements**. A heading, an account with
 children, may reach none: it straddles the lines its children are split over
 and nothing is posted to it.
 

@@ -833,6 +833,57 @@ describe('what `ekwo pack check` refuses in a statement', () => {
     ).rejects.toThrow(/reaches no line of any statement of this chart/);
   });
 
+  it('gives every fact key to one line, so it names one fact', async () => {
+    // A key that fits two lines is a key missing a member. The two sides of the
+    // Belgian balance sheet share every member but `part:`, so `met:am1|bas:m25`
+    // alone was both totals at once and `met:am1|bas:m24` both regularisation
+    // lines. Sources for the members: Ekwo-ai/xbrl-cbso, docs/sources.md.
+    for (const slug of ['be', 'fr']) {
+      const pack = await readPack(slug, packs);
+      for (const statement of pack.statements) {
+        const byKey = new Map<string, string>();
+        for (const line of statement.lines) {
+          if (line.xbrl === null) continue;
+          expect(byKey.get(line.xbrl), `${statement.code} ${line.xbrl}`).toBeUndefined();
+          byKey.set(line.xbrl, line.code);
+        }
+      }
+    }
+    const be = await readPack('be', packs);
+    const bs = be.statements.find((st) => st.code === 'BE-BNB-ABBR-BS')!;
+    const keyOf = (code: string): string | null => bs.lines.find((l) => l.code === code)!.xbrl;
+    expect(keyOf('20/58')).toBe('met:am1|bas:m25|part:m1');
+    expect(keyOf('10/49')).toBe('met:am1|bas:m25|part:m3');
+    expect(keyOf('490/1')).toBe('met:am1|bas:m24|part:m1');
+    expect(keyOf('492/3')).toBe('met:am1|bas:m24|part:m3');
+  });
+
+  it('refuses two lines of one statement carrying the same fact key', async () => {
+    await expect(
+      packWith((s) => {
+        balanceSheet(s).lines.find((l) => l['code'] === '10/49')!['xbrl'] = 'met:am1|bas:m25|part:m1';
+      }),
+    ).rejects.toThrow(/already names line 20\/58/);
+  });
+
+  it('refuses a fact key that is not a metric followed by domain members', async () => {
+    const malformed: Array<[string, RegExp]> = [
+      ['met:am1', /a metric and at least one domain member/],
+      ['met:am1|bas', /is not a qualified name/],
+      ['met:am1| bas:m25', /nothing empty or padded/],
+      ['met:am1|bas:m25|bas:m24', /two parts in the domain "bas"/],
+      ['met:am1|met:am2|bas:m25', /two parts in the domain "met"/],
+    ];
+    for (const [key, message] of malformed) {
+      await expect(
+        packWith((s) => {
+          balanceSheet(s).lines.find((l) => l['code'] === '20/58')!['xbrl'] = key;
+        }),
+        key,
+      ).rejects.toThrow(message);
+    }
+  });
+
   it('allows two lines to share an account when one takes it in debit and one in credit', async () => {
     // The suspense account is a receivable while it is in debit and a payable
     // while it is in credit, and the Belgian pack says exactly that.
