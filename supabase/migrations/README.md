@@ -43,6 +43,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912080311_report_code_and_region` | `report_code` on `tax_posting_templates` and `tax_postings`, backfilled; `region` on `companies` and `contacts`. Both are for the Canadian pack, added now so that table migrates once |
 | `20260912081014_pack_certification_maintained` | `pack_certification` gains `maintained`; `ekwo` is deprecated and nothing writes it |
 | `20260912081015_pack_certification_backfill` | the packs that held `ekwo` become `maintained`, `certified_by` emptied. Its own file: a new enum value cannot be used in the transaction that added it |
+| `20260912090407_tax_report_boxes` | `tax_report_templates` and `tax_report_box_templates`, filled by the packs; `vat_return(company, from, to, report_code)` reads their plus/minus formulas, and the last `fiscal_country = 'BE'` leaves the core |
 
 ## Rules for a new migration
 

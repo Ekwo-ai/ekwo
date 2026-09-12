@@ -17,6 +17,8 @@ const TEMPLATE_TABLES = [
   'journal_templates',
   'tax_templates',
   'tax_posting_templates',
+  'tax_report_templates',
+  'tax_report_box_templates',
   'country_defaults',
 ];
 

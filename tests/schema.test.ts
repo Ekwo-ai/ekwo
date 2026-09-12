@@ -46,6 +46,7 @@ describe('migrations', () => {
       'attachments',
       'account_templates', 'journal_templates', 'tax_templates',
       'tax_posting_templates', 'country_defaults',
+      'tax_report_templates', 'tax_report_box_templates',
     ]) {
       expect(tables).toContain(expected);
     }

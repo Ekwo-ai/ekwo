@@ -42,6 +42,7 @@ export function compilePack(pack: Pack): string {
   out.push(...journals(pack, country));
   out.push(...taxes(pack, country));
   out.push(...postings(pack, country));
+  out.push(...taxReport(pack, country));
   out.push(...defaults(pack, country));
 
   return `${out.join('\n')}\n`;
@@ -192,6 +193,61 @@ function postings(pack: Pack, country: string): string[] {
   ];
 }
 
+/**
+ * The declaration form and its boxes. Not copied into a company: a chart of
+ * accounts is customisable and a form is not. The order is the order the form
+ * declares, because that is the order `vat_return()` evaluates the totals in.
+ */
+function taxReport(pack: Pack, country: string): string[] {
+  const report = pack.report;
+  if (report === null) return [];
+
+  const out = [
+    'insert into tax_report_templates',
+    '  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)',
+    'values',
+    `  (${text(country)}, ${text(report.code)}, ${text(report.name)}, ${text(report.period)}, ` +
+      `${date(report.valid_from)}, ${date(report.valid_to)}, ${text(report.legal_reference)}, true)`,
+    'on conflict (country, code) do update set',
+    '  name               = excluded.name,',
+    '  period             = excluded.period,',
+    '  valid_from         = excluded.valid_from,',
+    '  valid_to           = excluded.valid_to,',
+    '  legal_reference    = excluded.legal_reference,',
+    '  is_periodic_return = excluded.is_periodic_return;',
+    '',
+  ];
+
+  const boxes = [...report.boxes].sort((a, b) => a.sequence - b.sequence || (a.box < b.box ? -1 : 1));
+  const values = boxes.map(
+    (b) =>
+      `  (${text(country)}, ${text(report.code)}, ${text(b.box)}, ${text(b.kind)}, ${text(b.name)}, ` +
+      `${json(pack.boxLabels[`${b.box}|${b.kind}`])}, ${b.sequence}, ` +
+      `${array(b.plus)}, ${array(b.minus)}, ${b.floor_zero ? 'true' : 'false'}, ` +
+      `${b.hidden ? 'true' : 'false'}, ${text(b.xml_element)}, ${text(b.legal_reference)})`,
+  );
+
+  out.push(
+    'insert into tax_report_box_templates',
+    '  (country, report_code, box, kind, name, name_i18n, sequence,',
+    '   plus_boxes, minus_boxes, floor_zero, hidden, xml_element, legal_reference)',
+    'values',
+    values.join(',\n'),
+    'on conflict (country, report_code, box, kind) do update set',
+    '  name            = excluded.name,',
+    '  name_i18n       = excluded.name_i18n,',
+    '  sequence        = excluded.sequence,',
+    '  plus_boxes      = excluded.plus_boxes,',
+    '  minus_boxes     = excluded.minus_boxes,',
+    '  floor_zero      = excluded.floor_zero,',
+    '  hidden          = excluded.hidden,',
+    '  xml_element     = excluded.xml_element,',
+    '  legal_reference = excluded.legal_reference;',
+    '',
+  );
+  return out;
+}
+
 function defaults(pack: Pack, country: string): string[] {
   const { roles, journal_roles: journalRoles = {} } = pack.manifest.defaults;
   const row = [
@@ -296,6 +352,12 @@ function date(value: string | null | undefined): string {
 
 function number(value: number): string {
   return String(value);
+}
+
+/** A `text[]` literal, empty included, in the order the pack wrote it. */
+function array(values: readonly string[]): string {
+  if (values.length === 0) return `'{}'::text[]`;
+  return `array[${values.map((value) => text(value)).join(', ')}]::text[]`;
 }
 
 /** A jsonb literal, with its keys in a fixed order so the output is stable. */

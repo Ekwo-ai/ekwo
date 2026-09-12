@@ -11,7 +11,6 @@
 --   Formulaire 3310-CA3
 --
 -- In the pack, not compiled by this release:
---   tax_report.json — the boxes themselves; only their form code is compiled (P0-3)
 --   documents — country_defaults columns and legal_mention_templates (P0-7)
 --
 -- Reference data: `install_country_template()` copies it into a company,
@@ -560,6 +559,55 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   declaration_box    = excluded.declaration_box,
   box_factor_percent = excluded.box_factor_percent,
   report_code        = excluded.report_code;
+
+insert into tax_report_templates
+  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+values
+  ('FR', 'FR-CA3', 'Déclaration de TVA 3310-CA3', 'month_or_quarter', date '2022-01-01', null, 'CGI, art. 287 — formulaire 3310-CA3', true)
+on conflict (country, code) do update set
+  name               = excluded.name,
+  period             = excluded.period,
+  valid_from         = excluded.valid_from,
+  valid_to           = excluded.valid_to,
+  legal_reference    = excluded.legal_reference,
+  is_periodic_return = excluded.is_periodic_return;
+
+insert into tax_report_box_templates
+  (country, report_code, box, kind, name, name_i18n, sequence,
+   plus_boxes, minus_boxes, floor_zero, hidden, xml_element, legal_reference)
+values
+  ('FR', 'FR-CA3', '01', 'total', 'Ventes, prestations de services', '{}'::jsonb, 10, array['08:base', '09:base', '9B:base', '13:base']::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '03', 'base', 'Acquisitions intracommunautaires', '{}'::jsonb, 20, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '2A', 'base', 'Achats de prestations de services intracommunautaires', '{}'::jsonb, 30, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '3A', 'base', 'Importations autoliquidées', '{}'::jsonb, 40, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '3C', 'base', 'Achats de biens ou de prestations auprès d''un assujetti non établi en France', '{}'::jsonb, 50, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '04', 'base', 'Exportations hors Union européenne', '{}'::jsonb, 60, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '05', 'base', 'Autres opérations non imposables', '{}'::jsonb, 70, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '06', 'base', 'Livraisons intracommunautaires', '{}'::jsonb, 80, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '08', 'base', 'Taux normal 20 % — base hors taxe', '{}'::jsonb, 100, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '09', 'base', 'Taux réduit 5,5 % — base hors taxe', '{}'::jsonb, 110, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '9B', 'base', 'Taux réduit 10 % — base hors taxe', '{}'::jsonb, 120, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '13', 'base', 'Taux particulier 2,1 % — base hors taxe', '{}'::jsonb, 130, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '08', 'tax', 'Taux normal 20 % — TVA due', '{}'::jsonb, 140, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '09', 'tax', 'Taux réduit 5,5 % — TVA due', '{}'::jsonb, 150, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '9B', 'tax', 'Taux réduit 10 % — TVA due', '{}'::jsonb, 160, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '13', 'tax', 'Taux particulier 2,1 % — TVA due', '{}'::jsonb, 170, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '16', 'total', 'Total de la TVA brute due', '{}'::jsonb, 200, array['08:tax', '09:tax', '9B:tax', '13:tax']::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '19', 'tax', 'TVA déductible sur immobilisations', '{}'::jsonb, 210, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '20', 'tax', 'TVA déductible sur autres biens et services', '{}'::jsonb, 220, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '23', 'total', 'Total de la TVA déductible', '{}'::jsonb, 230, array['19', '20']::text[], '{}'::text[], false, false, null, null),
+  ('FR', 'FR-CA3', '28', 'total', 'TVA nette due', '{}'::jsonb, 240, array['16']::text[], array['23']::text[], true, false, null, null),
+  ('FR', 'FR-CA3', '25', 'total', 'Crédit de TVA', '{}'::jsonb, 250, array['23']::text[], array['16']::text[], true, false, null, null)
+on conflict (country, report_code, box, kind) do update set
+  name            = excluded.name,
+  name_i18n       = excluded.name_i18n,
+  sequence        = excluded.sequence,
+  plus_boxes      = excluded.plus_boxes,
+  minus_boxes     = excluded.minus_boxes,
+  floor_zero      = excluded.floor_zero,
+  hidden          = excluded.hidden,
+  xml_element     = excluded.xml_element,
+  legal_reference = excluded.legal_reference;
 
 insert into country_defaults
   (country, name, currency_code, receivable_code, payable_code, suspense_code,

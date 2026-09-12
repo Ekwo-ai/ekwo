@@ -12,7 +12,6 @@
 --   Arrêté royal n. 1 du 29 décembre 1992, art. 20
 --
 -- In the pack, not compiled by this release:
---   tax_report.json — the boxes themselves; only their form code is compiled (P0-3)
 --   documents — country_defaults columns and legal_mention_templates (P0-7)
 --   einvoicing — country_defaults columns and legal_mention_templates (P0-7)
 --   bank — country_defaults columns and legal_mention_templates (P0-7)
@@ -542,6 +541,64 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   declaration_box    = excluded.declaration_box,
   box_factor_percent = excluded.box_factor_percent,
   report_code        = excluded.report_code;
+
+insert into tax_report_templates
+  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+values
+  ('BE', 'BE-VAT-PERIODIC', 'Déclaration périodique à la TVA', 'month_or_quarter', date '2024-01-01', null, 'AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI', true)
+on conflict (country, code) do update set
+  name               = excluded.name,
+  period             = excluded.period,
+  valid_from         = excluded.valid_from,
+  valid_to           = excluded.valid_to,
+  legal_reference    = excluded.legal_reference,
+  is_periodic_return = excluded.is_periodic_return;
+
+insert into tax_report_box_templates
+  (country, report_code, box, kind, name, name_i18n, sequence,
+   plus_boxes, minus_boxes, floor_zero, hidden, xml_element, legal_reference)
+values
+  ('BE', 'BE-VAT-PERIODIC', '00', 'base', 'Opérations soumises à un régime particulier', '{}'::jsonb, 10, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '01', 'base', 'Opérations à 6 %', '{}'::jsonb, 20, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '02', 'base', 'Opérations à 12 %', '{}'::jsonb, 30, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '03', 'base', 'Opérations à 21 %', '{}'::jsonb, 40, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '44', 'base', 'Services intracommunautaires pour lesquels la TVA est due par le preneur', '{}'::jsonb, 50, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '45', 'base', 'Opérations pour lesquelles la TVA est due par le cocontractant', '{}'::jsonb, 60, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '46', 'base', 'Livraisons intracommunautaires exemptées', '{}'::jsonb, 70, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '47', 'base', 'Autres opérations exemptées', '{}'::jsonb, 80, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '48', 'base', 'Notes de crédit relatives aux opérations des grilles 44 et 46', '{}'::jsonb, 90, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '49', 'base', 'Notes de crédit relatives aux autres opérations du cadre II', '{}'::jsonb, 100, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '81', 'base', 'Marchandises, matières premières et auxiliaires', '{}'::jsonb, 110, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '82', 'base', 'Services et biens divers', '{}'::jsonb, 120, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '83', 'base', 'Biens d''investissement', '{}'::jsonb, 130, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '84', 'base', 'Notes de crédit reçues relatives aux grilles 86 et 88', '{}'::jsonb, 140, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '85', 'base', 'Notes de crédit reçues relatives aux autres opérations du cadre III', '{}'::jsonb, 150, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '86', 'base', 'Acquisitions intracommunautaires de biens', '{}'::jsonb, 160, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '87', 'base', 'Autres opérations à l''entrée pour lesquelles la TVA est due par le déclarant', '{}'::jsonb, 170, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '88', 'base', 'Services intracommunautaires reçus', '{}'::jsonb, 180, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '54', 'tax', 'TVA due sur les opérations des grilles 01, 02 et 03', '{}'::jsonb, 200, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '55', 'tax', 'TVA due sur les opérations des grilles 86 et 88', '{}'::jsonb, 210, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '56', 'tax', 'TVA due sur les opérations de la grille 87, importations exclues', '{}'::jsonb, 220, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '57', 'tax', 'TVA due sur les importations avec report de perception', '{}'::jsonb, 230, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '61', 'tax', 'Diverses régularisations en faveur de l''État', '{}'::jsonb, 240, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '63', 'tax', 'TVA à reverser mentionnée sur les notes de crédit reçues', '{}'::jsonb, 250, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '59', 'tax', 'TVA déductible', '{}'::jsonb, 260, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '62', 'tax', 'Diverses régularisations en faveur du déclarant', '{}'::jsonb, 270, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '64', 'tax', 'TVA à récupérer mentionnée sur les notes de crédit délivrées', '{}'::jsonb, 280, '{}'::text[], '{}'::text[], false, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', 'XX', 'total', 'Total de la TVA due', '{}'::jsonb, 300, array['54', '55', '56', '57', '61', '63']::text[], '{}'::text[], false, true, null, null),
+  ('BE', 'BE-VAT-PERIODIC', 'YY', 'total', 'Total de la TVA déductible', '{}'::jsonb, 310, array['59', '62', '64']::text[], '{}'::text[], false, true, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '71', 'total', 'TVA à payer à l''État', '{}'::jsonb, 320, array['XX']::text[], array['YY']::text[], true, false, null, null),
+  ('BE', 'BE-VAT-PERIODIC', '72', 'total', 'Sommes dues par l''État', '{}'::jsonb, 330, array['YY']::text[], array['XX']::text[], true, false, null, null)
+on conflict (country, report_code, box, kind) do update set
+  name            = excluded.name,
+  name_i18n       = excluded.name_i18n,
+  sequence        = excluded.sequence,
+  plus_boxes      = excluded.plus_boxes,
+  minus_boxes     = excluded.minus_boxes,
+  floor_zero      = excluded.floor_zero,
+  hidden          = excluded.hidden,
+  xml_element     = excluded.xml_element,
+  legal_reference = excluded.legal_reference;
 
 insert into country_defaults
   (country, name, currency_code, receivable_code, payable_code, suspense_code,

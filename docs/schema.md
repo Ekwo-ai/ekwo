@@ -166,6 +166,8 @@ the return say the same thing, because they are the same rows.
 | [`reconciliations`](#reconciliations) | One row per pairing of a debit with a credit. Full matching is the sum of partials. |
 | [`tax_posting_templates`](#tax_posting_templates) |  |
 | [`tax_postings`](#tax_postings) | Where a tax lands: ledger account and VAT-return box, per tax and per document kind. |
+| [`tax_report_box_templates`](#tax_report_box_templates) | The boxes of a declaration form, and the plus/minus lists a total is computed from. Read by vat_return(). |
+| [`tax_report_templates`](#tax_report_templates) | Declaration forms per country, from packs/<cc>/tax_report.json. Reference data: a form is not customisable, so it is never copied into a company. |
 | [`tax_templates`](#tax_templates) | Reference taxes per country, with their period of validity. |
 | [`taxes`](#taxes) | VAT and similar taxes, with temporal validity and a legal reference. |
 
@@ -1005,6 +1007,58 @@ Constraints:
 - `CHECK (((posting_type <> 'tax'::tax_posting_type) OR (account_id IS NOT NULL)))`
 - `PRIMARY KEY (id)`
 
+### `tax_report_box_templates`
+
+The boxes of a declaration form, and the plus/minus lists a total is computed from. Read by vat_return().
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `report_code` | `text` | not null |
+| `box` | `text` | not null |
+| `kind` | `text` | not null — base, tax or total. Not an enum: vat_return() has always answered in text, and a form that invents a fourth kind is a core change either way. |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null |
+| `sequence` | `integer` | not null |
+| `plus_boxes` | `text[]` | not null — Boxes added into this total. A bare code names the box whatever its kind, "08:tax" names one kind — the French CA3 carries both on one line. |
+| `minus_boxes` | `text[]` | not null |
+| `floor_zero` | `boolean` | not null — A negative total is reported as zero, the other side of the pair carrying it: Belgian 71/72, French 25/28. |
+| `hidden` | `boolean` | not null — An intermediate total the form does not print. vat_return() returns it with this flag rather than dropping it, so a caller can check a total it cannot see. |
+| `xml_element` | `text` |  |
+| `legal_reference` | `text` |  |
+| `valid_from` | `date` | Null means the validity of the form itself. Filled only when a box appears or disappears inside one version of a form. |
+| `valid_to` | `date` |  |
+
+Constraints:
+
+- `CHECK (((kind = 'total'::text) OR ((plus_boxes = '{}'::text[]) AND (minus_boxes = '{}'::text[]))))`
+- `CHECK ((kind = ANY (ARRAY['base'::text, 'tax'::text, 'total'::text])))`
+- `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
+- `PRIMARY KEY (country, report_code, box, kind)`
+
+### `tax_report_templates`
+
+Declaration forms per country, from packs/<cc>/tax_report.json. Reference data: a form is not customisable, so it is never copied into a company.
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `code` | `text` | not null — BE-VAT-PERIODIC, FR-CA3. Immutable once published; a new version of a form is a new code with its own validity. |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null — Label by language. The pack format has no key for it yet, so it stays empty until i18n/ carries one. |
+| `period` | `text` | not null |
+| `valid_from` | `date` | not null |
+| `valid_to` | `date` |  |
+| `legal_reference` | `text` |  |
+| `is_periodic_return` | `boolean` | not null — True for the return a company files every month or quarter. vat_return() falls back to the one of the company's fiscal country. |
+
+Constraints:
+
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK ((period = ANY (ARRAY['month'::text, 'quarter'::text, 'month_or_quarter'::text, 'year'::text])))`
+- `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
+- `PRIMARY KEY (country, code)`
+
 ### `tax_templates`
 
 Reference taxes per country, with their period of validity.
@@ -1099,7 +1153,7 @@ Constraints:
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
-| `vat_return(p_company_id uuid, p_from date, p_to date)` | VAT return boxes for a period, summed from the declaration boxes written on the ledger lines. |
+| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form evaluated in sequence order. No country rule lives in this function. |
 
 ---
 

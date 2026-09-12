@@ -36,12 +36,15 @@ export {
   readPack,
   readSchema,
   repoRootDir,
+  resolveBoxRef,
   seedOutputDir,
   PackError,
   type Manifest,
   type Pack,
   type PackAccount,
   type PackPosting,
+  type PackReport,
+  type PackReportBox,
   type PackTax,
 } from './pack/read.js';
 export { validate, type Issue } from './pack/schema.js';
