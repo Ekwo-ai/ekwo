@@ -346,6 +346,37 @@ export async function getDocument(
     entryLines.map((line) => line['account_id'] as string),
   );
 
+  // What the law of the document's country asks of it. The mentions come from
+  // the view, which already decided which of them apply from the treatments of
+  // the taxes on the lines; the rules come from the country model, reached
+  // through the company's fiscal country — the country whose VAT applies, not
+  // the address. Both are null-tolerant: a country that has said nothing
+  // returns nothing, and the caller is never handed another country's answer.
+  const [mentions, company] = await Promise.all([
+    backend.select<Row>({
+      table: 'document_legal_mentions',
+      columns: columns.DOCUMENT_LEGAL_MENTION,
+      where: [{ column: 'document_id', op: 'eq', value: args.document_id }],
+      order: [{ column: 'sequence' }],
+    }),
+    backend.select<{ fiscal_country: string }>({
+      table: 'companies',
+      columns: ['fiscal_country'],
+      where: [{ column: 'id', op: 'eq', value: document['company_id'] as string }],
+    }),
+  ]);
+  const fiscalCountry = company[0]?.fiscal_country;
+  const countryRules =
+    fiscalCountry === undefined
+      ? null
+      : ((
+          await backend.select<Row>({
+            table: 'country_defaults',
+            columns: columns.COUNTRY_DOCUMENT_RULES,
+            where: [{ column: 'country', op: 'eq', value: fiscalCountry }],
+          })
+        )[0] ?? null);
+
   return {
     document: { ...document, contact_name: contact[document['contact_id'] as string] ?? null },
     lines: lines.map((line) => ({
@@ -353,6 +384,8 @@ export async function getDocument(
       account: accountById.get(line['account_id'] as string) ?? null,
       tax: taxById.get(line['tax_id'] as string) ?? null,
     })),
+    legal_mentions: mentions,
+    country_rules: countryRules,
     entry,
     entry_lines: entryLines.map((line) => ({
       ...line,

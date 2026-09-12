@@ -124,7 +124,7 @@ export function buildServer(backend: Backend): McpServer {
     {
       title: 'Read a document',
       description:
-        'One document with its lines, the account and tax of each line, and — when it has been posted — the ledger entry it produced with every ledger line. Use it to check what a document will book, or what it did book.',
+        'One document with its lines, the account and tax of each line, the legal mentions its country requires on it, that country\'s payment and e-invoicing rules, and — when it has been posted — the ledger entry it produced with every ledger line. Use it to check what a document will book, what it did book, and what has to be printed on it.',
       inputSchema: read.GetDocumentInput.shape,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
