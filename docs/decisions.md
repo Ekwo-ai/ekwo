@@ -1060,6 +1060,26 @@ left as two. Factoring them would have meant rewriting a function published
 two hours earlier while two other branches waited to merge beside it, and they
 differ anyway: a declaration drops a nil box, a statement prints its frame.
 
+**A closing entry is not what a period earned.** `close_fiscal_year()` books
+the mirror image of every income and expense account so the next year starts
+at nil, and marks the entry `kind = 'closing'`. An income statement leaves
+those out — a closed year would otherwise read as a result of zero — and a
+balance sheet keeps them, because that entry is what carries the result onto
+the line the balance sheet shows it on. One limit worth writing down: the
+appropriation entry and the entry that zeroes the appropriation accounts are
+both `closing`, so the two net out and a Belgian allocation section reads nil
+after a close. Making it readable needs a kind that tells them apart, which is
+a change to `close_fiscal_year()` and not to a statement.
+
+**The generic balance sheet derives the result; the legal ones do not.** The
+NBB frame and the liasse are filed after the year is closed, so they show the
+result on the line the close put it on — rubric 14 in Belgium, `DI` in France
+— and show nothing while the year is open. The generic scheme has a line that
+sums the income and expense types instead, so it balances on its own whether
+or not the year is closed, and reads nil once the close has moved the
+movements away. A management balance sheet and a filing frame are not the same
+document, and this is where they part.
+
 **The generic framework is a pack with no country.** `packs/generic/` compiles
 like any other pack into `supabase/seed/05_framework_generic.sql`, and its
 rules are all `account_type` — a reader refuses any other kind in it. That is

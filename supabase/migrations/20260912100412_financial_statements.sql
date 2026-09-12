@@ -34,6 +34,18 @@
 -- `FR-2050`, `IFRS-SME-BS`. `chart_code` null means every chart of the
 -- country; a statement that only fits one chart names it.
 --
+-- **A closing entry is not what a period earned.** `close_fiscal_year()` books
+-- the mirror image of every income and expense account so the next year starts
+-- at nil, and marks the entry `kind = 'closing'`. An income statement leaves
+-- those out — a closed year would otherwise read as a result of zero — and a
+-- balance sheet keeps them, because that entry is what carries the result onto
+-- the line the balance sheet shows it on. An allocation section keeps them
+-- too, and there is a limit there worth knowing: the appropriation entry and
+-- the entry that zeroes the appropriation accounts are both `closing`, so the
+-- two net out and a Belgian allocation section reads nil after a close. Making
+-- it readable needs a kind that tells them apart, which is a change to
+-- `close_fiscal_year()`, not to this file.
+--
 -- **Not copied into a company**, for the reason a declaration form is not: an
 -- operator does not get to redefine what the Banque nationale prints. They are
 -- reference data `financial_statement()` reads directly, which is also why
@@ -202,6 +214,13 @@ as $$
                 then e.entry_date <= p_to
                 else e.entry_date between p_from and p_to
            end
+       -- An income statement is what the period earned, and the entry that
+       -- closes a year is not that: it books the mirror image of every income
+       -- and expense account so they start the next year at nil. Left in, a
+       -- closed year reads as a result of zero. A balance sheet keeps it, and
+       -- must: that entry is what moves the result out of the income
+       -- statement and onto the line the balance sheet shows it on.
+       and (st.kind <> 'income_statement' or e.kind <> 'closing')
      group by a.id, a.code, a.name, a.account_type
   ),
   ranked as (

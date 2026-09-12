@@ -39,7 +39,10 @@ somewhere has already run it.
   chart with an account that reaches no line of any of its statements — which
   is what makes a balance sheet balance. Two MCP tools, `list_statements` and
   `financial_statement`, and `get_company` now says which pack and which chart
-  a company sits on. Migration `20260912100412`.
+  a company sits on. An income statement leaves out the entries
+  `close_fiscal_year()` marks `kind = 'closing'`, so a closed year still
+  reports what it earned; a balance sheet keeps them, because that entry is
+  what carries the result onto the line it shows. Migration `20260912100412`.
 
 ### Security
 

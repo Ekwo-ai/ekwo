@@ -1,6 +1,6 @@
 -- Ekwo OS — Generic framework: financial statements by account type, for any chart of any country.
 --
--- Generated from packs/generic at version 1.0.0, do not edit.
+-- Generated from packs/generic at version 1.1.0, do not edit.
 -- Change the pack and run `ekwo pack build generic`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -41,7 +41,8 @@ values
   ('IFRS-SME-BS', 'A-TOT', null, 'Total assets', '{}'::jsonb, 80, 1, true, array['A-NC', 'A-C']::text[], '{}'::text[], null, null),
   ('IFRS-SME-BS', 'E-CAP', 'E-TOT', 'Capital and reserves', '{}'::jsonb, 90, -1, false, '{}'::text[], '{}'::text[], null, null),
   ('IFRS-SME-BS', 'E-RET', 'E-TOT', 'Retained earnings', '{}'::jsonb, 100, -1, false, '{}'::text[], '{}'::text[], null, null),
-  ('IFRS-SME-BS', 'E-TOT', null, 'Total equity', '{}'::jsonb, 110, 1, true, array['E-CAP', 'E-RET']::text[], '{}'::text[], null, null),
+  ('IFRS-SME-BS', 'E-RESULT', 'E-TOT', 'Result for the period, not yet allocated', '{}'::jsonb, 105, -1, false, '{}'::text[], '{}'::text[], null, null),
+  ('IFRS-SME-BS', 'E-TOT', null, 'Total equity', '{}'::jsonb, 110, 1, true, array['E-CAP', 'E-RET', 'E-RESULT']::text[], '{}'::text[], null, null),
   ('IFRS-SME-BS', 'L-NC', 'L-TOT', 'Non-current liabilities', '{}'::jsonb, 120, -1, false, '{}'::text[], '{}'::text[], null, null),
   ('IFRS-SME-BS', 'L-C-PAY', 'L-C', 'Trade and other payables', '{}'::jsonb, 130, -1, false, '{}'::text[], '{}'::text[], null, null),
   ('IFRS-SME-BS', 'L-C-OTH', 'L-C', 'Other current liabilities', '{}'::jsonb, 140, -1, false, '{}'::text[], '{}'::text[], null, null),
@@ -81,6 +82,11 @@ select v.statement_code, v.line_code, v.sequence, v.rule_kind, v.code_from,
     ('IFRS-SME-BS', 'A-C-CASH', 10, 'account_type', null, null, 'asset_cash', 'any'),
     ('IFRS-SME-BS', 'E-CAP', 10, 'account_type', null, null, 'equity', 'any'),
     ('IFRS-SME-BS', 'E-RET', 10, 'account_type', null, null, 'equity_retained', 'any'),
+    ('IFRS-SME-BS', 'E-RESULT', 10, 'account_type', null, null, 'income', 'any'),
+    ('IFRS-SME-BS', 'E-RESULT', 20, 'account_type', null, null, 'income_other', 'any'),
+    ('IFRS-SME-BS', 'E-RESULT', 30, 'account_type', null, null, 'expense', 'any'),
+    ('IFRS-SME-BS', 'E-RESULT', 40, 'account_type', null, null, 'expense_direct_cost', 'any'),
+    ('IFRS-SME-BS', 'E-RESULT', 50, 'account_type', null, null, 'expense_depreciation', 'any'),
     ('IFRS-SME-BS', 'L-NC', 10, 'account_type', null, null, 'liability_non_current', 'any'),
     ('IFRS-SME-BS', 'L-C-PAY', 10, 'account_type', null, null, 'liability_payable', 'any'),
     ('IFRS-SME-BS', 'L-C-OTH', 10, 'account_type', null, null, 'liability_current', 'any'),
