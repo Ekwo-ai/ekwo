@@ -267,13 +267,19 @@ function defaults(pack: Pack, country: string): string[] {
     text(journalRoles['purchase'] ?? 'PUR'),
     text(journalRoles['miscellaneous'] ?? 'MISC'),
     text(pack.manifest.defaults.language ?? null),
+    text((pack.manifest.defaults['closing_style'] as string | undefined) ?? 'retained_earnings'),
+    text(roles['current_year_result_profit'] ?? null),
+    text(roles['current_year_result_loss'] ?? null),
+    text(roles['retained_earnings_loss'] ?? null),
+    text(journalRoles['opening'] ?? 'OPN'),
   ];
   return [
     'insert into country_defaults',
     '  (country, name, currency_code, receivable_code, payable_code, suspense_code,',
     '   rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,',
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
-    '   misc_journal_code, language_default)',
+    '   misc_journal_code, language_default, closing_style, current_year_result_profit_code,',
+    '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code)',
     'values',
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
@@ -291,7 +297,12 @@ function defaults(pack: Pack, country: string): string[] {
     '  sales_journal_code     = excluded.sales_journal_code,',
     '  purchase_journal_code  = excluded.purchase_journal_code,',
     '  misc_journal_code      = excluded.misc_journal_code,',
-    '  language_default       = excluded.language_default;',
+    '  language_default       = excluded.language_default,',
+    '  closing_style          = excluded.closing_style,',
+    '  current_year_result_profit_code = excluded.current_year_result_profit_code,',
+    '  current_year_result_loss_code   = excluded.current_year_result_loss_code,',
+    '  retained_earnings_loss_code     = excluded.retained_earnings_loss_code,',
+    '  opening_journal_code            = excluded.opening_journal_code;',
   ];
 }
 

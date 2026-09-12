@@ -93,7 +93,8 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
         report.companies.map((c) => [
           c.name,
           `${c.country} · pack ${c.packVersion ?? 'unknown'} · ${c.accounts} accounts · ` +
-            `${c.entries} entries · ${c.fiscalYears} financial year(s)`,
+            `${c.entries} entries · ${c.fiscalYears} financial year(s), ` +
+            `${c.fiscalYears - c.closedFiscalYears} open`,
         ]),
       );
       const behind = report.companies.filter((c) => {

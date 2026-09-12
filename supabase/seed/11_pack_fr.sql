@@ -20,7 +20,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.0.0', date '2026-09-12', '20260911121100', 'maintained', null, null, '7c0d9cd3e6cf40eedde159be30a28e8b8efd74f43e6bac9de81351fc44e536c1')
+  ('FR', 'France', '1.0.0', date '2026-09-12', '20260911121100', 'maintained', null, null, 'b135b7b8dd3267fda272cd4a9328f2c6bafd7a4440cc972a2b336622033eee6a')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -613,9 +613,10 @@ insert into country_defaults
   (country, name, currency_code, receivable_code, payable_code, suspense_code,
    rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
-   misc_journal_code, language_default)
+   misc_journal_code, language_default, closing_style, current_year_result_profit_code,
+   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code)
 values
-  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr')
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN')
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -631,4 +632,9 @@ on conflict (country) do update set
   sales_journal_code     = excluded.sales_journal_code,
   purchase_journal_code  = excluded.purchase_journal_code,
   misc_journal_code      = excluded.misc_journal_code,
-  language_default       = excluded.language_default;
+  language_default       = excluded.language_default,
+  closing_style          = excluded.closing_style,
+  current_year_result_profit_code = excluded.current_year_result_profit_code,
+  current_year_result_loss_code   = excluded.current_year_result_loss_code,
+  retained_earnings_loss_code     = excluded.retained_earnings_loss_code,
+  opening_journal_code            = excluded.opening_journal_code;

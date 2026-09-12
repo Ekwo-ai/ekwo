@@ -27,7 +27,7 @@ and a generator.
 | Gap | Why it matters outside Belgium and France |
 |---|---|
 | No pack object | UK, US or Canada would each add a third place where a country lives |
-| No year-end close, no shifted or 52/53-week years, no opening balances | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
+| ~~No year-end close, no opening balances~~ — done in P0-8; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
 | Currencies without realised gains or revaluation | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
 | A tax engine that knows only EU VAT | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
@@ -59,7 +59,9 @@ one line wait for the countries that need them.
    tax-inclusive prices, non-deductible VAT, rounding rules.
 6. Cash-basis VAT and realised exchange differences.
 7. Document rules, e-invoicing profiles and bank formats as data.
-8. Opening balances and a parameterised year-end close.
+8. Opening balances and a parameterised year-end close. **Done** —
+   `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()`, and
+   `closing_style` with its four account roles in the pack.
 9. Pack versioning, `ekwo pack upgrade`, an append-only audit log.
 10. One golden test per pack, a certification status.
 11. End-to-end test, including an upgrade from the published version.

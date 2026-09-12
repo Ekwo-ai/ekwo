@@ -18,12 +18,16 @@
     "currency": "EUR",
     "language": "fr",
     "rounding_method": "half_up",
+    "closing_style": "appropriation_accounts",
     "roles": {
       "receivable": "400000",
       "payable": "440000",
       "suspense": "499000",
       "rounding": "664000",
       "retained_earnings": "140000",
+      "retained_earnings_loss": "141000",
+      "current_year_result_profit": "693000",
+      "current_year_result_loss": "793000",
       "sales": "700000",
       "purchase": "610000",
       "bank": "550000",
@@ -32,7 +36,8 @@
     "journal_roles": {
       "sales": "SAL",
       "purchase": "PUR",
-      "miscellaneous": "MISC"
+      "miscellaneous": "MISC",
+      "opening": "OPN"
     }
   },
   "journals": [

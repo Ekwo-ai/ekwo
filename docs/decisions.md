@@ -528,7 +528,8 @@ fixed amount over lines.
 **No fiscal year closing function yet.** Carrying balances forward and merging
 the result into retained earnings is a real piece of work with several
 national variants; `fiscal_years.is_closed` already blocks writes, and the
-closing entry itself comes next.
+closing entry itself comes next. *(Superseded on 12 September 2026 by "P0-8 —
+opening and closing are parameters, not code" below.)*
 
 **No multi-currency revaluation.** `currencies`, `currency_rates`,
 `amount_currency` and `documents.exchange_rate` are in place; the periodic
@@ -780,3 +781,99 @@ Editing published migrations breaks rule 1 of
 installation anywhere had run those files, and because a country literal in a
 published migration is a country literal in the repository whatever the file's
 date says. The exception is written into that README beside the rule.
+
+
+## P0-8 — opening and closing are parameters, not code (12 September 2026)
+
+The first release said the year-end close was "a real piece of work with
+several national variants". The variants turned out to be one value.
+
+**Three styles, named after the mechanism.** In Belgium, in France, in the
+United Kingdom and in the United States a close does the same two things:
+move the result out of the income statement, then zero every income and
+expense account. What differs is the account the result travels through, and
+that is now `country_defaults.closing_style`: `retained_earnings` closes
+straight into retained earnings (United Kingdom, United States);
+`result_accounts` closes into a current-year result account that sits on the
+balance sheet and waits for the meeting that allocates it (France, 120 for a
+profit and 129 for a loss); `appropriation_accounts` travels through an
+account that is itself part of the income statement and lands on retained
+earnings (Belgium, 693 to 140 and 793 to 141). The enum values name the
+mechanism and never a country, because the third style is not "the Belgian
+one" — it is what any chart does that ends its income statement on an
+appropriation section.
+
+**A profit account and a loss account, not one.** Belgium and France both
+keep the two apart on the chart, and a single account would have to be
+allowed to go debit, which is exactly what their filing formats refuse. So
+the pack names `current_year_result_profit`, `current_year_result_loss`,
+`retained_earnings` and `retained_earnings_loss`, and
+`country_defaults.opening_journal_code` names the journal all of this is
+booked on. Five columns, all read: none of them is there "in case".
+
+**The style is asserted, not trusted.** `appropriation_accounts` requires an
+account that does *not* carry forward, the other two require one that does. A
+pack that named an income account where the balance sheet is expected would
+otherwise close a year into an account that is zeroed the same evening, and
+the result would vanish quietly.
+
+**The close writes no *à-nouveaux*, and that is the one place we depart from
+what a Belgian or French package prints.** Every report in this schema reads
+the ledger from the beginning — `trial_balance` computes the opening balance
+of a period as the sum of everything booked before it — so a balance-sheet
+account already stands on 1 January at the figure it carried on 31 December.
+An opening entry on top of that does not carry a balance forward, it counts
+it twice; the first version of this function did, and a test now forbids it.
+What the opening journal carries is the *first* opening of a set of books,
+which is `opening_balance`, and the year-end entries themselves. Reversing
+this decision means changing the reports first — to a balance computed inside
+one exercise — and the à-nouveaux entry after; doing it the other way round
+doubles every carried balance on the day it ships.
+
+One consequence to know: once a year is closed, its income statement read
+from the *movements* of that year is zero, because the closing entry is one of
+them. That is what a post-closing trial balance is, and it is true of every
+system that closes the income statement at all. The statements of P0-4 read a
+closed year by leaving out the entries of the opening journal dated on its
+last day, which is also how `reopen_fiscal_year` finds them.
+
+**The allocation decided by a meeting is never in the close.** A dividend, the
+legal reserve, a French 120 moved to 110 or to 106 — all of it is a later
+entry taken by people. A close that guessed at it would be writing a decision
+nobody made, and it would be wrong for most companies most years.
+
+**`is_closed` stops being an ordinary column.** It decides whether a whole
+period accepts entries, and until now any client that could write a fiscal
+year could flip it, which is the same as having no lock. A trigger refuses the
+*transition*: an update that changes `is_closed` or `closed_at` raises unless
+`ekwo.closing_fiscal_year` is set, and only `close_fiscal_year()` and
+`reopen_fiscal_year()` set it — transaction-locally, so it is gone when they
+return. Creating a year that is *already* closed stays allowed, because that
+is a different act: it describes a year that happened in whatever kept the
+books before, it computes nothing and it writes no entry. That is how a
+company arrives with three closed years, one open one, and an opening balance
+that carries their result.
+
+**An opening balance refuses the income statement.** `opening_balance` takes a
+trial balance as rows — `{account_code, debit, credit, contact_id, label}` —
+because that is what every previous system exports, and it refuses an income
+or expense account unless the caller passes `p_allow_result_accounts`. A year
+that starts with a profit already on it is the commonest way an import goes
+wrong. The flag exists for the one case where it is right: taking the books
+over in the middle of a year that has already run.
+
+**A close is undone by reversing, never by deleting.** `reopen_fiscal_year`
+reverses the entries the close wrote and clears the flag, and refuses the
+moment a later year is closed or holds entries of its own — re-opening changes
+a result those years stand on. It is the same rule as everywhere else here:
+there is no unpost.
+
+**For an accountant to read.** Three things in this are our reading of the
+mechanics rather than a rule we can cite. The closing entry is dated on the
+last day of the year, which is the convention everywhere but is not written
+anywhere. Belgium goes through 693 and 793 rather than straight to 140 and
+141, which is what the minimum chart's appropriation section is for, but a
+firm that books it directly is not doing anything unusual. And the
+appropriation entry is posted as a separate entry *before* the closing entry,
+so that a statutory income statement can show a movement on 693: merged into
+one entry the two movements cancel and the line disappears.

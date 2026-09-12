@@ -20,6 +20,8 @@ export interface CompanySummary {
   accounts: number;
   entries: number;
   fiscalYears: number;
+  /** How many of them are closed. `ekwo status` prints the open ones. */
+  closedFiscalYears: number;
   /** Version of the country pack this company copied, from `company_packs`. */
   packVersion: string | null;
 }
@@ -87,6 +89,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     accounts: string;
     entries: string;
     fiscal_years: string;
+    closed_fiscal_years: string;
     pack_version: string | null;
   }>(
     `select c.name,
@@ -94,6 +97,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
             (select count(*) from accounts a where a.company_id = c.id)::text as accounts,
             (select count(*) from entries e where e.company_id = c.id)::text as entries,
             (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years,
+            (select count(*) from fiscal_years f where f.company_id = c.id and f.is_closed)::text as closed_fiscal_years,
             (select p.version from company_packs p
               where p.company_id = c.id and p.country = c.country) as pack_version
        from companies c
@@ -128,6 +132,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       accounts: Number(c.accounts),
       entries: Number(c.entries),
       fiscalYears: Number(c.fiscal_years),
+      closedFiscalYears: Number(c.closed_fiscal_years),
       packVersion: c.pack_version,
     })),
     packs: packs.map((p) => ({

@@ -90,11 +90,25 @@ export interface SqlBackendOptions {
 }
 
 /** `fn(p_a => $1, p_b => $2)` and the parameters in that order. */
+/**
+ * An argument that is an object or an array is JSON, and is sent as JSON.
+ *
+ * PostgREST posts the arguments as a JSON body, so a `jsonb` parameter
+ * receives a real array on that route. A Postgres driver does not: handed a
+ * JavaScript array it builds a Postgres *array* literal, and `node-postgres`
+ * turns an array of objects into `{"[object Object]"}`. So the value is
+ * stringified here and the placeholder carries an explicit `::jsonb`, which
+ * makes the two routes agree instead of agreeing by accident on one driver.
+ */
 function callOf(fn: string, args: Record<string, unknown>): { call: string; params: unknown[] } {
-  const names = Object.keys(args).map(identifier);
-  const params = names.map((name) => args[name]);
-  const call = `${identifier(fn)}(${names.map((name, index) => `${name} => $${index + 1}`).join(', ')})`;
-  return { call, params };
+  const entries = Object.entries(args);
+  const params: unknown[] = [];
+  const parts = entries.map(([name, value], index) => {
+    const json = typeof value === 'object' && value !== null;
+    params.push(json ? JSON.stringify(value) : value);
+    return `${identifier(name)} => $${index + 1}${json ? '::jsonb' : ''}`;
+  });
+  return { call: `${identifier(fn)}(${parts.join(', ')})`, params };
 }
 
 export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {

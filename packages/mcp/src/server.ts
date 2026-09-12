@@ -385,6 +385,42 @@ export function buildServer(backend: Backend): McpServer {
     async (args) => guard(() => write.lockPeriod(backend, args)),
   );
 
+  server.registerTool(
+    'opening_balance',
+    {
+      title: 'Import an opening balance',
+      description:
+        'Turns the trial balance of whatever kept the books before into the opening entry of a fiscal year, on the opening journal, dated on its first day. Lines are {account_code, debit, credit}; total debit must equal total credit. Balance-sheet accounts only, unless allow_result_accounts is set, which is for taking books over in the middle of a year. A year holds one opening: a second call is refused rather than added to.',
+      inputSchema: write.OpeningBalanceInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.openingBalance(backend, args)),
+  );
+
+  server.registerTool(
+    'close_fiscal_year',
+    {
+      title: 'Close a fiscal year',
+      description:
+        'Closes a year: the result of the year leaves the income statement the way the country model says — straight to retained earnings, into a current-year result account, or through the appropriation accounts — every income and expense account goes back to zero, and the year stops accepting entries. Refused while the year holds a draft entry, while an earlier year with entries is open, or when a later year is already closed. It never writes what a general meeting decides to do with the result. Always ask the user before calling it.',
+      inputSchema: write.CloseFiscalYearInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.closeFiscalYear(backend, args)),
+  );
+
+  server.registerTool(
+    'reopen_fiscal_year',
+    {
+      title: 'Re-open a closed fiscal year',
+      description:
+        'Undoes a close that was run too early: the entries it wrote are reversed, never deleted, and the year accepts entries again. Refused once a later year is closed or holds entries of its own, because re-opening changes a result those years stand on. Always ask the user before calling it.',
+      inputSchema: write.ReopenFiscalYearInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.reopenFiscalYear(backend, args)),
+  );
+
   // --------------------------------------------------------------- resources
 
   server.registerResource(

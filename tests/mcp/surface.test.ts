@@ -48,6 +48,9 @@ const WRITE_TOOLS = [
   'create_bank_account',
   'create_bank_transaction',
   'lock_period',
+  'opening_balance',
+  'close_fiscal_year',
+  'reopen_fiscal_year',
 ];
 
 let db: PGlite;
@@ -101,9 +104,16 @@ describe('the tools a client is offered', () => {
     for (const name of WRITE_TOOLS) {
       expect(byName.get(name)?.annotations?.readOnlyHint, name).toBe(false);
     }
-    // The two a model must ask about before calling.
-    expect(byName.get('post_document')?.annotations?.destructiveHint).toBe(true);
-    expect(byName.get('lock_period')?.annotations?.destructiveHint).toBe(true);
+    // The ones a model must ask about before calling.
+    for (const name of [
+      'post_document',
+      'lock_period',
+      'opening_balance',
+      'close_fiscal_year',
+      'reopen_fiscal_year',
+    ]) {
+      expect(byName.get(name)?.annotations?.destructiveHint, name).toBe(true);
+    }
   });
 
   it('ask for a company on every write', async () => {
@@ -116,6 +126,7 @@ describe('the tools a client is offered', () => {
       'create_bank_account',
       'create_bank_transaction',
       'lock_period',
+      'opening_balance',
     ];
     for (const name of needsCompany) {
       const schema = tools.find((tool) => tool.name === name)?.inputSchema as {

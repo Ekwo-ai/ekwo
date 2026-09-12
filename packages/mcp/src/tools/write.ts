@@ -1080,3 +1080,98 @@ export async function lockPeriod(
     note: 'Locking is enforced by triggers on the ledger, not by this server. Everything on or before the date now refuses to move.',
   };
 }
+
+// ---------------------------------------------------------------------------
+// Opening a set of books, and closing a year
+//
+// All three go straight to the schema function. The rules about which account
+// the result travels through, which entries are written and when a year may
+// be closed live in `close_fiscal_year`, next to the ones about balance and
+// locks, and this server does not repeat a word of them.
+// ---------------------------------------------------------------------------
+
+export const OpeningBalanceInput = z.object({
+  company_id: companyId,
+  fiscal_year_id: uuid.describe('The year the balance opens. The entry is dated on its first day.'),
+  lines: z
+    .array(
+      z.object({
+        account_code: z.string().min(1).describe('Code in this company\'s chart, e.g. 400000.'),
+        debit: z.union([z.string(), z.number()]).optional().describe('A positive decimal string. A line carries a debit or a credit, never both.'),
+        credit: z.union([z.string(), z.number()]).optional(),
+        contact_id: uuid.optional().describe('The customer or supplier behind a receivable or payable line, so the aged balance knows whose it is.'),
+        label: z.string().min(1).optional(),
+      }),
+    )
+    .min(1)
+    .describe('The trial balance of the previous system, one entry per row. Total debit must equal total credit.'),
+  allow_result_accounts: z
+    .boolean()
+    .optional()
+    .describe('Default false: an opening balance is made of the balance sheet. Pass true only when taking books over in the middle of a year that has already run.'),
+});
+
+export async function openingBalance(
+  backend: Backend,
+  args: z.infer<typeof OpeningBalanceInput>,
+): Promise<unknown> {
+  const lines = args.lines.map((line) => ({
+    account_code: line.account_code,
+    debit: amountIn(line.debit ?? 0),
+    credit: amountIn(line.credit ?? 0),
+    ...(line.contact_id === undefined ? {} : { contact_id: line.contact_id }),
+    ...(line.label === undefined ? {} : { label: line.label }),
+  }));
+
+  const answer = await backend.rpc<string>('opening_balance', {
+    p_company_id: args.company_id,
+    p_fiscal_year_id: args.fiscal_year_id,
+    p_lines: lines,
+    p_allow_result_accounts: args.allow_result_accounts ?? false,
+  });
+  const entryId = only(answer, 'the opening balance produced no entry');
+
+  const entries = await backend.select<Row>({
+    table: 'entries',
+    columns: ['id', 'number', 'entry_date::text', 'description', 'state', 'total_debit::text', 'total_credit::text'],
+    where: [{ column: 'id', op: 'eq', value: entryId }],
+  });
+  return {
+    entry: only(entries, `entry ${entryId}`),
+    note: 'The opening entry is posted. A year holds one; a second call is refused rather than adding to it.',
+  };
+}
+
+export const CloseFiscalYearInput = z.object({
+  fiscal_year_id: uuid.describe('The year to close. Every entry in it must be posted.'),
+});
+
+export async function closeFiscalYear(
+  backend: Backend,
+  args: z.infer<typeof CloseFiscalYearInput>,
+): Promise<unknown> {
+  const answer = await backend.rpc<Row>('close_fiscal_year', {
+    p_fiscal_year_id: args.fiscal_year_id,
+  });
+  return {
+    close: only(answer, `fiscal year ${args.fiscal_year_id}`),
+    note: 'The income statement is back at zero and the year refuses new entries. What a general meeting decides to do with the result — a dividend, a reserve — is a later entry, and the close never writes it.',
+  };
+}
+
+export const ReopenFiscalYearInput = z.object({
+  fiscal_year_id: uuid.describe('The closed year to open again.'),
+});
+
+export async function reopenFiscalYear(
+  backend: Backend,
+  args: z.infer<typeof ReopenFiscalYearInput>,
+): Promise<unknown> {
+  const answer = await backend.rpc<Row>('reopen_fiscal_year', {
+    p_fiscal_year_id: args.fiscal_year_id,
+  });
+  return {
+    reopen: only(answer, `fiscal year ${args.fiscal_year_id}`),
+    note: 'The entries the close wrote are reversed, not deleted, and the year accepts entries again. Refused once a later year is closed or holds entries of its own.',
+  };
+}
