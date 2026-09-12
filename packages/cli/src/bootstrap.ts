@@ -45,6 +45,8 @@ export interface BootstrapOptions {
   currencyCode?: string | undefined;
   /** Two letters. Left out, the country model decides. Chooses which label of the pack lands in `accounts.name`. */
   language?: string | undefined;
+  /** Chart of accounts to install. Left out, the pack's default chart. */
+  chartCode?: string | undefined;
   /** The main bank account, when the operator has one to give. */
   bankAccount?: BankAccountOptions | undefined;
 }
@@ -59,6 +61,8 @@ export interface BootstrapResult {
   language: string;
   /** Version of the country pack the company copied, from `company_packs`. */
   packVersion?: string | undefined;
+  /** Chart of accounts the company was installed on. */
+  chartCode?: string | undefined;
   /** The bank account, when one was asked for. */
   bankAccountId?: string | undefined;
   steps: Step[];
@@ -87,6 +91,51 @@ export async function countryLanguage(db: SqlClient, country: string): Promise<s
   return scalar<string>(db, 'select language_default from country_defaults where country = $1', [
     country.toUpperCase(),
   ]);
+}
+
+/** One chart a country pack offers. */
+export interface ChartChoice {
+  code: string;
+  name: string;
+  isDefault: boolean;
+  audience: string | null;
+  certificationStatus: string | null;
+  accounts: number;
+}
+
+/**
+ * The charts a country offers, the default one first.
+ *
+ * `ekwo init` asks only when there are two or more, and preselects nothing:
+ * the question whose wrong answer is a chart of accounts has no right default
+ * beyond the one the pack itself declares.
+ */
+export async function countryCharts(db: SqlClient, country: string): Promise<ChartChoice[]> {
+  const rows = await db.query<{
+    code: string;
+    name: string;
+    is_default: boolean;
+    audience: string | null;
+    certification_status: string | null;
+    accounts: string;
+  }>(
+    `select c.code, c.name, c.is_default, c.audience,
+            c.certification_status::text,
+            (select count(*) from account_templates a
+              where a.country = c.country and a.chart_code = c.code)::text as accounts
+       from chart_templates c
+      where c.country = $1
+      order by c.is_default desc, c.code`,
+    [country.toUpperCase()],
+  );
+  return rows.map((r) => ({
+    code: r.code,
+    name: r.name,
+    isDefault: r.is_default,
+    audience: r.audience,
+    certificationStatus: r.certification_status,
+    accounts: Number(r.accounts),
+  }));
 }
 
 /** What a pack says about itself: version and how much anyone has read it. */
@@ -303,21 +352,28 @@ export async function bootstrap(
     'select count(*)::text from accounts where company_id = $1',
     [companyId],
   );
-  await db.query('select install_country_template($1, $2, $3)', [companyId, country, language]);
+  await db.query('select install_country_template($1, $2, $3, $4)', [
+    companyId,
+    country,
+    language,
+    options.chartCode ?? null,
+  ]);
   const accountsAfter = await scalar<string>(
     db,
     'select count(*)::text from accounts where company_id = $1',
     [companyId],
   );
-  const packVersion = await scalar<string>(
+  const copied = await first<{ version: string; chart_code: string }>(
     db,
-    'select version from company_packs where company_id = $1 and country = $2',
+    'select version, chart_code from company_packs where company_id = $1 and country = $2',
     [companyId, country],
   );
   steps.push({
     name: 'country template',
     outcome: accountsBefore === accountsAfter ? 'already' : 'created',
-    detail: `${accountsAfter ?? '0'} accounts, ${country} pack ${packVersion ?? '?'} in ${language}`,
+    detail:
+      `${accountsAfter ?? '0'} accounts, ${country} pack ${copied?.version ?? '?'} ` +
+      `chart ${copied?.chart_code ?? '?'} in ${language}`,
   });
 
   // 6. The first financial year. Calendar year: a different one is a single
@@ -361,7 +417,8 @@ export async function bootstrap(
     fiscalYearName,
     currencyCode,
     language,
-    packVersion,
+    packVersion: copied?.version,
+    chartCode: copied?.chart_code,
     bankAccountId,
     steps,
   };

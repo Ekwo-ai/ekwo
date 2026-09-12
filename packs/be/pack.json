@@ -3,7 +3,7 @@
   "country": "BE",
   "name": "Belgium",
   "version": "1.1.0",
-  "schema_min": "20260912091918",
+  "schema_min": "20260912100412",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -77,6 +77,36 @@
       "type": "opening",
       "name": "Journal d'ouverture",
       "sequence": 60
+    }
+  ],
+  "charts": [
+    {
+      "code": "default",
+      "name": "PCMN — plan comptable minimum normalisé",
+      "accounts": "accounts.csv",
+      "default": true,
+      "audience": "companies",
+      "statements": [
+        "BE-BNB-ABBR-BS",
+        "BE-BNB-ABBR-IS",
+        "BE-BNB-ABBR-AF"
+      ],
+      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1"
+    },
+    {
+      "code": "asbl",
+      "name": "PCMN — associations et fondations",
+      "accounts": "accounts.asbl.csv",
+      "audience": "nonprofits",
+      "statements": [],
+      "certification": {
+        "status": "community",
+        "sources": [
+          "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
+          "Code des sociétés et des associations, livre 3"
+        ]
+      },
+      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1, appliqué aux associations par le Code des sociétés et des associations"
     }
   ],
   "documents": {

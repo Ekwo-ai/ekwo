@@ -47,6 +47,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912091917_tax_on_base_value` | `tax_posting_type` gains `tax_on_base`. Its own file, for the same reason as the pair above |
 | `20260912091918_tax_engine_columns` | the generalised tax engine: `tax_kind`, `recoverable`, `jurisdiction`, `price_include`, `cash_basis` on the taxes and their templates; `rounding_method` and `cash_rounding_unit` on the country model; one constraint per table saying which posting type carries an account; `post_document` books the non-deductible share on the accounts of the lines |
 | `20260912094412_opening_and_closing` | `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()`; the `closing_style` enum and five `country_defaults` columns that carry the year-end accounts, none with a default; `entries.kind` (`normal`/`opening`/`closing`); `is_closed` and `kind` writable only through those functions |
+| `20260912095825_charts_of_accounts` | `chart_templates`; `chart_code` on `account_templates` — the key becomes `(country, chart_code, code)` — and on `company_packs`; `install_country_template(company, country, language, chart_code)` takes the pack's default chart when none is named. Journals, taxes and the declaration form stay common to the charts of a country |
+| `20260912100412_financial_statements` | `statement_templates`, `statement_line_templates` and `statement_line_rules`, filled by the packs; `financial_statement(company, code, from, to)`, `statement_account_matches()`, `unmapped_accounts()` and `available_statements()` |
 
 ## Rules for a new migration
 

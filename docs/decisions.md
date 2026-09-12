@@ -983,3 +983,105 @@ before/after test still proves that **nothing that existed changed**: `after`
 is narrowed to the natural keys `before` held, and the four new codes are
 named in a test of their own, so a row that appears without anyone saying so
 still fails.
+
+
+## P0-4 — a country has charts, and a statement is data (12 September 2026)
+
+Two changes in one sub-task, in that order, because the second depends on the
+first: a statement presents a chart, so which chart has to exist before what
+presents it.
+
+**`account_templates` was keyed on `(country, code)`, and a country has more
+than one chart of accounts.** A Belgian ASBL keeps its books on the PCMN as
+the associations title of the Code des sociétés et des associations applies
+it; a French association on ANC 2018-06; Germany ships SKR03 and SKR04. So a
+chart becomes a dimension: `chart_templates` lists what a country offers,
+`account_templates.chart_code` says which one an account belongs to — the key
+is now `(country, chart_code, code)` — and `company_packs.chart_code` records
+which one a company copied. Every published row is backfilled to `default`,
+which is a mechanism word and not a chart name: the pack says the chart is
+called PCMN or PCG, in its own data.
+
+**The journals, the taxes and the declaration form stay common to the charts
+of a country.** An association buys, sells and banks through the same journals
+as a company and files the same VAT return; only the accounts differ, and what
+presents them. The roles — which account is receivable, payable, suspense —
+stay on `country_defaults` for the same reason, and `ekwo pack check` refuses
+a pack whose role codes and tax posting accounts are not in *every* chart it
+ships. That check is what lets one set of taxes install on any chart, and it
+fails where it can be read, in the pack, rather than at install time.
+
+**`ekwo init --chart`, and a question only when there is something to choose.**
+A country with one chart is not a question. A country with two is asked about,
+with nothing preselected beyond the default the pack itself declares, and
+non-interactively the flag is required and the refusal lists the charts. Same
+rule as the country question: the one whose wrong answer is a plan of accounts
+has no right default.
+
+**A financial statement is three tables and one function.**
+`statement_templates` is one scheme, `statement_line_templates` its lines with
+the plus/minus lists a total is computed from, `statement_line_rules` how
+accounts reach a line — by code range, code prefix, account type or one code.
+`financial_statement(company, code, from, to)` returns the whole frame, nil
+lines included, in the order the scheme prints it. A balance sheet reads
+balances cumulative to the end of the period, an income statement the
+movements inside it, which is the one difference `kind` decides.
+
+**Mapping by code range is presentation, and presentation is allowed.** The
+rule that forbids choosing an account *to post to* by prefix is about posting.
+The NBB scheme, the liasse and every XBRL taxonomy map by ranges of the legal
+chart — in Belgium the rubric code *is* the range, `40/41` being accounts 40
+and 41 — and refusing that would mean hand-listing four hundred codes per
+country. A range compares the head of the code, so `40`..`41` takes 400000 and
+411000 and stops at 42.
+
+**`balance_side` is what splits one account between two lines.** A suspense
+account is a receivable while it is in debit and a payable while it is in
+credit; French VAT lives in the 445 family on both sides of the balance sheet.
+Two lines may share an account only when their sides exclude each other, and
+`ekwo pack check` refuses any other overlap.
+
+**The check that makes a statement tie out is in the pack, not in the
+runtime.** Every account of a chart that can be posted to reaches a line of
+some statement of that chart — a heading, an account with children, may reach
+none, because it straddles the lines its children are split over. At runtime
+`unmapped_accounts()` answers the same question for a company, which catches
+the account somebody opened outside the pack, and the MCP tool returns that
+list beside the statement so a model cannot present a balance sheet that does
+not balance.
+
+**The totals are evaluated in the order they depend on each other**, not the
+order they are printed in: a balance sheet prints `ACTIFS IMMOBILISÉS` above
+the three lines it adds up, and one of those three is itself a total. Each
+pass takes every total whose parts are known; a pass that settles nothing is a
+cycle, and says so. That is where this parts company with `vat_return()`,
+whose totals are strictly in sequence — and the reason the two evaluators were
+left as two. Factoring them would have meant rewriting a function published
+two hours earlier while two other branches waited to merge beside it, and they
+differ anyway: a declaration drops a nil box, a statement prints its frame.
+
+**The generic framework is a pack with no country.** `packs/generic/` compiles
+like any other pack into `supabase/seed/05_framework_generic.sql`, and its
+rules are all `account_type` — a reader refuses any other kind in it. That is
+what the eighteen account types buy: a readable balance sheet on any chart,
+including the code-less charts of the United Kingdom and the United States,
+and the fallback for a chart that declares no scheme of its own. The Belgian
+association chart ships exactly that way.
+
+**What the packs gained.** Belgium: the NBB abbreviated balance sheet, income
+statement and allocation section, from the 2021 standard model — and the micro
+model is the same three schemes, so one set serves both. France: the 2050/2051
+balance sheet and the 2052/2053 income statement of the 2026 liasse. Both were
+read off the published forms rather than off the tables that circulate, which
+matters more than it sounds: `20/28`, `70/74`, `60/64` and `9902` are
+pre-2016 Belgian codes that no longer exist, and the French `CS`/`CU` pair
+swapped meaning in the 2026 millésime — participations moved from `CU` to
+`CS`, and the public mappings have not followed.
+
+**`xbrl_element` holds a fact key, not an element name.** The premise that the
+NBB CBSO taxonomy has one element per rubric is false: it is dimensional, with
+fifteen generic metrics, and a rubric is a metric plus a set of dimension
+members. So the column carries `met:am1|bas:m9|rst:m2`, verified against
+taxonomy 26.0.15, and null on the lines where nothing could be verified.
+`@ekwo-ai/xbrl-cbso` reads it — and that library targets framework 25.0 and
+has two rubrics swapped, which is its own fix.

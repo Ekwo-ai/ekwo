@@ -14,6 +14,7 @@ import {
   applySeeds,
   availableCountries,
   bootstrap,
+  countryCharts,
   installedPacks,
   listMigrations,
   schemaIsInstalled,
@@ -310,6 +311,67 @@ describe('bootstrap', () => {
       [chosen.companyId],
     );
     expect(row[0]?.currency_code).toBe('USD');
+  });
+
+  it('installs the default chart of the country, and records which one it was', async () => {
+    const userId = await makeAuthUser(db);
+    const result = await bootstrap(db, {
+      organization: 'Plan par défaut',
+      country: 'BE',
+      company: 'Plan par défaut SRL',
+      fiscalYear: 2026,
+      adminUserId: userId,
+    });
+    expect(result.chartCode).toBe('default');
+
+    const copied = await db.query<{ chart_code: string }>(
+      'select chart_code from company_packs where company_id = $1',
+      [result.companyId],
+    );
+    expect(copied[0]?.chart_code).toBe('default');
+  });
+
+  it('installs the chart it is given instead', async () => {
+    const userId = await makeAuthUser(db);
+    const result = await bootstrap(db, {
+      organization: 'Association',
+      country: 'BE',
+      company: 'Association ASBL',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      chartCode: 'asbl',
+    });
+    expect(result.chartCode).toBe('asbl');
+
+    const account = await db.query<{ name: string }>(
+      'select name from accounts where company_id = $1 and code = $2',
+      [result.companyId, '100000'],
+    );
+    expect(account[0]?.name).toBe('Patrimoine de départ');
+  });
+
+  it('lists the charts a country offers, the default one first', async () => {
+    const charts = await countryCharts(db, 'BE');
+    expect(charts.map((c) => [c.code, c.isDefault, c.audience])).toEqual([
+      ['default', true, 'companies'],
+      ['asbl', false, 'nonprofits'],
+    ]);
+    expect(charts[1]?.certificationStatus).toBe('community');
+    expect(charts[0]?.accounts).toBe(353);
+  });
+
+  it('refuses a chart the country does not have', async () => {
+    const userId = await makeAuthUser(db);
+    await expect(
+      bootstrap(db, {
+        organization: 'Mauvais plan',
+        country: 'FR',
+        company: 'Mauvais plan SAS',
+        fiscalYear: 2026,
+        adminUserId: userId,
+        chartCode: 'asbl',
+      }),
+    ).rejects.toThrow(/unknown_chart/);
   });
 
   it('installs a French company on the PCG', async () => {

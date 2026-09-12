@@ -1,4 +1,1999 @@
 {
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/statements",
-  "statements": []
+  "statements": [
+    {
+      "code": "FR-2050",
+      "kind": "balance_sheet",
+      "framework": "FR-PCG",
+      "name": "Bilan — liasse fiscale 2050 et 2051",
+      "legal_reference": "Formulaires 2050-SD et 2051-SD, millésime 2026 ; règlement ANC 2022-06",
+      "lines": [
+        {
+          "code": "AA",
+          "parent": "CO",
+          "name": "Capital souscrit non appelé (I)",
+          "sequence": 10,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "109",
+              "code_to": "109",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "AB",
+          "parent": "BJ",
+          "name": "Frais d'établissement",
+          "sequence": 20,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "201",
+              "code_to": "201",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2801",
+              "code_to": "2801",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "CX",
+          "parent": "BJ",
+          "name": "Frais de développement",
+          "sequence": 30,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "203",
+              "code_to": "203",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2803",
+              "code_to": "2803",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "AF",
+          "parent": "BJ",
+          "name": "Concessions, brevets et droits similaires",
+          "sequence": 40,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "205",
+              "code_to": "205",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2805",
+              "code_to": "2805",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2905",
+              "code_to": "2905",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "AH",
+          "parent": "BJ",
+          "name": "Fonds commercial",
+          "sequence": 50,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "206",
+              "code_to": "207",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2807",
+              "code_to": "2807",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2906",
+              "code_to": "2907",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "AJ",
+          "parent": "BJ",
+          "name": "Autres immobilisations incorporelles",
+          "sequence": 60,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "208",
+              "code_to": "208",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2808",
+              "code_to": "2808",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "290",
+              "code_to": "290",
+              "sequence": 30
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2908",
+              "code_to": "2908",
+              "sequence": 40
+            }
+          ]
+        },
+        {
+          "code": "AL",
+          "parent": "BJ",
+          "name": "Immobilisations incorporelles en cours, avances et acomptes",
+          "sequence": 70,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "232",
+              "code_to": "232",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "237",
+              "code_to": "237",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "AN",
+          "parent": "BJ",
+          "name": "Terrains",
+          "sequence": 80,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "211",
+              "code_to": "212",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2811",
+              "code_to": "2812",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2911",
+              "code_to": "2911",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "AP",
+          "parent": "BJ",
+          "name": "Constructions",
+          "sequence": 90,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "213",
+              "code_to": "214",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2813",
+              "code_to": "2814",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "AR",
+          "parent": "BJ",
+          "name": "Installations techniques, matériel et outillage industriels",
+          "sequence": 100,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "215",
+              "code_to": "215",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2815",
+              "code_to": "2815",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "AT",
+          "parent": "BJ",
+          "name": "Autres immobilisations corporelles",
+          "sequence": 110,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "218",
+              "code_to": "218",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "22",
+              "code_to": "22",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2818",
+              "code_to": "2818",
+              "sequence": 30
+            },
+            {
+              "kind": "code_range",
+              "code_from": "291",
+              "code_to": "291",
+              "sequence": 40
+            }
+          ]
+        },
+        {
+          "code": "AV",
+          "parent": "BJ",
+          "name": "Immobilisations corporelles en cours, avances et acomptes",
+          "sequence": 120,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "231",
+              "code_to": "231",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "238",
+              "code_to": "238",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "CS",
+          "parent": "BJ",
+          "name": "Participations",
+          "sequence": 130,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "261",
+              "code_to": "261",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "266",
+              "code_to": "266",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2961",
+              "code_to": "2961",
+              "sequence": 30
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2966",
+              "code_to": "2966",
+              "sequence": 40
+            }
+          ]
+        },
+        {
+          "code": "CU",
+          "parent": "BJ",
+          "name": "Titres immobilisés de l'activité de portefeuille",
+          "sequence": 140,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "273",
+              "code_to": "273",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2973",
+              "code_to": "2973",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BB",
+          "parent": "BJ",
+          "name": "Créances rattachées à des participations",
+          "sequence": 150,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "267",
+              "code_to": "268",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2967",
+              "code_to": "2968",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BD",
+          "parent": "BJ",
+          "name": "Autres titres immobilisés",
+          "sequence": 160,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "271",
+              "code_to": "272",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2971",
+              "code_to": "2972",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BF",
+          "parent": "BJ",
+          "name": "Prêts",
+          "sequence": 170,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "274",
+              "code_to": "274",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2974",
+              "code_to": "2974",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BH",
+          "parent": "BJ",
+          "name": "Autres immobilisations financières",
+          "sequence": 180,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "275",
+              "code_to": "276",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "2975",
+              "code_to": "2976",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BJ",
+          "parent": "CO",
+          "name": "TOTAL (II) — Actif immobilisé",
+          "sequence": 190,
+          "is_total": true,
+          "plus": [
+            "AB",
+            "CX",
+            "AF",
+            "AH",
+            "AJ",
+            "AL",
+            "AN",
+            "AP",
+            "AR",
+            "AT",
+            "AV",
+            "CS",
+            "CU",
+            "BB",
+            "BD",
+            "BF",
+            "BH"
+          ]
+        },
+        {
+          "code": "BL",
+          "parent": "CJ",
+          "name": "Matières premières, approvisionnements",
+          "sequence": 200,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "31",
+              "code_to": "32",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "391",
+              "code_to": "392",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BN",
+          "parent": "CJ",
+          "name": "En-cours de production de biens",
+          "sequence": 210,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "33",
+              "code_to": "33",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "393",
+              "code_to": "393",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BP",
+          "parent": "CJ",
+          "name": "En-cours de production de services",
+          "sequence": 220,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "34",
+              "code_to": "34",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "394",
+              "code_to": "394",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BR",
+          "parent": "CJ",
+          "name": "Produits intermédiaires et finis",
+          "sequence": 230,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "35",
+              "code_to": "36",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "395",
+              "code_to": "396",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BT",
+          "parent": "CJ",
+          "name": "Marchandises",
+          "sequence": 240,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "37",
+              "code_to": "38",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "397",
+              "code_to": "398",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "BV",
+          "parent": "CJ",
+          "name": "Avances et acomptes versés sur commandes",
+          "sequence": 250,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4091",
+              "code_to": "4091",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "BX",
+          "parent": "CJ",
+          "name": "Clients et comptes rattachés",
+          "sequence": 260,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "411",
+              "code_to": "411",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "413",
+              "code_to": "413",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "416",
+              "code_to": "418",
+              "sequence": 30
+            },
+            {
+              "kind": "code_range",
+              "code_from": "491",
+              "code_to": "491",
+              "sequence": 40
+            }
+          ]
+        },
+        {
+          "code": "BZ",
+          "parent": "CJ",
+          "name": "Autres créances",
+          "sequence": 270,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "42",
+              "code_to": "44",
+              "side": "debit",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "45",
+              "code_to": "47",
+              "side": "debit",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "4096",
+              "code_to": "4098",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "CB",
+          "parent": "CJ",
+          "name": "Capital souscrit et appelé, non versé",
+          "sequence": 280,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4562",
+              "code_to": "4562",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "CD",
+          "parent": "CJ",
+          "name": "Valeurs mobilières de placement",
+          "sequence": 290,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "50",
+              "code_to": "50",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "590",
+              "code_to": "590",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "CF",
+          "parent": "CJ",
+          "name": "Disponibilités",
+          "sequence": 300,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "51",
+              "code_to": "51",
+              "side": "debit",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "52",
+              "code_to": "58",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "CH",
+          "parent": "CJ",
+          "name": "Charges constatées d'avance",
+          "sequence": 310,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "486",
+              "code_to": "486",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "CJ",
+          "parent": "CO",
+          "name": "TOTAL (III) — Actif circulant",
+          "sequence": 320,
+          "is_total": true,
+          "plus": [
+            "BL",
+            "BN",
+            "BP",
+            "BR",
+            "BT",
+            "BV",
+            "BX",
+            "BZ",
+            "CB",
+            "CD",
+            "CF",
+            "CH"
+          ]
+        },
+        {
+          "code": "CO",
+          "name": "TOTAL GÉNÉRAL DE L'ACTIF",
+          "sequence": 330,
+          "is_total": true,
+          "plus": [
+            "AA",
+            "BJ",
+            "CJ"
+          ]
+        },
+        {
+          "code": "DA",
+          "parent": "DL",
+          "name": "Capital social ou individuel",
+          "sequence": 340,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "101",
+              "code_to": "101",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "108",
+              "code_to": "108",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "DB",
+          "parent": "DL",
+          "name": "Primes d'émission, de fusion, d'apport",
+          "sequence": 350,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "104",
+              "code_to": "104",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DC",
+          "parent": "DL",
+          "name": "Écarts de réévaluation",
+          "sequence": 360,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "105",
+              "code_to": "105",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "107",
+              "code_to": "107",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "DD",
+          "parent": "DL",
+          "name": "Réserve légale",
+          "sequence": 370,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1061",
+              "code_to": "1061",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DE",
+          "parent": "DL",
+          "name": "Réserves statutaires ou contractuelles",
+          "sequence": 380,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1063",
+              "code_to": "1063",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DF",
+          "parent": "DL",
+          "name": "Réserves réglementées",
+          "sequence": 390,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1062",
+              "code_to": "1062",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "1064",
+              "code_to": "1065",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "DG",
+          "parent": "DL",
+          "name": "Autres réserves",
+          "sequence": 400,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1066",
+              "code_to": "1069",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DH",
+          "parent": "DL",
+          "name": "Report à nouveau",
+          "sequence": 410,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "11",
+              "code_to": "11",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DI",
+          "parent": "DL",
+          "name": "RÉSULTAT DE L'EXERCICE",
+          "sequence": 420,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "12",
+              "code_to": "12",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DJ",
+          "parent": "DL",
+          "name": "Subventions d'investissement",
+          "sequence": 430,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "13",
+              "code_to": "13",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DK",
+          "parent": "DL",
+          "name": "Provisions réglementées",
+          "sequence": 440,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "14",
+              "code_to": "14",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DL",
+          "parent": "EE",
+          "name": "TOTAL (I) — Capitaux propres",
+          "sequence": 450,
+          "is_total": true,
+          "plus": [
+            "DA",
+            "DB",
+            "DC",
+            "DD",
+            "DE",
+            "DF",
+            "DG",
+            "DH",
+            "DI",
+            "DJ",
+            "DK"
+          ]
+        },
+        {
+          "code": "DM",
+          "parent": "DO",
+          "name": "Produit des émissions de titres participatifs",
+          "sequence": 460,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1671",
+              "code_to": "1671",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DN",
+          "parent": "DO",
+          "name": "Avances conditionnées",
+          "sequence": 470,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1674",
+              "code_to": "1674",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DO",
+          "parent": "EE",
+          "name": "TOTAL (II) — Autres fonds propres",
+          "sequence": 480,
+          "is_total": true,
+          "plus": [
+            "DM",
+            "DN"
+          ]
+        },
+        {
+          "code": "DP",
+          "parent": "DR",
+          "name": "Provisions pour risques",
+          "sequence": 490,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "151",
+              "code_to": "151",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DQ",
+          "parent": "DR",
+          "name": "Provisions pour charges",
+          "sequence": 500,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "152",
+              "code_to": "159",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DR",
+          "parent": "EE",
+          "name": "TOTAL (III) — Provisions",
+          "sequence": 510,
+          "is_total": true,
+          "plus": [
+            "DP",
+            "DQ"
+          ]
+        },
+        {
+          "code": "DS",
+          "parent": "EC",
+          "name": "Emprunts obligataires convertibles",
+          "sequence": 520,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "161",
+              "code_to": "162",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DT",
+          "parent": "EC",
+          "name": "Autres emprunts obligataires",
+          "sequence": 530,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "163",
+              "code_to": "163",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DU",
+          "parent": "EC",
+          "name": "Emprunts et dettes auprès des établissements de crédit",
+          "sequence": 540,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "164",
+              "code_to": "164",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "51",
+              "code_to": "51",
+              "side": "credit",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "DV",
+          "parent": "EC",
+          "name": "Emprunts et dettes financières divers",
+          "sequence": 550,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "165",
+              "code_to": "168",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "17",
+              "code_to": "18",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "DW",
+          "parent": "EC",
+          "name": "Avances et acomptes reçus sur commandes en cours",
+          "sequence": 560,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4191",
+              "code_to": "4191",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DX",
+          "parent": "EC",
+          "name": "Dettes fournisseurs et comptes rattachés",
+          "sequence": 570,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "401",
+              "code_to": "401",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "403",
+              "code_to": "403",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "408",
+              "code_to": "408",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "DY",
+          "parent": "EC",
+          "name": "Dettes fiscales et sociales",
+          "sequence": 580,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "42",
+              "code_to": "44",
+              "side": "credit",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "DZ",
+          "parent": "EC",
+          "name": "Dettes sur immobilisations et comptes rattachés",
+          "sequence": 590,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "404",
+              "code_to": "405",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "EA",
+          "parent": "EC",
+          "name": "Autres dettes",
+          "sequence": 600,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "45",
+              "code_to": "47",
+              "side": "credit",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "EB",
+          "parent": "EC",
+          "name": "Produits constatés d'avance",
+          "sequence": 610,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "487",
+              "code_to": "487",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "EC",
+          "parent": "EE",
+          "name": "TOTAL (IV) — Dettes",
+          "sequence": 620,
+          "is_total": true,
+          "plus": [
+            "DS",
+            "DT",
+            "DU",
+            "DV",
+            "DW",
+            "DX",
+            "DY",
+            "DZ",
+            "EA",
+            "EB"
+          ]
+        },
+        {
+          "code": "EE",
+          "name": "TOTAL GÉNÉRAL DU PASSIF",
+          "sequence": 630,
+          "is_total": true,
+          "plus": [
+            "DL",
+            "DO",
+            "DR",
+            "EC"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "FR-2052",
+      "kind": "income_statement",
+      "framework": "FR-PCG",
+      "name": "Compte de résultat — liasse fiscale 2052 et 2053",
+      "legal_reference": "Formulaires 2052-SD et 2053-SD, millésime 2026 ; règlement ANC 2022-06",
+      "lines": [
+        {
+          "code": "FA",
+          "parent": "FJ",
+          "name": "Ventes de marchandises",
+          "sequence": 10,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "707",
+              "code_to": "707",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FD",
+          "parent": "FJ",
+          "name": "Production vendue — biens",
+          "sequence": 20,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "701",
+              "code_to": "703",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FG",
+          "parent": "FJ",
+          "name": "Production vendue — services et opérations à long terme",
+          "sequence": 30,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "704",
+              "code_to": "706",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "708",
+              "code_to": "709",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "73",
+              "code_to": "73",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "FJ",
+          "parent": "FR",
+          "name": "CHIFFRES D'AFFAIRES NETS",
+          "sequence": 40,
+          "is_total": true,
+          "plus": [
+            "FA",
+            "FD",
+            "FG"
+          ]
+        },
+        {
+          "code": "FM",
+          "parent": "FR",
+          "name": "Production stockée",
+          "sequence": 50,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "713",
+              "code_to": "713",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FN",
+          "parent": "FR",
+          "name": "Production immobilisée",
+          "sequence": 60,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "72",
+              "code_to": "72",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FO",
+          "parent": "FR",
+          "name": "Subventions d'exploitation",
+          "sequence": 70,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "74",
+              "code_to": "74",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FP",
+          "parent": "FR",
+          "name": "Reprises sur amortissements, dépréciations et provisions, transferts de charges",
+          "sequence": 80,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "781",
+              "code_to": "781",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "791",
+              "code_to": "791",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "FQ",
+          "parent": "FR",
+          "name": "Autres produits",
+          "sequence": 90,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "750",
+              "code_to": "754",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "756",
+              "code_to": "759",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "FR",
+          "name": "TOTAL DES PRODUITS D'EXPLOITATION (I)",
+          "sequence": 100,
+          "is_total": true,
+          "plus": [
+            "FJ",
+            "FM",
+            "FN",
+            "FO",
+            "FP",
+            "FQ"
+          ]
+        },
+        {
+          "code": "FS",
+          "parent": "GF",
+          "name": "Achats de marchandises",
+          "sequence": 110,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "607",
+              "code_to": "607",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FT",
+          "parent": "GF",
+          "name": "Variation de stocks (marchandises)",
+          "sequence": 120,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6037",
+              "code_to": "6037",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FU",
+          "parent": "GF",
+          "name": "Achats de matières premières et autres approvisionnements",
+          "sequence": 130,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "601",
+              "code_to": "602",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "608",
+              "code_to": "609",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "FV",
+          "parent": "GF",
+          "name": "Variation de stocks (matières premières et approvisionnements)",
+          "sequence": 140,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6031",
+              "code_to": "6036",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FW",
+          "parent": "GF",
+          "name": "Autres achats et charges externes",
+          "sequence": 150,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "604",
+              "code_to": "606",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "61",
+              "code_to": "62",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "FX",
+          "parent": "GF",
+          "name": "Impôts, taxes et versements assimilés",
+          "sequence": 160,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "63",
+              "code_to": "63",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "FY",
+          "parent": "GF",
+          "name": "Salaires et traitements",
+          "sequence": 170,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "641",
+              "code_to": "641",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "644",
+              "code_to": "644",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "FZ",
+          "parent": "GF",
+          "name": "Cotisations sociales",
+          "sequence": 180,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "645",
+              "code_to": "649",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "642",
+              "code_to": "643",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GA",
+          "parent": "GF",
+          "name": "Dotations aux amortissements sur immobilisations",
+          "sequence": 190,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6811",
+              "code_to": "6812",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GB",
+          "parent": "GF",
+          "name": "Dotations aux dépréciations sur immobilisations",
+          "sequence": 200,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6816",
+              "code_to": "6816",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GC",
+          "parent": "GF",
+          "name": "Sur actif circulant : dotations aux dépréciations",
+          "sequence": 210,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6817",
+              "code_to": "6817",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GD",
+          "parent": "GF",
+          "name": "Pour risques et charges : dotations aux provisions",
+          "sequence": 220,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "6815",
+              "code_to": "6815",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "6813",
+              "code_to": "6814",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GE",
+          "parent": "GF",
+          "name": "Autres charges",
+          "sequence": 230,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "650",
+              "code_to": "654",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "656",
+              "code_to": "659",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GF",
+          "name": "TOTAL DES CHARGES D'EXPLOITATION (II)",
+          "sequence": 240,
+          "is_total": true,
+          "plus": [
+            "FS",
+            "FT",
+            "FU",
+            "FV",
+            "FW",
+            "FX",
+            "FY",
+            "FZ",
+            "GA",
+            "GB",
+            "GC",
+            "GD",
+            "GE"
+          ]
+        },
+        {
+          "code": "GG",
+          "name": "1 — RÉSULTAT D'EXPLOITATION (I − II)",
+          "sequence": 250,
+          "is_total": true,
+          "plus": [
+            "FR"
+          ],
+          "minus": [
+            "GF"
+          ]
+        },
+        {
+          "code": "GH",
+          "name": "Bénéfice attribué ou perte transférée (III)",
+          "sequence": 260,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "755",
+              "code_to": "755",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GI",
+          "name": "Perte supportée ou bénéfice transféré (IV)",
+          "sequence": 270,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "655",
+              "code_to": "655",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GJ",
+          "parent": "GP",
+          "name": "Produits financiers de participations",
+          "sequence": 280,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "761",
+              "code_to": "761",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GK",
+          "parent": "GP",
+          "name": "Produits des autres valeurs mobilières et créances de l'actif immobilisé",
+          "sequence": 290,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "762",
+              "code_to": "762",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GL",
+          "parent": "GP",
+          "name": "Autres intérêts et produits assimilés",
+          "sequence": 300,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "763",
+              "code_to": "765",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "768",
+              "code_to": "769",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GM",
+          "parent": "GP",
+          "name": "Reprises sur dépréciations et transferts de charges financières",
+          "sequence": 310,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "786",
+              "code_to": "786",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "796",
+              "code_to": "796",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GN",
+          "parent": "GP",
+          "name": "Différences positives de change",
+          "sequence": 320,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "766",
+              "code_to": "766",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GO",
+          "parent": "GP",
+          "name": "Produits nets sur cessions de valeurs mobilières de placement",
+          "sequence": 330,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "767",
+              "code_to": "767",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GP",
+          "name": "TOTAL DES PRODUITS FINANCIERS (V)",
+          "sequence": 340,
+          "is_total": true,
+          "plus": [
+            "GJ",
+            "GK",
+            "GL",
+            "GM",
+            "GN",
+            "GO"
+          ]
+        },
+        {
+          "code": "GQ",
+          "parent": "GU",
+          "name": "Dotations financières aux amortissements, dépréciations et provisions",
+          "sequence": 350,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "686",
+              "code_to": "686",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GR",
+          "parent": "GU",
+          "name": "Intérêts et charges assimilées",
+          "sequence": 360,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "661",
+              "code_to": "665",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "668",
+              "code_to": "669",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "GS",
+          "parent": "GU",
+          "name": "Différences négatives de change",
+          "sequence": 370,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "666",
+              "code_to": "666",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GT",
+          "parent": "GU",
+          "name": "Charges nettes sur cessions de valeurs mobilières de placement",
+          "sequence": 380,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "667",
+              "code_to": "667",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "GU",
+          "name": "TOTAL DES CHARGES FINANCIÈRES (VI)",
+          "sequence": 390,
+          "is_total": true,
+          "plus": [
+            "GQ",
+            "GR",
+            "GS",
+            "GT"
+          ]
+        },
+        {
+          "code": "GV",
+          "name": "2 — RÉSULTAT FINANCIER (V − VI)",
+          "sequence": 400,
+          "is_total": true,
+          "plus": [
+            "GP"
+          ],
+          "minus": [
+            "GU"
+          ]
+        },
+        {
+          "code": "GW",
+          "name": "3 — RÉSULTAT COURANT AVANT IMPÔTS",
+          "sequence": 410,
+          "is_total": true,
+          "plus": [
+            "GG",
+            "GH",
+            "GP"
+          ],
+          "minus": [
+            "GI",
+            "GU"
+          ]
+        },
+        {
+          "code": "HD",
+          "name": "Produits exceptionnels (VII)",
+          "sequence": 420,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "77",
+              "code_to": "77",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "HH",
+          "name": "Charges exceptionnelles (VIII)",
+          "sequence": 430,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "67",
+              "code_to": "67",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "687",
+              "code_to": "687",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "HI",
+          "name": "4 — RÉSULTAT EXCEPTIONNEL (VII − VIII)",
+          "sequence": 440,
+          "is_total": true,
+          "plus": [
+            "HD"
+          ],
+          "minus": [
+            "HH"
+          ]
+        },
+        {
+          "code": "HJ",
+          "name": "Participation des salariés aux résultats (IX)",
+          "sequence": 450,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "691",
+              "code_to": "694",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "HK",
+          "name": "Impôts sur les bénéfices (X)",
+          "sequence": 460,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "695",
+              "code_to": "699",
+              "sequence": 10
+            }
+          ]
+        },
+        {
+          "code": "HL",
+          "name": "TOTAL DES PRODUITS (I + III + V + VII)",
+          "sequence": 470,
+          "is_total": true,
+          "plus": [
+            "FR",
+            "GH",
+            "GP",
+            "HD"
+          ]
+        },
+        {
+          "code": "HM",
+          "name": "TOTAL DES CHARGES (II + IV + VI + VIII + IX + X)",
+          "sequence": 480,
+          "is_total": true,
+          "plus": [
+            "GF",
+            "GI",
+            "GU",
+            "HH",
+            "HJ",
+            "HK"
+          ]
+        },
+        {
+          "code": "HN",
+          "name": "5 — BÉNÉFICE OU PERTE",
+          "sequence": 490,
+          "is_total": true,
+          "plus": [
+            "HL"
+          ],
+          "minus": [
+            "HM"
+          ]
+        }
+      ]
+    }
+  ]
 }

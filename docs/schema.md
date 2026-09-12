@@ -141,6 +141,7 @@ the return say the same thing, because they are the same rows.
 | [`bank_accounts`](#bank_accounts) | Bank and card accounts, each mapped to a ledger account and a journal. |
 | [`bank_statements`](#bank_statements) | Imported statements. `is_consistent` compares the declared closing balance with the sum of the lines. |
 | [`bank_transactions`](#bank_transactions) | Statement lines. `amount` is signed; `raw` keeps whatever the source sent. |
+| [`chart_templates`](#chart_templates) | Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one. |
 | [`companies`](#companies) | Legal entities kept in this instance. One instance may hold several. |
 | [`company_members`](#company_members) | Who may read or write a company. `owner` administers, `accountant` books, `viewer` reads. |
 | [`company_packs`](#company_packs) | Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one. |
@@ -164,6 +165,9 @@ the return say the same thing, because they are the same rows.
 | [`payments`](#payments) | Money in and out. Amounts are positive; `direction` carries the sign. |
 | [`products`](#products) | What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation. |
 | [`reconciliations`](#reconciliations) | One row per pairing of a debit with a credit. Full matching is the sum of partials. |
+| [`statement_line_rules`](#statement_line_rules) | How an account of a company reaches a line. Presentation maps by range of the legal chart; choosing an account to post to by prefix stays forbidden, and is a different question. |
+| [`statement_line_templates`](#statement_line_templates) | The lines of a statement, in the order it prints them, and the plus/minus lists a total is computed from. |
+| [`statement_templates`](#statement_templates) | Financial statements per framework, from packs/<cc>/statements.json and packs/generic/. Reference data: never copied into a company. |
 | [`tax_posting_templates`](#tax_posting_templates) |  |
 | [`tax_postings`](#tax_postings) | Where a tax lands: ledger account and VAT-return box, per tax and per document kind. |
 | [`tax_report_box_templates`](#tax_report_box_templates) | The boxes of a declaration form, and the plus/minus lists a total is computed from. Read by vat_return(). |
@@ -186,14 +190,14 @@ Reference charts of accounts, one set per country.
 | `parent_code` | `text` |  |
 | `sequence` | `integer` | not null |
 | `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. The pack's own language stays in `name`. |
-| `statement_hint` | `text` | Statement line this account falls under when no rule catches it. Read by financial_statement() (P0-4). |
+| `statement_hint` | `text` | Free note: the statement line this account is meant for. Read by nothing — the rules of a statement decide — and kept so a chart can carry the intent. |
+| `chart_code` | `text` | not null — Which chart of the country this account belongs to. Part of the natural key: two charts of one country may carry the same code with different meanings. |
 
 Constraints:
 
 - `CHECK ((country ~ '^[A-Z]{2}$'::text))`
 - `CHECK (((account_type <> ALL (ARRAY['asset_receivable'::account_type, 'liability_payable'::account_type])) OR reconcilable))`
 - `PRIMARY KEY (id)`
-- `UNIQUE (country, code)`
 
 ### `accounts`
 
@@ -216,7 +220,7 @@ Chart of accounts, one per company.
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
 | `name_i18n` | `jsonb` | not null — Label by language, copied from the template at install. `name` holds the language the company chose. |
-| `statement_hint` | `text` | Statement line this account falls under when no rule catches it. Read by financial_statement() (P0-4). |
+| `statement_hint` | `text` | Free note: the statement line this account is meant for. Read by nothing — the rules of a statement decide — and kept so a chart can carry the intent. |
 
 Constraints:
 
@@ -366,6 +370,27 @@ Constraints:
 
 - `PRIMARY KEY (id)`
 
+### `chart_templates`
+
+Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one.
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `code` | `text` | not null — Immutable once published. `default` on the chart a country shipped before this table existed. |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null |
+| `is_default` | `boolean` | not null |
+| `audience` | `text` | Who keeps books on this chart — companies, nonprofits, a profession. Free text from the pack: the core does nothing with it, an installer shows it. |
+| `statements` | `text[]` | not null — Codes of the financial statements this chart reports on. Empty means the generic framework by account type is all there is. |
+| `certification_status` | `pack_certification` | How much this chart in particular has been read, when it differs from the pack as a whole. Null means the pack's own status stands. |
+| `legal_reference` | `text` |  |
+
+Constraints:
+
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `PRIMARY KEY (country, code)`
+
 ### `companies`
 
 Legal entities kept in this instance. One instance may hold several.
@@ -440,6 +465,7 @@ Which version of which country pack a company copied. A company may hold two: a 
 | `version` | `text` | not null |
 | `installed_at` | `timestamp with time zone` | not null |
 | `upgraded_at` | `timestamp with time zone` | Last time `install_country_template` or `ekwo pack upgrade` moved this company to another version. |
+| `chart_code` | `text` | not null — Chart of the pack this company copied. `ekwo status` prints it, and `ekwo pack upgrade` compares against the same chart. |
 
 Constraints:
 
@@ -969,6 +995,83 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (debit_line_id, credit_line_id)`
 
+### `statement_line_rules`
+
+How an account of a company reaches a line. Presentation maps by range of the legal chart; choosing an account to post to by prefix stays forbidden, and is a different question.
+
+| Column | Type | Notes |
+|---|---|---|
+| `statement_code` | `text` | not null |
+| `line_code` | `text` | not null |
+| `sequence` | `integer` | not null — Order inside the line, and part of the key. Between two rules that both catch an account, the narrower one wins first, then this. |
+| `rule_kind` | `text` | not null — account_code names one code; code_range and code_prefix compare the head of the code, so `40`..`41` takes 400000 and 411000 and stops at 42; account_type is what the generic framework is made of. |
+| `code_from` | `text` |  |
+| `code_to` | `text` |  |
+| `account_type` | `account_type` |  |
+| `balance_side` | `text` | not null — Which side of the account this line takes. `any` takes it whatever it holds; `debit` and `credit` split one account between two lines — a suspense account is a receivable when it is in debit and a payable when it is in credit. |
+
+Constraints:
+
+- `CHECK (
+CASE rule_kind
+    WHEN 'account_type'::text THEN ((account_type IS NOT NULL) AND (code_from IS NULL) AND (code_to IS NULL))
+    WHEN 'code_range'::text THEN ((code_from IS NOT NULL) AND (code_to IS NOT NULL) AND (account_type IS NULL))
+    ELSE ((code_from IS NOT NULL) AND (code_to IS NULL) AND (account_type IS NULL))
+END)`
+- `CHECK ((rule_kind = ANY (ARRAY['account_code'::text, 'code_range'::text, 'code_prefix'::text, 'account_type'::text])))`
+- `CHECK ((balance_side = ANY (ARRAY['debit'::text, 'credit'::text, 'any'::text])))`
+- `PRIMARY KEY (statement_code, line_code, sequence)`
+
+### `statement_line_templates`
+
+The lines of a statement, in the order it prints them, and the plus/minus lists a total is computed from.
+
+| Column | Type | Notes |
+|---|---|---|
+| `statement_code` | `text` | not null |
+| `code` | `text` | not null |
+| `parent_code` | `text` | The line this one details, for a renderer that indents. Structure only: a parent that is a total says so with its plus list. |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null |
+| `sequence` | `integer` | not null |
+| `sign` | `smallint` | not null — Multiplies the debit-minus-credit balance so the line reads the way the scheme prints it: 1 on an asset or an expense, -1 on a liability, equity or income line. |
+| `is_total` | `boolean` | not null |
+| `plus_lines` | `text[]` | not null — Lines added into this total, by their code. Evaluated in `sequence` order, so a total may only name one computed before it. |
+| `minus_lines` | `text[]` | not null |
+| `xbrl_element` | `text` | What an XBRL filing writes for this line. The NBB CBSO taxonomy is dimensional, so the value is a fact key — a metric and its dimension members, `met:am1\|bas:m2` — and not an element name. Null where nothing is verified. |
+| `legal_reference` | `text` |  |
+
+Constraints:
+
+- `CHECK ((is_total OR ((plus_lines = '{}'::text[]) AND (minus_lines = '{}'::text[]))))`
+- `CHECK ((sign = ANY (ARRAY[1, '-1'::integer])))`
+- `PRIMARY KEY (statement_code, code)`
+
+### `statement_templates`
+
+Financial statements per framework, from packs/<cc>/statements.json and packs/generic/. Reference data: never copied into a company.
+
+| Column | Type | Notes |
+|---|---|---|
+| `code` | `text` | not null — Immutable once published. A new version of a scheme is a new code with its own validity, the way a new VAT rate is a new tax code. |
+| `country` | `character(2)` | Null on the generic framework, which reports by account type and fits any chart of any country. |
+| `chart_code` | `text` | Null means every chart of the country. Filled when a statement only makes sense on one — a nonprofit scheme on a nonprofit chart. |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null |
+| `kind` | `text` | not null — balance_sheet reads balances cumulative to the end of the period; income_statement and allocation read the movements of the period; cash_flow is declared and not yet produced. |
+| `framework` | `text` |  |
+| `valid_from` | `date` | not null |
+| `valid_to` | `date` |  |
+| `legal_reference` | `text` |  |
+
+Constraints:
+
+- `CHECK (((chart_code IS NULL) OR (country IS NOT NULL)))`
+- `CHECK (((country IS NULL) OR (country ~ '^[A-Z]{2}$'::text)))`
+- `CHECK ((kind = ANY (ARRAY['balance_sheet'::text, 'income_statement'::text, 'cash_flow'::text, 'allocation'::text])))`
+- `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
+- `PRIMARY KEY (code)`
+
 ### `tax_posting_templates`
 
 | Column | Type | Notes |
@@ -1153,6 +1256,7 @@ Constraints:
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Open receivables (or payables) by age, from unmatched ledger lines. p_group is 'receivable' or 'payable'. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
+| `available_statements(p_company_id uuid, p_at date)` | Statements a company may ask for: those of its country and chart, plus the generic framework. `is_default` marks the ones its chart declares. |
 | `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `close_fiscal_year(p_fiscal_year_id uuid)` | Closes a fiscal year: the result leaves the income statement the way the country model says, and every income and expense account goes back to zero. The balance sheet needs no entry — the reports read the ledger from the beginning. The allocation decided by a meeting is never part of it. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
@@ -1161,12 +1265,13 @@ Constraints:
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `entries_guard_kind()` | Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
+| `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
 | `fiscal_years_guard_closed()` | Refuses a hand-written change to is_closed. A column any client may flip is not a lock. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
-| `install_country_template(p_company_id uuid, p_country character, p_language character)` | Copies a country pack into a company in one language, wires the default roles and the financial journals, and records the pack version in company_packs. |
+| `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |
@@ -1183,8 +1288,10 @@ Constraints:
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
+| `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
+| `unmapped_accounts(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Accounts this statement is answerable for that carry a balance and that no rule of it catches. Empty is what makes the statement tie out; a row is an account somebody opened outside the pack. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form evaluated in sequence order. No country rule lives in this function. |
 

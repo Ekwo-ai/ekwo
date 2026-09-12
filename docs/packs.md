@@ -14,16 +14,90 @@ The decision behind this, with the alternatives that were weighed, is in
 
 ```
 packs/be/
-├── pack.json          manifest: version, certification, defaults, roles, journals
-├── accounts.csv       the chart: code, parent, type, reconcilable, name, sequence
+├── pack.json          manifest: version, certification, defaults, roles, journals, charts
+├── accounts.csv       the default chart: code, parent, type, reconcilable, name, sequence
+├── accounts.asbl.csv  a second chart, named by charts[] in the manifest
 ├── taxes.json         taxes and their postings, per kind of document
 ├── tax_report.json    the boxes of the periodic return and their totals
-├── statements.json    balance sheet and income statement (empty for now)
+├── statements.json    the balance sheet, the income statement and their rules
 └── i18n/
     ├── nl.json        labels by code, in another language
     ├── de.json
     └── en.json
+
+packs/generic/         a pack with no country: statements by account type
+├── pack.json
+└── statements.json
 ```
+
+## A country has charts, not a chart
+
+`pack.json` declares them, exactly one of them the default:
+
+```json
+"charts": [
+  { "code": "default", "name": "PCMN — plan comptable minimum normalisé",
+    "accounts": "accounts.csv", "default": true, "audience": "companies",
+    "statements": ["BE-BNB-ABBR-BS", "BE-BNB-ABBR-IS", "BE-BNB-ABBR-AF"] },
+  { "code": "asbl", "name": "PCMN — associations et fondations",
+    "accounts": "accounts.asbl.csv", "audience": "nonprofits", "statements": [],
+    "certification": { "status": "community" } }
+]
+```
+
+A pack that declares no `charts` has one chart called `default` whose accounts
+are in `accounts.csv`, which is what every pack written before this said.
+
+**The journals, the taxes and the declaration form are common to the charts of
+a country.** An association buys, sells and banks through the same journals as
+a company and files the same VAT return; only the accounts differ, and the
+statements that present them. So do the roles — receivable, payable, suspense
+— which stay in `defaults.roles`, and `ekwo pack check` refuses a pack whose
+role codes and tax posting accounts are not in *every* chart it ships.
+
+`ekwo init --chart <code>` picks one; without the flag, an interactive install
+asks only when the pack offers several, and a non-interactive one refuses and
+lists them. `ekwo status` prints the chart each company keeps its books on.
+
+## Financial statements
+
+`statements.json` holds one entry per scheme: a `code`, a `kind`
+(`balance_sheet`, `income_statement`, `allocation`), a `framework`, and its
+lines. A line is either summed from the ledger, through `rules`, or computed
+from other lines, through `plus` and `minus` — there is no expression
+language, as there is none for a declaration form.
+
+```json
+{ "code": "40/41", "parent": "29/58", "name": "Créances à un an au plus",
+  "sequence": 150, "xbrl": "met:am1|bas:m9|rst:m2",
+  "rules": [ { "kind": "code_range", "code_from": "40", "code_to": "41" },
+             { "kind": "code_range", "code_from": "499", "code_to": "499", "side": "debit" } ] }
+```
+
+Four kinds of rule: `account_code` names one code, `code_range` and
+`code_prefix` compare the head of the code (`40`..`41` takes 400000 and 411000
+and stops at 42), `account_type` is what the generic framework is made of.
+`side` splits one account between two lines — a suspense account is a
+receivable while it is in debit and a payable while it is in credit — and is
+the only way two lines may share an account.
+
+`sign` multiplies the debit-minus-credit balance so the line reads the way the
+scheme prints it: `1` on an asset or an expense, `-1` on a liability, equity or
+income line.
+
+**A chart names the statements it reports on.** A statement named by exactly
+one chart belongs to that chart; one named by several, or by none, fits every
+chart of the country. A chart that names none falls back to `packs/generic/`,
+the country-less pack whose rules are all `account_type` — which is what the
+eighteen account types buy, and what gives a British or American chart with no
+legal codes a balance sheet that ties out.
+
+`ekwo pack check` refuses a statement whose totals form a cycle, a line that is
+both summed and computed, two lines that catch one account on the same side,
+and — the check that makes a balance sheet balance — **a chart with an account
+that reaches no line of any of its statements**. A heading, an account with
+children, may reach none: it straddles the lines its children are split over
+and nothing is posted to it.
 
 Every file is validated against [`packs/schema/pack.1.json`](../packs/schema/pack.1.json),
 a JSON Schema draft 2020-12 that describes all of them: the manifest is the
@@ -51,11 +125,13 @@ a country without the CLI ever running; the CI's *hygiene* job runs
 `ekwo pack check --all` so the two cannot drift. Never edit a generated seed:
 the next `pack build` overwrites it and the CI refuses it in the meantime.
 
-The compiler writes `account_templates`, `journal_templates`, `tax_templates`,
-`tax_posting_templates`, `tax_report_templates`, `tax_report_box_templates`,
-`country_defaults` and `country_packs`, and **nothing that belongs to a
-company**. Every insert upserts on the natural key
-`(country, code)`, which matters more than it sounds: the seeds used to say
+The compiler writes `chart_templates`, `account_templates`,
+`journal_templates`, `tax_templates`, `tax_posting_templates`,
+`tax_report_templates`, `tax_report_box_templates`, `statement_templates`,
+`statement_line_templates`, `statement_line_rules`, `country_defaults` and
+`country_packs`, and **nothing that belongs to a company**. Every insert
+upserts on the natural key — `(country, chart_code, code)` for an account,
+`(country, code)` for the rest — which matters more than it sounds: the seeds used to say
 `on conflict do nothing`, so an instance installed last month received no
 correction at all — not even for a company created afterwards, since a company
 copies the templates when it is installed.

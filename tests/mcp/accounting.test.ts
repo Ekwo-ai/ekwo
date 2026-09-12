@@ -280,6 +280,49 @@ describe('the books, through the tools', () => {
     expect(boxes.find((row) => row['box'] === 'XX')?.['hidden']).toBe(true);
   });
 
+  it('lists the schemes this company can be presented on', async () => {
+    const listed = record(await readTools.listStatements(backend, { company_id: fx.companyId }));
+    const statements = list(listed['statements']);
+    expect(statements.filter((s) => s['is_default'] === true).map((s) => s['code']).sort()).toEqual([
+      'BE-BNB-ABBR-AF',
+      'BE-BNB-ABBR-BS',
+      'BE-BNB-ABBR-IS',
+    ]);
+    // The generic framework is offered beside them, for any chart.
+    expect(statements.map((s) => s['code'])).toContain('IFRS-SME-BS');
+  });
+
+  it('reads a balance sheet that ties out, and says so', async () => {
+    const answer = record(
+      await readTools.financialStatement(backend, {
+        company_id: fx.companyId,
+        statement_code: 'BE-BNB-ABBR-BS',
+        from: '2026-01-01',
+        to: '2026-12-31',
+      }),
+    );
+    const lines = list(answer['lines']);
+    const amount = (code: string): unknown =>
+      lines.find((row) => row['line_code'] === code)?.['amount'];
+
+    const income = record(
+      await readTools.financialStatement(backend, {
+        company_id: fx.companyId,
+        statement_code: 'BE-BNB-ABBR-IS',
+        from: '2026-01-01',
+        to: '2026-12-31',
+      }),
+    );
+    const profit = list(income['lines']).find((row) => row['line_code'] === '9905')?.['amount'];
+
+    expect(Number(amount('20/58'))).toBeCloseTo(
+      Number(amount('10/49')) + Number(profit),
+      2,
+    );
+    expect(answer['unmapped_accounts']).toEqual([]);
+    expect(String(answer['note'])).toMatch(/ties out/);
+  });
+
   it('takes the form by name where a country files more than one', async () => {
     const named = record(
       await readTools.vatReturn(backend, {

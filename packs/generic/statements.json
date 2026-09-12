@@ -1,0 +1,201 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/statements",
+  "statements": [
+    {
+      "code": "IFRS-SME-BS",
+      "kind": "balance_sheet",
+      "framework": "IFRS-SME",
+      "name": "Statement of financial position",
+      "legal_reference": "IFRS for SMEs, section 4",
+      "lines": [
+        {
+          "code": "A-NC-FIX",
+          "parent": "A-NC",
+          "name": "Property, plant, equipment and intangible assets",
+          "sequence": 10,
+          "rules": [{ "kind": "account_type", "account_type": "asset_fixed" }]
+        },
+        {
+          "code": "A-NC-OTH",
+          "parent": "A-NC",
+          "name": "Other non-current assets",
+          "sequence": 20,
+          "rules": [{ "kind": "account_type", "account_type": "asset_non_current" }]
+        },
+        {
+          "code": "A-NC",
+          "name": "Non-current assets",
+          "sequence": 30,
+          "is_total": true,
+          "plus": ["A-NC-FIX", "A-NC-OTH"]
+        },
+        {
+          "code": "A-C-REC",
+          "parent": "A-C",
+          "name": "Trade and other receivables",
+          "sequence": 40,
+          "rules": [{ "kind": "account_type", "account_type": "asset_receivable" }]
+        },
+        {
+          "code": "A-C-OTH",
+          "parent": "A-C",
+          "name": "Inventories, prepayments and other current assets",
+          "sequence": 50,
+          "rules": [
+            { "kind": "account_type", "account_type": "asset_current", "sequence": 10 },
+            { "kind": "account_type", "account_type": "asset_prepayments", "sequence": 20 }
+          ]
+        },
+        {
+          "code": "A-C-CASH",
+          "parent": "A-C",
+          "name": "Cash and cash equivalents",
+          "sequence": 60,
+          "rules": [{ "kind": "account_type", "account_type": "asset_cash" }]
+        },
+        {
+          "code": "A-C",
+          "name": "Current assets",
+          "sequence": 70,
+          "is_total": true,
+          "plus": ["A-C-REC", "A-C-OTH", "A-C-CASH"]
+        },
+        {
+          "code": "A-TOT",
+          "name": "Total assets",
+          "sequence": 80,
+          "is_total": true,
+          "plus": ["A-NC", "A-C"]
+        },
+        {
+          "code": "E-CAP",
+          "parent": "E-TOT",
+          "name": "Capital and reserves",
+          "sequence": 90,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "equity" }]
+        },
+        {
+          "code": "E-RET",
+          "parent": "E-TOT",
+          "name": "Retained earnings",
+          "sequence": 100,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "equity_retained" }]
+        },
+        {
+          "code": "E-TOT",
+          "name": "Total equity",
+          "sequence": 110,
+          "is_total": true,
+          "plus": ["E-CAP", "E-RET"]
+        },
+        {
+          "code": "L-NC",
+          "parent": "L-TOT",
+          "name": "Non-current liabilities",
+          "sequence": 120,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "liability_non_current" }]
+        },
+        {
+          "code": "L-C-PAY",
+          "parent": "L-C",
+          "name": "Trade and other payables",
+          "sequence": 130,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "liability_payable" }]
+        },
+        {
+          "code": "L-C-OTH",
+          "parent": "L-C",
+          "name": "Other current liabilities",
+          "sequence": 140,
+          "sign": -1,
+          "rules": [
+            { "kind": "account_type", "account_type": "liability_current", "sequence": 10 },
+            { "kind": "account_type", "account_type": "liability_credit_card", "sequence": 20 }
+          ]
+        },
+        {
+          "code": "L-C",
+          "name": "Current liabilities",
+          "sequence": 150,
+          "is_total": true,
+          "plus": ["L-C-PAY", "L-C-OTH"]
+        },
+        {
+          "code": "L-TOT",
+          "name": "Total liabilities",
+          "sequence": 160,
+          "is_total": true,
+          "plus": ["L-NC", "L-C"]
+        },
+        {
+          "code": "EL-TOT",
+          "name": "Total equity and liabilities",
+          "sequence": 170,
+          "is_total": true,
+          "plus": ["E-TOT", "L-TOT"]
+        }
+      ]
+    },
+    {
+      "code": "IFRS-SME-IS",
+      "kind": "income_statement",
+      "framework": "IFRS-SME",
+      "name": "Income statement",
+      "legal_reference": "IFRS for SMEs, section 5",
+      "lines": [
+        {
+          "code": "REV",
+          "name": "Revenue",
+          "sequence": 10,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "income" }]
+        },
+        {
+          "code": "COST",
+          "name": "Cost of sales",
+          "sequence": 20,
+          "rules": [{ "kind": "account_type", "account_type": "expense_direct_cost" }]
+        },
+        {
+          "code": "GROSS",
+          "name": "Gross profit",
+          "sequence": 30,
+          "is_total": true,
+          "plus": ["REV"],
+          "minus": ["COST"]
+        },
+        {
+          "code": "OTH-INC",
+          "name": "Other income",
+          "sequence": 40,
+          "sign": -1,
+          "rules": [{ "kind": "account_type", "account_type": "income_other" }]
+        },
+        {
+          "code": "OPEX",
+          "name": "Operating expenses",
+          "sequence": 50,
+          "rules": [{ "kind": "account_type", "account_type": "expense" }]
+        },
+        {
+          "code": "DEPR",
+          "name": "Depreciation and amortisation",
+          "sequence": 60,
+          "rules": [{ "kind": "account_type", "account_type": "expense_depreciation" }]
+        },
+        {
+          "code": "PROFIT",
+          "name": "Profit (loss) for the period",
+          "sequence": 70,
+          "is_total": true,
+          "plus": ["GROSS", "OTH-INC"],
+          "minus": ["OPEX", "DEPR"]
+        }
+      ]
+    }
+  ]
+}

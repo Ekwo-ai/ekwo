@@ -9,6 +9,38 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Added
+
+- **A country has charts of accounts, not one chart.** `chart_templates` lists
+  what a country offers, `account_templates.chart_code` says which one an
+  account belongs to — the natural key is now `(country, chart_code, code)` —
+  and `company_packs.chart_code` records which one a company copied. The
+  journals, the taxes and the declaration form stay common to the charts of a
+  country: an association files the same VAT return as a company. `pack.json`
+  declares `charts`, exactly one of them the default, and `ekwo pack check`
+  refuses a pack whose role codes and tax posting accounts are not in every
+  chart it ships. `ekwo init --chart <code>` picks one, an interactive install
+  asks only when there are several, and `ekwo status` prints the chart each
+  company keeps its books on. Belgium ships a second chart, the PCMN as the
+  associations title of the Code des sociétés et des associations applies it,
+  marked `community` on the chart entry. Migration `20260912095825`.
+- **Financial statements are data.** `statement_templates`,
+  `statement_line_templates` and `statement_line_rules`, filled by the packs;
+  `financial_statement(company, code, from, to)` returns the whole frame, nil
+  lines included, in the order the scheme prints it. A line is summed from the
+  ledger through rules — by code range, code prefix, account type or one code
+  — or computed from other lines through plus and minus lists, with no
+  expression language, as for a declaration form. Belgium gets the NBB
+  abbreviated balance sheet, income statement and allocation section; France
+  the 2050-2051 balance sheet and the 2052-2053 income statement of the 2026
+  liasse; `packs/generic/` a country-less framework by account type that fits
+  any chart, including one with no legal codes. `unmapped_accounts()` names
+  what a scheme would silently leave out, and `ekwo pack check` refuses a
+  chart with an account that reaches no line of any of its statements — which
+  is what makes a balance sheet balance. Two MCP tools, `list_statements` and
+  `financial_statement`, and `get_company` now says which pack and which chart
+  a company sits on. Migration `20260912100412`.
+
 ### Security
 
 - **A test now fails if any function of `public` is executable by PUBLIC.**

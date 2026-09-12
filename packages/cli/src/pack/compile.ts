@@ -22,7 +22,7 @@
  */
 
 import { describeCertification } from './certification.js';
-import type { Pack } from './read.js';
+import type { FrameworkPack, Pack, PackStatement } from './read.js';
 
 /** `packs/be` → `10_pack_be.sql`, `packs/fr` → `11_pack_fr.sql`. */
 export function seedFileName(slug: string, allSlugs: readonly string[]): string {
@@ -38,13 +38,50 @@ export function compilePack(pack: Pack): string {
 
   out.push(...header(pack));
   out.push(...manifestRow(pack, country));
+  out.push(...charts(pack, country));
   out.push(...accounts(pack, country));
   out.push(...journals(pack, country));
   out.push(...taxes(pack, country));
   out.push(...postings(pack, country));
   out.push(...taxReport(pack, country));
+  out.push(...statements(pack.statements, pack.lineLabels, country));
   out.push(...defaults(pack, country));
 
+  return `${out.join('\n')}\n`;
+}
+
+/** `packs/generic` → `05_framework_generic.sql`. It sorts before every pack. */
+export function frameworkSeedFileName(slug: string): string {
+  return `05_framework_${slug}.sql`;
+}
+
+/**
+ * The framework pack: statements with no country, and nothing else. They are
+ * seeded before the country packs because a chart may name one, and because a
+ * company whose country has no pack at all still gets a balance sheet.
+ */
+export function compileFrameworkPack(pack: FrameworkPack): string {
+  const { manifest } = pack;
+  const out: string[] = [
+    `-- Ekwo OS — ${manifest.name}: financial statements by account type, for any chart of any country.`,
+    '--',
+    `-- Generated from packs/${pack.slug} at version ${manifest.version}, do not edit.`,
+    `-- Change the pack and run \`ekwo pack build ${pack.slug}\`; \`ekwo pack check --all\``,
+    '-- refuses a seed that is not the exact output of its pack, and the CI runs it.',
+    '--',
+  ];
+  if (manifest.certification !== undefined) {
+    out.push(`-- ${capitalise(describeCertification(manifest.certification))}.`);
+    out.push('-- Written from:');
+    for (const source of manifest.certification.sources ?? []) out.push(`--   ${source}`);
+    out.push('--');
+  }
+  out.push(
+    '-- Reference data with no country and no chart: `financial_statement()` reads it',
+    '-- directly, and nothing here is copied into a company.',
+    '',
+  );
+  out.push(...statements(pack.statements, {}, null));
   return `${out.join('\n')}\n`;
 }
 
@@ -78,19 +115,53 @@ function header(pack: Pack): string[] {
   return lines;
 }
 
-function accounts(pack: Pack, country: string): string[] {
-  const rows = [...pack.accounts].sort(byCode);
-  const values = rows.map(
-    (a) =>
-      `  (${text(country)}, ${text(a.code)}, ${text(a.name)}, ${json(pack.accountLabels[a.code])}, ` +
-      `${text(a.type)}, ${a.reconcilable ? 'true' : 'false'}, ${text(a.parent)}, ${a.sequence})`,
+/**
+ * The charts this country offers. They come before the accounts: a template
+ * account points at its chart, so the chart has to exist first.
+ */
+function charts(pack: Pack, country: string): string[] {
+  const values = pack.charts.map(
+    (c) =>
+      `  (${text(country)}, ${text(c.code)}, ${text(c.name)}, ${json(c.name_i18n)}, ` +
+      `${c.is_default ? 'true' : 'false'}, ${text(c.audience)}, ${array([...c.statements].sort())}, ` +
+      `${text(c.certification?.status ?? null)}, ${text(c.legal_reference)})`,
   );
   return [
-    'insert into account_templates',
-    '  (country, code, name, name_i18n, account_type, reconcilable, parent_code, sequence)',
+    'insert into chart_templates',
+    '  (country, code, name, name_i18n, is_default, audience, statements,',
+    '   certification_status, legal_reference)',
     'values',
     values.join(',\n'),
     'on conflict (country, code) do update set',
+    '  name                 = excluded.name,',
+    '  name_i18n            = excluded.name_i18n,',
+    '  is_default           = excluded.is_default,',
+    '  audience             = excluded.audience,',
+    '  statements           = excluded.statements,',
+    '  certification_status = excluded.certification_status,',
+    '  legal_reference      = excluded.legal_reference;',
+    '',
+  ];
+}
+
+function accounts(pack: Pack, country: string): string[] {
+  const values: string[] = [];
+  for (const chart of pack.charts) {
+    for (const a of [...chart.accounts].sort(byCode)) {
+      values.push(
+        `  (${text(country)}, ${text(chart.code)}, ${text(a.code)}, ${text(a.name)}, ` +
+          `${json(pack.accountLabels[a.code])}, ${text(a.type)}, ` +
+          `${a.reconcilable ? 'true' : 'false'}, ${text(a.parent)}, ${a.sequence})`,
+      );
+    }
+  }
+  return [
+    'insert into account_templates',
+    '  (country, chart_code, code, name, name_i18n, account_type, reconcilable,',
+    '   parent_code, sequence)',
+    'values',
+    values.join(',\n'),
+    'on conflict (country, chart_code, code) do update set',
     '  name         = excluded.name,',
     '  name_i18n    = excluded.name_i18n,',
     '  account_type = excluded.account_type,',
@@ -99,6 +170,106 @@ function accounts(pack: Pack, country: string): string[] {
     '  sequence     = excluded.sequence;',
     '',
   ];
+}
+
+/**
+ * The statements and their lines and rules. The order is the order the scheme
+ * declares, because that is the order `financial_statement()` evaluates the
+ * totals in.
+ */
+function statements(
+  list: PackStatement[],
+  labels: Record<string, Record<string, string>>,
+  country: string | null,
+): string[] {
+  if (list.length === 0) return [];
+  const out: string[] = [];
+
+  out.push(
+    'insert into statement_templates',
+    '  (code, country, chart_code, name, kind, framework, valid_from, valid_to, legal_reference)',
+    'values',
+    [...list]
+      .sort(byCode)
+      .map(
+        (s) =>
+          `  (${text(s.code)}, ${text(country)}, ${text(s.chart_code)}, ${text(s.name)}, ` +
+          `${text(s.kind)}, ${text(s.framework)}, ${date(s.valid_from)}, ${date(s.valid_to)}, ` +
+          `${text(s.legal_reference)})`,
+      )
+      .join(',\n'),
+    'on conflict (code) do update set',
+    '  country         = excluded.country,',
+    '  chart_code      = excluded.chart_code,',
+    '  name            = excluded.name,',
+    '  kind            = excluded.kind,',
+    '  framework       = excluded.framework,',
+    '  valid_from      = excluded.valid_from,',
+    '  valid_to        = excluded.valid_to,',
+    '  legal_reference = excluded.legal_reference;',
+    '',
+  );
+
+  const lines: string[] = [];
+  const rules: string[] = [];
+  for (const statement of [...list].sort(byCode)) {
+    for (const line of [...statement.lines].sort((a, b) => a.sequence - b.sequence || (a.code < b.code ? -1 : 1))) {
+      lines.push(
+        `  (${text(statement.code)}, ${text(line.code)}, ${text(line.parent)}, ${text(line.name)}, ` +
+          `${json(labels[`${statement.code}:${line.code}`])}, ${line.sequence}, ${line.sign}, ` +
+          `${line.is_total ? 'true' : 'false'}, ${array(line.plus)}, ${array(line.minus)}, ` +
+          `${text(line.xbrl)}, ${text(line.legal_reference)})`,
+      );
+      for (const rule of [...line.rules].sort((a, b) => a.sequence - b.sequence)) {
+        rules.push(
+          `  (${text(statement.code)}, ${text(line.code)}, ${rule.sequence}, ${text(rule.kind)}, ` +
+            `${text(rule.code_from)}, ${text(rule.code_to)}, ${text(rule.account_type)}, ${text(rule.side)})`,
+        );
+      }
+    }
+  }
+
+  out.push(
+    'insert into statement_line_templates',
+    '  (statement_code, code, parent_code, name, name_i18n, sequence, sign, is_total,',
+    '   plus_lines, minus_lines, xbrl_element, legal_reference)',
+    'values',
+    lines.join(',\n'),
+    'on conflict (statement_code, code) do update set',
+    '  parent_code     = excluded.parent_code,',
+    '  name            = excluded.name,',
+    '  name_i18n       = excluded.name_i18n,',
+    '  sequence        = excluded.sequence,',
+    '  sign            = excluded.sign,',
+    '  is_total        = excluded.is_total,',
+    '  plus_lines      = excluded.plus_lines,',
+    '  minus_lines     = excluded.minus_lines,',
+    '  xbrl_element    = excluded.xbrl_element,',
+    '  legal_reference = excluded.legal_reference;',
+    '',
+  );
+
+  if (rules.length > 0) {
+    out.push(
+      'insert into statement_line_rules',
+      '  (statement_code, line_code, sequence, rule_kind, code_from, code_to,',
+      '   account_type, balance_side)',
+      'select v.statement_code, v.line_code, v.sequence, v.rule_kind, v.code_from,',
+      '       v.code_to, v.account_type::account_type, v.balance_side',
+      '  from (values',
+      rules.map((row) => `  ${row}`).join(',\n'),
+      '  ) as v (statement_code, line_code, sequence, rule_kind, code_from, code_to,',
+      '          account_type, balance_side)',
+      'on conflict (statement_code, line_code, sequence) do update set',
+      '  rule_kind    = excluded.rule_kind,',
+      '  code_from    = excluded.code_from,',
+      '  code_to      = excluded.code_to,',
+      '  account_type = excluded.account_type,',
+      '  balance_side = excluded.balance_side;',
+      '',
+    );
+  }
+  return out;
 }
 
 function journals(pack: Pack, country: string): string[] {

@@ -24,6 +24,8 @@ export interface CompanySummary {
   closedFiscalYears: number;
   /** Version of the country pack this company copied, from `company_packs`. */
   packVersion: string | null;
+  /** Chart of accounts this company keeps its books on. */
+  chartCode: string | null;
 }
 
 /** A country pack loaded in this installation. */
@@ -31,6 +33,8 @@ export interface PackStatus {
   country: string;
   name: string;
   version: string;
+  /** Charts this pack offers, the default one marked. */
+  charts: { code: string; name: string; isDefault: boolean }[];
   certificationStatus: string;
   certifiedBy: string | null;
   certifiedAt: string | null;
@@ -91,6 +95,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     fiscal_years: string;
     closed_fiscal_years: string;
     pack_version: string | null;
+    chart_code: string | null;
   }>(
     `select c.name,
             c.country,
@@ -99,7 +104,9 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
             (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years,
             (select count(*) from fiscal_years f where f.company_id = c.id and f.is_closed)::text as closed_fiscal_years,
             (select p.version from company_packs p
-              where p.company_id = c.id and p.country = c.country) as pack_version
+              where p.company_id = c.id and p.country = c.country) as pack_version,
+            (select p.chart_code from company_packs p
+              where p.company_id = c.id and p.country = c.country) as chart_code
        from companies c
       order by c.name`,
   );
@@ -116,6 +123,13 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
             certified_at::text
        from country_packs order by country`,
   );
+
+  const charts = await db.query<{
+    country: string;
+    code: string;
+    name: string;
+    is_default: boolean;
+  }>('select country, code, name, is_default from chart_templates order by country, is_default desc, code');
 
   return {
     schemaInstalled: true,
@@ -134,6 +148,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       fiscalYears: Number(c.fiscal_years),
       closedFiscalYears: Number(c.closed_fiscal_years),
       packVersion: c.pack_version,
+      chartCode: c.chart_code,
     })),
     packs: packs.map((p) => ({
       country: p.country,
@@ -142,6 +157,9 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       certificationStatus: p.certification_status,
       certifiedBy: p.certified_by,
       certifiedAt: p.certified_at,
+      charts: charts
+        .filter((c) => c.country === p.country)
+        .map((c) => ({ code: c.code, name: c.name, isDefault: c.is_default })),
     })),
   };
 }

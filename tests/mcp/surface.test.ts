@@ -31,6 +31,8 @@ const READ_TOOLS = [
   'general_ledger',
   'aged_balance',
   'vat_return',
+  'list_statements',
+  'financial_statement',
   'generate_fec',
   'status',
 ];

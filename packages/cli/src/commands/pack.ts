@@ -13,8 +13,8 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rejectUnknownFlags, boolFlag, UsageError, type ParsedArgs } from '../args.js';
-import { compilePack, seedFileName } from '../pack/compile.js';
-import { listPacks, packsDir, readPack, seedOutputDir } from '../pack/read.js';
+import { compileFrameworkPack, compilePack, frameworkSeedFileName, seedFileName } from '../pack/compile.js';
+import { GENERIC_PACK, listPacks, packsDir, readFrameworkPack, readPack, seedOutputDir } from '../pack/read.js';
 import { bold, dim, fail, heading, line, note, step, warn } from '../ui.js';
 
 export const PACK_FLAGS = ['all', 'yes'] as const;
@@ -35,14 +35,30 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
   const available = await listPacks(dir);
 
   if (action === 'list') {
-    heading(`Packs (${available.length})`);
+    heading(`Packs (${available.length + 1})`);
+    const framework = await readFrameworkPack(GENERIC_PACK, dir);
+    note(
+      `${bold(GENERIC_PACK)}  ${framework.manifest.name} ${framework.manifest.version} · ` +
+        `${framework.statements.length} statements · no country · ` +
+        `certification ${framework.manifest.certification?.status ?? 'none'}`,
+    );
     for (const slug of available) {
       const pack = await readPack(slug, dir);
       note(
         `${bold(slug)}  ${pack.manifest.name} ${pack.manifest.version} · ` +
-          `${pack.accounts.length} accounts · ${pack.taxes.length} taxes · ` +
+          `${pack.charts.length} chart(s), ${pack.charts.reduce((n, c) => n + c.accounts.length, 0)} accounts · ` +
+          `${pack.taxes.length} taxes · ${pack.statements.length} statements · ` +
           `certification ${pack.manifest.certification?.status ?? 'none'}`,
       );
+      for (const chart of pack.charts) {
+        note(
+          dim(
+            `        ${chart.code}${chart.is_default ? ' (default)' : ''} — ${chart.name}, ` +
+              `${chart.accounts.length} accounts, ` +
+              `${chart.statements.length === 0 ? 'generic statements only' : chart.statements.join(', ')}`,
+          ),
+        );
+      }
     }
     return 0;
   }
@@ -52,7 +68,30 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
   let stale = 0;
 
   heading(action === 'build' ? 'Compiling' : 'Checking');
-  for (const slug of wanted) {
+
+  // The framework pack first: a chart may name one of its statements, and it
+  // is the fallback for a country that ships none.
+  if (boolFlag(args, 'all') || wanted.includes(GENERIC_PACK)) {
+    const framework = await readFrameworkPack(GENERIC_PACK, dir);
+    const file = frameworkSeedFileName(GENERIC_PACK);
+    const sql = compileFrameworkPack(framework);
+    const path = join(seedDir, file);
+    const current = await readFile(path, 'utf8').catch(() => undefined);
+    if (action === 'build') {
+      if (current === sql) note(dim(`${file} — already the output of packs/${GENERIC_PACK}`));
+      else {
+        await writeFile(path, sql, 'utf8');
+        step(`${file} — ${framework.statements.length} statements`);
+      }
+    } else if (current !== sql) {
+      stale += 1;
+      fail(`${file} is not the output of packs/${GENERIC_PACK}${current === undefined ? ' (it does not exist)' : ''}`);
+    } else {
+      step(file);
+    }
+  }
+
+  for (const slug of wanted.filter((s) => s !== GENERIC_PACK)) {
     const pack = await readPack(slug, dir);
     const file = seedFileName(slug, available);
     const sql = compilePack(pack);
@@ -64,7 +103,11 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
         note(dim(`${file} — already the output of packs/${slug}`));
       } else {
         await writeFile(path, sql, 'utf8');
-        step(`${file} — ${pack.accounts.length} accounts, ${pack.taxes.length} taxes`);
+        step(
+          `${file} — ${pack.charts.length} chart(s), ` +
+            `${pack.charts.reduce((n, c) => n + c.accounts.length, 0)} accounts, ` +
+            `${pack.taxes.length} taxes, ${pack.statements.length} statements`,
+        );
       }
     } else if (current !== sql) {
       stale += 1;
@@ -87,14 +130,15 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
 }
 
 function selection(args: ParsedArgs, available: string[]): string[] {
-  if (boolFlag(args, 'all')) return available;
+  const all = [GENERIC_PACK, ...available];
+  if (boolFlag(args, 'all')) return all;
   const asked = args.positional[1];
   if (asked === undefined) {
-    throw new UsageError(`name a country or pass --all. This checkout carries: ${available.join(', ')}`);
+    throw new UsageError(`name a country or pass --all. This checkout carries: ${all.join(', ')}`);
   }
   const slug = asked.toLowerCase();
-  if (!available.includes(slug)) {
-    throw new UsageError(`unknown pack: ${asked}. This checkout carries: ${available.join(', ')}`);
+  if (!all.includes(slug)) {
+    throw new UsageError(`unknown pack: ${asked}. This checkout carries: ${all.join(', ')}`);
   }
   return [slug];
 }

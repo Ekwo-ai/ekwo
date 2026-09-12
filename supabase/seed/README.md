@@ -6,17 +6,18 @@ nothing`), so applying it twice is harmless.
 | File | Content | Applied by default |
 |---|---|---|
 | `00_currencies.sql` | 11 ISO 4217 currencies | yes |
-| `10_pack_be.sql` | **Generated from `packs/be`.** Belgian PCMN, 353 accounts (AR du 21 octobre 2018), 6 journals, 19 VAT codes with their Intervat boxes, default account roles | yes |
-| `11_pack_fr.sql` | **Generated from `packs/fr`.** French PCG, 392 accounts (règlement ANC 2022-06), 6 journals, 17 VAT codes with their CA3 lines, default account roles | yes |
+| `05_framework_generic.sql` | **Generated from `packs/generic`.** The generic financial statements by account type: a balance sheet and an income statement that fit any chart of any country, and the fallback for a chart that declares none | yes |
+| `10_pack_be.sql` | **Generated from `packs/be`.** Two charts — the PCMN, 353 accounts (AR du 21 octobre 2018), and an association chart of 349 — 6 journals, 19 VAT codes with their Intervat boxes, the NBB abbreviated schemes, default account roles | yes |
+| `11_pack_fr.sql` | **Generated from `packs/fr`.** French PCG, 392 accounts (règlement ANC 2022-06), 6 journals, 17 VAT codes with their CA3 lines, the 2050-2053 liasse, default account roles | yes |
 | `90_demo_company.sql` | A fictional company, « Exemple Conseil SRL », with contacts, four catalogue products, posted documents, a matched payment and a bank statement | **no** — sample data only |
 
-`config.toml` lists the first three under `[db.seed].sql_paths`; the demo file
+`config.toml` lists the generated files and the currencies under `[db.seed].sql_paths`; the demo file
 is deliberately left out. Load it by hand on a scratch project when you want
 something to look at.
 
-## Two of these files are generated
+## Three of these files are generated
 
-`10_pack_be.sql` and `11_pack_fr.sql` are build artefacts, like
+`05_framework_generic.sql`, `10_pack_be.sql` and `11_pack_fr.sql` are build artefacts, like
 `docs/schema.md`. **Do not edit them**: change `packs/be` or `packs/fr` and run
 `ekwo pack build --all`. `ekwo pack check --all` refuses a seed that is not the
 exact output of its pack, and the CI runs it. The four files they replace —
@@ -27,12 +28,16 @@ row.
 
 ## What the chart files do
 
-They fill the *template* tables (`account_templates`, `journal_templates`,
-`tax_templates`, `tax_posting_templates`, `country_defaults`) and the two
-declaration-form tables (`tax_report_templates`, `tax_report_box_templates`).
+They fill the *template* tables (`chart_templates`, `account_templates`,
+`journal_templates`, `tax_templates`, `tax_posting_templates`,
+`country_defaults`), the two declaration-form tables (`tax_report_templates`,
+`tax_report_box_templates`) and the three statement tables
+(`statement_templates`, `statement_line_templates`, `statement_line_rules`).
 A company gets its own copy of the templates when
-`install_country_template(company_id, 'BE')` runs; the form tables are read
-where they are, because a declaration form is not customisable. Changing
+`install_country_template(company_id, 'BE')` runs — on the chart it names, or
+the default one; the form and statement tables are read where they are,
+because neither a declaration form nor the scheme the Banque nationale prints
+is customisable. Changing
 a pack changes what future companies receive; it does not touch a company that
 already exists.
 

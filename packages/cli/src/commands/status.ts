@@ -80,7 +80,11 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
             status: p.certificationStatus,
             by: p.certifiedBy,
             on: p.certifiedAt,
-          })}`,
+          })} · charts: ${
+            p.charts.length === 0
+              ? 'none recorded'
+              : p.charts.map((c) => `${c.code}${c.isDefault ? ' (default)' : ''}`).join(', ')
+          }`,
         ]),
       );
     }
@@ -92,9 +96,9 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
       pairs(
         report.companies.map((c) => [
           c.name,
-          `${c.country} · pack ${c.packVersion ?? 'unknown'} · ${c.accounts} accounts · ` +
-            `${c.entries} entries · ${c.fiscalYears} financial year(s), ` +
-            `${c.fiscalYears - c.closedFiscalYears} open`,
+          `${c.country} · pack ${c.packVersion ?? 'unknown'} · chart ${c.chartCode ?? 'unknown'} · ` +
+            `${c.accounts} accounts · ${c.entries} entries · ` +
+            `${c.fiscalYears} financial year(s), ${c.fiscalYears - c.closedFiscalYears} open`,
         ]),
       );
       const behind = report.companies.filter((c) => {

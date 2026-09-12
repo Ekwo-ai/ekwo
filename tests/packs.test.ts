@@ -28,8 +28,11 @@ interface TemplateRow {
 
 /** The template tables, keyed and ordered so two databases compare row by row. */
 const QUERIES: Record<string, string> = {
+  // The default chart only: the hand-written seeds knew one chart per country,
+  // so the comparison is against the chart that was already there.
   account_templates: `select country, code, name, account_type::text, reconcilable, parent_code, sequence
-                        from account_templates order by country, code`,
+                        from account_templates where chart_code = 'default'
+                        order by country, code`,
   journal_templates: `select country, code, name, journal_type::text, sequence
                         from journal_templates order by country, code`,
   tax_templates: `select country, code, name, description, amount_type::text, amount::text,
@@ -82,6 +85,15 @@ async function templateRows(db: PGlite): Promise<Record<string, TemplateRow[]>> 
 /** A database with the migrations and the four seeds as they were written by hand. */
 async function databaseBeforePacks(): Promise<PGlite> {
   const db = await freshDatabase({ seed: false });
+  // Those seeds were written when a country had one chart of accounts: their
+  // `on conflict (country, code)` names a key the schema has widened since,
+  // and they point at no chart because there was no chart table. This database
+  // is given that shape back — its old key, and no chart to refer to — so the
+  // files themselves are replayed untouched, which is the whole point of them.
+  await db.exec(`
+    alter table account_templates drop constraint account_templates_chart_fk;
+    create unique index on account_templates (country, code);
+  `);
   await db.exec(await readFile(join(seedDir, '00_currencies.sql'), 'utf8'));
   for (const file of (await readdir(beforeDir)).filter((f) => f.endsWith('.sql')).sort()) {
     await db.exec(await readFile(join(beforeDir, file), 'utf8'));
@@ -158,28 +170,30 @@ describe('pack, seed, database, pack again', () => {
     await db.close();
   });
 
-  it('gives back the accounts the pack holds', async () => {
+  it('gives back the accounts every chart of the pack holds', async () => {
     for (const slug of await listPacks(packs)) {
       const pack = await readPack(slug, packs);
-      const loaded = await rows<{ code: string; name: string; account_type: string; reconcilable: boolean; parent_code: string | null; sequence: number }>(
-        db,
-        `select code, name, account_type::text, reconcilable, parent_code, sequence
-           from account_templates where country = $1 order by code`,
-        [pack.manifest.country],
-      );
-      const expected = [...pack.accounts].sort((a, b) => (a.code < b.code ? -1 : 1));
-      expect(loaded.length, slug).toBe(expected.length);
-      loaded.forEach((row, index) => {
-        const account = expected[index]!;
-        expect({ ...row, sequence: Number(row.sequence) }, `${slug} ${account.code}`).toEqual({
-          code: account.code,
-          name: account.name,
-          account_type: account.type,
-          reconcilable: account.reconcilable,
-          parent_code: account.parent,
-          sequence: account.sequence,
+      for (const chart of pack.charts) {
+        const loaded = await rows<{ code: string; name: string; account_type: string; reconcilable: boolean; parent_code: string | null; sequence: number }>(
+          db,
+          `select code, name, account_type::text, reconcilable, parent_code, sequence
+             from account_templates where country = $1 and chart_code = $2 order by code`,
+          [pack.manifest.country, chart.code],
+        );
+        const expected = [...chart.accounts].sort((a, b) => (a.code < b.code ? -1 : 1));
+        expect(loaded.length, `${slug}/${chart.code}`).toBe(expected.length);
+        loaded.forEach((row, index) => {
+          const account = expected[index]!;
+          expect({ ...row, sequence: Number(row.sequence) }, `${slug}/${chart.code} ${account.code}`).toEqual({
+            code: account.code,
+            name: account.name,
+            account_type: account.type,
+            reconcilable: account.reconcilable,
+            parent_code: account.parent,
+            sequence: account.sequence,
+          });
         });
-      });
+      }
     }
   });
 

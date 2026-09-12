@@ -3,7 +3,7 @@
   "country": "FR",
   "name": "France",
   "version": "1.1.0",
-  "schema_min": "20260912091918",
+  "schema_min": "20260912100412",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -76,6 +76,20 @@
       "type": "opening",
       "name": "Journal des à-nouveaux",
       "sequence": 60
+    }
+  ],
+  "charts": [
+    {
+      "code": "default",
+      "name": "PCG — plan comptable général",
+      "accounts": "accounts.csv",
+      "default": true,
+      "audience": "companies",
+      "statements": [
+        "FR-2050",
+        "FR-2052"
+      ],
+      "legal_reference": "Règlement ANC 2022-06 — plan comptable général"
     }
   ],
   "documents": {
