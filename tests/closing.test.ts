@@ -12,9 +12,13 @@
  * database is a write nobody can make.
  */
 
+import { readFile, writeFile, mkdir, rm, cp } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
+import { readPack } from '../packages/cli/src/index.js';
+import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { newCompany, newContact, newDocument, type Fixture } from './helpers/factory.js';
 
 let db: PGlite;
@@ -690,6 +694,69 @@ describe('the three functions', () => {
     }
   });
 
+  it('take no default from the schema: a pack that says nothing gets a refusal', async () => {
+    // "Il n'y a pas de raison de mettre la Belgique par défaut." A default
+    // closing style is one country's mechanism handed to every country that
+    // has not spoken, and `OPN` is the journal code Belgium and France happen
+    // to use. So the five columns carry no default at all.
+    const defaults = await rows<{ column_name: string; column_default: string | null }>(
+      db,
+      `select column_name, column_default
+         from information_schema.columns
+        where table_schema = 'public' and table_name = 'country_defaults'
+          and column_name in ('closing_style', 'current_year_result_profit_code',
+                              'current_year_result_loss_code', 'retained_earnings_loss_code',
+                              'opening_journal_code')
+        order by column_name`,
+    );
+    expect(defaults).toHaveLength(5);
+    for (const column of defaults) {
+      expect(column.column_default, column.column_name).toBeNull();
+    }
+  });
+
+  it('refuse a year whose pack says nothing about closing, by name', async () => {
+    const fx = await companyWithTwoYears('BE');
+    await tradingYear(fx, 'BE', 10000, 4000);
+    const year = await fiscalYear(fx.companyId, 'Exercice 2026');
+
+    await db.query(`update country_defaults set closing_style = null where country = $1`, ['BE']);
+    const message = await asUser(db, fx.ownerId, () =>
+      expectError(db, `select close_fiscal_year($1)`, [year]),
+    );
+    expect(message).toMatch(/no_closing_defaults/);
+    expect(message).toMatch(/defaults\.closing_style/);
+  });
+
+  it('refuse to open or close when the pack names no opening journal', async () => {
+    const fx = await companyWithTwoYears('BE');
+    await tradingYear(fx, 'BE', 10000, 4000);
+    const year = await fiscalYear(fx.companyId, 'Exercice 2026');
+
+    // The journal is still there under its own code; what is gone is the pack
+    // saying which one it is. Nothing falls back on a code written in the
+    // schema.
+    await db.query(`update country_defaults set opening_journal_code = null where country = $1`, [
+      'BE',
+    ]);
+    const closing = await asUser(db, fx.ownerId, () =>
+      expectError(db, `select close_fiscal_year($1)`, [year]),
+    );
+    expect(closing).toMatch(/no_opening_journal/);
+
+    const opening = await asUser(db, fx.ownerId, () =>
+      expectError(db, `select opening_balance($1, $2, $3::jsonb)`, [
+        fx.companyId,
+        year,
+        JSON.stringify([
+          { account_code: '550000', debit: '100.00', credit: '0' },
+          { account_code: '100000', debit: '0', credit: '100.00' },
+        ]),
+      ]),
+    );
+    expect(opening).toMatch(/no_opening_journal/);
+  });
+
   it('read the codes from the pack, which is why two countries behave differently', async () => {
     const defaults = await rows<{
       country: string;
@@ -721,5 +788,79 @@ describe('the three functions', () => {
         opening_journal_code: 'OPN',
       },
     ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The pack says it, or nothing does
+// ---------------------------------------------------------------------------
+
+describe('a pack that declares a closing style', () => {
+  /** A copy of `packs/` with one manifest patched, so nothing here edits the real one. */
+  async function packsWith(patch: (defaults: Record<string, unknown>) => void): Promise<string> {
+    const dir = join(tmpdir(), `ekwo-packs-${crypto.randomUUID()}`);
+    await mkdir(dir, { recursive: true });
+    await cp(join(repoRoot, 'packs'), dir, { recursive: true });
+    const file = join(dir, 'be', 'pack.json');
+    const manifest = JSON.parse(await readFile(file, 'utf8')) as {
+      defaults: Record<string, unknown>;
+    };
+    patch(manifest.defaults);
+    await writeFile(file, JSON.stringify(manifest, null, 2));
+    return dir;
+  }
+
+  it('is accepted as it stands', async () => {
+    const pack = await readPack('be');
+    expect(pack.manifest.defaults['closing_style']).toBe('appropriation_accounts');
+  });
+
+  it('is refused when it names no account for the result', async () => {
+    const dir = await packsWith((defaults) => {
+      const roles = defaults['roles'] as Record<string, unknown>;
+      delete roles['current_year_result_profit'];
+    });
+    try {
+      await expect(readPack('be', dir)).rejects.toThrow(/current_year_result_profit/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('is refused when it names no opening journal', async () => {
+    const dir = await packsWith((defaults) => {
+      const journals = defaults['journal_roles'] as Record<string, unknown>;
+      delete journals['opening'];
+    });
+    try {
+      await expect(readPack('be', dir)).rejects.toThrow(/journal_roles\.opening/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('is refused when the journal it names is not an opening journal', async () => {
+    const dir = await packsWith((defaults) => {
+      const journals = defaults['journal_roles'] as Record<string, unknown>;
+      journals['opening'] = 'MISC';
+    });
+    try {
+      await expect(readPack('be', dir)).rejects.toThrow(/has to be of type opening/);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('the migration of this change', () => {
+  it('holds no country code of its own', async () => {
+    // P0-3 keeps this true for every migration in the repository; this one
+    // says it for the file that introduces the closing parameters, which are
+    // exactly the place a country would have been tempting.
+    const sql = await readFile(
+      join(repoRoot, 'supabase', 'migrations', '20260912094412_opening_and_closing.sql'),
+      'utf8',
+    );
+    expect(sql).not.toMatch(/'(BE|FR|UK|US|CA|GB|IE|NL|DE|LU)'/);
   });
 });

@@ -494,6 +494,7 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
       issues.push({ path: `defaults.journal_roles.${role}`, message: `${code} is not a journal of this pack` });
     }
   }
+  issues.push(...closingRules(manifest, journals));
   const seen = new Set<string>();
   for (const tax of taxes) {
     if (seen.has(tax.code)) issues.push({ path: `taxes.json ${tax.code}`, message: 'duplicate code' });
@@ -523,6 +524,53 @@ function crossReferences(manifest: Manifest, accounts: PackAccount[], taxes: Pac
           });
         }
       }
+    }
+  }
+  return issues;
+}
+
+/**
+ * What a `closing_style` obliges the rest of the pack to say.
+ *
+ * The schema carries no default for any of it — a default closing style is
+ * one country's mechanism applied to every country that has not spoken, and
+ * `OPN` is the journal code Belgium and France happen to use. So a pack that
+ * declares a style has to name the accounts and the journal that style needs,
+ * and `ekwo pack check` says which one is missing rather than letting
+ * `close_fiscal_year` find out on somebody's year end.
+ */
+function closingRules(manifest: Manifest, journals: Set<string>): Issue[] {
+  const issues: Issue[] = [];
+  const style = manifest.defaults['closing_style'] as string | undefined;
+  if (style === undefined) return issues;
+
+  const roles = manifest.defaults.roles;
+  const needed =
+    style === 'retained_earnings'
+      ? ['retained_earnings']
+      : ['current_year_result_profit', 'current_year_result_loss'];
+  for (const role of needed) {
+    if (roles[role] === undefined || roles[role] === null) {
+      issues.push({
+        path: `defaults.roles.${role}`,
+        message: `a pack that closes with ${style} has to name it`,
+      });
+    }
+  }
+
+  const opening = manifest.defaults.journal_roles?.['opening'];
+  if (opening === undefined) {
+    issues.push({
+      path: 'defaults.journal_roles.opening',
+      message: 'a pack that declares a closing_style has to name the journal its opening and year-end entries go on',
+    });
+  } else if (journals.has(opening)) {
+    const journal = manifest.journals.find((j) => j.code === opening);
+    if (journal !== undefined && journal.type !== 'opening') {
+      issues.push({
+        path: 'defaults.journal_roles.opening',
+        message: `${opening} is of type ${journal.type}, and the opening journal has to be of type opening`,
+      });
     }
   }
   return issues;

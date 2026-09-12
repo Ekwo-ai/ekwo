@@ -267,11 +267,14 @@ function defaults(pack: Pack, country: string): string[] {
     text(journalRoles['purchase'] ?? 'PUR'),
     text(journalRoles['miscellaneous'] ?? 'MISC'),
     text(pack.manifest.defaults.language ?? null),
-    text((pack.manifest.defaults['closing_style'] as string | undefined) ?? 'retained_earnings'),
+    // No fallback: a pack that says nothing about closing writes null, and
+    // close_fiscal_year refuses by name. A default here would be one
+    // country's mechanism given to every country that has not spoken.
+    text((pack.manifest.defaults['closing_style'] as string | undefined) ?? null),
     text(roles['current_year_result_profit'] ?? null),
     text(roles['current_year_result_loss'] ?? null),
     text(roles['retained_earnings_loss'] ?? null),
-    text(journalRoles['opening'] ?? 'OPN'),
+    text(journalRoles['opening'] ?? null),
   ];
   return [
     'insert into country_defaults',

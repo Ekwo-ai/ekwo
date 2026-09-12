@@ -81,15 +81,22 @@ create type closing_style as enum (
 comment on type closing_style is
   'How the year-end close moves the result: straight to retained earnings, through a balance-sheet result account, or through an appropriation account of the income statement.';
 
+-- **No column here carries a default**, and that is the point. A default
+-- closing style would be one country's mechanism applied to every country
+-- that has not said otherwise, and `'OPN'` is the journal code Belgium and
+-- France happen to use. A pack that says nothing gets a refusal naming the
+-- field it is missing, never somebody else's answer: `close_fiscal_year`
+-- raises `no_closing_defaults` and `no_opening_journal`, and `ekwo pack
+-- check` catches both before a seed is ever written.
 alter table country_defaults
-  add column if not exists closing_style                   closing_style not null default 'retained_earnings',
+  add column if not exists closing_style                   closing_style,
   add column if not exists current_year_result_profit_code text,
   add column if not exists current_year_result_loss_code   text,
   add column if not exists retained_earnings_loss_code     text,
-  add column if not exists opening_journal_code            text not null default 'OPN';
+  add column if not exists opening_journal_code            text;
 
 comment on column country_defaults.closing_style is
-  'Which of the three mechanisms close_fiscal_year() follows for a company of this country.';
+  'Which of the three mechanisms close_fiscal_year() follows for a company of this country. Null until the pack says; there is no default, because a default would be one country''s answer given to every other.';
 comment on column country_defaults.current_year_result_profit_code is
   'Account the result of the year lands on when the year is profitable. Belgium 693, France 120. Null where the result goes straight to retained earnings.';
 comment on column country_defaults.current_year_result_loss_code is
@@ -97,7 +104,7 @@ comment on column country_defaults.current_year_result_loss_code is
 comment on column country_defaults.retained_earnings_loss_code is
   'Retained earnings account for an accumulated loss, where the chart keeps one apart from the profit account. Belgium 141, France 119. Null falls back to retained_earnings_code.';
 comment on column country_defaults.opening_journal_code is
-  'Journal the opening and the year-end entries are booked on. A journal of type `opening` is used when no code matches, so a company that renamed its own still closes.';
+  'Code of the journal the opening and the year-end entries are booked on, from the pack. Null until the pack names one, and then nothing opens or closes: there is no code written into the schema to fall back on.';
 
 -- ---------------------------------------------------------------------------
 -- Closing a year is an act, not a column
@@ -156,18 +163,18 @@ language sql
 stable
 as $$
   select j.id
-    from journals j
-    left join companies c on c.id = j.company_id
-    left join country_defaults d on d.country = c.country
-   where j.company_id = p_company_id
-     and j.journal_type = 'opening'
-     and j.active
-   order by (j.code is distinct from d.opening_journal_code), j.code
+    from companies c
+    join country_defaults d on d.country = c.country
+    join journals j on j.company_id = c.id
+                   and j.code = d.opening_journal_code
+                   and j.journal_type = 'opening'
+                   and j.active
+   where c.id = p_company_id
    limit 1;
 $$;
 
 comment on function opening_journal_id(uuid) is
-  'The journal the opening and year-end entries go on: the code the country model names, else the company''s own journal of type opening.';
+  'The journal the opening and year-end entries go on, named by the pack of this company''s country. Null when the pack names none, and the callers refuse rather than guessing at a code.';
 
 -- An entry that has been reversed, and a reversal itself, cancel out. So
 -- "does this year already hold an opening entry" is a question about the ones
@@ -258,7 +265,8 @@ begin
 
   v_journal := opening_journal_id(p_company_id);
   if v_journal is null then
-    raise exception 'no_opening_journal: company % has no journal of type opening', p_company_id;
+    raise exception 'no_opening_journal: the pack of this company names no journal of type opening. Set defaults.journal_roles.opening in the pack, which fills country_defaults.opening_journal_code.'
+      using errcode = '55006';
   end if;
 
   insert into entries (company_id, journal_id, fiscal_year_id, entry_date,
@@ -395,9 +403,15 @@ begin
       v_company.country;
   end if;
 
+  if v_defaults.closing_style is null then
+    raise exception 'no_closing_defaults: the pack of this company says nothing about how a year is closed. Set defaults.closing_style, and the account roles it needs, in the pack.'
+      using errcode = '55006';
+  end if;
+
   v_journal := opening_journal_id(v_year.company_id);
   if v_journal is null then
-    raise exception 'no_opening_journal: company % has no journal of type opening', v_year.company_id;
+    raise exception 'no_opening_journal: the pack of this company names no journal of type opening. Set defaults.journal_roles.opening in the pack, which fills country_defaults.opening_journal_code.'
+      using errcode = '55006';
   end if;
 
   -- The result of the year: income less expense, over the accounts that do
