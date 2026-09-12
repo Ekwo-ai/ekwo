@@ -46,6 +46,7 @@ export function compilePack(pack: Pack): string {
   out.push(...taxReport(pack, country));
   out.push(...statements(pack.statements, pack.lineLabels, country));
   out.push(...defaults(pack, country));
+  out.push(...documentRules(pack, country));
 
   return `${out.join('\n')}\n`;
 }
@@ -499,6 +500,72 @@ function defaults(pack: Pack, country: string): string[] {
 }
 
 /**
+ * What a country requires on a document, how the document is exchanged, and
+ * the formats its banks speak: twelve columns of `country_defaults` and the
+ * sentences of `legal_mention_templates`.
+ *
+ * An `update` rather than a second `insert`. The row exists — `defaults()`
+ * writes it immediately above — and an insert would have to restate the name,
+ * the currency and the two account roles that its not-null columns need, which
+ * is the same values twice in one generated file. The update touches only the
+ * columns this section owns, so it stays independent of the row above, and a
+ * pack that declares nothing writes null where null already was.
+ *
+ * None of these columns has a default, so `null` is written literally rather
+ * than the `default` keyword the rounding columns use: there is nothing for
+ * the schema to decide.
+ */
+function documentRules(pack: Pack, country: string): string[] {
+  const rules = pack.documents;
+  const out = [
+    '',
+    'update country_defaults set',
+    `  numbering_gapless       = ${orNull(rules.numbering_gapless, bool)},`,
+    `  number_format           = ${text(rules.number_format)},`,
+    `  legal_payment_days      = ${orNull(rules.legal_payment_days, number)},`,
+    `  late_payment_reference  = ${text(rules.late_payment_reference)},`,
+    `  tax_point_rule          = ${text(rules.tax_point_rule)},`,
+    `  einvoice_profile        = ${text(rules.einvoice_profile)},`,
+    `  einvoice_mandatory_from = ${date(rules.einvoice_mandatory_from)},`,
+    `  party_scheme            = ${text(rules.party_scheme)},`,
+    `  vat_scheme              = ${text(rules.vat_scheme)},`,
+    `  bank_statement_formats  = ${listOrNull(rules.bank_statement_formats)},`,
+    `  payment_formats         = ${listOrNull(rules.payment_formats)},`,
+    `  fiscal_year_default     = ${text(rules.fiscal_year_default)}`,
+    ` where country = ${text(country)};`,
+  ];
+
+  if (rules.mentions.length === 0) return out;
+
+  const mentions = [...rules.mentions].sort(
+    (a, b) => a.sequence - b.sequence || (a.code < b.code ? -1 : 1),
+  );
+  const values = mentions.map(
+    (m) =>
+      `  (${text(country)}, ${text(m.code)}, ${text(m.applies_when)}, ${text(m.text)}, ` +
+      `${json(m.text_i18n)}, ${m.sequence}, ${date(m.valid_from)}, ${date(m.valid_to)}, ` +
+      `${text(m.legal_reference)})`,
+  );
+
+  out.push(
+    '',
+    'insert into legal_mention_templates',
+    '  (country, code, applies_when, text, text_i18n, sequence, valid_from, valid_to, legal_reference)',
+    'values',
+    values.join(',\n'),
+    'on conflict (country, code) do update set',
+    '  applies_when    = excluded.applies_when,',
+    '  text            = excluded.text,',
+    '  text_i18n       = excluded.text_i18n,',
+    '  sequence        = excluded.sequence,',
+    '  valid_from      = excluded.valid_from,',
+    '  valid_to        = excluded.valid_to,',
+    '  legal_reference = excluded.legal_reference;',
+  );
+  return out;
+}
+
+/**
  * `country_packs`: which pack this installation holds, and how much anyone
  * has read it. `ekwo init` prints the certification status, `ekwo status`
  * compares this version to what each company copied.
@@ -565,6 +632,25 @@ function array(values: readonly string[]): string {
 
 function bool(value: boolean): string {
   return value ? 'true' : 'false';
+}
+
+/**
+ * The pack's value, or a literal `null`. For a column with no default, which
+ * is every column this release adds: nothing for the schema to fall back on,
+ * so "the pack said nothing" is written as the absence it is.
+ */
+function orNull<T>(value: T | null | undefined, render: (value: T) => string): string {
+  return value === null || value === undefined ? 'null' : render(value);
+}
+
+/**
+ * A `text[]` of formats, or null. An empty list and a missing section say the
+ * same thing here — this country has told us nothing about its banks — and
+ * one of them has to reach the column, so it is null rather than `{}`, which
+ * would read as "explicitly no format at all".
+ */
+function listOrNull(values: readonly string[]): string {
+  return values.length === 0 ? 'null' : array(values);
 }
 
 /**

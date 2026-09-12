@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.1.0, do not edit.
+-- Generated from packs/be at version 1.2.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -11,11 +11,11 @@
 --   Arrêté royal n. 20 du 20 juillet 1970
 --   Arrêté royal n. 1 du 29 décembre 1992, art. 20
 --   Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction
---
--- In the pack, not compiled by this release:
---   documents — country_defaults columns and legal_mention_templates (P0-7)
---   einvoicing — country_defaults columns and legal_mention_templates (P0-7)
---   bank — country_defaults columns and legal_mention_templates (P0-7)
+--   Code de la TVA, art. 17 — exigibilité de la taxe à l'émission de la facture
+--   Code de la TVA, art. 39, 39bis et 56bis — exonérations et régime de la franchise
+--   Arrêté royal n° 1 du 29 décembre 1992, art. 5 — numérotation séquentielle des factures
+--   Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 4, 5 et 6
+--   Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée
 --
 -- Reference data: `install_country_template()` copies it into a company,
 -- nothing here belongs to a company.
@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.1.0', date '2026-09-12', '20260912100412', 'maintained', null, null, 'c210d3d86d036bcc49ee58aba7ed473a028a8644fd6301a3ce93835388900240')
+  ('BE', 'Belgium', '1.2.0', date '2026-09-12', '20260912111751', 'maintained', null, null, 'be78f3dd526cdef715272cfba829239f4a609a2e221cea6aee40dfea9a118b1b')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -1172,3 +1172,36 @@ on conflict (country) do update set
   opening_journal_code            = excluded.opening_journal_code,
   rounding_method        = excluded.rounding_method,
   cash_rounding_unit     = excluded.cash_rounding_unit;
+
+update country_defaults set
+  numbering_gapless       = true,
+  number_format           = '{CODE}/{YYYY}/{NNNN}',
+  legal_payment_days      = 30,
+  late_payment_reference  = 'Loi du 2 août 2002, art. 5 — intérêt au taux directeur de la Banque centrale européenne majoré de huit points, publié semestriellement au Moniteur belge ; art. 6 — indemnité forfaitaire de 40 € pour frais de recouvrement',
+  tax_point_rule          = 'invoice_date',
+  einvoice_profile        = 'peppol-bis-3',
+  einvoice_mandatory_from = date '2026-01-01',
+  party_scheme            = '0208',
+  vat_scheme              = '9925',
+  bank_statement_formats  = array['coda', 'camt.053']::text[],
+  payment_formats         = array['pain.001']::text[],
+  fiscal_year_default     = 'calendar'
+ where country = 'BE';
+
+insert into legal_mention_templates
+  (country, code, applies_when, text, text_i18n, sequence, valid_from, valid_to, legal_reference)
+values
+  ('BE', 'reverse_charge', 'reverse_charge', 'Autoliquidation — taxe à acquitter par le cocontractant.', '{"de":"Steuerschuldnerschaft des Leistungsempfängers.","en":"Reverse charge — VAT to be accounted for by the customer.","nl":"Btw verlegd — belasting te voldoen door de medecontractant."}'::jsonb, 10, date '1970-01-01', null, 'Arrêté royal n° 1 du 29 décembre 1992, art. 20'),
+  ('BE', 'intracom_goods', 'intra_eu_goods', 'Livraison intracommunautaire exonérée — autoliquidation par l''acquéreur.', '{"de":"Steuerfreie innergemeinschaftliche Lieferung — Steuerschuldnerschaft des Erwerbers.","en":"Exempt intra-Community supply — reverse charge by the customer.","nl":"Vrijgestelde intracommunautaire levering — btw verlegd naar de afnemer."}'::jsonb, 20, date '1970-01-01', null, 'Code de la TVA, art. 39bis'),
+  ('BE', 'intracom_services', 'intra_eu_services', 'Autoliquidation — TVA due par le preneur.', '{"de":"Steuerschuldnerschaft des Leistungsempfängers.","en":"Reverse charge — VAT due by the customer.","nl":"Btw verlegd — belasting verschuldigd door de afnemer."}'::jsonb, 30, date '1970-01-01', null, 'Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196'),
+  ('BE', 'export', 'export', 'Exportation exonérée de TVA.', '{"de":"Steuerfreie Ausfuhrlieferung.","en":"Exempt export.","nl":"Van btw vrijgestelde uitvoer."}'::jsonb, 40, date '1970-01-01', null, 'Code de la TVA, art. 39'),
+  ('BE', 'small_business', 'small_business', 'Régime particulier de franchise des petites entreprises — TVA non applicable.', '{"de":"Sonderregelung für Kleinunternehmen — keine Mehrwertsteuer.","en":"Small business exemption scheme — no VAT charged.","nl":"Bijzondere vrijstellingsregeling voor kleine ondernemingen — btw niet van toepassing."}'::jsonb, 50, date '1970-01-01', null, 'Code de la TVA, art. 56bis'),
+  ('BE', 'late_payment', 'late_payment', 'À défaut de paiement à l''échéance, un intérêt au taux légal applicable aux transactions commerciales et une indemnité forfaitaire de 40 € pour frais de recouvrement sont dus de plein droit et sans mise en demeure.', '{"de":"Bei Zahlungsverzug sind von Rechts wegen und ohne Mahnung Zinsen zum gesetzlichen Satz für Handelsgeschäfte sowie eine Pauschale von 40 € für Beitreibungskosten geschuldet.","en":"If not paid when due, interest at the statutory rate for commercial transactions and a fixed recovery indemnity of 40 € fall due by law and without notice.","nl":"Bij niet-betaling op de vervaldag zijn van rechtswege en zonder ingebrekestelling interesten tegen de wettelijke rentevoet voor handelstransacties verschuldigd, alsook een forfaitaire vergoeding van 40 € voor invorderingskosten."}'::jsonb, 60, date '1970-01-01', null, 'Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 5 et 6')
+on conflict (country, code) do update set
+  applies_when    = excluded.applies_when,
+  text            = excluded.text,
+  text_i18n       = excluded.text_i18n,
+  sequence        = excluded.sequence,
+  valid_from      = excluded.valid_from,
+  valid_to        = excluded.valid_to,
+  legal_reference = excluded.legal_reference;

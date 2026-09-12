@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.1.0, do not edit.
+-- Generated from packs/fr at version 1.2.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -10,9 +10,11 @@
 --   Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater
 --   Formulaire 3310-CA3
 --   Code general des impots, art. 298, 4 — produits petroliers
---
--- In the pack, not compiled by this release:
---   documents — country_defaults columns and legal_mention_templates (P0-7)
+--   Code général des impôts, art. 269 — fait générateur et exigibilité
+--   Code général des impôts, art. 262, I, 262 ter, I, 283 et 293 B — exonérations, autoliquidation et franchise en base
+--   Code général des impôts, ann. II, art. 242 nonies A — mentions obligatoires et numérotation continue
+--   Code de commerce, art. L441-9, L441-10 et D441-5 — délais de paiement, pénalités et indemnité forfaitaire
+--   Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique
 --
 -- Reference data: `install_country_template()` copies it into a company,
 -- nothing here belongs to a company.
@@ -21,7 +23,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.1.0', date '2026-09-12', '20260912100412', 'maintained', null, null, 'e8b65578b46d401c8e014742d6dfe792ff73d2e961da1a1cdb34159af422e97c')
+  ('FR', 'France', '1.2.0', date '2026-09-12', '20260912111751', 'maintained', null, null, 'cb43d10ce80900c3435fd2656d27c8b358c9032ec28311d7c719c24d3547619c')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -979,3 +981,36 @@ on conflict (country) do update set
   opening_journal_code            = excluded.opening_journal_code,
   rounding_method        = excluded.rounding_method,
   cash_rounding_unit     = excluded.cash_rounding_unit;
+
+update country_defaults set
+  numbering_gapless       = true,
+  number_format           = '{CODE}/{YYYY}/{NNNN}',
+  legal_payment_days      = 30,
+  late_payment_reference  = 'Code de commerce, art. L441-10, II — taux appliqué par la Banque centrale européenne à son opération de refinancement la plus récente majoré de dix points, sans pouvoir être inférieur à trois fois le taux d''intérêt légal ; art. D441-5 — indemnité forfaitaire de 40 € pour frais de recouvrement',
+  tax_point_rule          = 'delivery_date',
+  einvoice_profile        = 'factur-x-en16931',
+  einvoice_mandatory_from = date '2026-09-01',
+  party_scheme            = '0009',
+  vat_scheme              = '9957',
+  bank_statement_formats  = array['camt.053', 'cfonb120']::text[],
+  payment_formats         = array['pain.001', 'cfonb160']::text[],
+  fiscal_year_default     = 'calendar'
+ where country = 'FR';
+
+insert into legal_mention_templates
+  (country, code, applies_when, text, text_i18n, sequence, valid_from, valid_to, legal_reference)
+values
+  ('FR', 'reverse_charge', 'reverse_charge', 'Autoliquidation — TVA due par le preneur.', '{"en":"Reverse charge — VAT to be accounted for by the customer."}'::jsonb, 10, date '1970-01-01', null, 'Code général des impôts, art. 283'),
+  ('FR', 'intracom_goods', 'intra_eu_goods', 'Exonération de TVA — livraison intracommunautaire.', '{"en":"Exempt intra-Community supply."}'::jsonb, 20, date '1970-01-01', null, 'Code général des impôts, art. 262 ter, I'),
+  ('FR', 'intracom_services', 'intra_eu_services', 'Autoliquidation — TVA due par le preneur.', '{"en":"Reverse charge — VAT due by the customer."}'::jsonb, 30, date '1970-01-01', null, 'Code général des impôts, art. 283-2 ; directive 2006/112/CE, art. 44 et 196'),
+  ('FR', 'export', 'export', 'Exonération de TVA — exportation hors de l''Union européenne.', '{"en":"Exempt export outside the European Union."}'::jsonb, 40, date '1970-01-01', null, 'Code général des impôts, art. 262, I'),
+  ('FR', 'small_business', 'small_business', 'TVA non applicable, art. 293 B du CGI.', '{"en":"VAT not applicable, article 293 B of the French tax code."}'::jsonb, 50, date '1970-01-01', null, 'Code général des impôts, art. 293 B'),
+  ('FR', 'late_payment', 'late_payment', 'En cas de retard de paiement, des pénalités sont exigibles sans qu''un rappel soit nécessaire, ainsi qu''une indemnité forfaitaire de 40 € pour frais de recouvrement.', '{"en":"Late payment gives rise to interest without any reminder being necessary, together with a fixed recovery indemnity of 40 €."}'::jsonb, 60, date '1970-01-01', null, 'Code de commerce, art. L441-10 et D441-5')
+on conflict (country, code) do update set
+  applies_when    = excluded.applies_when,
+  text            = excluded.text,
+  text_i18n       = excluded.text_i18n,
+  sequence        = excluded.sequence,
+  valid_from      = excluded.valid_from,
+  valid_to        = excluded.valid_to,
+  legal_reference = excluded.legal_reference;
