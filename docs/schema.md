@@ -401,6 +401,7 @@ Legal entities kept in this instance. One instance may hold several.
 | `default_sales_account_id` | `uuid` | Income account a sales line falls back to when it names none. Wired from country_defaults.sales_account_code at install. |
 | `default_purchase_account_id` | `uuid` | Expense account a purchase line falls back to when it names none. Wired from country_defaults.purchase_account_code at install. |
 | `language` | `character(2)` | not null — Language this company keeps its books in. Chosen at install; decides which label of name_i18n lands in accounts.name. |
+| `region` | `text` | Province or state, ISO 3166-2 without the country prefix: QC, BC, CA. Null in a country that taxes uniformly. |
 
 Constraints:
 
@@ -479,6 +480,7 @@ Third parties. `contact_type` is explicit rather than two hidden counters.
 | `notes` | `text` |  |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `region` | `text` | Province or state of the party, ISO 3166-2 without the country prefix. Canadian tax follows the buyer's province, not the seller's. |
 
 Constraints:
 
@@ -969,6 +971,7 @@ Constraints:
 | `declaration_box` | `text` |  |
 | `box_factor_percent` | `numeric(7,3)` | not null |
 | `sequence` | `integer` | not null |
+| `report_code` | `text` | Declaration form the box belongs to (BE-VAT-PERIODIC, FR-CA3, CA-GST34…). Null means the periodic return of the country. |
 
 Constraints:
 
@@ -994,6 +997,7 @@ Where a tax lands: ledger account and VAT-return box, per tax and per document k
 | `sequence` | `integer` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `report_code` | `text` | Declaration form the box belongs to. Copied from the template; read by vat_return(company, from, to, report_code) from P0-3. |
 
 Constraints:
 

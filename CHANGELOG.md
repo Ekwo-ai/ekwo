@@ -87,6 +87,18 @@ somewhere has already run it.
 
 ### Added
 
+- **Two columns Canada will need, added before Canada.** Migration
+  `20260912080311`: `report_code` on `tax_posting_templates` and
+  `tax_postings`, backfilled to `BE-VAT-PERIODIC` and `FR-CA3` and written by
+  the compiler from `tax_report.json` (a posting may override it with
+  `"report"`); and `region` on `companies` and `contacts`, ISO 3166-2 without
+  the country prefix. A box number is unique only inside one form, and a
+  Canadian company files two returns at once; Canadian tax follows the
+  buyer's province, not the seller's. Adding either with the pack would mean
+  migrating tables that by then hold years of postings. Nothing reads `region`
+  yet — the rules that turn it into a suggested tax are phase 1 — which is
+  said out loud in the migration rather than left to be discovered.
+
 - **An installation knows which country pack it holds, and each company
   knows which one it copied.** Migration `20260912074712` adds `country_packs`
   — version, release date, sha256 of the pack files, certification status and

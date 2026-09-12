@@ -91,8 +91,13 @@ The original six-item list, for the record:
 - **Canada and Québec** — GST, HST and QST stacked per line, PST as a
   non-recoverable tax in British Columbia, Saskatchewan and Manitoba, two
   administrations (CRA and Revenu Québec), bilingual labels, a QuickBooks or
-  Sage 50 style chart, shifted years. It comes **before the United States**:
-  closer to us, and a test of the tax model that the US does not offer.
+  Sage 50 style chart, shifted years. **Rates live in the pack**: fifteen or so
+  stable combinations published by the CRA are data, not the thousands of
+  monthly-changing American jurisdictions that belong to a feed. It comes
+  **before the United States**: closer to us, and a test of the tax model that
+  the US does not offer. `report_code` on the postings and `region` on
+  companies and contacts are in phase 0 so that this pack migrates nothing
+  twice.
 - **Netherlands, Germany, Luxembourg** — RGS, SKR03/04 with XRechnung, PCN.
 - **United States** — a QuickBooks-style chart, the *shape* of sales tax in
   the core with rates and jurisdictions from a provider in the commercial

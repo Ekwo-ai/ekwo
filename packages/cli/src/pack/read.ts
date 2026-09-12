@@ -28,6 +28,8 @@ export interface PackPosting {
   account: string | null;
   box: string | null;
   box_factor: number;
+  /** Declaration form the box belongs to. Defaults to the pack's periodic return. */
+  report: string | null;
   sequence: number;
 }
 
@@ -61,6 +63,8 @@ export interface Pack {
   languages: string[];
   /** Account labels by code, then by language, gathered from `i18n/`. */
   accountLabels: Record<string, Record<string, string>>;
+  /** Code of the periodic return, from `tax_report.json`. The default of every box. */
+  reportCode: string | null;
   /** sha256 of every file of the pack, so a change is visible without a diff. */
   checksum: string;
   /** Sections the schema accepts and this release does not compile. */
@@ -161,10 +165,12 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   const taxes = rawTaxes.map((raw, index) => normaliseTax(raw as Record<string, unknown>, index));
 
   // Accepted, validated, not compiled by this release.
+  let reportCode: string | null = null;
   if (existsSync(join(root, 'tax_report.json'))) {
     const report = await readJson(join(root, 'tax_report.json'));
     issues.push(...validate(report, defs['tax_report'] ?? {}, schema, 'tax_report.json'));
-    deferred.push('tax_report.json — declaration boxes as data (P0-3)');
+    reportCode = (report as { code?: string }).code ?? null;
+    deferred.push('tax_report.json — the boxes themselves; only their form code is compiled (P0-3)');
   }
   if (existsSync(join(root, 'statements.json'))) {
     const statements = await readJson(join(root, 'statements.json'));
@@ -211,6 +217,16 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     }
   }
 
+  // A posting with a box belongs to a form. The pack names one in
+  // `tax_report.json`; a posting may override it the day a country files two.
+  for (const tax of taxes) {
+    for (const postings of Object.values(tax.postings)) {
+      for (const posting of postings) {
+        if (posting.report === null && posting.box !== null) posting.report = reportCode;
+      }
+    }
+  }
+
   issues.push(...crossReferences(manifest, accounts, taxes));
 
   if (issues.length > 0) {
@@ -227,6 +243,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     taxes,
     languages,
     accountLabels,
+    reportCode,
     checksum: await checksum(root),
     deferred,
   };
@@ -272,6 +289,7 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
       account: (p['account'] as string | undefined) ?? null,
       box: (p['box'] as string | undefined) ?? null,
       box_factor: typeof p['box_factor'] === 'number' ? p['box_factor'] : 100,
+      report: (p['report'] as string | undefined) ?? null,
       sequence: typeof p['sequence'] === 'number' ? p['sequence'] : (position + 1) * 10,
     }));
 

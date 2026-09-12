@@ -189,6 +189,101 @@ describe('a seed applied again', () => {
   });
 });
 
+describe('report_code, and the province a party sits in', () => {
+  it('names the declaration form on every posting the packs carry', async () => {
+    const missing = await rows<{ country: string; code: string }>(
+      db,
+      `select t.country, t.code
+         from tax_posting_templates p
+         join tax_templates t on t.id = p.tax_template_id
+        where p.declaration_box is not null and p.report_code is null`,
+    );
+    expect(missing).toEqual([]);
+
+    const forms = await rows<{ country: string; report_code: string; n: number }>(
+      db,
+      `select t.country, p.report_code, count(*)::int as n
+         from tax_posting_templates p
+         join tax_templates t on t.id = p.tax_template_id
+        group by 1, 2 order by 1`,
+    );
+    expect(forms).toEqual([
+      { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 72 },
+      { country: 'FR', report_code: 'FR-CA3', n: 56 },
+    ]);
+  });
+
+  it('carries it into a company, so a posted line knows which return it feeds', async () => {
+    const { companyId } = await newCompany(db, { name: 'Report code SRL' });
+    const postings = await rows<{ report_code: string | null }>(
+      db,
+      `select distinct report_code from tax_postings where company_id = $1`,
+      [companyId],
+    );
+    expect(postings).toEqual([{ report_code: 'BE-VAT-PERIODIC' }]);
+  });
+
+  it('backfills the rows an installation already held', async () => {
+    // The statements below are the migration's own, read from it rather than
+    // retyped: an installation seeded before this release has postings with
+    // no form, and they must come out named.
+    const migration = await readFile(
+      join(repoRoot, 'supabase', 'migrations', '20260912080311_report_code_and_region.sql'),
+      'utf8',
+    );
+    const backfills = migration
+      .split(';')
+      // Drop the comment lines a statement may follow, keep the statement.
+      .map((statement) => statement.replace(/^(\s*--[^\n]*\n)+/, '').trim())
+      .filter((statement) => /^update tax_(posting_templates|postings)\b[\s\S]*set report_code/.test(statement));
+    expect(backfills).toHaveLength(4);
+
+    await db.exec('begin');
+    const { companyId } = await newCompany(db, { name: 'Avant le backfill SRL' });
+    await db.exec('update tax_posting_templates set report_code = null');
+    await db.exec('update tax_postings set report_code = null');
+    for (const statement of backfills) await db.exec(`${statement};`);
+
+    const templates = await one<{ n: number }>(
+      db,
+      'select count(*)::int as n from tax_posting_templates where report_code is null',
+    );
+    expect(templates.n).toBe(0);
+    const company = await one<{ n: number }>(
+      db,
+      'select count(*)::int as n from tax_postings where company_id = $1 and report_code is null',
+      [companyId],
+    );
+    expect(company.n).toBe(0);
+    await db.exec('rollback');
+  });
+
+  it('gives a company and a contact a province, empty in Europe', async () => {
+    const { companyId } = await newCompany(db, { name: 'Region SRL' });
+    const company = await one<{ region: string | null }>(
+      db,
+      'select region from companies where id = $1',
+      [companyId],
+    );
+    expect(company.region).toBeNull();
+
+    // Nothing reads it before the Canadian pack; what has to be true today is
+    // that it exists on both sides of a sale, because the tax follows the
+    // buyer's province and not the seller's.
+    await db.exec('begin');
+    await db.query(`update companies set region = 'QC' where id = $1`, [companyId]);
+    const contact = await one<{ region: string }>(
+      db,
+      `insert into contacts (company_id, name, contact_type, country, region)
+       values ($1, 'Client de Colombie-Britannique', 'customer', 'CA', 'BC')
+       returning region`,
+      [companyId],
+    );
+    expect(contact.region).toBe('BC');
+    await db.exec('rollback');
+  });
+});
+
 describe('row level security on the two new tables', () => {
   it('lets a member read the packs of the installation and refuses a stranger', async () => {
     const ownerId = await newUser(db);

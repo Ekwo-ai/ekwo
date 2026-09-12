@@ -658,6 +658,22 @@ executable by PUBLIC. Every migration that adds a function now ends with
 and never from `anon`, which holds explicit grants on the eight policy
 helpers.
 
+**Canada, before it arrives.** Two columns land now rather than with the pack
+that needs them, because adding them later would mean migrating
+`tax_postings` and `entry_lines` a second time, over years of postings:
+`report_code` on `tax_posting_templates` and `tax_postings` — a box number is
+unique inside one form, and a Canadian company files two returns at once,
+where line 101 of the federal one is not line 101 of the Québec one — and
+`region` on `companies` and `contacts`, because Canadian tax follows the
+buyer's province and the core can only suggest a tax if it knows where the
+parties are. Canadian **rates live in the pack**: fifteen or so stable
+combinations published by the CRA are data, unlike the thousands of
+American jurisdictions that change monthly and belong to a maintained feed.
+What waits for the pack itself is the group tax (`tax_amount_type = group`
+plus `tax_group_members`) and `entry_line_boxes`, the table that lets one base
+line feed two forms; both are phase 1, and `report_code` and `region` are here
+now so that migration happens once.
+
 **Accepted, validated, not yet compiled**, because the tables they need do not
 exist: `tax_report.json` (P0-3), `statements.json` (P0-4), the `documents`,
 `einvoicing` and `bank` sections of the manifest (P0-7), and the journal, tax

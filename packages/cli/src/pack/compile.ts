@@ -158,7 +158,7 @@ function postings(pack: Pack, country: string): string[] {
         values.push(
           `    (${text(tax.code)}, ${text(kind)}, ${text(posting.type)}, ` +
             `${number(posting.factor)}, ${text(posting.account)}, ${text(posting.box)}, ` +
-            `${number(posting.box_factor)}, ${posting.sequence})`,
+            `${number(posting.box_factor)}, ${text(posting.report)}, ${posting.sequence})`,
         );
       }
     }
@@ -167,7 +167,7 @@ function postings(pack: Pack, country: string): string[] {
   return [
     'insert into tax_posting_templates',
     '  (tax_template_id, document_kind, posting_type, factor_percent, account_code,',
-    '   declaration_box, box_factor_percent, sequence)',
+    '   declaration_box, box_factor_percent, report_code, sequence)',
     'select t.id,',
     '       v.document_kind::tax_document_kind,',
     '       v.posting_type::tax_posting_type,',
@@ -175,17 +175,19 @@ function postings(pack: Pack, country: string): string[] {
     '       v.account_code::text,',
     '       v.declaration_box::text,',
     '       v.box_factor_percent::numeric,',
+    '       v.report_code::text,',
     '       v.sequence::integer',
     '  from (values',
     values.join(',\n'),
     '  ) as v (tax_code, document_kind, posting_type, factor_percent, account_code,',
-    '          declaration_box, box_factor_percent, sequence)',
+    '          declaration_box, box_factor_percent, report_code, sequence)',
     `  join tax_templates t on t.country = ${text(country)} and t.code = v.tax_code`,
     'on conflict (tax_template_id, document_kind, posting_type, sequence) do update set',
     '  factor_percent     = excluded.factor_percent,',
     '  account_code       = excluded.account_code,',
     '  declaration_box    = excluded.declaration_box,',
-    '  box_factor_percent = excluded.box_factor_percent;',
+    '  box_factor_percent = excluded.box_factor_percent,',
+    '  report_code        = excluded.report_code;',
     '',
   ];
 }

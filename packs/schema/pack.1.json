@@ -86,6 +86,10 @@
           "description": "How the year-end close moves the result: straight to retained earnings (UK, US), through a result account (FR 120/129), or through the affectation accounts (BE 693/793)."
         },
         "fiscal_year_default": { "enum": ["calendar", "april", "july", "october"] },
+        "region": {
+          "type": ["string", "null"],
+          "description": "Province or state a company of this country sits in unless it says otherwise, ISO 3166-2 without the country prefix (QC, BC). Null where a country taxes uniformly, which is every country of phase 0. The declarative rules that turn a region into a suggested tax — tax_rule_templates and suggest_tax() — arrive in phase 1 with the Canadian pack; the column exists now so the migration happens once."
+        },
         "roles": { "$ref": "#/$defs/account_roles" },
         "journal_roles": { "$ref": "#/$defs/journal_roles" }
       }
@@ -278,6 +282,7 @@
         "account": { "type": ["string", "null"], "description": "Code of the ledger account, from accounts.csv. Only on a tax posting." },
         "box": { "type": ["string", "null"], "pattern": "^[0-9A-Za-z]{1,8}$", "description": "Box of the periodic return this amount lands in." },
         "box_factor": { "type": "number", "description": "Percentage of the amount reported in the box. Default 100; -100 subtracts from the same line." },
+        "report": { "type": ["string", "null"], "description": "Declaration form this box belongs to. Defaults to the code of tax_report.json — a box number is only unique inside one form, which matters the day a country files two at once (Canada: the federal GST/HST return and the Québec one)." },
         "sequence": { "type": "integer", "minimum": 0, "description": "Order inside the kind, and part of the natural key. Defaults to the position in the array, times ten." }
       }
     },

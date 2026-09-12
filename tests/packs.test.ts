@@ -160,10 +160,10 @@ describe('pack, seed, database, pack again', () => {
         expect((loaded!.vat_category ?? '').trim() || null).toBe(tax.vat_category);
 
         for (const kind of ['invoice', 'credit_note'] as const) {
-          const postings = await rows<{ posting_type: string; factor_percent: string; account_code: string | null; declaration_box: string | null; box_factor_percent: string; sequence: number }>(
+          const postings = await rows<{ posting_type: string; factor_percent: string; account_code: string | null; declaration_box: string | null; box_factor_percent: string; report_code: string | null; sequence: number }>(
             db,
             `select posting_type::text, factor_percent::text, account_code, declaration_box,
-                    box_factor_percent::text, sequence
+                    box_factor_percent::text, report_code, sequence
                from tax_posting_templates
               where tax_template_id = $1 and document_kind = $2
               order by sequence, posting_type`,
@@ -180,6 +180,7 @@ describe('pack, seed, database, pack again', () => {
                 account: row.account_code,
                 box: row.declaration_box,
                 box_factor: Number(row.box_factor_percent),
+                report: row.report_code,
                 sequence: Number(row.sequence),
               },
               `${slug} ${tax.code} ${kind} ${index}`,

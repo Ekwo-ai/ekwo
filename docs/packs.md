@@ -64,6 +64,23 @@ the database, which is the rule anyway: **nothing is ever deleted from a
 pack**. An account is deprecated, a tax gets a `valid_to`, a form version gets
 a new `valid_from`.
 
+## Which declaration a box belongs to
+
+A box number is unique inside one form and nowhere else. Belgium and France
+each file one periodic return, so `59` has never been ambiguous; a Canadian
+company files the federal GST/HST return and the Québec one at the same time,
+and line `101` of one is not line `101` of the other. Every posting therefore
+carries a `report_code`, which the compiler fills from the `code` of
+`tax_report.json` — `BE-VAT-PERIODIC`, `FR-CA3` — and which a posting may
+override with `"report": "…"` when a country files more than one.
+
+`defaults.region` is the other half of the same story: Canadian tax follows
+the buyer's province, so `companies.region` and `contacts.region` exist (ISO
+3166-2 without the country prefix — `QC`, `BC`). Nothing reads them before the
+Canadian pack; the declarative rules that turn a region into a *suggested*
+tax, and the group tax that puts GST and QST on one line, are phase 1. The
+core never chooses a tax for anyone, in any country.
+
 ## Versions, and what a company holds
 
 `pack.json.version` is semver:

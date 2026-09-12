@@ -1,6 +1,6 @@
 {
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
-  "code": "FR-VAT-CA3",
+  "code": "FR-CA3",
   "name": "Déclaration de TVA 3310-CA3",
   "period": "month_or_quarter",
   "valid_from": "2022-01-01",
