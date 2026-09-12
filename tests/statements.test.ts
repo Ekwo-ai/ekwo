@@ -478,6 +478,31 @@ describe('a year that has been closed', () => {
     expect(bs['20/58']).toBeCloseTo(bs['10/49']!, 2);
   });
 
+  it('shows the appropriation on the section that exists to show it', async () => {
+    // Two entries, two names. The appropriation moves the result into 693 and
+    // on to 140; the closing entry then takes 693 back to zero with every
+    // other income and expense account. Under one name they cancelled out and
+    // this section read nil.
+    const af = await amounts(company, 'BE-BNB-ABBR-AF', from, to);
+    expect(af['14']).toBeCloseTo(3000, 2);
+
+    const kinds = await rows<{ kind: string; n: number }>(
+      db,
+      `select e.kind::text as kind, count(*)::int as n
+         from entries e where e.company_id = $1 and e.kind <> 'normal'
+        group by 1 order by 1`,
+      [company],
+    );
+    expect(kinds).toEqual([
+      { kind: 'appropriation', n: 1 },
+      { kind: 'closing', n: 1 },
+    ]);
+
+    // And the income statement is untouched by it.
+    const is = await amounts(company, 'BE-BNB-ABBR-IS', from, to);
+    expect(is['9905']).toBeCloseTo(3000, 2);
+  });
+
   it('leaves the generic balance sheet balancing, closed or not', async () => {
     const bs = await amounts(company, 'IFRS-SME-BS', from, to);
     // Derived from the movements, so it is nil once the close has moved them.

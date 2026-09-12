@@ -50,6 +50,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912095825_charts_of_accounts` | `chart_templates`; `chart_code` on `account_templates` — the key becomes `(country, chart_code, code)` — and on `company_packs`; `install_country_template(company, country, language, chart_code)` takes the pack's default chart when none is named. Journals, taxes and the declaration form stay common to the charts of a country |
 | `20260912100412_financial_statements` | `statement_templates`, `statement_line_templates` and `statement_line_rules`, filled by the packs; `evaluate_totals()`, the one place a plus/minus formula is worked out; `financial_statement(company, code, from, to)`, `statement_account_matches()`, `unmapped_accounts()` and `available_statements()` |
 | `20260912104719_one_formula_evaluator` | `vat_return()` rewritten onto `evaluate_totals()`, so a declaration form and a financial statement derive their totals in one function. Its own file because `vat_return` was published before |
+| `20260912105720_entry_kind_appropriation` | `entry_kind` gains `appropriation`. Its own file: a new enum value cannot be used in the transaction that added it |
+| `20260912105721_appropriation_entry_kind` | `close_fiscal_year()` marks the entry that moves the result `appropriation` and keeps `closing` for the one that empties the income statement; `reopen_fiscal_year()` undoes both; `statement_account_matches()` leaves `closing` out of an income statement and of an allocation section |
 
 ## Rules for a new migration
 

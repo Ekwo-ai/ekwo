@@ -822,13 +822,16 @@ describe('what an entry is for', () => {
     expect(await kindOf(entryId)).toBe('opening');
   });
 
-  it('is `closing` on both entries a close writes, and on their reversals', async () => {
+  it('tells the two entries a close writes apart, and carries it onto their reversals', async () => {
+    // They are two acts: one says where the result went, the other empties the
+    // income statement. Under one name they cancelled out and the allocation
+    // section of the Belgian annual accounts read nil.
     const fx = await companyWithTwoYears('BE');
     await tradingYear(fx, 'BE', 10000, 4000);
     const year = await fiscalYear(fx.companyId, 'Exercice 2026');
     const result = await close(fx, year);
 
-    expect(await kindOf(result.appropriation_entry_id as string)).toBe('closing');
+    expect(await kindOf(result.appropriation_entry_id as string)).toBe('appropriation');
     expect(await kindOf(result.closing_entry_id)).toBe('closing');
 
     const undone = await asUser(db, fx.ownerId, () =>
@@ -838,9 +841,11 @@ describe('what an entry is for', () => {
         [year],
       ),
     );
-    for (const id of undone.reopen_fiscal_year.reversal_entry_ids) {
-      expect(await kindOf(id)).toBe('closing');
-    }
+    expect(undone.reopen_fiscal_year.reversal_entry_ids).toHaveLength(2);
+    const reversed = await Promise.all(
+      undone.reopen_fiscal_year.reversal_entry_ids.map((id) => kindOf(id)),
+    );
+    expect([...reversed].sort()).toEqual(['appropriation', 'closing']);
   });
 
   it('is `normal` on everything a business writes', async () => {
