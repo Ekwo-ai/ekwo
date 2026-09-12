@@ -106,6 +106,40 @@ export const DOCUMENT = [
   'sent_at::text',
 ];
 
+/**
+ * The mentions the law of a country puts on one document, from the view that
+ * decides which of them apply. `text_i18n` crosses as it is: a renderer picks
+ * the language, and the server has no business choosing one.
+ */
+export const DOCUMENT_LEGAL_MENTION = [
+  'code',
+  'applies_when',
+  'text',
+  'text_i18n',
+  'sequence',
+  'legal_reference',
+];
+
+/**
+ * What the country of a document requires of it, beside the mentions: the
+ * payment term the law sets, how the number is built, when the tax falls due
+ * and how the document is exchanged. Read from `country_defaults`, which
+ * holds null wherever the pack has said nothing — and null is the answer, not
+ * an invitation to substitute another country's.
+ */
+export const COUNTRY_DOCUMENT_RULES = [
+  'country',
+  'numbering_gapless',
+  'number_format',
+  'legal_payment_days',
+  'late_payment_reference',
+  'tax_point_rule',
+  'einvoice_profile',
+  'einvoice_mandatory_from::text',
+  'party_scheme',
+  'vat_scheme',
+];
+
 export const PRODUCT = [
   'id',
   'company_id',

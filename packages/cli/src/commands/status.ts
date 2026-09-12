@@ -84,7 +84,7 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
             p.charts.length === 0
               ? 'none recorded'
               : p.charts.map((c) => `${c.code}${c.isDefault ? ' (default)' : ''}`).join(', ')
-          }`,
+          }${p.einvoiceProfile === null ? '' : ` · e-invoicing: ${p.einvoiceProfile}`}`,
         ]),
       );
     }

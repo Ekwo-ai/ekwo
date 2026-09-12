@@ -38,6 +38,8 @@ export interface PackStatus {
   certificationStatus: string;
   certifiedBy: string | null;
   certifiedAt: string | null;
+  /** The structured invoice this country expects, from its pack. Null if it says nothing. */
+  einvoiceProfile: string | null;
 }
 
 export interface Status {
@@ -118,10 +120,13 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     certification_status: string;
     certified_by: string | null;
     certified_at: string | null;
+    einvoice_profile: string | null;
   }>(
-    `select country, name, version, certification_status::text, certified_by,
-            certified_at::text
-       from country_packs order by country`,
+    `select p.country, p.name, p.version, p.certification_status::text, p.certified_by,
+            p.certified_at::text, d.einvoice_profile
+       from country_packs p
+       left join country_defaults d on d.country = p.country
+      order by p.country`,
   );
 
   const charts = await db.query<{
@@ -157,6 +162,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       certificationStatus: p.certification_status,
       certifiedBy: p.certified_by,
       certifiedAt: p.certified_at,
+      einvoiceProfile: p.einvoice_profile,
       charts: charts
         .filter((c) => c.country === p.country)
         .map((c) => ({ code: c.code, name: c.name, isDefault: c.is_default })),

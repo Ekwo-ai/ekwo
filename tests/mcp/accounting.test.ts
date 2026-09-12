@@ -188,6 +188,40 @@ describe('the books, through the tools', () => {
     expect(record(document['document'])['amount_residual']).toBe('0.00');
   });
 
+  it('says what the law of the country puts on the invoice, and on what terms', async () => {
+    const document = record(await readTools.getDocument(backend, { document_id: documentId }));
+
+    // A domestic sale at the standard rate owes one sentence — the late
+    // payment terms — and the reverse charge and the intra-Union exemptions
+    // stay off it, because the view reads the treatment of the tax on each
+    // line rather than a flag somebody remembered to set.
+    const mentions = list(document['legal_mentions']);
+    expect(mentions.map((mention) => mention['code'])).toEqual(['late_payment']);
+    expect(String(mentions[0]?.['text'])).toMatch(/40/);
+    expect(mentions[0]?.['legal_reference']).not.toBeNull();
+
+    // The payment and e-invoicing rules come from the country model, and the
+    // assertion is against that row rather than against a value typed here:
+    // the pack is the source, and a test that restates it is a second one.
+    const rules = record(document['country_rules']);
+    const stored = await db.query<{
+      legal_payment_days: number;
+      einvoice_profile: string | null;
+      party_scheme: string | null;
+      tax_point_rule: string | null;
+    }>(
+      `select d.legal_payment_days, d.einvoice_profile, d.party_scheme, d.tax_point_rule
+         from country_defaults d
+         join companies c on c.fiscal_country = d.country
+        where c.id = $1`,
+      [fx.companyId],
+    );
+    expect(rules['legal_payment_days']).toBe(stored.rows[0]?.legal_payment_days);
+    expect(rules['einvoice_profile']).toBe(stored.rows[0]?.einvoice_profile);
+    expect(rules['party_scheme']).toBe(stored.rows[0]?.party_scheme);
+    expect(rules['tax_point_rule']).toBe(stored.rows[0]?.tax_point_rule);
+  });
+
   it('undoes a matching and puts the residual back', async () => {
     const reconciliations = await db.query<{ id: string; amount: string }>(
       `select r.id, r.amount::text as amount
