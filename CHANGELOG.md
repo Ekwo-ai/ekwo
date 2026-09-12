@@ -11,6 +11,29 @@ somewhere has already run it.
 
 ### Added
 
+- **The format libraries live here now, under `packages/formats/`, one MIT
+  package per format and never one per country.** `@ekwo-ai/xbrl-cbso` and
+  `@ekwo-ai/factur-x` came in by subtree with their history; the French FEC
+  left `@ekwo-ai/core` for **`@ekwo-ai/fec`**, which `@ekwo-ai/core` and
+  `@ekwo-ai/core/fec` re-export, deprecated, for one version. A brick imports
+  nothing from the core and declares the row shapes it reads in its own types;
+  `tests/formats.test.ts` fails if one loses its MIT `LICENSE`, imports the
+  core or another brick, or takes a runtime dependency its format does not
+  need. The CLI's published dependency list is unchanged — `pdf-lib` belongs to
+  Factur-X alone.
+  **The core stops asserting its fact keys and starts verifying them**: the
+  fifty-three `xbrl` keys of the Belgian schemes are resolved against the NBB
+  taxonomy the brick carries, and each one has to land on the very line code
+  that wrote it. A statement that carries keys now names the taxonomy they were
+  written against — `"taxonomy": "nbb-cbso:26.0"`, checked by `ekwo pack check`
+  — and the Belgian pack moves to 1.3.1. No migration: the taxonomy never
+  enters Postgres.
+  **And the test the split into two repositories made impossible now exists**:
+  the demo books are closed, presented on the three NBB schemes by
+  `financial_statement()`, filed through `generateCbsoXbrl({ lines })`, checked
+  against the arithmetic of the Filing application, and compared byte for byte
+  with a committed golden instance.
+
 - **VAT falls due when the cash moves, and the exchange difference when it
   settles.** A tax marked `cash_basis` is booked by `post_document` on the
   transition account its pack names and on **no declaration box**, and so is

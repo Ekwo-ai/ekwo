@@ -298,6 +298,11 @@ describe('no country lives in the core any more', () => {
 
   async function literalsIn(pattern: RegExp): Promise<string[]> {
     const guilty: string[] = [];
+    // The three packages that are the core. `packages/formats/*` is judged by
+    // its own rule, in `formats.test.ts`: a format brick may name the country
+    // whose format it implements — the NBB scheme is Belgian by nature, and a
+    // format is code — so what is checked there is that it stays MIT, imports
+    // nothing of ours, and depends on nothing its format does not need.
     for (const pkg of ['cli', 'mcp', 'core']) {
       const dir = join(repoRoot, 'packages', pkg, 'src');
       for (const file of await filesUnder(dir, '.ts')) {

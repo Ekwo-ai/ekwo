@@ -434,6 +434,10 @@ view that puts BT-153, BT-154 and BT-155 side by side for whoever is building
 a Factur-X or Peppol document; `docs/mapping.md` carries the field-by-field
 mapping, and it is written down rather than imported because
 `@ekwo-ai/factur-x` is in a private repository that CI cannot install from.
+*(Superseded on 12 September 2026 by "Format libraries live in this
+repository" below: the brick is now `packages/formats/factur-x`, and CI builds
+and tests it with everything else. The mapping stays written down — it is
+documentation, not a dependency.)*
 
 ## The MCP server
 
@@ -1362,3 +1366,24 @@ the difference that is *not* realised — is not here; `755`/`655` in Belgium an
 audited accounts rather than for a first invoice. Neither is a gross-to-net
 computation for a tax-inclusive price, which waits for the country that sells
 that way.
+
+
+## Format libraries live in this repository, under MIT, one package per format (12 September 2026)
+
+A country is data; a file format is code, and a format is not a country: Factur-X
+is French and German, UBL is universal, camt.053 is European. So the export bricks
+are organised by format under `packages/formats/`, never by country — the pack says
+which formats a country uses, in `einvoice_profile` and the bank format lists.
+They join this repository for the reason `ee/` did: a taxonomy change is one pull
+request, not a two-repository coordination, and the golden test that proves the
+pack and the brick agree can only run where both are. Each package keeps its own
+MIT `LICENSE`, imports nothing from the core, and declares the row shapes it reads
+in its own types; a test enforces all three. The truth of a mapping stays in the
+pack; the brick carries only the official taxonomy, generated from the published
+package, and `ekwo pack check` resolves every key against it — for the NBB schemes
+a key has to resolve to the very line code that carries it. A brick declares no
+`schema_min`: the contract is the shape of the rows, and the end-to-end test is
+what breaks when it moves. `@ekwo-ai/xbrl-cbso` and `@ekwo-ai/factur-x` come in by
+subtree; the FEC leaves `@ekwo-ai/core` for `@ekwo-ai/fec`. Should the core still
+be private when the phase 1 formats begin, `packages/formats/` splits out as one
+public repository with the same structure.

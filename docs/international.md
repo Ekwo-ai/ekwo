@@ -18,7 +18,9 @@ Everything below follows from that.
 Where the core stands today: 18 account types shared with Xero, QuickBooks
 and Odoo; taxes and their declaration boxes as rows; EN 16931 fields as
 columns; the French FEC; XBRL for the Belgian NBB; Factur-X; a REST API and an
-MCP server; row level security everywhere. What it still is: Belgian and
+MCP server; row level security everywhere. The three file formats are MIT
+packages under [`packages/formats/`](../packages/formats/), organised by format
+and never by country. What it still is: Belgian and
 French, with the country spread across a chart, a tax file, a defaults table
 and a generator.
 
@@ -150,7 +152,9 @@ The original six-item list, for the record:
   the core with rates and jurisdictions from a provider in the commercial
   layer, cash-basis reports, 1099 fields.
 - **Formats** — Peppol PINT and UBL 2.1 as the universal invoice; OFX, BAI2,
-  MT940 and camt.053 bank parsers as MIT libraries.
+  MT940 and camt.053 bank parsers. MIT packages under `packages/formats/`,
+  one per format: camt.053 is no more European than UBL is universal, and
+  neither is a country.
 
 ### Phase 2 — GST countries and southern Europe (mid-2027)
 

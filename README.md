@@ -43,10 +43,12 @@ What we are building, in order:
    country — Belgium and France first, then the United Kingdom, Canada and
    Québec, the Netherlands, Germany, Luxembourg. The plan is in
    [`docs/international.md`](docs/international.md).
-5. **Format libraries** as independent MIT packages:
-   [Factur-X](https://github.com/Ekwo-ai/factur-x) and
-   [XBRL for the NBB](https://github.com/Ekwo-ai/xbrl-cbso) already exist;
-   Peppol UBL follows.
+5. **Format libraries** as independent MIT packages, in
+   [`packages/formats/`](packages/formats/), organised by format and never by
+   country: the [French FEC](packages/formats/fec/),
+   [Factur-X](packages/formats/factur-x/) and
+   [XBRL for the NBB](packages/formats/xbrl-cbso/) exist today; Peppol UBL,
+   camt.053 and CODA follow.
 
 Who it is for: a company that wants to keep its own books with an AI at the
 keyboard; an accounting firm that runs several companies inside one
@@ -272,15 +274,22 @@ an entry. Configuration is a block of environment variables in
 npx @ekwo-ai/mcp
 ```
 
-## Related libraries
+## Format libraries
 
-Two format libraries live in their own repositories, under MIT, and will be
-dependencies of the higher layers rather than of this core:
+They live in [`packages/formats/`](packages/formats/), under MIT, one package
+per format and never one per country. Each imports nothing from the core and
+declares the row shapes it reads in its own types, so any book-keeping system
+that can produce those columns can use them:
 
-- [`@ekwo-ai/factur-x`](https://github.com/Ekwo-ai/factur-x) — Factur-X and
-  ZUGFeRD e-invoices: EN 16931 CII XML and PDF/A-3 embedding.
-- [`@ekwo-ai/xbrl-cbso`](https://github.com/Ekwo-ai/xbrl-cbso) — XBRL for the
-  annual accounts filed with the National Bank of Belgium.
+- [`@ekwo-ai/fec`](packages/formats/fec/) — the French *fichier des écritures
+  comptables*: eighteen columns, the arrêté du 29 juillet 2013.
+- [`@ekwo-ai/factur-x`](packages/formats/factur-x/) — Factur-X and ZUGFeRD
+  e-invoices: EN 16931 CII XML and PDF/A-3 embedding.
+- [`@ekwo-ai/xbrl-cbso`](packages/formats/xbrl-cbso/) — XBRL for the annual
+  accounts filed with the National Bank of Belgium.
+
+They are not dependencies of the core: the core produces rows, and a brick
+turns rows into a file. The one place they meet is a test.
 
 ## Community and cloud
 

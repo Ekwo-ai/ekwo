@@ -233,7 +233,7 @@ no move, and there is deliberately no counterpart to them.
 
 ### To the Factur-X invoice object
 
-[`@ekwo-ai/factur-x`](https://github.com/Ekwo-ai/factur-x) takes a plain
+[`@ekwo-ai/factur-x`](../packages/formats/factur-x/) takes a plain
 invoice object and emits EN 16931 CII XML. It is **not** a dependency of this
 repository: it lives in a private repository, and `npm ci` in CI has no
 credentials for it, so depending on it would make a fresh clone fail to
