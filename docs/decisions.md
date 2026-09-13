@@ -1516,3 +1516,177 @@ prorates the first annuity for every company, because article 196, § 2, 1° CIR
 "small company" column; a small company that takes the whole first annuity sets
 `prorata = 'none'` on the asset. All three are in `modules/assets/README.md`
 under a heading that says an accountant should read them.
+
+## ST13 — a company has a face, members have capabilities, machines have keys (13 September 2026)
+
+Everything an accounting product has that the core did not: a company profile
+an invoice can be printed from, invitations, user preferences, fine
+permissions, a numbering engine that reads the pack, machine keys, and a first
+financial year that is not January by assumption. Seven changes, one theme — the core knew how to
+keep books and did not know who was keeping them.
+
+**A role becomes a preset, and a capability becomes what a policy tests.**
+`company_members.role` had three values and every policy in the schema read
+one of them, through `is_company_member`, `can_write_company` and
+`is_company_owner`. That is a permission model with three positions: a
+bookkeeper who may post invoices and must never move a period lock has no row
+to sit on, and the answer in every product that meets the case is a fourth
+role, then a fifth. So `capabilities` is a table of twenty codes,
+`role_capabilities` says what each preset holds, and
+`company_members.capabilities_granted` / `capabilities_revoked` adjust one
+member in both directions. A revoke wins over a grant and over a preset —
+including on an owner, because a company that wants its owner unable to close
+a year is describing its own separation of duties, not making a mistake. Every
+policy now calls `has_capability()`, and `can_write_company()` is rewritten on
+top of it rather than left beside it: it is the answer to `entries.write` and
+nothing else. **The three roles do exactly what they did the day before**, and
+that is the half of it a test would notice.
+
+**No fourth role, and two capabilities that were not written.** `admin` was
+considered and left out: the existing helpers drew one line — write the books,
+or administer the company — and `owner` is already the second half of it, so a
+role between them would have been a name with no work to do. Somebody who
+needs exactly that is an accountant with `members.manage` granted. And
+`reports.read` and `exports.run` are absent on purpose: `trial_balance()` and
+the statements sum ledger lines that row level security has already filtered,
+so a member without `entries.read` gets an empty report today. A second lock
+on the same door is a lock nobody turns, and a capability nothing can refuse
+on is the thing the naming policy forbids.
+
+**Posting and closing are acts, so they are guarded by triggers.**
+`documents.post`, `entries.post` and `year_end.close` name three things a
+policy on a table cannot express: what changes is a state, on a row the member
+may already write. A trigger on the transition holds for every path into it,
+including a client that updates the column itself, and it does not require
+republishing a function that carries a thousand lines of accounting for four
+lines of permission.
+
+**A guard written a day earlier had never fired.** `next_entry_number()` and
+`next_matching_number()` became `SECURITY DEFINER` on 11 September with a check
+that the caller may write the company — "a definer function that skipped that
+check would be a way to burn numbers in somebody else's journal". The check
+was `if auth.uid() is not null and not can_write_company(...)`, and
+`can_write_company()` was `company_role(...) in ('owner','accountant')`:
+`company_role()` returns NULL for a stranger, `NULL in (…)` is NULL, and `if
+not NULL then raise` does nothing. So any signed-in stranger could draw
+numbers in any journal of the installation. `has_capability()` returns false
+rather than null and the guard fires; the test that would have caught it is in
+`tests/capabilities.test.ts`. The demo seed fell over the fix, correctly: it
+was booking as whoever ran `ekwo demo`, who is not a member of the fictional
+company, and it now sets the claim to its own fictional owner for the length
+of its transaction.
+
+**An invitation names an address, not a user id.** `company_members.user_id`
+has no foreign key to `auth.users` precisely so a membership can exist before
+the person signs up — and there was no act that produced one, so somebody had
+to read an id out of the Auth dashboard. `invite_member()` returns a token
+once and stores a sha256 of it; `accept_invitation()` requires that
+`auth.email()` match the address invited, case-insensitively, and is single
+use and expiring. `sha256()` is core Postgres since 11, so no extension —
+`pgcrypto` is not available in PGlite and the schema does without it.
+Accepting is deliberately not an MCP tool: it is the invitee's own act, from
+the application or from any client holding their session. `ekwo
+accept-invitation` is not in this release because the CLI has no GoTrue
+sign-in — it creates the first administrator through the admin API and holds a
+database connection, not a session — and adding a password grant to a binary
+that is handed a `service_role` key is not a small decision.
+
+**A preference has no default, and a label is chosen in one place.**
+`user_preferences` is nullable everywhere: null means "take the company's
+answer, then the pack's", which is the rule P0-7 and P0-8 already keep for a
+country. `label_for(name, name_i18n, languages)` is now the only spelling of
+the resolution that was written out wherever it was needed, and
+`preferred_languages(company)` builds the chain — the user, then the company,
+then the pack. `install_country_template()` is republished on it and keeps
+passing one language, the company's: a chart of accounts is copied in the
+language the books are kept in, not in the language of whoever ran the
+installer. The MCP hands a client the chain and the material; it does not pick
+a label for it, because which label a renderer prints is the renderer's
+question.
+
+**`user_preferences.number_format` and `country_defaults.number_format` are
+two different things**, and both keep the name their domain uses: how a person
+likes a number written, and the pattern of a document number. The guard that
+watches for a country rule leaking into a function had to learn the
+difference.
+
+**The numbering engine P0-7 deferred.** That entry said, in as many words,
+that `next_entry_number()` did not read `number_format` and that "a numbering
+engine that consumes a format is its own piece of work". This is it, on the
+grammar already published: `{CODE}`, `{YYYY}`, `{YY}`, `{MM}` and a `{N…}`
+counter padded to its own width, and `format_number()` raises on a token it
+does not know rather than printing it. There is **no fallback literal**: a
+pack that declares nothing gets `no_number_format` naming the field it has to
+fill. The counter follows the pattern — a year in it restarts with the year,
+and a pattern with none keeps one series for the life of the journal, under
+period 0 in `journal_sequences`. A `{MM}` **prints** the month and does not
+restart the counter: a monthly series is a fifth numbering style, no pack
+declares one, and inventing the behaviour before a pack asks for it is how a
+guess becomes a rule. Belgium and France declare exactly the pattern the
+engine used to hard-code, so nothing about their numbers changed, and the
+demo's FEC is byte for byte what it was.
+
+**`numbering_gapless` gets its reader, and it costs something.**
+`post_entry()` refuses a number chosen by hand where the country forbids a
+hole in the sequence, because a number that skips the counter is exactly how a
+hole appears. Nothing in the core produces one today — an opening balance is a
+trial balance, not a journal — so nothing that exists is refused. The day an
+import of somebody's old entries under their old numbers is written, this is
+the rule it will have to argue with, and the argument is worth having then
+rather than now.
+
+**A key is a third kind of caller, and it is narrower than both the others.**
+A script has no browser to sign in with, and the two usual answers are wrong:
+a `service_role` key gives it every company and every table, and a fake user
+puts a password in a crontab and makes the audit trail say a person did it. An
+`api_keys` row belongs to one company, carries an explicit list of
+capabilities, expires when it is told to and is stored as a sha256. Nobody
+mints a key stronger than they are — every capability on it has to be one the
+issuer holds — which is also what makes revoking a person's capability revoke
+the keys they left behind. **How it authenticates**: the holder calls
+`use_api_key(secret)` at the start of a transaction, which puts the key's
+fingerprint in `ekwo.api_key` transaction-locally, and `has_capability()` then
+answers for it. The alternative was exchanging a key for a GoTrue session,
+which needs either a fake user per key — the thing this avoids — or a service
+that mints tokens, which is a second secret to hold. The setting is simpler
+and its blast radius is one transaction. What it is not, stated rather than
+discovered: a key is not a session. `auth.uid()` stays null, so the policies
+that ask for a signed-in user rather than for a capability — the reference
+tables, the company row — stay closed to it; and because PostgREST runs each
+request in its own transaction, a key is for a client that holds a connection,
+which is the self-hosted route the MCP server already has. Forging the setting
+buys nothing: what goes into it is the hash, and the hash is only readable by
+somebody who already holds `members.manage` and can simply issue a key.
+
+**A company has a face.** Eight columns on `companies` — trade name, logo URL
+or storage path (the core keeps no file), stated capital with its own
+currency, activity code with the register it belongs to, default bank account,
+document template. No `registry_reference`: `registration_number` already is
+the number the commercial register holds, and a second column for it would be
+two answers to one question. The capital with no currency takes the company's
+own, in a trigger, because the alternative was a literal. A sales document
+with no payee IBAN takes the default bank account, in a trigger on `documents`
+for the reason the account of a line is resolved in one — every client has to
+get the same answer — and a purchase document never does, because the payee
+there is somebody else. `document_header` is the third view a renderer needs
+beside `document_line_items` and `document_legal_mentions`, and `get_document`
+was rewritten onto it rather than keeping its own assembly.
+
+**The first financial year is a parameter.** `ekwo init` opened it on 1
+January in two string literals, which is right for Belgium and France and
+wrong for the United Kingdom, India and Australia — and
+`country_defaults.fiscal_year_default` has carried the answer since P0-7.
+`fiscal_year_bounds()` is its reader, in the schema rather than in the CLI
+because three callers ask the same question and three answers is how a company
+ends up with two overlapping first years. A pack that says nothing gets
+`no_fiscal_year_default` naming the field and the flag, never a January nobody
+chose.
+
+**`create_company()` and `bootstrap()` both create a company, and that is
+deliberate.** The two rules involved — what a country pack puts in a company,
+and what two dates a financial year has — live in `install_country_template()`
+and `fiscal_year_bounds()`, and both callers delegate to them. What is
+duplicated is the order of four inserts, and what differs is the behaviour
+that cannot be shared: the installer is check-then-act, reports "already
+there" for every step and can be run twice on a half-finished project, where
+the function creates or raises.

@@ -113,7 +113,11 @@ Every write names its company explicitly.
 | `general_ledger` | Every posted line of an account, with a running balance |
 | `aged_balance` | What is still owed, bucketed by age, read from the ledger |
 | `vat_return` | The boxes for a period, summed from the ledger |
+| `list_statements` / `financial_statement` | The schemes a company can be presented on, and one statement |
 | `generate_fec` | The French FEC as text, with its checks and its filename |
+| `get_preferences` | What you prefer, and the language chain to read labels with |
+| `list_invitations` | Who has been invited into a company and not yet joined |
+| `list_api_keys` | The machine keys of a company, and what each may do |
 | `status` | Schema version, instance, connection, companies |
 | `create_contact` | A customer, supplier or other third party |
 | `create_product` | A catalogue row: code, name, unit, price, account, tax |
@@ -125,11 +129,25 @@ Every write names its company explicitly.
 | `reconcile` / `unreconcile` | Matches two ledger lines, or undoes one matching |
 | `create_bank_account` | Registers an account from its IBAN and wires it to the bank journal. Running it twice with the same IBAN creates nothing |
 | `create_bank_transaction` | One statement line by hand, for an installation with no feed |
-| `lock_period` | Moves the accounting and VAT lock dates. Owner only. |
+| `lock_period` | Moves the accounting and VAT lock dates. Needs `company.write`. |
+| `opening_balance` | The trial balance of whatever kept the books before, as the opening entry |
+| `close_fiscal_year` / `reopen_fiscal_year` | Closes a year the way the country pack says, or reverses a close run too early |
+| `create_company` | A company on a country pack, with its chart and its first financial year. An instance-level act |
+| `update_company_profile` | What a company says about itself on its documents |
+| `set_preferences` | Your own language, timezone, formats and default company |
+| `invite_member` / `revoke_invitation` | Invites an address into a company, or withdraws the invitation. The token is shown once |
+| `create_api_key` / `revoke_api_key` | A key for a machine, scoped to one company and a list of capabilities |
 
-`post_document`, `record_payment`, `update_document_lines`, `unreconcile` and
-`lock_period` are annotated destructive in the protocol, so a client can ask
-before calling them.
+`post_document`, `record_payment`, `update_document_lines`, `unreconcile`,
+`lock_period`, `opening_balance`, `close_fiscal_year`, `reopen_fiscal_year`,
+`revoke_invitation` and `revoke_api_key` are annotated destructive in the
+protocol, so a client can ask before calling them.
+
+**What a tool may do is the capability the user holds**, not the tool's own
+right: the server acts as the person it signed in as, so `post_document` works
+for an accountant and is refused to a viewer, by the database, with the
+database's own words. `get_company` returns `your_capabilities` for exactly
+that reason.
 
 **The modules.** A module of this installation gets its own tools, under the
 prefix its `module.json` declares, and the server reads `public.modules` at

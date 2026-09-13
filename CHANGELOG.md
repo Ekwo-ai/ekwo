@@ -71,6 +71,79 @@ somewhere has already run it.
   are both positive — and it comes from `accounts.internal_group`. It writes no
   `can_disable()`, which is the other half of that convention: turning it off
   takes nothing away.
+- **A role is a preset, a capability is what a policy tests, and a company has
+  a face.** `capabilities` holds twenty codes — `documents.post`,
+  `payments.write`, `settings.write`, `members.manage`, `year_end.close` and
+  the rest — `role_capabilities` says what `owner`, `accountant` and `viewer`
+  each hold, and `company_members.capabilities_granted` /
+  `capabilities_revoked` adjust one member in both directions, a revoke
+  winning over a grant and over the preset. **Every policy in the schema now
+  calls `has_capability()`**, and `can_write_company()` is rewritten on top of
+  it rather than left beside it; the three roles do exactly what they did
+  before. Posting a document, posting an entry and closing a year are guarded
+  by triggers on the transition, because what changes there is a state and not
+  a row. A module adds its codes to the same table, with `area` set to its own
+  code.
+  **A guard written two days earlier had never fired**: the counters behind
+  `next_entry_number()` and `next_matching_number()` checked
+  `not can_write_company(...)`, which was NULL for a stranger and therefore
+  never raised — so any signed-in user could burn numbers in any journal of
+  the installation. It raises now.
+
+- **Invitations.** `invite_member()` returns a token once and stores only its
+  sha256; `accept_invitation()` requires `auth.email()` to match the address
+  invited, is single use and expires; `revoke_invitation()` withdraws one.
+  `company_members.user_id` still has no foreign key to `auth.users`, which is
+  what lets a membership exist before the person signs up. MCP tools
+  `invite_member`, `list_invitations` and `revoke_invitation`; accepting is
+  the invitee's own act and has no tool.
+
+- **User preferences, and one way to choose a label.** `user_preferences` —
+  preferred company, language, timezone, date and number format, theme —
+  nullable everywhere and with no default anywhere, because null means "take
+  the company's answer, then the pack's". `label_for(name, name_i18n,
+  languages)` replaces the resolution that was written out wherever it was
+  needed, `preferred_languages(company)` builds the chain, and
+  `install_country_template()` is republished on it. MCP tools
+  `get_preferences` and `set_preferences`.
+
+- **A company profile an invoice can be printed from.** Trade name, logo URL
+  or storage path, stated capital with its own currency, activity code and the
+  register it belongs to, default bank account, document template. A capital
+  with no currency takes the company's own; a sales document with no payee
+  IBAN takes the default bank account, and a purchase document never does.
+  **`document_header`** is the third view beside `document_line_items` and
+  `document_legal_mentions`, and `get_document` reads it instead of assembling
+  the same thing itself. MCP tools `update_company_profile` and
+  `create_company`. No `registry_reference`: `registration_number` already is
+  the number the commercial register holds.
+
+- **Numbering reads the country pack.** `next_entry_number()` builds the
+  number from `country_defaults.number_format` — `{CODE}`, `{YYYY}`, `{YY}`,
+  `{MM}` and a `{N…}` counter padded to its own width — through
+  `format_number()`, which refuses a token it does not know. **No fallback
+  literal**: a pack that declares nothing gets `no_number_format` naming
+  `documents.number_format`. The counter follows the pattern: a year in it
+  restarts with the year, and a pattern with none keeps one series. `post_entry()`
+  reads `numbering_gapless` and refuses a number chosen by hand where the law
+  forbids a hole. Belgium and France declare the pattern the engine used to
+  hard-code, so no number changes.
+
+- **Keys for machines.** `api_keys` — one company, an explicit list of
+  capabilities, an expiry, a sha256 at rest — with `create_api_key()` (which
+  refuses a capability the issuer does not hold), `use_api_key()` presenting a
+  key for one transaction, `touch_api_key()`, `current_api_key()` and
+  `revoke_api_key()`. `has_capability()` answers for a key where there is no
+  member answer. A key is not a session, and the README says what that costs.
+  MCP tools `create_api_key`, `list_api_keys` and `revoke_api_key`.
+
+- **The first financial year is a parameter.** `fiscal_year_bounds()` opens it
+  on the month `country_defaults.fiscal_year_default` declares and closes it a
+  day before the same day a year later; a pack that says nothing gets
+  `no_fiscal_year_default` rather than January. `ekwo init` gains
+  `--fiscal-year-start`, and `create_company()` does the same work for a
+  client. `ekwo init --iban` now also points the company at the account it
+  creates, so the first invoice carries an IBAN.
 
 - **The format libraries live here now, under `packages/formats/`, one MIT
   package per format and never one per country.** `@ekwo-ai/xbrl-cbso` and

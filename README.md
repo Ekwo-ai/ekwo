@@ -226,7 +226,10 @@ npx ekwo demo      # the sample company, on explicit request only
 ```
 instance                                 one row: who installed it, where, which edition
 instance_admins                          instance administrators
-companies ─┬─ company_members            who may read or write
+capabilities ── role_capabilities         what may be done, and what each preset holds
+companies ─┬─ company_members            who may read or write, and what they may do
+           ├─ company_invitations        an address invited, a token hashed
+           ├─ api_keys                   machine access, scoped to capabilities
            ├─ fiscal_years               periods, open or closed
            ├─ accounts                   chart of accounts, 18 account types
            ├─ journals ── journal_sequences
@@ -240,6 +243,7 @@ companies ─┬─ company_members            who may read or write
            ├─ bank_accounts ── bank_statements ── bank_transactions
            ├─ analytic_axes ── analytic_values ── entry_line_analytics
            └─ attachments                files, polymorphic
+user_preferences                         one row per person, null everywhere
 ```
 
 One installation belongs to one customer, so there is no `tenant_id`
@@ -264,8 +268,93 @@ framework by account type that fits any chart of accounts.
 kept the books before, and `close_fiscal_year(year)` closes a year the way the
 country pack says — straight to retained earnings, into a current-year result
 account, or through the appropriation accounts — with `reopen_fiscal_year` for
-a close run too early. `docs/schema.md` describes every table and column;
-`docs/mapping.md` lines each one up against Odoo, EN 16931 and the FEC.
+a close run too early. An invoice is printed from three views —
+`document_header`, `document_line_items` and `document_legal_mentions` — so a
+renderer reads the seller, the buyer, the amounts, the lines and the sentences
+the law requires without being configured with any of them.
+`docs/schema.md` describes every table and column; `docs/mapping.md` lines each
+one up against Odoo, EN 16931 and the FEC.
+
+## Who may do what
+
+**A role is a preset. A capability is what a policy tests.** `owner`,
+`accountant` and `viewer` are three rows in `role_capabilities`, and what the
+schema actually checks is a code from `capabilities` — `documents.post`,
+`payments.write`, `settings.write`, `members.manage`, `year_end.close` and
+fifteen more. Read `select * from capabilities order by area, code` on your own
+installation: that list is the vocabulary, and a module adds its own to it.
+
+| Preset | Holds |
+|---|---|
+| `viewer` | every `.read` — the books, the documents, the chart, the catalogue |
+| `accountant` | that, plus writing and posting, matching, the settings and the year-end close |
+| `owner` | that, plus `company.write` and `members.manage` |
+
+**One member can be adjusted without inventing a role.**
+`company_members.capabilities_granted` adds, `capabilities_revoked` takes away,
+and a revoke wins over a grant and over the preset — an owner who may not close
+a year is a separation of duties, not a mistake.
+
+```sql
+-- a bookkeeper who posts invoices and never touches a period lock
+update company_members
+   set capabilities_granted = array['documents.post'],
+       capabilities_revoked = array['company.write']
+ where company_id = :company and user_id = :user;
+
+select member_capabilities(:company);   -- what you may do here
+```
+
+**Inviting somebody who has no account yet.** `invite_member()` returns a token
+**once** — only a sha256 of it is stored — and the person accepts it themselves,
+signed in with the address it was sent to:
+
+```sql
+select * from invite_member(:company, 'her@example.com', 'accountant',
+                            '["members.manage"]'::jsonb);
+-- she signs up in your Supabase Auth, then, as herself:
+select * from accept_invitation('<the token>');
+```
+
+An invitation is single use, expires, and is withdrawn with
+`revoke_invitation()`. The MCP server offers `invite_member`,
+`list_invitations` and `revoke_invitation`; accepting is the invitee's own act
+and has no tool.
+
+## Keys for machines
+
+A script — a nightly import, a till, a bank feed — has no browser to sign in
+with. Do not hand it the `service_role` key, which bypasses row level security
+by construction, and do not create a user for it. Issue a key:
+
+```sql
+select * from create_api_key(:company, 'Nightly bank import',
+                             '["bank.write", "bank.read"]'::jsonb,
+                             now() + interval '1 year');
+```
+
+The secret comes back once and is stored as a sha256. A key belongs to **one
+company**, does exactly what its capabilities say, and can never carry a
+capability the person issuing it does not hold themselves — so withdrawing
+somebody's capability withdraws the keys they left behind. `revoke_api_key()`
+stops one for good.
+
+A key is presented for the length of a transaction, not for a session:
+
+```sql
+begin;
+select * from use_api_key('ekwo_…');   -- has_capability() now answers for it
+insert into bank_transactions (…) values (…);
+commit;
+```
+
+Two consequences worth knowing before you build on it. A key is **not a
+session**: `auth.uid()` stays null, so what it reaches is what a policy asks a
+capability for — the tables of its company — and not the reference tables or
+the company row. And because PostgREST runs every request in its own
+transaction, `use_api_key()` cannot be a separate HTTP call: a key is for a
+client that holds a connection, which is what the MCP server's self-hosted
+route does.
 
 ## The TypeScript packages
 
@@ -346,11 +435,12 @@ licence.
 ## Security
 
 Row level security is the whole model: every table carries it, every policy
-is a function of `auth.uid()`, the reports run as the caller, and the views
-run with the caller's rights. An anonymous request sees nothing and may call
-nothing but the policy helpers. The MCP server refuses a `service_role` key.
-`tests/rls.test.ts` proves who may read and who may write, and the CI fails
-if a table ever arrives without a policy.
+is a function of `auth.uid()` — through `has_capability()`, which is the one
+question a policy asks — the reports run as the caller, and the views run with
+the caller's rights. An anonymous request sees nothing and may call nothing but
+the policy helpers. The MCP server refuses a `service_role` key.
+`tests/rls.test.ts` and `tests/capabilities.test.ts` prove who may read and who
+may write, and the CI fails if a table ever arrives without a policy.
 
 Three things the schema cannot do for you:
 
@@ -364,7 +454,9 @@ Three things the schema cannot do for you:
   `ekwo doctor` warns when an installation has no administrator left.
 - **Keep the `service_role` key off every machine that does not need it.**
   It bypasses row level security by construction. The CLI needs it once, to
-  create the first administrator; nothing else in this repository does.
+  create the first administrator; nothing else in this repository does. A
+  script that needs to work on its own gets an API key, which is scoped to one
+  company and to a list of capabilities — see *Keys for machines* above.
 
 ## What this is not
 
