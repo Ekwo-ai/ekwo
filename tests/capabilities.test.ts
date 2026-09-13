@@ -95,10 +95,25 @@ describe('the presets', () => {
     expect(held).not.toContain('company.write');
   });
 
-  it('give an owner everything the installation knows about', async () => {
+  it('give an owner everything a preset carries, and not what no preset does', async () => {
     const held = await capabilitiesOf(ownerId);
-    const all = await rows<{ code: string }>(db, `select code from capabilities order by code`);
-    expect(held).toEqual(all.map((row) => row.code).sort());
+    const preset = await rows<{ code: string }>(
+      db,
+      `select distinct capability as code from role_capabilities order by 1`,
+    );
+    expect(held).toEqual(preset.map((row) => row.code).sort());
+
+    // `entries.import` is the one deliberately outside every preset: it lets
+    // an explicit number through where the country forbids a hole, which is
+    // granted for an import and taken back after it, never carried by a role.
+    const outside = await rows<{ code: string }>(
+      db,
+      `select c.code from capabilities c
+        where not exists (select 1 from role_capabilities r where r.capability = c.code)
+        order by c.code`,
+    );
+    expect(outside.map((row) => row.code)).toEqual(['entries.import']);
+    expect(held).not.toContain('entries.import');
   });
 
   it('give a stranger nothing at all', async () => {

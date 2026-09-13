@@ -1604,11 +1604,14 @@ installer. The MCP hands a client the chain and the material; it does not pick
 a label for it, because which label a renderer prints is the renderer's
 question.
 
-**`user_preferences.number_format` and `country_defaults.number_format` are
-two different things**, and both keep the name their domain uses: how a person
-likes a number written, and the pattern of a document number. The guard that
-watches for a country rule leaking into a function had to learn the
-difference.
+**A display format is not a numbering pattern, and they stop sharing a name.**
+The preference columns are `date_display_format` and `number_display_format`:
+`country_defaults.number_format` already existed, where it is the pattern a
+document number is built from, and two questions that have nothing to do with
+each other should not answer to one name — a reader meeting both would have to
+know which table they were in to know what they had. The guard that watches
+for a country rule leaking into a function had already had to learn the
+difference, which is what made the homonym visible.
 
 **The numbering engine P0-7 deferred.** That entry said, in as many words,
 that `next_entry_number()` did not read `number_format` and that "a numbering
@@ -1626,14 +1629,36 @@ guess becomes a rule. Belgium and France declare exactly the pattern the
 engine used to hard-code, so nothing about their numbers changed, and the
 demo's FEC is byte for byte what it was.
 
-**`numbering_gapless` gets its reader, and it costs something.**
+**`numbering_gapless` gets its reader, and the exception has a name.**
 `post_entry()` refuses a number chosen by hand where the country forbids a
 hole in the sequence, because a number that skips the counter is exactly how a
-hole appears. Nothing in the core produces one today — an opening balance is a
-trial balance, not a journal — so nothing that exists is refused. The day an
-import of somebody's old entries under their old numbers is written, this is
-the rule it will have to argue with, and the argument is worth having then
-rather than now.
+hole appears. The argument that rule would have with an import arrived
+immediately rather than later: a company moving from another system arrives
+with years of entries whose numbers its returns, its filings and its auditor
+already know, and refusing them would make the core unable to take over a set
+of books.
+
+So **`entries.import` is a capability, in no preset**. Not a flag on the call,
+not a session setting: the one thing that lets an explicit number through is
+something an owner grants on purpose to the person doing the import, and takes
+back after it. Importing is not something an accountant does on a Tuesday.
+What it does not relax: a duplicate is still refused, by the unique index on
+`(company_id, number)` that has been there since the first release — stricter
+than per journal, and it fires when the entry is written rather than when it
+is posted — and an explicit number from somebody without the capability is
+refused exactly as before. The guard carries no `auth.uid() is null`
+exemption, unlike the permission checks, because a gapless sequence is a rule
+about the books and not a permission: an importer running over a superuser
+connection sets the request claim for the user it acts for, the way `ekwo
+demo` already does.
+
+**And the counter catches up.** `number_counter()` reads a counter back out of
+a number through the pattern it was written with, and
+`catch_up_journal_sequence()` advances `journal_sequences` to it — so the
+first entry booked after an import continues the series instead of restarting
+at one and colliding with it. A number written in another system's shape does
+not parse against the pattern, and then the counter is left alone, because
+there is nothing in it the counter could learn.
 
 **A key is a third kind of caller, and it is narrower than both the others.**
 A script has no browser to sign in with, and the two usual answers are wrong:

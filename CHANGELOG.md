@@ -99,7 +99,9 @@ somewhere has already run it.
   the invitee's own act and has no tool.
 
 - **User preferences, and one way to choose a label.** `user_preferences` —
-  preferred company, language, timezone, date and number format, theme —
+  preferred company, language, timezone, `date_display_format`,
+  `number_display_format` (named so that neither is confused with
+  `country_defaults.number_format`, which is a numbering pattern), theme —
   nullable everywhere and with no default anywhere, because null means "take
   the company's answer, then the pack's". `label_for(name, name_i18n,
   languages)` replaces the resolution that was written out wherever it was
@@ -126,7 +128,11 @@ somewhere has already run it.
   `documents.number_format`. The counter follows the pattern: a year in it
   restarts with the year, and a pattern with none keeps one series. `post_entry()`
   reads `numbering_gapless` and refuses a number chosen by hand where the law
-  forbids a hole. Belgium and France declare the pattern the engine used to
+  forbids a hole — unless the caller holds **`entries.import`**, a capability
+  in no preset, for taking over books that already have numbers; a duplicate
+  is refused either way, and `catch_up_journal_sequence()` advances the
+  counter to an imported number so the next automatic one continues the
+  series. Belgium and France declare the pattern the engine used to
   hard-code, so no number changes.
 
 - **Keys for machines.** `api_keys` — one company, an explicit list of

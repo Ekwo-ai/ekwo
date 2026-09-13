@@ -10,12 +10,13 @@
 
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { expectError, freshDatabase, one, rows } from './helpers/db.js';
+import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
 import {
   expectedNumber,
   newCompany,
   newContact,
   newDocument,
+  newUser,
   numberFormatOf,
   numberShape,
 } from './helpers/factory.js';
@@ -241,5 +242,141 @@ describe('numbering_gapless', () => {
         [companyId],
       );
     }
+  });
+});
+
+describe('entries.import', () => {
+  // The exception the gapless rule needed the moment it shipped: a company
+  // arriving from another system carries three years of entries whose numbers
+  // its VAT returns, its filings and its auditor already know.
+  let importerId: string;
+
+  beforeAll(async () => {
+    importerId = await newUser(db, 'importer@numbering.test');
+    await db.query(
+      `insert into company_members (company_id, user_id, role) values ($1, $2, 'accountant')`,
+      [companyId, importerId],
+    );
+  });
+
+  async function draftWithNumber(number: string, date = '2026-08-10'): Promise<string> {
+    const entry = await one<{ id: string }>(
+      db,
+      `insert into entries (company_id, journal_id, entry_date, number, description, state)
+       values ($1, (select id from journals where company_id = $1 and code = 'MISC'),
+               $2::date, $3, 'Reprise', 'draft')
+       returning id`,
+      [companyId, date, number],
+    );
+    await db.query(
+      `insert into entry_lines (entry_id, company_id, account_id, sequence, name, debit, credit)
+       values ($1, $2, account_id_by_code($2, '550000'), 10, 'Debit', 100, 0),
+              ($1, $2, account_id_by_code($2, '704000'), 20, 'Credit', 0, 100)`,
+      [entry.id, companyId],
+    );
+    return entry.id;
+  }
+
+  it('is in no preset, so nobody holds it by accident', async () => {
+    const presets = await rows<{ role: string }>(
+      db,
+      `select role::text from role_capabilities where capability = 'entries.import'`,
+    );
+    expect(presets).toEqual([]);
+
+    const held = await asUser(db, importerId, () =>
+      rows<{ member_capabilities: string }>(db, `select member_capabilities($1)`, [companyId]),
+    );
+    expect(held.map((row) => row.member_capabilities)).not.toContain('entries.import');
+  });
+
+  it('refuses a number chosen by hand without it', async () => {
+    const entry = await draftWithNumber('REPRISE-0001');
+    const message = await asUser(db, importerId, () =>
+      expectError(db, `select post_entry($1)`, [entry]),
+    );
+    expect(message).toMatch(/numbering_gapless/);
+    expect(message).toMatch(/entries\.import/);
+  });
+
+  it('lets it through when the capability is granted, and catches the counter up', async () => {
+    await db.query(
+      `update company_members set capabilities_granted = array['entries.import']
+        where company_id = $1 and user_id = $2`,
+      [companyId, importerId],
+    );
+
+    // A number written in the country's own pattern, well ahead of the
+    // counter: the series it belongs to has to be continued, not restarted.
+    const ahead = await expectedNumber(db, companyId, 'MISC', '2026-08-10', 250);
+    const entry = await draftWithNumber(ahead);
+    const posted = await asUser(db, importerId, () =>
+      one<{ number: string; state: string }>(db, `select number, state from post_entry($1)`, [entry]),
+    );
+    expect(posted.state).toBe('posted');
+    expect(posted.number).toBe(ahead);
+
+    const counter = await one<{ last_number: number }>(
+      db,
+      `select s.last_number from journal_sequences s join journals j on j.id = s.journal_id
+        where j.company_id = $1 and j.code = 'MISC' and s.year = 2026`,
+      [companyId],
+    );
+    expect(counter.last_number).toBe(250);
+
+    // And the next automatic number continues the series rather than
+    // colliding with what was imported.
+    const journal = await one<{ id: string }>(
+      db,
+      `select id from journals where company_id = $1 and code = 'MISC'`,
+      [companyId],
+    );
+    const next = await asUser(db, importerId, () =>
+      one<{ n: string }>(db, `select next_entry_number($1, date '2026-08-11') as n`, [journal.id]),
+    );
+    expect(next.n).toBe(await expectedNumber(db, companyId, 'MISC', '2026-08-11', 251));
+  });
+
+  it('leaves the counter alone for a number written in another shape', async () => {
+    const before = await one<{ last_number: number }>(
+      db,
+      `select s.last_number from journal_sequences s join journals j on j.id = s.journal_id
+        where j.company_id = $1 and j.code = 'MISC' and s.year = 2026`,
+      [companyId],
+    );
+    const entry = await draftWithNumber('ANCIEN-SYSTEME-000042');
+    await asUser(db, importerId, () => one(db, `select post_entry($1)`, [entry]));
+    const after = await one<{ last_number: number }>(
+      db,
+      `select s.last_number from journal_sequences s join journals j on j.id = s.journal_id
+        where j.company_id = $1 and j.code = 'MISC' and s.year = 2026`,
+      [companyId],
+    );
+    expect(after.last_number).toBe(before.last_number);
+  });
+
+  it('refuses a duplicate even to somebody holding it, and refuses it earlier', async () => {
+    // `entries_company_number_idx` is unique on `(company_id, number)` and
+    // has been since the first release — stricter than per journal, and it
+    // catches a repeated number when the entry is written rather than when it
+    // is posted. The capability relaxes who may choose a number, and nothing
+    // about which numbers are free.
+    const taken = await expectedNumber(db, companyId, 'MISC', '2026-08-10', 250);
+    const message = await asUser(db, importerId, () =>
+      expectError(
+        db,
+        `insert into entries (company_id, journal_id, entry_date, number, description, state)
+         values ($1, (select id from journals where company_id = $1 and code = 'MISC'),
+                 date '2026-08-12', $2, 'Doublon', 'draft')`,
+        [companyId, taken],
+      ),
+    );
+    expect(message).toMatch(/entries_company_number_idx|duplicate key/i);
+
+    await db.query(
+      `update company_members set capabilities_granted = '{}'
+        where company_id = $1 and user_id = $2`,
+      [companyId, importerId],
+    );
   });
 });

@@ -1454,8 +1454,8 @@ What one person prefers, across every company they are a member of. Every column
 | `preferred_company_id` | `uuid` | The company an interface opens on. Cleared rather than kept when that company is deleted. |
 | `language` | `text` | Language this person reads labels in. First in the list preferred_languages() builds. |
 | `timezone` | `text` |  |
-| `date_format` | `text` |  |
-| `number_format` | `text` |  |
+| `date_display_format` | `text` |  |
+| `number_display_format` | `text` |  |
 | `theme` | `text` | A client's business. The core stores it and interprets nothing. |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
@@ -1475,6 +1475,7 @@ Constraints:
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
 | `available_statements(p_company_id uuid, p_at date)` | Statements a company may ask for: those of its country and chart, plus the generic framework. `is_default` marks the ones its chart declares. |
 | `can_write_company(p_company_id uuid)` | Whether the current user may write the books of a company. Kept for callers that have it; it is now one capability and not a role. |
+| `catch_up_journal_sequence(p_journal_id uuid, p_date date, p_number text)` | Advances a journal counter to an imported number, so the next automatic one continues the series rather than colliding with it. Does nothing for a number that does not follow the country's pattern. |
 | `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `close_fiscal_year(p_fiscal_year_id uuid)` | Closes a fiscal year: the result leaves the income statement the way the country model says, and every income and expense account goes back to zero. The entry that moves the result is `appropriation`, the one that empties the income statement is `closing`. The balance sheet needs no entry — the reports read the ledger from the beginning. The allocation decided by a meeting is never part of it. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
@@ -1513,11 +1514,12 @@ Constraints:
 | `module_settings(p_company_id uuid, p_code text)` | The settings a company keeps for one of its modules, or null when the module is not enabled. The socle never looks inside the object. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal, on the pattern the country pack declares. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. Definer, for the same reason as next_entry_number. |
+| `number_counter(p_format text, p_number text)` | The counter inside a number, read back through the pattern it was written with, or null when the number does not follow that pattern. What lets an import advance the sequence it interrupted. |
 | `numbering_rules(p_company_id uuid, OUT number_format text, OUT numbering_gapless boolean)` | What the country of a company says about its document numbers: the pattern, and whether the law forbids a hole. The only function that reads either column. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
-| `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. Where the country forbids a hole in the sequence, it refuses a number chosen by hand. |
+| `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. Where the country forbids a hole in the sequence it refuses a number chosen by hand, unless the caller holds entries.import — and then the counter catches up to it. |
 | `post_module_entry(p_company_id uuid, p_module_code text, p_ref text, p_date date, p_description text, p_lines jsonb, p_journal_id uuid)` | The only way a module reaches the ledger: it hands over lines as data and this builds the draft and calls post_entry(). The tag (module_code, ref) is unique per company, so posting the same thing twice is refused by the database. |
 | `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role, both in the company currency at the payment's rate. Matches nothing. |
 | `preferred_languages(p_company_id uuid)` | The languages to try, in order: the user's own, then the company's, then the one the country pack declares. Feed it to label_for(). |
