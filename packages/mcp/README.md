@@ -1,7 +1,7 @@
 # @ekwo-ai/mcp
 
 The [Model Context Protocol](https://modelcontextprotocol.io) server for
-[Ekwo OS](https://github.com/Ekwo-ai/ekwo). It lets an AI assistant keep the
+[Ekwo OS](https://github.com/Ekwo-ai/ekwo-os). It lets an AI assistant keep the
 books in your own Postgres: read the ledger, raise an invoice, post it, match
 a payment, pull the VAT return or the French FEC — **as you**, under the row
 level security of your own installation.

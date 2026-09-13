@@ -1,6 +1,6 @@
 # ekwo
 
-The installer and the operator's tool for [Ekwo OS](https://github.com/Ekwo-ai/ekwo).
+The installer and the operator's tool for [Ekwo OS](https://github.com/Ekwo-ai/ekwo-os).
 One command turns a Supabase project you already own into a set of double-entry
 books: the schema, the chart of accounts, the VAT codes, the first
 administrator, the first company and its first financial year.

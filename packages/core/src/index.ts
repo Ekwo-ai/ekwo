@@ -1,7 +1,7 @@
 /**
  * Ekwo OS — TypeScript core.
  *
- * @see https://github.com/Ekwo-ai/ekwo
+ * @see https://github.com/Ekwo-ai/ekwo-os
  */
 
 export * from './types.js';

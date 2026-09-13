@@ -18,7 +18,7 @@ const name = fecFileName('123456789', '2026-12-31'); // 123456789FEC20261231.txt
 ```
 
 `FecQueryRow` is the row shape of the `fec_lines(company, from, to)` function of
-[Ekwo OS](https://github.com/Ekwo-ai/ekwo), declared here so that nothing is
+[Ekwo OS](https://github.com/Ekwo-ai/ekwo-os), declared here so that nothing is
 imported from it. Any book-keeping system that can produce those columns can
 use this package; it reads no database and knows no accounting.
 

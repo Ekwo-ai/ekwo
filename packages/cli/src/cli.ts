@@ -127,7 +127,7 @@ ${bold('What this CLI does not do')}
   AGPL-3.0, and ${cyan('supabase db push')} applies them without this CLI ever running
   again — the migration history is the one the Supabase CLI writes.
 
-${bold('Docs')}  https://github.com/Ekwo-ai/ekwo
+${bold('Docs')}  https://github.com/Ekwo-ai/ekwo-os
 `;
 }
 

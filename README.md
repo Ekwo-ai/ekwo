@@ -206,7 +206,7 @@ ever asked for — and writes the rows that user will be recognised by second.
 By hand instead, with the Supabase CLI:
 
 ```sh
-git clone https://github.com/Ekwo-ai/ekwo.git && cd ekwo
+git clone https://github.com/Ekwo-ai/ekwo-os.git && cd ekwo-os
 supabase link --project-ref <your-project-ref>
 supabase db push                       # applies supabase/migrations in order
 psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql

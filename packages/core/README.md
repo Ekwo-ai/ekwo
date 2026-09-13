@@ -1,7 +1,7 @@
 # @ekwo-ai/core
 
 TypeScript row types and a typed client for the
-[Ekwo OS](https://github.com/Ekwo-ai/ekwo) accounting schema.
+[Ekwo OS](https://github.com/Ekwo-ai/ekwo-os) accounting schema.
 
 - **Types of the whole schema**, hand written so they stay readable: accounts,
   journals, entries and lines, documents and lines, taxes and tax postings,
