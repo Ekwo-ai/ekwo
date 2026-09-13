@@ -5,5 +5,4 @@
  */
 
 export * from './types.js';
-export * from './fec.js';
 export * from './client.js';

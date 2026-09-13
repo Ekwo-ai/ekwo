@@ -6,14 +6,15 @@ TypeScript row types and a typed client for the
 - **Types of the whole schema**, hand written so they stay readable: accounts,
   journals, entries and lines, documents and lines, taxes and tax postings,
   and the row shapes the report functions return.
-- **The French FEC has moved** to [`@ekwo-ai/fec`](../formats/fec/), which is
-  MIT and depends on nothing. It is re-exported here for one version, and then
-  it goes.
+- **The French FEC lives in [`@ekwo-ai/fec`](../formats/fec/)**, which is MIT
+  and depends on nothing. It is no longer re-exported here: import it from
+  there.
 - **A thin client** over the functions that carry the accounting rules —
   `post_document`, `reconcile`, `trial_balance`, `vat_return`, `fec_lines`.
   Everything else is a table, and Supabase already exposes those as REST.
 - **No runtime dependency of its own.** `@supabase/supabase-js` is an optional
-  peer; `@ekwo-ai/fec` is there only to keep the re-export above alive.
+  peer; `@ekwo-ai/fec` is there because `generateFec()` on the client writes
+  the file it has just fetched.
 
 ## Install
 
@@ -59,7 +60,6 @@ const file = generateFec(lines, { decimalSeparator: ',', fieldSeparator: '|' });
 | `EkwoClient` | Wrapper over the accounting functions of the schema. |
 | `initInstance`, `claimInstanceAdmin` | Record the installation and take the first administrator seat. |
 | `registerInstance`, `unregisterInstance` | Opt into being reachable by Ekwo, and out again. Never required. |
-| `generateFec`, `checkFec`, `fecFileName`, `fromQueryRow`, `formatFecDate`, `formatFecAmount`, `FEC_COLUMNS` | **Deprecated.** Re-exported from [`@ekwo-ai/fec`](../formats/fec/) for one version; import them from there. |
 | `ACCOUNT_TYPES`, `internalGroup(type)` | The eighteen account types and their balance-sheet group. |
 | `isRegistered(instance)` | Whether the operator opted into registering with Ekwo. |
 | `isSale`, `isCreditNote`, `isAccountable` | Document type predicates. |

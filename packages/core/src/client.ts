@@ -11,7 +11,7 @@
  * works and this package keeps zero runtime dependencies.
  */
 
-import { fromQueryRow, generateFec, type FecOptions, type FecQueryRow } from './fec.js';
+import { fromQueryRow, generateFec, type FecOptions, type FecQueryRow } from '@ekwo-ai/fec';
 import type {
   AgedBalanceRow,
   Entry,
