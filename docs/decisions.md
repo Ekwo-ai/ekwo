@@ -1431,8 +1431,9 @@ been, and it is checkable.
 `entries.module_code` and `entries.module_ref`, with a unique index on
 `(company_id, module_code, module_ref)`. `assets.run_depreciation` cannot book
 the same period twice because the second insert fails, not because the function
-remembered to look — which is the failure mode of every "check then write" we
-have seen, WeCompta's own depreciation button included. Tagging by
+remembered to look. Every package that guards a posting with a flag it checks
+first has the same hole: a stale screen, a double click or two clients at once,
+and the entry is there twice with nothing looking wrong. Tagging by
 `(module_code, ref)` is also why `entry_kind` gains no value per module: a
 depreciation entry is an ordinary entry that a report may leave in, and a
 fifteenth enum value per module would be a report that has to know every module
