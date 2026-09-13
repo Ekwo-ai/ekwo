@@ -1222,6 +1222,54 @@ export async function inviteMember(
   };
 }
 
+export const CreateApiKeyInput = z.object({
+  company_id: companyId,
+  name: z.string().min(1).describe('What this key is for, in the words an operator will read a year from now.'),
+  capabilities: z
+    .array(z.string())
+    .min(1)
+    .describe('Exactly what the machine may do, e.g. ["bank.write"]. You cannot put a capability on a key that you do not hold yourself.'),
+  expires_at: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('When it stops working, as a timestamp. Left out, it does not expire on its own.'),
+});
+
+export async function createApiKey(
+  backend: Backend,
+  args: z.infer<typeof CreateApiKeyInput>,
+): Promise<unknown> {
+  const created = only(
+    await backend.rpc<Row>('create_api_key', {
+      p_company_id: args.company_id,
+      p_name: args.name,
+      p_capabilities: args.capabilities,
+      p_expires_at: args.expires_at ?? null,
+    }),
+    'the key could not be issued',
+  );
+  return {
+    api_key: created,
+    note: 'The secret is in this answer and nowhere else — only its hash is stored. Show it to the user once, and tell them it cannot be read back.',
+  };
+}
+
+export const RevokeApiKeyInput = z.object({
+  api_key_id: uuid,
+});
+
+export async function revokeApiKey(
+  backend: Backend,
+  args: z.infer<typeof RevokeApiKeyInput>,
+): Promise<unknown> {
+  const revoked = only(
+    await backend.rpc<Row>('revoke_api_key', { p_api_key_id: args.api_key_id }),
+    'the key could not be withdrawn',
+  );
+  return { api_key: revoked };
+}
+
 export const RevokeInvitationInput = z.object({
   invitation_id: uuid,
 });

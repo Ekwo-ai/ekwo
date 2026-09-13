@@ -176,3 +176,41 @@ describe('the company profile through the server', () => {
     ).rejects.toThrow(/nothing_to_change/);
   });
 });
+
+describe('machine keys through the server', () => {
+  it('issues one, shows the secret once, and lists it without the hash', async () => {
+    const answer = record(
+      await writeTools.createApiKey(asOwner, {
+        company_id: fx.companyId,
+        name: 'Flux bancaire',
+        capabilities: ['bank.write'],
+      }),
+    );
+    const key = record(answer['api_key']);
+    expect(String(key['secret'])).toMatch(/^ekwo_[0-9a-f]{12}_[0-9a-f]{64}$/);
+
+    const listed = list(
+      record(await readTools.listApiKeys(asOwner, { company_id: fx.companyId }))['api_keys'],
+    );
+    expect(listed).toHaveLength(1);
+    expect(listed[0]?.['name']).toBe('Flux bancaire');
+    expect(listed[0]?.['state']).toBe('live');
+    expect(Object.keys(listed[0] ?? {})).not.toContain('key_hash');
+
+    await writeTools.revokeApiKey(asOwner, { api_key_id: String(key['api_key_id']) });
+    const after = list(
+      record(await readTools.listApiKeys(asOwner, { company_id: fx.companyId }))['api_keys'],
+    );
+    expect(after).toEqual([]);
+  });
+
+  it('refuses an accountant, who does not manage members', async () => {
+    await expect(
+      writeTools.createApiKey(asAccountant, {
+        company_id: fx.companyId,
+        name: 'Interdite',
+        capabilities: ['bank.write'],
+      }),
+    ).rejects.toThrow(/members\.manage/);
+  });
+});

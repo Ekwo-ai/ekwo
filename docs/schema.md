@@ -137,6 +137,7 @@ the return say the same thing, because they are the same rows.
 | [`accounts`](#accounts) | Chart of accounts, one per company. |
 | [`analytic_axes`](#analytic_axes) | Analytic dimensions: cost centre, project, activity. |
 | [`analytic_values`](#analytic_values) | Values of an axis, optionally hierarchical. |
+| [`api_keys`](#api_keys) | Machine access to one company. Hashed at rest, scoped to an explicit list of capabilities, and never wider than the person who issued it. |
 | [`attachments`](#attachments) | Files attached to any record. `entity_type` is constrained rather than free text. |
 | [`bank_accounts`](#bank_accounts) | Bank and card accounts, each mapped to a ledger account and a journal. |
 | [`bank_statements`](#bank_statements) | Imported statements. `is_consistent` compares the declared closing balance with the sum of the lines. |
@@ -274,6 +275,31 @@ Constraints:
 
 - `PRIMARY KEY (id)`
 - `UNIQUE (axis_id, code)`
+
+### `api_keys`
+
+Machine access to one company. Hashed at rest, scoped to an explicit list of capabilities, and never wider than the person who issued it.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `name` | `text` | not null |
+| `prefix` | `text` | not null — The readable head of the secret. It identifies a key without being one. |
+| `key_hash` | `text` | not null |
+| `capabilities` | `text[]` | not null — Exactly what this key may do. Not a role: a machine has a job, not a job title. |
+| `created_by` | `uuid` | auth.users.id of whoever issued it. No foreign key, for the same reason company_members has none. |
+| `created_at` | `timestamp with time zone` | not null |
+| `expires_at` | `timestamp with time zone` |  |
+| `last_used_at` | `timestamp with time zone` |  |
+| `revoked_at` | `timestamp with time zone` |  |
+
+Constraints:
+
+- `CHECK (((expires_at IS NULL) OR (expires_at > created_at)))`
+- `CHECK ((cardinality(capabilities) > 0))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (key_hash)`
 
 ### `attachments`
 
@@ -1454,6 +1480,8 @@ Constraints:
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
 | `companies_default_capital_currency()` | A capital stated with no currency is stated in the company's own. The alternative was a literal in the schema, which is one country's answer given to every country. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
+| `create_api_key(p_company_id uuid, p_name text, p_capabilities jsonb, p_expires_at timestamp with time zone)` | Issues a machine key on one company and returns the secret once. Only the hash is stored, and no capability can be put on a key that the person issuing it does not hold. |
+| `current_api_key()` | The key presented in this transaction, or nothing. What a client reads back to know what it may do. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
@@ -1468,7 +1496,7 @@ Constraints:
 | `fiscal_years_guard_closed()` | Refuses a hand-written change to is_closed. A column any client may flip is not a lock. |
 | `format_number(p_format text, p_code text, p_date date, p_number integer)` | One document number, rendered from the pattern the country pack declares. Raises rather than guessing at a token it does not know. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
-| `has_capability(p_company_id uuid, p_capability text)` | Whether the current user may do one named thing in one company. Revoked beats granted, granted beats the preset, and a non-member holds nothing. |
+| `has_capability(p_company_id uuid, p_capability text)` | Whether the current caller may do one named thing in one company — a signed-in member by their preset and their adjustments, or a machine key by its own list. Revoked beats granted, and a non-member holding no key holds nothing. |
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
 | `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
@@ -1497,16 +1525,19 @@ Constraints:
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `revoke_api_key(p_api_key_id uuid)` | Withdraws a key. There is no un-withdraw: a secret that has been out of the building is issued again, not brought back. |
 | `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
 | `set_preferences(p_patch jsonb)` | Writes the signed-in user's preferences. A key that is present is written, null included; a key that is absent is left alone; a key nobody declared is refused. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
+| `touch_api_key(p_api_key_id uuid)` | Records that a key was used just now. A key that has never been used, and one that has not been used for a year, are both things an operator should be able to see. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
 | `unmapped_accounts(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Accounts this statement is answerable for that carry a balance and that no rule of it catches. Empty is what makes the statement tie out; a row is an account somebody opened outside the pack. |
 | `unreconcile(p_reconciliation_id uuid)` | Undoes a matching, and with it what the matching had booked: the exchange difference it realised and the share of a cash-basis tax it had made due. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
+| `use_api_key(p_secret text)` | Presents a machine key for the current transaction: has_capability() answers for it until the transaction ends. Refuses a key that is unknown, withdrawn or expired. |
 | `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. No country rule lives in this function. |
 
 ---

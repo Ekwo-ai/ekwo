@@ -156,6 +156,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'list_api_keys',
+    {
+      title: 'Machine keys of a company',
+      description:
+        'The keys a company has issued to machines, what each one may do, when it was last used and whether it is still live. Only somebody who manages members sees them, and no secret is in here: a key is shown once, when it is issued.',
+      inputSchema: read.ListApiKeysInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.listApiKeys(backend, args)),
+  );
+
+  server.registerTool(
     'list_invitations',
     {
       title: 'Invitations into a company',
@@ -467,6 +479,30 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (args) => guard(() => write.inviteMember(backend, args)),
+  );
+
+  server.registerTool(
+    'create_api_key',
+    {
+      title: 'Issue a key to a machine',
+      description:
+        'Issues a key so a script — a nightly import, a till, a bank feed — can work in one company without a person signing in. It carries an explicit list of capabilities and nothing else, it can never reach another company, and it cannot hold a capability you do not hold yourself. The secret comes back once and is stored only as a hash: show it to the user and say it cannot be read back. Prefer this to sharing anybody\u2019s password, and never suggest a service key.',
+      inputSchema: write.CreateApiKeyInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.createApiKey(backend, args)),
+  );
+
+  server.registerTool(
+    'revoke_api_key',
+    {
+      title: 'Withdraw a machine key',
+      description:
+        'Stops a key working, now and for good. There is no un-withdraw: a secret that has been out of the building is issued again rather than brought back. Whatever the machine was doing with it stops, so say so before calling it.',
+      inputSchema: write.RevokeApiKeyInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.revokeApiKey(backend, args)),
   );
 
   server.registerTool(

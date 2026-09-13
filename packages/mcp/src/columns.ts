@@ -389,6 +389,20 @@ export const INVITATION = [
   'revoked_at::text',
 ];
 
+/** A machine key, without its hash. The secret is returned once, elsewhere. */
+export const API_KEY = [
+  'id',
+  'company_id',
+  'name',
+  'prefix',
+  'capabilities',
+  'created_by',
+  'created_at::text',
+  'expires_at::text',
+  'last_used_at::text',
+  'revoked_at::text',
+];
+
 export const INSTANCE = [
   'instance_id',
   'organization_name',
