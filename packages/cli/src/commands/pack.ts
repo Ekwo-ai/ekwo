@@ -10,10 +10,16 @@
  * compiled seeds and no pack to compile.
  */
 
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { rejectUnknownFlags, boolFlag, UsageError, type ParsedArgs } from '../args.js';
-import { compileFrameworkPack, compilePack, frameworkSeedFileName, seedFileName } from '../pack/compile.js';
+import {
+  compileFrameworkPack,
+  compileModuleSeeds,
+  compilePack,
+  frameworkSeedFileName,
+  seedFileName,
+} from '../pack/compile.js';
 import { GENERIC_PACK, listPacks, packsDir, readFrameworkPack, readPack, seedOutputDir } from '../pack/read.js';
 import { bold, dim, fail, heading, line, note, step, warn } from '../ui.js';
 
@@ -114,6 +120,32 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
       fail(`${file} is not the output of packs/${slug}${current === undefined ? ' (it does not exist)' : ''}`);
     } else {
       step(`${file}`);
+    }
+
+    // The sections of a module compile beside the pack seed, under the module's
+    // own folder: `assets.category_templates` exists only on an installation
+    // that carries `assets`, and a seed applied where its tables are missing is
+    // a seed nobody can re-run.
+    for (const [module, moduleSql] of compileModuleSeeds(pack)) {
+      const modulePath = join(seedDir, 'modules', module, file);
+      const moduleCurrent = await readFile(modulePath, 'utf8').catch(() => undefined);
+      if (action === 'build') {
+        if (moduleCurrent === moduleSql) {
+          note(dim(`modules/${module}/${file} — already the output of packs/${slug}/${module}.json`));
+        } else {
+          await mkdir(join(seedDir, 'modules', module), { recursive: true });
+          await writeFile(modulePath, moduleSql, 'utf8');
+          step(`modules/${module}/${file}`);
+        }
+      } else if (moduleCurrent !== moduleSql) {
+        stale += 1;
+        fail(
+          `modules/${module}/${file} is not the output of packs/${slug}/${module}.json` +
+            (moduleCurrent === undefined ? ' (it does not exist)' : ''),
+        );
+      } else {
+        step(`modules/${module}/${file}`);
+      }
     }
 
     for (const section of pack.deferred) {

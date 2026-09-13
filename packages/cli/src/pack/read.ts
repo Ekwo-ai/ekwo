@@ -206,6 +206,40 @@ export interface PackReport {
   boxes: PackReportBox[];
 }
 
+/** One line of `assets.json`: what a kind of asset is usually depreciated over. */
+export interface PackAssetCategory {
+  code: string;
+  name: string;
+  name_i18n: Record<string, string>;
+  method: string;
+  duration_months: number;
+  coefficient: number | null;
+  prorata: string | null;
+  account_type: string | null;
+  sequence: number;
+  legal_reference: string | null;
+}
+
+/**
+ * `packs/<cc>/assets.json` — the country data of the `assets` module.
+ *
+ * It is read here, with the rest of the pack, rather than by the module: a
+ * pack is one object with one checksum and one `ekwo pack check`, and a module
+ * that read its own section would be a second reader of the same folder with
+ * its own idea of what a valid pack is. What is module-specific is where the
+ * compiler writes it — `supabase/seed/modules/assets/` and not the pack seed.
+ */
+export interface PackAssets {
+  prorata_straight_line: string;
+  prorata_declining: string;
+  day_count: string;
+  declining_cap_percent: number | null;
+  declining_switch_to_linear: boolean;
+  disposal_style: string | null;
+  legal_reference: string | null;
+  categories: PackAssetCategory[];
+}
+
 export interface Pack {
   /** Lower-case directory name, e.g. `be`. */
   slug: string;
@@ -232,6 +266,8 @@ export interface Pack {
   report: PackReport | null;
   /** Code of the periodic return. The default of every box. */
   reportCode: string | null;
+  /** `assets.json`, or null where this country says nothing about fixed assets. */
+  assets: PackAssets | null;
   /** sha256 of every file of the pack, so a change is visible without a diff. */
   checksum: string;
   /** Sections the schema accepts and this release does not compile. */
@@ -467,6 +503,16 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
 
   const documents = normaliseDocumentRules(manifest);
 
+  // The section of a module. A pack that carries none simply has no country
+  // rule for that module, and the module refuses by name where it needs one.
+  let assets: PackAssets | null = null;
+  if (existsSync(join(root, 'assets.json'))) {
+    const raw = await readJson(join(root, 'assets.json'));
+    issues.push(...validate(raw, defs['module_assets'] ?? {}, schema, 'assets.json'));
+    assets = normaliseAssets(raw as Record<string, unknown>);
+    issues.push(...assetReferences(assets, manifest));
+  }
+
   // A posting with a box belongs to a form. The pack names one in
   // `tax_report.json`; a posting may override it the day a country files two.
   for (const tax of taxes) {
@@ -503,9 +549,108 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     documents,
     report,
     reportCode,
+    assets,
     checksum: await checksum(root),
     deferred,
   };
+}
+
+function normaliseAssets(raw: Record<string, unknown>): PackAssets {
+  const depreciation = (raw['depreciation'] ?? {}) as Record<string, unknown>;
+  const disposal = (raw['disposal'] ?? null) as Record<string, unknown> | null;
+  const categories = (raw['categories'] ?? []) as Record<string, unknown>[];
+  return {
+    prorata_straight_line: String(depreciation['prorata_straight_line'] ?? ''),
+    prorata_declining: String(depreciation['prorata_declining'] ?? ''),
+    // `actual` is the calendar and not a country's answer: a pack that says
+    // nothing counts the days that exist. A commercial year of twelve
+    // thirty-day months is a convention, so it is declared.
+    day_count: String(depreciation['day_count'] ?? 'actual'),
+    declining_cap_percent:
+      depreciation['declining_cap_percent'] === undefined || depreciation['declining_cap_percent'] === null
+        ? null
+        : Number(depreciation['declining_cap_percent']),
+    declining_switch_to_linear: depreciation['declining_switch_to_linear'] !== false,
+    disposal_style: disposal === null ? null : String(disposal['style']),
+    legal_reference:
+      (depreciation['legal_reference'] as string | null | undefined) ??
+      (disposal?.['legal_reference'] as string | null | undefined) ??
+      null,
+    categories: categories.map((category, index) => ({
+      code: String(category['code']),
+      name: String(category['name']),
+      name_i18n: (category['name_i18n'] ?? {}) as Record<string, string>,
+      method: String(category['method']),
+      duration_months: Number(category['duration_months']),
+      coefficient:
+        category['coefficient'] === undefined || category['coefficient'] === null
+          ? null
+          : Number(category['coefficient']),
+      prorata: (category['prorata'] as string | null | undefined) ?? null,
+      account_type: (category['account_type'] as string | null | undefined) ?? null,
+      sequence: Number(category['sequence'] ?? (index + 1) * 10),
+      legal_reference: (category['legal_reference'] as string | null | undefined) ?? null,
+    })),
+  };
+}
+
+/**
+ * What an `assets.json` obliges the rest of the pack to say.
+ *
+ * The same shape as `closingRules`, and for the same reason: a disposal style
+ * is a promise about which accounts exist, and a pack that makes it without
+ * naming them is a company finding out on the day it sells a van. The role
+ * codes themselves are checked against every chart by `crossReferences`, so
+ * what is left here is which roles a style needs.
+ */
+function assetReferences(assets: PackAssets, manifest: Manifest): Issue[] {
+  const issues: Issue[] = [];
+  const roles = manifest.defaults.roles;
+  const named = (role: string): boolean => roles[role] !== undefined && roles[role] !== null;
+
+  if (assets.disposal_style === 'net_result' && !named('asset_disposal_gain')) {
+    issues.push({
+      path: 'defaults.roles.asset_disposal_gain',
+      message: 'a pack that disposes on the net result has to name the account the gain lands on',
+    });
+  }
+  if (assets.disposal_style === 'gross') {
+    for (const role of ['asset_disposal_proceeds', 'asset_disposal_value']) {
+      if (!named(role)) {
+        issues.push({
+          path: `defaults.roles.${role}`,
+          message: 'a pack that disposes gross has to name it: the value sold and the proceeds are two lines',
+        });
+      }
+    }
+  }
+
+  const seen = new Set<string>();
+  for (const category of assets.categories) {
+    if (seen.has(category.code)) {
+      issues.push({ path: `assets.json ${category.code}`, message: 'duplicate category code' });
+    }
+    seen.add(category.code);
+    if (category.method === 'declining_balance' && category.coefficient === null) {
+      issues.push({
+        path: `assets.json ${category.code}`,
+        message: 'a declining balance with no coefficient is a straight line nobody asked for',
+      });
+    }
+    if (category.method !== 'declining_balance' && category.coefficient !== null) {
+      issues.push({
+        path: `assets.json ${category.code}`,
+        message: `a ${category.method} category takes no coefficient`,
+      });
+    }
+    if (category.legal_reference === null) {
+      issues.push({
+        path: `assets.json ${category.code}`,
+        message: 'a usual duration comes from somewhere; name the source',
+      });
+    }
+  }
+  return issues;
 }
 
 /**

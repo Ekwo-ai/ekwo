@@ -51,6 +51,116 @@ export function compilePack(pack: Pack): string {
   return `${out.join('\n')}\n`;
 }
 
+/**
+ * The country data of one module, for one pack:
+ * `supabase/seed/modules/assets/10_pack_be.sql`.
+ *
+ * It is a seed of its own, under the module's own folder, and deliberately not
+ * part of the pack seed. The pack seed is applied by every installation;
+ * `assets.category_templates` does not exist on one that does not carry the
+ * module, and a seed that half fails is a seed nobody can re-run. So the
+ * module migration runner applies these, and only for the modules it installed.
+ *
+ * The numbering is the pack's own — `10_pack_be`, `11_pack_fr` — so the file
+ * of a country is recognisable wherever it sits.
+ */
+export function moduleSeedFileName(slug: string, allSlugs: readonly string[]): string {
+  return seedFileName(slug, allSlugs);
+}
+
+/**
+ * `packs/<cc>/assets.json` → the two reference tables of the `assets` module.
+ *
+ * Returns `undefined` when the pack says nothing about fixed assets, which is
+ * not a gap to fill: `assets.generate_schedule` refuses by name where it needs
+ * a prorata convention nobody has declared, rather than taking another
+ * country's.
+ */
+export function compileAssetsSeed(pack: Pack): string | undefined {
+  const assets = pack.assets;
+  if (assets === null) return undefined;
+  const country = pack.manifest.country;
+
+  const out: string[] = [
+    `-- Ekwo — ${pack.manifest.name}: how this country depreciates and derecognises a fixed asset.`,
+    '--',
+    `-- Generated from packs/${pack.slug}/assets.json at version ${pack.manifest.version}, do not edit.`,
+    `-- Change the pack and run \`ekwo pack build ${pack.slug}\`; \`ekwo pack check --all\``,
+    '-- refuses a seed that is not the exact output of its pack, and the CI runs it.',
+    '--',
+    '-- Applied by the module migration runner — `ekwo migrate`, or `ekwo module',
+    '-- migrate` — and never by the socle seed step: these tables exist only on an',
+    '-- installation that carries the `assets` module.',
+    '--',
+    '-- The accounts a disposal lands on are not here. They are roles of the chart,',
+    '-- in `country_defaults`, written by the pack seed beside every other role.',
+    '',
+    'insert into assets.country_rules',
+    '  (country, prorata_straight_line, prorata_declining, day_count,',
+    '   declining_cap_percent, declining_switch_to_linear, disposal_style, legal_reference)',
+    'values',
+    `  (${text(country)}, ${text(assets.prorata_straight_line)}, ${text(assets.prorata_declining)}, ` +
+      `${text(assets.day_count)}, ${orNull(assets.declining_cap_percent, number)}, ` +
+      `${bool(assets.declining_switch_to_linear)}, ${text(assets.disposal_style)}, ` +
+      `${text(assets.legal_reference)})`,
+    'on conflict (country) do update set',
+    '  prorata_straight_line      = excluded.prorata_straight_line,',
+    '  prorata_declining          = excluded.prorata_declining,',
+    '  day_count                  = excluded.day_count,',
+    '  declining_cap_percent      = excluded.declining_cap_percent,',
+    '  declining_switch_to_linear = excluded.declining_switch_to_linear,',
+    '  disposal_style             = excluded.disposal_style,',
+    '  legal_reference            = excluded.legal_reference;',
+    '',
+  ];
+
+  if (assets.categories.length === 0) return `${out.join('\n')}\n`;
+
+  const values = [...assets.categories]
+    .sort((a, b) => a.sequence - b.sequence || (a.code < b.code ? -1 : 1))
+    .map(
+      (c) =>
+        `    (${text(country)}, ${text(c.code)}, ${text(c.name)}, ${json(c.name_i18n)}, ` +
+        `${text(c.method)}, ${number(c.duration_months)}, ${orNull(c.coefficient, number)}, ` +
+        `${text(c.prorata)}, ${text(c.account_type)}, ${number(c.sequence)}, ` +
+        `${text(c.legal_reference)})`,
+    );
+
+  out.push(
+    'insert into assets.category_templates',
+    '  (country, code, name, name_i18n, method, duration_months, coefficient,',
+    '   prorata, account_type, sequence, legal_reference)',
+    'select v.country::char(2), v.code, v.name, v.name_i18n::jsonb,',
+    '       v.method::assets.depreciation_method, v.duration_months::integer,',
+    '       v.coefficient::numeric, v.prorata::assets.prorata_rule,',
+    '       v.account_type::account_type, v.sequence::integer, v.legal_reference',
+    '  from (values',
+    values.join(',\n'),
+    '  ) as v (country, code, name, name_i18n, method, duration_months, coefficient,',
+    '          prorata, account_type, sequence, legal_reference)',
+    'on conflict (country, code) do update set',
+    '  name            = excluded.name,',
+    '  name_i18n       = excluded.name_i18n,',
+    '  method          = excluded.method,',
+    '  duration_months = excluded.duration_months,',
+    '  coefficient     = excluded.coefficient,',
+    '  prorata         = excluded.prorata,',
+    '  account_type    = excluded.account_type,',
+    '  sequence        = excluded.sequence,',
+    '  legal_reference = excluded.legal_reference;',
+    '',
+  );
+  return `${out.join('\n')}\n`;
+}
+
+/** Every module seed a pack compiles to, by module code. */
+export function compileModuleSeeds(pack: Pack): Map<string, string> {
+  const seeds = new Map<string, string>();
+  const assets = compileAssetsSeed(pack);
+  if (assets !== undefined) seeds.set('assets', assets);
+  return seeds;
+}
+
 /** `packs/generic` → `05_framework_generic.sql`. It sorts before every pack. */
 export function frameworkSeedFileName(slug: string): string {
   return `05_framework_${slug}.sql`;
@@ -466,6 +576,16 @@ function defaults(pack: Pack, country: string): string[] {
     // above: an account number is a fact about a chart.
     text(roles['fx_gain'] ?? null),
     text(roles['fx_loss'] ?? null),
+    // Where the disposal of a fixed asset lands. Four, because two countries
+    // present a disposal differently and neither is a variant of the other:
+    // one gain-or-loss line, or the value sold and the proceeds in full. Which
+    // of the two a country follows is in `assets.json`, with the rest of that
+    // module's country model; these are the accounts, and an account that
+    // plays a part is a role, so it is named where every other role is.
+    text(roles['asset_disposal_gain'] ?? null),
+    text(roles['asset_disposal_loss'] ?? null),
+    text(roles['asset_disposal_proceeds'] ?? null),
+    text(roles['asset_disposal_value'] ?? null),
   ];
   return [
     'insert into country_defaults',
@@ -474,7 +594,9 @@ function defaults(pack: Pack, country: string): string[] {
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
     '   misc_journal_code, language_default, closing_style, current_year_result_profit_code,',
     '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,',
-    '   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)',
+    '   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,',
+    '   asset_disposal_gain_code, asset_disposal_loss_code,',
+    '   asset_disposal_proceeds_code, asset_disposal_value_code)',
     'values',
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
@@ -501,7 +623,11 @@ function defaults(pack: Pack, country: string): string[] {
     '  rounding_method        = excluded.rounding_method,',
     '  cash_rounding_unit     = excluded.cash_rounding_unit,',
     '  fx_gain_code           = excluded.fx_gain_code,',
-    '  fx_loss_code           = excluded.fx_loss_code;',
+    '  fx_loss_code           = excluded.fx_loss_code,',
+    '  asset_disposal_gain_code        = excluded.asset_disposal_gain_code,',
+    '  asset_disposal_loss_code        = excluded.asset_disposal_loss_code,',
+    '  asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,',
+    '  asset_disposal_value_code       = excluded.asset_disposal_value_code;',
   ];
 }
 

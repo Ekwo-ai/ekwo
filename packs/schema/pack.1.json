@@ -120,7 +120,11 @@
         "fx_loss": { "type": ["string", "null"] },
         "retained_earnings_loss": { "type": ["string", "null"], "description": "Where an accumulated loss sits, where the chart keeps one apart from the profit account (BE 141, FR 119). Null falls back to `retained_earnings`." },
         "current_year_result_profit": { "type": ["string", "null"], "description": "Account the result of the year lands on when the year is profitable (BE 693, FR 120). Null under `retained_earnings` closing." },
-        "current_year_result_loss": { "type": ["string", "null"], "description": "The same for a loss (BE 793, FR 129). Belgium and France both keep the two apart, so this is a pair and not one account." }
+        "current_year_result_loss": { "type": ["string", "null"], "description": "The same for a loss (BE 793, FR 129). Belgium and France both keep the two apart, so this is a pair and not one account." },
+        "asset_disposal_gain": { "type": ["string", "null"], "description": "Net-result disposal of a fixed asset: where a gain lands (BE 763). Read by the `assets` module. Leave it out where the country files a gross disposal." },
+        "asset_disposal_loss": { "type": ["string", "null"], "description": "Net-result disposal: where a loss lands (BE 663). Null falls back to `asset_disposal_gain`, for a chart that keeps one account for both signs." },
+        "asset_disposal_proceeds": { "type": ["string", "null"], "description": "Gross disposal: the income account the proceeds of the sale are booked on in full (FR 775)." },
+        "asset_disposal_value": { "type": ["string", "null"], "description": "Gross disposal: the charge account the net book value of what was sold is booked on in full (FR 675)." }
       }
     },
 
@@ -498,6 +502,59 @@
         "taxes": { "type": "object", "additionalProperties": { "type": "string" } },
         "tax_report_boxes": { "type": "object", "additionalProperties": { "type": "string" } },
         "statement_lines": { "type": "object", "additionalProperties": { "type": "string" } }
+      }
+    },
+
+    "module_assets": {
+      "type": "object",
+      "description": "packs/<cc>/assets.json — what this country says about depreciating and derecognising a fixed asset. Compiled by `ekwo pack build` into supabase/seed/modules/assets/, and applied only on an installation that carries the `assets` module. The accounts a disposal lands on are deliberately not here: an account that plays a part is a role of the chart, and defaults.roles is the one place a pack names one.",
+      "required": ["depreciation"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "depreciation": {
+          "type": "object",
+          "required": ["prorata_straight_line", "prorata_declining"],
+          "additionalProperties": false,
+          "properties": {
+            "prorata_straight_line": { "enum": ["none", "days", "months"], "description": "How much of the first period a straight-line asset takes." },
+            "prorata_declining": { "enum": ["none", "days", "months"], "description": "The same under a declining balance, which several countries prorate differently — France counts whole months from the month of acquisition." },
+            "day_count": { "enum": ["actual", "thirty_360"], "description": "Which calendar a prorata in days counts on: the real one, or the commercial year of twelve thirty-day months. Defaults to actual." },
+            "declining_cap_percent": { "type": ["number", "null"], "minimum": 0, "maximum": 100, "description": "Largest annuity a declining balance may take in one period, as a percentage of the acquisition value. Null where the country caps nothing." },
+            "declining_switch_to_linear": { "type": "boolean", "description": "Whether the declining balance switches to the straight line over the remaining periods once that is the larger annuity. Defaults to true: without it the schedule never reaches zero." },
+            "legal_reference": { "type": ["string", "null"] }
+          }
+        },
+        "disposal": {
+          "type": "object",
+          "required": ["style"],
+          "additionalProperties": false,
+          "properties": {
+            "style": { "enum": ["net_result", "gross"], "description": "net_result: the difference between the proceeds and the net book value lands on one account, a gain or a loss (BE 763/663). gross: the net book value is a charge and the proceeds an income, both in full, and the income statement prints the two (FR 675/775). The roles each style needs are in defaults.roles, and `ekwo pack check` refuses a style whose roles are missing." },
+            "legal_reference": { "type": ["string", "null"] }
+          }
+        },
+        "categories": {
+          "type": "array",
+          "description": "The usual duration and method of a kind of asset in this country. What `assets.create_asset` pre-fills from, never a rule: an asset that departs from one says so in its own columns.",
+          "items": {
+            "type": "object",
+            "required": ["code", "name", "method", "duration_months"],
+            "additionalProperties": false,
+            "properties": {
+              "code": { "$ref": "#/$defs/code" },
+              "name": { "type": "string", "minLength": 1 },
+              "name_i18n": { "type": "object", "additionalProperties": { "type": "string" } },
+              "method": { "enum": ["straight_line", "declining_balance", "units_of_production"] },
+              "duration_months": { "type": "integer", "minimum": 1 },
+              "coefficient": { "type": ["number", "null"], "minimum": 0, "description": "Multiplier of the straight-line rate under a declining balance. Required for that method." },
+              "prorata": { "enum": ["none", "days", "months", null], "description": "Overrides the country rule for this category. Null is the ordinary case." },
+              "account_type": { "type": ["string", "null"], "description": "One of the eighteen account types, so a client can propose an account on a chart it has never seen. Advisory: nothing resolves an account from it." },
+              "sequence": { "type": "integer", "minimum": 0 },
+              "legal_reference": { "type": ["string", "null"] }
+            }
+          }
+        }
       }
     }
   }
