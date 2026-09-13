@@ -68,6 +68,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260913102115_installer_is_named` | the eleven guards written as `auth.uid() is not null and not has_capability(…)` — three triggers, two counters, the key functions, the invitations, `create_company()` — ask `is_installer()` instead, which a machine key can never be. `post_entry()` drops its own `auth.uid()` test and asks for `entries.import` alone |
 | `20260913102758_no_currency_default` | the eight `default 'EUR'` / `default 'fr'` columns lose their default — `companies`, `country_defaults`, `documents`, `payments`, `products`, `bank_accounts`, `bank_transactions`. A row takes the currency of its company, a statement line that of its bank account, and a company the currency and language of its country's pack; a pack that says nothing leaves the column null and NOT NULL refuses the row |
 | `20260913103355_cash_basis_needs_a_box` | `post_document()` raises `no_cash_basis_box` before it writes the entry, where the pack names no declaration box on a tax that falls due on collection. Without it the amount sat on the transition account for ever: `settle_cash_basis_tax()` only moves a line carrying a box amount, so nothing settled and nothing raised |
+| `20260913104014_aged_balance_named_group` | `aged_balance()` raises `invalid_group` for anything that is not `receivable` or `payable`. It used to test `= 'payable'` and report everything else as receivable — a full, plausible, wrong report |
 
 ## Rules for a new migration
 

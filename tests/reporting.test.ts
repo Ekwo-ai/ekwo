@@ -1,6 +1,6 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { freshDatabase, one, rows } from './helpers/db.js';
+import { expectError, freshDatabase, one, rows } from './helpers/db.js';
 import { demoCompanyId } from './helpers/factory.js';
 
 let db: PGlite;
@@ -169,6 +169,35 @@ describe('aged_balance on the demo company', () => {
     );
     expect(n(northwind.not_due)).toBeCloseTo(5400, 2);
     expect(northwind.days_over_90).toBeNull();
+  });
+
+  // The audit of 13 September 2026. The group was tested as `= 'payable'`
+  // twice, so anything that was not exactly that word — a typo, a plural, a
+  // capital letter — came back as the receivable ageing: a full, plausible,
+  // wrong report, which is the one failure a report must never have.
+  it('refuses a group it does not know, instead of answering receivable', async () => {
+    for (const group of ['supplier', 'Payable', 'creditors', '']) {
+      const message = await expectError(db, `select * from aged_balance($1, '2026-09-11', $2)`, [
+        companyId,
+        group,
+      ]);
+      expect(message, group).toMatch(/invalid_group/);
+    }
+    const nullGroup = await expectError(
+      db,
+      `select * from aged_balance($1, '2026-09-11', null)`,
+      [companyId],
+    );
+    expect(nullGroup).toMatch(/invalid_group/);
+
+    // The two it does know still answer.
+    for (const group of ['receivable', 'payable']) {
+      const answer = await rows(db, `select * from aged_balance($1, '2026-09-11', $2)`, [
+        companyId,
+        group,
+      ]);
+      expect(Array.isArray(answer), group).toBe(true);
+    }
   });
 });
 
