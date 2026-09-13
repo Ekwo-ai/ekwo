@@ -369,8 +369,8 @@ export const USER_PREFERENCES = [
   'preferred_company_id',
   'language',
   'timezone',
-  'date_format',
-  'number_format',
+  'date_display_format',
+  'number_display_format',
   'theme',
   'updated_at::text',
 ];

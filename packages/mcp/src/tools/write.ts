@@ -1211,12 +1211,12 @@ export const SetPreferencesInput = z.object({
     .optional()
     .describe('Two letters, optionally a region. Labels are read in it first.'),
   timezone: z.string().nullable().optional().describe('An IANA name.'),
-  date_format: z.string().nullable().optional(),
-  number_format: z
+  date_display_format: z.string().nullable().optional().describe('How this person likes a date written.'),
+  number_display_format: z
     .string()
     .nullable()
     .optional()
-    .describe('How this person likes a number written. Not the pattern of a document number, which belongs to the country.'),
+    .describe('How this person likes a number written. Not the pattern a document number is built from, which belongs to the country.'),
   theme: z.string().nullable().optional(),
 });
 

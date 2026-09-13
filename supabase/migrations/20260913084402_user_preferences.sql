@@ -54,12 +54,13 @@ create table user_preferences (
   preferred_company_id uuid references companies(id) on delete set null,
   language             text,
   timezone             text,
-  date_format          text,
-  -- How this person likes a number written, which is not
-  -- `country_defaults.number_format`: that one is the pattern of a document
-  -- number. Two columns, two questions, and the names are the ones each
-  -- domain uses.
-  number_format        text,
+  -- `*_display_format` and not `date_format` / `number_format`: the second of
+  -- those is already a column of `country_defaults`, where it is the pattern
+  -- a document number is built from. Two questions that have nothing to do
+  -- with each other should not answer to one name — a reader meeting both
+  -- would have to know which table they were in to know what they had.
+  date_display_format   text,
+  number_display_format text,
   theme                text,
   created_at           timestamptz not null default now(),
   updated_at           timestamptz not null default now(),
@@ -300,7 +301,7 @@ language plpgsql
 as $$
 declare
   v_known text[] := array['preferred_company_id', 'language', 'timezone',
-                          'date_format', 'number_format', 'theme'];
+                          'date_display_format', 'number_display_format', 'theme'];
   v_unknown text;
   v_row user_preferences%rowtype;
 begin
@@ -321,13 +322,13 @@ begin
   end if;
 
   insert into user_preferences (user_id, preferred_company_id, language, timezone,
-                                date_format, number_format, theme)
+                                date_display_format, number_display_format, theme)
   values (auth.uid(),
           nullif(p_patch ->> 'preferred_company_id', '')::uuid,
           nullif(p_patch ->> 'language', ''),
           nullif(p_patch ->> 'timezone', ''),
-          nullif(p_patch ->> 'date_format', ''),
-          nullif(p_patch ->> 'number_format', ''),
+          nullif(p_patch ->> 'date_display_format', ''),
+          nullif(p_patch ->> 'number_display_format', ''),
           nullif(p_patch ->> 'theme', ''))
   on conflict (user_id) do update set
     preferred_company_id = case when p_patch ? 'preferred_company_id'
@@ -339,12 +340,12 @@ begin
     timezone             = case when p_patch ? 'timezone'
                                 then nullif(p_patch ->> 'timezone', '')
                                 else user_preferences.timezone end,
-    date_format          = case when p_patch ? 'date_format'
-                                then nullif(p_patch ->> 'date_format', '')
-                                else user_preferences.date_format end,
-    number_format        = case when p_patch ? 'number_format'
-                                then nullif(p_patch ->> 'number_format', '')
-                                else user_preferences.number_format end,
+    date_display_format   = case when p_patch ? 'date_display_format'
+                                 then nullif(p_patch ->> 'date_display_format', '')
+                                 else user_preferences.date_display_format end,
+    number_display_format = case when p_patch ? 'number_display_format'
+                                 then nullif(p_patch ->> 'number_display_format', '')
+                                 else user_preferences.number_display_format end,
     theme                = case when p_patch ? 'theme'
                                 then nullif(p_patch ->> 'theme', '')
                                 else user_preferences.theme end
