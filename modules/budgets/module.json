@@ -1,0 +1,12 @@
+{
+  "$schema": "https://ekwo.ai/schemas/module/1.json",
+  "code": "budgets",
+  "name": "Budgets",
+  "description": "A budget per financial year, its lines per account and period, and the variance against what the ledger actually holds. Reads the socle and writes nothing to it.",
+  "schema": "budgets",
+  "version": "1.0.0",
+  "status": "available",
+  "requires_socle_min": "20260913074512",
+  "posts": false,
+  "mcp": { "prefix": "budgets" }
+}
