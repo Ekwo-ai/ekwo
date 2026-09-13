@@ -44,8 +44,13 @@ export async function newCompany(
   const ownerId = options.ownerId ?? crypto.randomUUID();
   const company = await one<{ id: string }>(
     db,
-    `insert into companies (name, country, fiscal_country, currency_code)
-     values ($1, $2, $2, 'EUR') returning id`,
+    // No literal: since 20260913102758 the two columns carry no default, and
+    // the answer for a company is the pack of its country — which is what a
+    // real one gets from `create_company()`.
+    `insert into companies (name, country, fiscal_country, currency_code, language)
+     select $1, $2, $2, d.currency_code, d.language_default
+       from country_defaults d where d.country = $2
+     returning id`,
     [options.name ?? 'Test Company', country],
   );
   await db.query(`insert into company_members (company_id, user_id, role) values ($1, $2, 'owner')`, [

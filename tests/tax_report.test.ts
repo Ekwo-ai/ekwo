@@ -296,6 +296,58 @@ describe('no country lives in the core any more', () => {
     expect(await literalsIn(LOCALE_LITERAL)).toEqual([]);
   });
 
+  // The audit of 13 September 2026. The rule stopped at the three packages,
+  // and the schema itself was carrying eight `default 'EUR'` / `default 'fr'`
+  // columns — a Canadian installation that named no currency got euros in its
+  // documents, its payments, its catalogue and its bank lines, and found out
+  // at the first report. 20260913102758 drops all eight and replaces them with
+  // a lookup: a row takes the currency of the company above it, and a company
+  // takes the currency and the language of its country's pack.
+  //
+  // Two guards, because a published migration cannot be edited. The file rule
+  // allows a locale literal **only** where it is a column default — the shape
+  // those eight had — and the schema rule then says no such default survives.
+  // A new migration writing one in a function, a policy or a backfill is
+  // refused by the first; one writing a new column default is refused by the
+  // second. There is no gap between them.
+  it('has no currency or language in a migration, except a default the schema no longer has', async () => {
+    const dirs = [
+      join(repoRoot, 'supabase', 'migrations'),
+      join(repoRoot, 'modules'),
+    ];
+    const guilty: string[] = [];
+    for (const dir of dirs) {
+      for (const file of await filesUnder(dir, '.sql')) {
+        for (const line of code(await readFile(file, 'utf8'), '--').split('\n')) {
+          const match = LOCALE_LITERAL.exec(line);
+          if (match === null) continue;
+          if (/default\s+'[A-Za-z]{2,3}'/.test(line)) continue;
+          guilty.push(`${file.split('/').at(-1)}: ${line.trim()}`);
+        }
+      }
+    }
+    expect(guilty).toEqual([]);
+  });
+
+  it('keeps no column default that is a currency or a language', async () => {
+    const defaults = await rows<{ table_name: string; column_name: string; expression: string }>(
+      db,
+      `select c.relname as table_name, a.attname as column_name,
+              pg_get_expr(d.adbin, d.adrelid) as expression
+         from pg_attrdef d
+         join pg_attribute a on a.attrelid = d.adrelid and a.attnum = d.adnum
+         join pg_class c on c.oid = d.adrelid
+         join pg_namespace n on n.oid = c.relnamespace
+        where n.nspname = 'public'
+          and pg_get_expr(d.adbin, d.adrelid) ~ '^''(EUR|USD|GBP|CAD|CHF|fr|en|nl|de)'''
+        order by 1, 2`,
+    );
+    expect(
+      defaults.map((d) => `${d.table_name}.${d.column_name} = ${d.expression}`),
+      'a currency or a language as a column default is a country in the core',
+    ).toEqual([]);
+  });
+
   async function literalsIn(pattern: RegExp): Promise<string[]> {
     const guilty: string[] = [];
     // The three packages that are the core. `packages/formats/*` is judged by
@@ -486,5 +538,71 @@ describe('resolveBoxRef', () => {
   it('says so when nothing carries it', () => {
     expect(resolveBoxRef('44', boxes)).toMatch(/not a box of this form/);
     expect(resolveBoxRef('19:base', boxes)).toMatch(/not a base box of this form/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Where a currency comes from now that nothing writes one down.
+// ---------------------------------------------------------------------------
+
+describe('a row that names no currency', () => {
+  it('takes the currency of its company, and a company takes its pack’s', async () => {
+    const company = await one<{ id: string; currency_code: string; language: string }>(
+      db,
+      `insert into companies (name, country, fiscal_country)
+       values ('Sans Devise SRL', 'FR', 'FR') returning id, currency_code, language`,
+    );
+    const pack = await one<{ currency_code: string; language_default: string }>(
+      db,
+      `select currency_code, language_default from country_defaults where country = 'FR'`,
+    );
+    expect(company.currency_code).toBe(pack.currency_code);
+    expect(company.language).toBe(pack.language_default);
+
+    await db.query(`select install_country_template($1, 'FR')`, [company.id]);
+    const contact = await one<{ id: string }>(
+      db,
+      `insert into contacts (company_id, name) values ($1, 'Cliente') returning id`,
+      [company.id],
+    );
+
+    const document = await one<{ currency_code: string }>(
+      db,
+      `insert into documents (company_id, doc_type, contact_id, document_date)
+       values ($1, 'sale_invoice', $2, date '2026-05-05') returning currency_code`,
+      [company.id, contact.id],
+    );
+    expect(document.currency_code).toBe(company.currency_code);
+
+    const product = await one<{ currency_code: string }>(
+      db,
+      `insert into products (company_id, code, name) values ($1, 'ART-1', 'Article')
+       returning currency_code`,
+      [company.id],
+    );
+    expect(product.currency_code).toBe(company.currency_code);
+
+    const payment = await one<{ currency_code: string }>(
+      db,
+      `insert into payments (company_id, direction, payment_date, amount, journal_id)
+       values ($1, 'inbound', date '2026-05-06', 100,
+               (select id from journals where company_id = $1 and journal_type = 'bank' limit 1))
+       returning currency_code`,
+      [company.id],
+    );
+    expect(payment.currency_code).toBe(company.currency_code);
+
+    await db.query(`delete from companies where id = $1`, [company.id]);
+  });
+
+  it('is refused outright when no pack answers, instead of being given euros', async () => {
+    // A country this installation carries no pack for. There used to be an
+    // answer for it — the euro, written into the column — and now there is
+    // none, which is the correct answer.
+    const message = await expectError(
+      db,
+      `insert into companies (name, country, fiscal_country) values ('Muette SRL', 'ZZ', 'ZZ')`,
+    );
+    expect(message).toMatch(/currency_code|not-null|null value/i);
   });
 });

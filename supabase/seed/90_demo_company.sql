@@ -55,13 +55,19 @@ begin
 
   perform claim_instance_admin(v_owner);
 
+  -- The currency and the language come from the pack of the country this
+  -- company is in, which is where they come from for a real one too. Since
+  -- 20260913102758 the columns carry no default, so naming them is the only
+  -- way, and reading them off `country_defaults` keeps the demo honest about
+  -- where the answer lives.
   insert into companies (name, legal_name, legal_form, country, fiscal_country,
                          vat_number, registration_number, address_line1,
-                         postal_code, city, email, website, currency_code)
-  values ('Exemple Conseil', 'Exemple Conseil SRL', 'SRL', 'BE', 'BE',
-          'BE0123456749', '0123.456.749', 'Rue de l''Exemple 1',
-          '1000', 'Bruxelles', 'compta@exemple-conseil.example',
-          'https://exemple-conseil.example', 'EUR')
+                         postal_code, city, email, website, currency_code, language)
+  select 'Exemple Conseil', 'Exemple Conseil SRL', 'SRL', 'BE', 'BE',
+         'BE0123456749', '0123.456.749', 'Rue de l''Exemple 1',
+         '1000', 'Bruxelles', 'compta@exemple-conseil.example',
+         'https://exemple-conseil.example', d.currency_code, d.language_default
+    from country_defaults d where d.country = 'BE'
   returning id into v_company;
 
   insert into company_members (company_id, user_id, role) values (v_company, v_owner, 'owner');
