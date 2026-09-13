@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.5.0, do not edit.
+-- Generated from packs/fr at version 1.6.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -28,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.5.0', date '2026-09-13', '20260913075903', 'maintained', null, null, '4b56f645e6361f8e006f9250f19d027905cd37868973b798b7bd645116213870')
+  ('FR', 'France', '1.6.0', date '2026-09-13', '20260913114535', 'maintained', null, null, '5d850586e4028e36dbde3c36ed2b14cf0215e4a05858c80064e731ff8939f9fe')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -990,9 +990,9 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
 values
-  ('FR', 'France', '{"en":"France"}'::jsonb, array['fr', 'en']::text[], 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000', null, null, '775000', '675000')
+  ('FR', 'France', '{"en":"France"}'::jsonb, array['fr', 'en']::text[], 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000', null, null, '775000', '675000', 'À-nouveaux')
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -1023,7 +1023,8 @@ on conflict (country) do update set
   asset_disposal_gain_code        = excluded.asset_disposal_gain_code,
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
-  asset_disposal_value_code       = excluded.asset_disposal_value_code;
+  asset_disposal_value_code       = excluded.asset_disposal_value_code,
+  opening_entry_label             = excluded.opening_entry_label;
 
 update country_defaults set
   numbering_gapless       = true,

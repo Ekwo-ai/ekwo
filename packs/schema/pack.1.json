@@ -93,6 +93,10 @@
         "language": { "$ref": "#/$defs/language", "description": "Language a company of this country is installed in unless it asks for another." },
         "rounding_method": { "enum": ["half_up", "half_even", "down", "up"], "description": "How this country rounds a tax amount. half_up is half away from zero, which is what every posting does today. Defaults to half_up." },
         "cash_rounding_unit": { "type": ["number", "null"], "minimum": 0, "description": "Smallest coin when it is not the cent: 0.05 in Switzerland. Null, like 0, means the cent is the unit." },
+        "opening_entry_label": {
+          "type": ["string", "null"],
+          "description": "Wording the computed opening lines of an export carry — the EcritureLib of an a-nouveaux in a French FEC — in the language the administration of this country reads. Not an i18n key: the label is addressed to an administration and not to whoever is signed in. Null falls back to a neutral English label, because the formats fix no wording."
+        },
         "closing_style": {
           "enum": ["retained_earnings", "result_accounts", "appropriation_accounts"],
           "description": "How the year-end close moves the result. retained_earnings: straight into retained earnings (UK, US). result_accounts: into a current-year result account that sits on the balance sheet and waits for the meeting that allocates it (FR 120/129). appropriation_accounts: through an appropriation account that is itself part of the income statement, and from there to retained earnings (BE 693/793 to 140/141). Named after the mechanism, never after a country."

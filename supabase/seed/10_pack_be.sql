@@ -1152,9 +1152,9 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
 values
-  ('BE', 'Belgium', '{"de":"Belgien","en":"Belgium","nl":"België"}'::jsonb, array['fr', 'nl', 'de', 'en']::text[], 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000', '763000', '663000', null, null)
+  ('BE', 'Belgium', '{"de":"Belgien","en":"Belgium","nl":"België"}'::jsonb, array['fr', 'nl', 'de', 'en']::text[], 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000', '763000', '663000', null, null, null)
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -1185,7 +1185,8 @@ on conflict (country) do update set
   asset_disposal_gain_code        = excluded.asset_disposal_gain_code,
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
-  asset_disposal_value_code       = excluded.asset_disposal_value_code;
+  asset_disposal_value_code       = excluded.asset_disposal_value_code,
+  opening_entry_label             = excluded.opening_entry_label;
 
 update country_defaults set
   numbering_gapless       = true,

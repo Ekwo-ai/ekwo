@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.5.0",
-  "schema_min": "20260913075903",
+  "version": "1.6.0",
+  "schema_min": "20260913114535",
   "released_at": "2026-09-13",
   "certification": {
     "status": "maintained",
@@ -28,6 +28,7 @@
     "currency": "EUR",
     "language": "fr",
     "rounding_method": "half_up",
+    "opening_entry_label": "À-nouveaux",
     "closing_style": "result_accounts",
     "roles": {
       "receivable": "411000",

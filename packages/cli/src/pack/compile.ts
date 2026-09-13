@@ -598,6 +598,12 @@ function defaults(pack: Pack, country: string): string[] {
     text(roles['asset_disposal_loss'] ?? null),
     text(roles['asset_disposal_proceeds'] ?? null),
     text(roles['asset_disposal_value'] ?? null),
+    // The wording the computed opening lines of an export carry, in the
+    // language the administration of this country reads. No fallback here
+    // either, but for the opposite reason to an account code: the schema keeps
+    // a neutral one, because a format that fixes no wording has no wrong
+    // answer to give, and a missing label is not a reason to refuse a file.
+    text((pack.manifest.defaults['opening_entry_label'] as string | undefined) ?? null),
   ];
   return [
     'insert into country_defaults',
@@ -608,7 +614,7 @@ function defaults(pack: Pack, country: string): string[] {
     '   current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,',
     '   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,',
     '   asset_disposal_gain_code, asset_disposal_loss_code,',
-    '   asset_disposal_proceeds_code, asset_disposal_value_code)',
+    '   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)',
     'values',
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
@@ -641,7 +647,8 @@ function defaults(pack: Pack, country: string): string[] {
     '  asset_disposal_gain_code        = excluded.asset_disposal_gain_code,',
     '  asset_disposal_loss_code        = excluded.asset_disposal_loss_code,',
     '  asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,',
-    '  asset_disposal_value_code       = excluded.asset_disposal_value_code;',
+    '  asset_disposal_value_code       = excluded.asset_disposal_value_code,',
+    '  opening_entry_label             = excluded.opening_entry_label;',
   ];
 }
 
