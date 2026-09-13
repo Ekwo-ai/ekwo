@@ -29,8 +29,8 @@ module.
    migration writes its row into `public.modules`.
 
 Migrations live in `<code>/supabase/migrations/`, share the socle's history
-with the module in the recorded `name`, and their timestamps sort after every
-socle migration. Tests live in `<code>/tests/` and the root `npm test` runs
+with the module in the recorded `name`, and their timestamps sort after the
+socle migration the manifest declares it needs, `requires_socle_min`. Tests live in `<code>/tests/` and the root `npm test` runs
 them.
 
 The full version, and how to write a module in a day, is

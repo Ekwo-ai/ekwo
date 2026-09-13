@@ -132,8 +132,15 @@ They live in `modules/<code>/supabase/migrations/` and follow the socle's rules
 only, row level security in the file that creates the table, no transaction of
 their own. Two rules are theirs alone:
 
-- **A module's timestamps sort after every socle migration**, so one history
-  stays in order. A test refuses one that does not.
+- **A module's timestamps sort after the socle migration its manifest
+  declares it needs** (`requires_socle_min`), which is what guarantees the
+  objects it builds on already exist. A test refuses one that does not. They
+  are *not* asked to sort after every socle migration ever written: the socle
+  gains one the week after a module ships, and renaming a published module
+  migration to restore a total order is what rule 1 of
+  `supabase/migrations/README.md` forbids. `ekwo migrate` applies the socle
+  first and the modules after, so the applied order is right whatever the
+  timestamps say.
 - **They are recorded in the same history**, `supabase_migrations.schema_migrations`,
   with the plain timestamp as `version` and the module in the `name`:
   `assets/assets`. That is what keeps `ekwo migrate` and `supabase db push`

@@ -473,16 +473,19 @@ describe('the migrations of a module', () => {
     }
   });
 
-  it('sort after every socle migration, so one history stays in order', async () => {
-    const socle = (await migrationFiles()).map((f) => f.slice(0, 14)).sort();
-    const newest = socle.at(-1) as string;
-    for (const migration of await moduleMigrationFiles()) {
-      expect(
-        migration.version > newest,
-        `${migration.code}/${migration.file} is older than socle migration ${newest}`,
-      ).toBe(true);
-    }
-  });
+  // This used to ask that a module migration sort after *every* socle
+  // migration, which is a promise no module can keep: the socle gains a
+  // migration the week after a module ships, and the only way to restore a
+  // total order is to rename a published module migration — the one thing
+  // rule 1 of `supabase/migrations/README.md` forbids. ST13 was the first
+  // socle change to land after a module and it failed exactly there.
+  //
+  // What a module can promise, and what the order actually needs, is the test
+  // below: every one of its migrations sorts after the socle migration its
+  // manifest declares it needs. `ekwo migrate` applies the socle first and
+  // the modules after, so the applied order is right whatever the timestamps
+  // say; what `requires_socle_min` guarantees is that the objects a module
+  // builds on already exist.
 
   it('take a version no other migration anywhere uses', async () => {
     const versions = [
@@ -492,7 +495,7 @@ describe('the migrations of a module', () => {
     expect(new Set(versions).size).toBe(versions.length);
   });
 
-  it('apply after the socle migration each one declares it needs', async () => {
+  it('apply after the socle migration each one declares it needs, which is the order that matters', async () => {
     const socle = new Set((await migrationFiles()).map((f) => f.slice(0, 14)));
     for (const module of await listModules(modulesDir)) {
       const min = module.manifest.requires_socle_min;

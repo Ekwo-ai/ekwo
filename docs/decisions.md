@@ -1690,3 +1690,27 @@ duplicated is the order of four inserts, and what differs is the behaviour
 that cannot be shared: the installer is check-then-act, reports "already
 there" for every step and can be run twice on a half-finished project, where
 the function creates or raises.
+
+**One rule of the modules change had to be narrowed, and it would have had to
+be narrowed by whatever landed next.** A module's migrations were asked to
+sort after *every* socle migration, so that one recorded history reads in
+order. ST13 was the first socle change to land after a module, and it broke
+that test by existing: the socle will always gain a migration the week after a
+module ships, and the only way to restore a total order is to rename a
+published module migration — the one thing rule 1 of
+`supabase/migrations/README.md` forbids. What a module can promise, and what
+the order actually needs, was already the test beside it: every migration of a
+module sorts after the socle migration its manifest declares it needs. The
+applied order never depended on the timestamps anyway — `ekwo migrate` runs
+the socle first and the modules after.
+
+**The module policies already go through `has_capability()`, and their own
+codes are theirs to add.** `assets` and `budgets` write
+`module_enabled(company, code) and can_write_company(company)`, and
+`can_write_company()` is now one capability — so a member who loses
+`entries.write` loses the module with it, which is the behaviour that was
+there before. Adding `assets.read` / `assets.write` to `capabilities` and
+rewriting those policies onto them is the right next step and it belongs in
+the module's own migration: a migration of the socle that named `assets` would
+be the socle knowing what is built beside it, which is the one thing
+`docs/modules.md` says it must not.
