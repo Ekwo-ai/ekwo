@@ -106,6 +106,14 @@ A disposal refuses while a period that has already ended is still unbooked:
 run the depreciation first. What the schedule still planned after the disposal
 date is deleted; what the ledger already knows is kept.
 
+**The disposal books no VAT, and `proceeds` is stated net of it.** Selling a
+fixed asset is a taxable supply in both countries, and the tax on it belongs on
+a sales invoice — which the socle already knows how to post, with the right
+tax, the right box and the right account. Booking a second VAT path inside a
+module would be a second answer to a question `post_document` answers. So the
+usual sequence is: issue the sales invoice for the sale, then dispose of the
+asset against the same receivable, for the amount excluding tax.
+
 ## For an accountant to read
 
 Four things here are our reading of the mechanics, and an accountant should
