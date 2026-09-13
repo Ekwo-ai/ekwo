@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.3.1, do not edit.
+-- Generated from packs/be at version 1.4.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -16,6 +16,8 @@
 --   Arrêté royal n° 1 du 29 décembre 1992, art. 5 — numérotation séquentielle des factures
 --   Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 4, 5 et 6
 --   Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée
+--   Code des impôts sur les revenus 1992, art. 61 à 64 et art. 196, § 2 — amortissements, durées usuelles et régime dégressif
+--   Arrêté royal d'exécution du CIR 92, art. 36 à 43 — modalités du régime dégressif
 --
 -- Reference data: `install_country_template()` copies it into a company,
 -- nothing here belongs to a company.
@@ -24,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.3.1', date '2026-09-12', '20260912112132', 'maintained', null, null, 'f5fb07c7fde3c10d9cfa95f3cd3086c75b479f62e9b7b98b9cdad2f01f649d75')
+  ('BE', 'Belgium', '1.4.0', date '2026-09-12', '20260913075903', 'maintained', null, null, 'd3c01e87dd45a24cee717c60044d5dec7e71f4284710411ed7bb6f6aee4cf5be')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -1146,9 +1148,11 @@ insert into country_defaults
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
-   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)
+   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
+   asset_disposal_gain_code, asset_disposal_loss_code,
+   asset_disposal_proceeds_code, asset_disposal_value_code)
 values
-  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000')
+  ('BE', 'Belgium', 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000', '763000', '663000', null, null)
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -1173,7 +1177,11 @@ on conflict (country) do update set
   rounding_method        = excluded.rounding_method,
   cash_rounding_unit     = excluded.cash_rounding_unit,
   fx_gain_code           = excluded.fx_gain_code,
-  fx_loss_code           = excluded.fx_loss_code;
+  fx_loss_code           = excluded.fx_loss_code,
+  asset_disposal_gain_code        = excluded.asset_disposal_gain_code,
+  asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
+  asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
+  asset_disposal_value_code       = excluded.asset_disposal_value_code;
 
 update country_defaults set
   numbering_gapless       = true,

@@ -1,0 +1,118 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "depreciation": {
+    "prorata_straight_line": "days",
+    "prorata_declining": "days",
+    "day_count": "actual",
+    "declining_cap_percent": 40,
+    "declining_switch_to_linear": true,
+    "legal_reference": "Code des impôts sur les revenus 1992, art. 61 — les amortissements sont admis dans la mesure où ils correspondent à une dépréciation réellement survenue ; art. 196, § 2, 1° — l'annuité de l'exercice d'acquisition est réduite au prorata de la partie de l'exercice restant à courir, pour les sociétés autres que les petites sociétés au sens de l'art. 1:24 du Code des sociétés et des associations ; art. 64 et AR/CIR 92, art. 36 à 43 — régime dégressif, annuité limitée à 40 % de la valeur d'investissement et abandon du dégressif dès que l'annuité linéaire est supérieure"
+  },
+  "disposal": {
+    "style": "net_result",
+    "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1 — comptes 763 « Plus-values sur réalisation d'actifs immobilisés » et 663 « Moins-values sur réalisation d'actifs immobilisés »"
+  },
+  "categories": [
+    {
+      "code": "formation-expenses",
+      "name": "Frais d'établissement",
+      "name_i18n": { "nl": "Oprichtingskosten", "en": "Formation expenses" },
+      "method": "straight_line",
+      "duration_months": 60,
+      "account_type": "asset_fixed",
+      "sequence": 10,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 62 — les frais d'établissement sont amortis par annuités égales, échelonnées sans interruption sur cinq ans au moins"
+    },
+    {
+      "code": "intangible-rd",
+      "name": "Frais de recherche et de développement",
+      "name_i18n": { "nl": "Kosten van onderzoek en ontwikkeling", "en": "Research and development" },
+      "method": "straight_line",
+      "duration_months": 36,
+      "account_type": "asset_fixed",
+      "sequence": 20,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles amorties par annuités fixes sur trois ans au moins pour les investissements en recherche et développement"
+    },
+    {
+      "code": "software",
+      "name": "Logiciels, concessions, brevets et licences",
+      "name_i18n": { "nl": "Software, concessies, octrooien en licenties", "en": "Software, concessions, patents and licences" },
+      "method": "straight_line",
+      "duration_months": 60,
+      "account_type": "asset_fixed",
+      "sequence": 30,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles autres que la recherche et le développement, amorties par annuités fixes sur cinq ans au moins"
+    },
+    {
+      "code": "building-industrial",
+      "name": "Bâtiments industriels",
+      "name_i18n": { "nl": "Industriële gebouwen", "en": "Industrial buildings" },
+      "method": "straight_line",
+      "duration_months": 240,
+      "account_type": "asset_fixed",
+      "sequence": 40,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment industriel — vingt ans, soit 5 % l'an. Une durée usuelle est une pratique administrative et non un texte : elle se justifie par la dépréciation réelle du bien."
+    },
+    {
+      "code": "building-commercial",
+      "name": "Bâtiments commerciaux et de bureaux",
+      "name_i18n": { "nl": "Handels- en kantoorgebouwen", "en": "Commercial and office buildings" },
+      "method": "straight_line",
+      "duration_months": 396,
+      "account_type": "asset_fixed",
+      "sequence": 50,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment commercial ou de bureaux — trente-trois ans, soit 3 % l'an. Pratique administrative, à justifier par la dépréciation réelle du bien."
+    },
+    {
+      "code": "machinery",
+      "name": "Installations, machines et outillage",
+      "name_i18n": { "nl": "Installaties, machines en uitrusting", "en": "Plant, machinery and equipment" },
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 60,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative."
+    },
+    {
+      "code": "machinery-declining",
+      "name": "Installations, machines et outillage — régime dégressif",
+      "name_i18n": { "nl": "Installaties, machines en uitrusting — degressief", "en": "Plant and machinery — declining balance" },
+      "method": "declining_balance",
+      "duration_months": 120,
+      "coefficient": 2,
+      "account_type": "asset_fixed",
+      "sequence": 70,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 64 et AR/CIR 92, art. 36 à 43 — taux double du taux linéaire, annuité plafonnée à 40 % de la valeur d'investissement, retour au linéaire dès qu'il donne une annuité supérieure. Le régime est exclu pour les immobilisations incorporelles et pour les biens dont l'usage est cédé à un tiers (art. 64, al. 2)."
+    },
+    {
+      "code": "furniture",
+      "name": "Mobilier",
+      "name_i18n": { "nl": "Meubilair", "en": "Furniture" },
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 80,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative."
+    },
+    {
+      "code": "it-equipment",
+      "name": "Matériel de bureau et matériel informatique",
+      "name_i18n": { "nl": "Kantoor- en informaticamaterieel", "en": "Office and computer equipment" },
+      "method": "straight_line",
+      "duration_months": 36,
+      "account_type": "asset_fixed",
+      "sequence": 90,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise pour le matériel informatique — trois ans, soit 33 % l'an. Pratique administrative."
+    },
+    {
+      "code": "vehicle",
+      "name": "Matériel roulant",
+      "name_i18n": { "nl": "Rollend materieel", "en": "Vehicles" },
+      "method": "straight_line",
+      "duration_months": 60,
+      "account_type": "asset_fixed",
+      "sequence": 100,
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — cinq ans, soit 20 % l'an. Pratique administrative. La déductibilité des frais de voiture est une question distincte de la durée d'amortissement (art. 66 et 198bis)."
+    }
+  ]
+}

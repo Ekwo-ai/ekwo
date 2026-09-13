@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.3.1",
-  "schema_min": "20260912112132",
+  "version": "1.4.0",
+  "schema_min": "20260913075903",
   "released_at": "2026-09-12",
   "certification": {
     "status": "maintained",
@@ -17,7 +17,9 @@
       "Code de la TVA, art. 39, 39bis et 56bis — exonérations et régime de la franchise",
       "Arrêté royal n° 1 du 29 décembre 1992, art. 5 — numérotation séquentielle des factures",
       "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 4, 5 et 6",
-      "Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée"
+      "Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée",
+      "Code des impôts sur les revenus 1992, art. 61 à 64 et art. 196, § 2 — amortissements, durées usuelles et régime dégressif",
+      "Arrêté royal d'exécution du CIR 92, art. 36 à 43 — modalités du régime dégressif"
     ]
   },
   "defaults": {
@@ -39,7 +41,9 @@
       "bank": "550000",
       "cash": "570000",
       "fx_gain": "754000",
-      "fx_loss": "654000"
+      "fx_loss": "654000",
+      "asset_disposal_gain": "763000",
+      "asset_disposal_loss": "663000"
     },
     "journal_roles": {
       "sales": "SAL",

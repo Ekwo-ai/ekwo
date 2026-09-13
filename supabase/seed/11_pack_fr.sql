@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.3.0, do not edit.
+-- Generated from packs/fr at version 1.4.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -17,6 +17,9 @@
 --   Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique
 --   Code general des impots, art. 269-2-c — exigibilite sur les encaissements
 --   Code general des impots, art. 271-I-2 — naissance du droit a deduction
+--   Règlement ANC 2014-03 (plan comptable général), art. 214-1 et suivants — amortissements
+--   Code général des impôts, art. 39 A — amortissement dégressif et ses coefficients
+--   BOI-BIC-AMT-10-40-10 — durées d'usage admises
 --
 -- Reference data: `install_country_template()` copies it into a company,
 -- nothing here belongs to a company.
@@ -25,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.3.0', date '2026-09-12', '20260912112132', 'maintained', null, null, '829758c7be59dc83979f67d5f49ed3d06a11f353c99c43cdd1b4d86efc7a524a')
+  ('FR', 'France', '1.4.0', date '2026-09-12', '20260913075903', 'maintained', null, null, 'b8a4035fc495758f7af9b2f9fb5f321510e0c4484ad294d42fa38d24826624a8')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -983,9 +986,11 @@ insert into country_defaults
    bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,
    misc_journal_code, language_default, closing_style, current_year_result_profit_code,
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
-   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code)
+   rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
+   asset_disposal_gain_code, asset_disposal_loss_code,
+   asset_disposal_proceeds_code, asset_disposal_value_code)
 values
-  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000')
+  ('FR', 'France', 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000', null, null, '775000', '675000')
 on conflict (country) do update set
   name                   = excluded.name,
   currency_code          = excluded.currency_code,
@@ -1010,7 +1015,11 @@ on conflict (country) do update set
   rounding_method        = excluded.rounding_method,
   cash_rounding_unit     = excluded.cash_rounding_unit,
   fx_gain_code           = excluded.fx_gain_code,
-  fx_loss_code           = excluded.fx_loss_code;
+  fx_loss_code           = excluded.fx_loss_code,
+  asset_disposal_gain_code        = excluded.asset_disposal_gain_code,
+  asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
+  asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
+  asset_disposal_value_code       = excluded.asset_disposal_value_code;
 
 update country_defaults set
   numbering_gapless       = true,

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://ekwo.ai/schemas/module/1.json",
+  "code": "assets",
+  "name": "Fixed assets",
+  "description": "Fixed assets, their depreciation schedule and their disposal. The durations, the declining coefficients and the prorata convention of a country are pack data; the engine knows no country.",
+  "schema": "assets",
+  "version": "1.0.0",
+  "status": "available",
+  "requires_socle_min": "20260913075903",
+  "posts": true,
+  "mcp": { "prefix": "assets" },
+  "pack": { "section": "assets" }
+}
