@@ -42,6 +42,37 @@ somewhere has already run it.
   those languages with nothing pre-selected rather than guessing, `ekwo pack
   list` shows them, and the demo company says which language it keeps its books
   in. [`docs/languages.md`](docs/languages.md) is the mechanism end to end.
+- **The FEC carries its opening balances, and an unclosed year carries its
+  result.** `fec_lines()` returned the movements of a period and nothing else,
+  so the file of a financial year could not rebuild the balance sheet it
+  belongs to. It now prepends the *à-nouveaux*: one line per account that
+  carries forward, at the balance of the day before the year opens, on the
+  journal `country_defaults.opening_journal_code` names and as one balanced
+  entry. They are **computed from `trial_balance()` and never posted** — every
+  report here reads the ledger from the beginning, so an opening entry would
+  count each carried balance twice — and a balance-sheet account is one whose
+  `account_type` carries forward, never a code prefix.
+  **A year the meeting has not closed yet still carries its result**: the
+  accounts that do not carry forward are the mirror image of the balance-sheet
+  ones, so what is left over goes on one more line, on the balance-sheet
+  account the close would have used — France's 120 or 129 under
+  `result_accounts`, retained earnings under the other two styles, because an
+  appropriation account is inside the income statement and the closing entry
+  empties it. A pack that names none gets `no_result_account`; a first set of
+  books with nothing to carry is asked for nothing at all. The export is never
+  refused for a year that is merely open.
+  **And the entries a close writes leave the file of the year they close**:
+  kept, they show the result twice and the income statement read from the file
+  is nil. So the file of a closed year is byte for byte the file of the same
+  year still open, and the result reaches the balance sheet in the opening
+  lines of the year that follows. `financial_statement()` keeps the
+  appropriation entry, which is part of a statutory income statement, and
+  `docs/decisions.md` says why the two readers differ.
+  The wording of those lines is `defaults.opening_entry_label` in the pack —
+  France says *À-nouveaux* — with a neutral English fallback, because the
+  format fixes eighteen columns and no wording. An extract that is not a whole
+  financial year gets no opening lines. Same signature, same eighteen columns:
+  `@ekwo-ai/fec` and the `generate_fec` tool need no change.
 
 - **Modules: one Postgres schema each, and the ledger only through a
   function.** The socle stays in `public` and knows nothing about what is built
@@ -303,6 +334,15 @@ somewhere has already run it.
   keeps the appropriation, an income statement leaves out both, and a balance
   sheet keeps both. `reopen_fiscal_year()` undoes both. Migrations
   `20260912105720` and `20260912105721`.
+
+### Removed
+
+- **`@ekwo-ai/core/fec` and the FEC re-exports of `@ekwo-ai/core` are gone.**
+  The release that moved the format to `@ekwo-ai/fec` kept them alive for one
+  version, and this is the next one: import `generateFec`, `checkFec`,
+  `fecFileName`, `fromQueryRow`, `formatFecDate`, `formatFecAmount` and
+  `FEC_COLUMNS` from `@ekwo-ai/fec`. The core still depends on it, because
+  `EkwoClient.generateFec()` writes the file it has just fetched.
 
 ### Security
 

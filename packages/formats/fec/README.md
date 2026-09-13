@@ -22,6 +22,33 @@ const name = fecFileName('123456789', '2026-12-31'); // 123456789FEC20261231.txt
 imported from it. Any book-keeping system that can produce those columns can
 use this package; it reads no database and knows no accounting.
 
+## The opening lines
+
+A file that covers a whole financial year starts with its *à-nouveaux*: one
+line per balance-sheet account, at the balance it carried on the last day of
+the year before, on the opening journal and dated on the first day of the year.
+This package does nothing special with them — they arrive as ordinary rows,
+they carry one entry number of their own, and `checkFec` balances them like any
+other entry.
+
+Where they come from is the producer's business. In Ekwo OS they are computed
+from the ledger rather than posted, and two of their properties are worth
+knowing when you read a file:
+
+- **An unclosed year still carries its result.** When the year before has not
+  been closed, the difference between the balance-sheet lines is the result
+  nobody has allocated yet, and it arrives as one more opening line on the
+  balance-sheet account the close would have put it on. The file balances
+  whether or not the meeting has happened.
+- **The entries of a year-end close are not in the file of the year they
+  close.** They would show the result twice — once in the ordinary movements,
+  once on the balance sheet — so the income statement reads from the movements
+  as it always did, and the result reaches the balance sheet in the opening
+  lines of the year that follows.
+
+An extract that is not a whole financial year gets no opening lines: it is an
+extract of movements, and `fecFileName` is built from a year end.
+
 The separators are options: `decimalSeparator`, `fieldSeparator`, `newline`,
 `header`. The defaults are what the French tooling expects.
 

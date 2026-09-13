@@ -308,10 +308,19 @@ above says: `number` → `number` (BT-1), `document_date` → `issueDate` (BT-2)
 
 ## Producing a FEC
 
-`fec_lines(company_id, from, to)` returns the eighteen columns in
-chronological order. `generateFec()` in `@ekwo-ai/fec` turns them into the
-file, and `checkFec()` applies the file-level rules — mandatory fields, one
-side per line, each entry balancing — before you hand it over.
+`fec_lines(company_id, from, to)` returns the eighteen columns: the opening
+balances of the financial year first, then its movements in chronological
+order. `generateFec()` in `@ekwo-ai/fec` turns them into the file, and
+`checkFec()` applies the file-level rules — mandatory fields, one side per
+line, each entry balancing — before you hand it over.
+
+The opening lines are computed from the ledger and never posted, one per
+balance-sheet account, plus one for the result of a year that has not been
+closed yet. They appear only when the period is exactly a financial year. The
+sources below are those of a movement line; an opening line takes its journal
+from `country_defaults.opening_journal_code`, its account and amount from the
+cumulative balance of the day before the year opens, and its label from
+`country_defaults.opening_entry_label`.
 
 | FEC column | Source |
 |---|---|

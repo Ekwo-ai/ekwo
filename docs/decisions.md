@@ -1924,3 +1924,90 @@ The question now lists what the pack publishes, with nothing pre-selected, and
 `--language` is required outside an interactive session whenever there is a
 choice. `country_defaults.languages` is where the list comes from, because an
 installation has the compiled seeds and no pack folder to read.
+
+## The FEC carries its opening balances, and an unclosed year carries its result (13 September 2026)
+
+`fec_lines()` returned the movements of a period and nothing else, so the file
+of a financial year could not rebuild the balance sheet it belongs to: every
+account started the year at nil. A tax inspector reads the *à-nouveaux* first,
+and the closing decision of the release before this one had made them
+impossible to post — every report here reads the ledger from the beginning, so
+an opening entry does not carry a balance forward, it counts it twice.
+
+**So they are computed, and never posted.** The opening lines exist in the
+export and nowhere else. That is the whole reconciliation of the two
+decisions: the ledger stays cumulative and free of *à-nouveaux*, and the file
+carries them because the file is a per-year artefact and the ledger is not.
+The amounts come from `trial_balance()`, which is where this repository
+computes a cumulative balance — a second way of computing one is a second
+answer waiting to differ from the first.
+
+**A balance-sheet account is one that carries forward, and that is a fact
+about its type.** The lines are selected on `accounts.carries_forward`, derived
+from `account_type`, so nothing reads a code prefix: a chart that numbers its
+assets in a fifth class is read correctly without anyone saying so.
+
+**An unclosed year carries its result, and the export is never refused for
+it.** An accountant produces the file of a year long before the meeting that
+closes the one before it. The accounts that do not carry forward are the mirror
+image of the balance-sheet ones, so leaving them out leaves the opening lines
+short by exactly the accumulated result — and that amount goes on one more
+line, on the balance-sheet account **the close would have left it on**. Which
+account that is comes from `closing_style`, and the three answers are not the
+same: `result_accounts` keeps it on a balance-sheet account of its own until a
+meeting allocates it (France, 120 or 129); the other two have already reached
+retained earnings by the time the year is over — an appropriation account is
+*inside* the income statement and the closing entry empties it, so 693 is
+never what a Belgian balance sheet carries forward, 140 is. A pack that names
+no such account gets `no_result_account`, and so does one that names an income
+or expense account, which would carry nothing at all.
+
+**The entries a close writes are left out of the file of the year they
+close.** A closing entry books the mirror image of every income and expense
+account, and an appropriation entry moves the result to retained earnings;
+both are dated inside the year being exported. Kept, they show the result
+twice — once in the ordinary movements, once on the balance sheet — and the
+income statement read from the file is nil. Left out, the file of a closed
+year is byte for byte the file of the same year still open, and the result
+reaches the balance sheet in the opening lines of the year that follows, which
+is where a French or a Belgian package prints it too. Two tests hold that
+sentence: closing a year does not change its file, and the opening lines of
+the year after are the same whether the year before is closed or not.
+
+**`financial_statement()` leaves out `closing` and keeps `appropriation`, and
+the FEC leaves out both — deliberately, not by oversight.** They are not the
+same question. An appropriation account is part of the statutory income
+statement of the countries that have one, and the section that shows the
+allocation would read nil without it. The FEC is not a statement: it is the
+movements themselves, and it already carries the whole income statement in its
+ordinary lines. Forcing the two readers through one predicate would mean one
+of them is wrong; what they share is the column, and this paragraph.
+
+**Only a whole financial year gets opening lines.** The FEC is a file per
+financial year — its name is built from the year end — and an extract of a
+quarter is an extract of movements. A period that starts or ends anywhere but
+on the bounds of a year gets exactly what it got before this change.
+
+**The wording of those lines is a value of the country model.** The
+specification fixes eighteen columns and the format of each; it fixes no
+wording for `EcritureLib`, and an administration reads the file in its own
+language. So `defaults.opening_entry_label` sits in the pack next to
+`closing_style` — France says *À-nouveaux* — and it is not an i18n key: the
+label is addressed to an administration and not to whoever happens to be
+signed in. Unlike an account code it keeps a fallback rather than a refusal, a
+neutral English label, because a format that fixes no wording has no wrong
+answer to give and a missing label is not a reason to hold an export back.
+A pack is asked for nothing at all when there is nothing to carry: a first set
+of books opens on nil and needs neither a journal nor a result account.
+
+**For an accountant to read.** Three things here are our reading rather than a
+rule we can cite. The opening lines are one entry per year rather than one per
+account, numbered from the opening journal's code and the day the year opens —
+the format requires a number and fixes none. They are aggregated per account
+and carry no sub-ledger code, so the *à-nouveaux* of a customer account is one
+line and not one line per customer; a firm that details them by auxiliary is
+not doing anything unusual, and that is the change to ask for if an inspection
+expects it. And the destination of a result no meeting has allocated is the
+account the close would have used — 120 or 129 in France, 140 or 141 in
+Belgium rather than 693 or 793, which are inside the income statement and
+would carry nothing forward.
