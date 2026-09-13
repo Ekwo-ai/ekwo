@@ -102,6 +102,40 @@ export async function countryLanguage(db: SqlClient, country: string): Promise<s
   ]);
 }
 
+/** One language a country pack publishes every label in. */
+export interface LanguageChoice {
+  /** ISO 639-1, two letters. */
+  code: string;
+  /** The country's own name in that language, which is a hint anyone can read. */
+  label: string;
+  /** True of the language the pack itself is written in. */
+  isPackLanguage: boolean;
+}
+
+/**
+ * The languages this country's pack publishes, the pack's own first.
+ *
+ * `ekwo init` asks rather than assumes: a Belgian company may keep its books
+ * in French, Dutch or German, and which one it is is not something a country
+ * code answers. The list comes from the database — `country_defaults` — and
+ * not from the pack folder, because an installation has the compiled seeds
+ * and no pack to read.
+ */
+export async function countryLanguages(db: SqlClient, country: string): Promise<LanguageChoice[]> {
+  const row = await first<{ name: string; name_i18n: Record<string, string>; languages: string[] }>(
+    db,
+    'select name, name_i18n, languages from country_defaults where country = $1',
+    [country.toUpperCase()],
+  );
+  if (row === undefined) return [];
+  const own = await countryLanguage(db, country);
+  return (row.languages ?? []).map((code) => ({
+    code,
+    label: row.name_i18n?.[code] ?? row.name,
+    isPackLanguage: code === own,
+  }));
+}
+
 /**
  * The month the country model opens a financial year on, or nothing.
  *

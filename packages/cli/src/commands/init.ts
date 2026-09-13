@@ -26,6 +26,7 @@ import {
   countryCurrency,
   countryFiscalYearOpening,
   countryLanguage,
+  countryLanguages,
   countryPack,
   installedPacks,
 } from '../bootstrap.js';
@@ -193,12 +194,42 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     // The language of the books, for the same reason as the currency: it is
     // written on the company row, which does not exist yet, and it decides
     // which label of the pack lands in `accounts.name`.
+    //
+    // The pack says which languages it publishes, and the question lists them
+    // with nothing pre-selected. A Belgian company keeps its books in French,
+    // Dutch or German, and offering the first of the three as the answer to
+    // press Enter on is how two of the three end up installed in the wrong
+    // one. Outside an interactive session `--language` is required whenever
+    // there is a choice to make.
     const packLanguage = await countryLanguage(db, country);
+    const languages = await countryLanguages(db, country);
+    const askedLanguage = stringFlag(args, 'language');
+    if (
+      askedLanguage !== undefined &&
+      languages.length > 0 &&
+      !languages.some((l) => l.code === askedLanguage.toLowerCase())
+    ) {
+      warn(
+        `${country} publishes its labels in ${languages.map((l) => l.code).join(', ')}; ` +
+          `the books will be kept in ${askedLanguage.toLowerCase()} and the chart of accounts ` +
+          `will carry the pack's own wording.`,
+      );
+    }
     const language = (
-      stringFlag(args, 'language') ??
-      (interactive
-        ? await askRequired('Language of the books?', packLanguage)
-        : (packLanguage ?? required('--language', 'the language of the books')))
+      askedLanguage ??
+      (interactive && languages.length > 1
+        ? await choose(
+            'Language of the books?',
+            languages.map((l) => ({
+              value: l.code,
+              label: l.isPackLanguage ? `${l.label}, the language the pack is written in` : l.label,
+            })),
+          )
+        : interactive
+          ? await askRequired('Language of the books?', packLanguage)
+          : languages.length > 1
+            ? required('--language', `the language of the books (${languages.map((l) => l.code).join(', ')})`)
+            : (packLanguage ?? required('--language', 'the language of the books')))
     ).toLowerCase();
 
     // What the operator is about to install, and how much anyone has read it.
