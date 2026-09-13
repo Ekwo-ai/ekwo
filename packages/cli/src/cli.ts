@@ -10,6 +10,7 @@ import { demoCommand } from './commands/demo.js';
 import { doctorCommand } from './commands/doctor.js';
 import { initCommand, type InitDeps } from './commands/init.js';
 import { migrateCommand } from './commands/migrate.js';
+import { moduleCommand } from './commands/module.js';
 import { packCommand } from './commands/pack.js';
 import { registerCommand, unregisterCommand } from './commands/register.js';
 import { statusCommand } from './commands/status.js';
@@ -30,6 +31,7 @@ export const COMMANDS = [
   'migrate',
   'status',
   'doctor',
+  'module',
   'pack',
   'register',
   'unregister',
@@ -51,6 +53,8 @@ ${bold('Commands')}
   ${cyan('doctor')}      Check what the schema cannot enforce on its own: row level
               security everywhere, no pending migration, no membership pointing
               at a deleted user, statements that tie to their lines.
+  ${cyan('module')}      The modules beside the socle: what is installed, apply their
+              migrations, and turn one on or off for a company.
   ${cyan('pack')}        Compile a country pack into its seed, and check that the
               committed seed is still the exact output of the pack.
   ${cyan('register')}    Opt in to security advisories and release notes. Never required.
@@ -82,6 +86,14 @@ ${bold('ekwo init')}
                             the address; otherwise --admin-email is used.
   --yes, -y                 Never ask a question. Everything must come from
                             flags or the environment.
+
+${bold('ekwo module')}
+  list                      What this release carries, and what the database holds.
+  migrate [<cc>]            Apply the module migrations and their country seeds.
+  enable <code> --company   Turn a module on for a company. Prints the schema to
+                            add to the project's exposed schemas, which no
+                            migration can do.
+  disable <code> --company  Turn it off. Nothing the module wrote is deleted.
 
 ${bold('ekwo pack')} ${dim('(in a checkout of the repository)')}
   build <cc> | --all        Compile packs/<cc> into supabase/seed/.
@@ -148,6 +160,8 @@ export async function run(argv: string[], deps: InitDeps = {}): Promise<number> 
         return await statusCommand(args);
       case 'doctor':
         return await doctorCommand(args);
+      case 'module':
+        return await moduleCommand(args);
       case 'pack':
         return await packCommand(args);
       case 'register':

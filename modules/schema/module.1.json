@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ekwo.ai/schemas/module/1.json",
+  "title": "Ekwo module manifest, version 1",
+  "description": "What a module of Ekwo OS says about itself. One file, `modules/<code>/module.json`, read by `ekwo module list|enable|migrate`, by the MCP loader and by the guard tests. Everything a module *does* is in its migrations; this says where it lives and what it is allowed to reach.",
+  "type": "object",
+  "required": ["code", "name", "schema", "version", "status"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "code": {
+      "$ref": "#/$defs/identifier",
+      "description": "The module's identifier, and the key of `public.modules`. Immutable once published: it is written on every entry the module posts."
+    },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+    "description": { "type": "string", "minLength": 1, "maxLength": 400 },
+    "schema": {
+      "$ref": "#/$defs/identifier",
+      "description": "The Postgres schema the module lives in. One schema per module, never `public`, and PostgREST only serves it once it is listed in the project's exposed schemas."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+      "description": "Semver, on the same scale a pack uses: a label is a patch, a table or a column is a minor, a change that asks a company to do something is a major."
+    },
+    "status": {
+      "enum": ["draft", "available", "deprecated"],
+      "description": "draft: installed and refused by enable_module(). available: enableable. deprecated: the companies that hold it keep working and no new one may enable it."
+    },
+    "requires_socle_min": {
+      "type": "string",
+      "pattern": "^[0-9]{14}$",
+      "description": "The oldest socle migration this module needs, by its timestamp version. `ekwo module enable` compares it against the migration history and refuses rather than letting a foreign key fail halfway."
+    },
+    "posts": {
+      "type": "boolean",
+      "description": "Whether this module writes to the ledger, always through post_module_entry(). A module that says false is held to it: a test refuses post_module_entry in its migrations."
+    },
+    "mcp": {
+      "type": "object",
+      "required": ["prefix"],
+      "additionalProperties": false,
+      "properties": {
+        "prefix": {
+          "$ref": "#/$defs/identifier",
+          "description": "Every MCP tool of this module is named `<prefix>_<verb>`, so a model reading a tool list can tell which module answers for what."
+        }
+      }
+    },
+    "pack": {
+      "type": "object",
+      "description": "The country data this module reads, if any. A module with no `pack` section has no country rule at all — which is most of them.",
+      "required": ["section"],
+      "additionalProperties": false,
+      "properties": {
+        "section": {
+          "$ref": "#/$defs/identifier",
+          "description": "The file a country pack carries for this module: `packs/<cc>/<section>.json`, compiled by `ekwo pack build` into `supabase/seed/modules/<code>/`."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "identifier": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{1,30}$"
+    }
+  }
+}

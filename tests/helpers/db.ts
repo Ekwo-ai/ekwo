@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PGlite } from '@electric-sql/pglite';
@@ -7,11 +7,19 @@ const here = dirname(fileURLToPath(import.meta.url));
 export const repoRoot = join(here, '..', '..');
 const migrationsDir = join(repoRoot, 'supabase', 'migrations');
 const seedDir = join(repoRoot, 'supabase', 'seed');
+const modulesDir = join(repoRoot, 'modules');
 const shimPath = join(here, 'supabase-shim.sql');
 
 export interface Options {
   /** Apply `supabase/seed/*.sql` after the migrations. Default true. */
   seed?: boolean;
+  /**
+   * Apply `modules/<code>/supabase/migrations/*.sql` after the socle's, and
+   * the country seeds those modules compiled. Default true — a module is a
+   * schema whose tables are empty until a company enables it, so a database
+   * that carries them is the ordinary one.
+   */
+  modules?: boolean;
 }
 
 /** Files applied, in order, by `freshDatabase`. */
@@ -21,6 +29,59 @@ export async function migrationFiles(): Promise<string[]> {
 
 export async function seedFiles(): Promise<string[]> {
   return (await readdir(seedDir)).filter((f) => f.endsWith('.sql')).sort();
+}
+
+export interface ModuleFile {
+  /** `assets` */
+  code: string;
+  /** `20260913080114_assets.sql` */
+  file: string;
+  path: string;
+  /** `20260913080114` */
+  version: string;
+}
+
+/** The module codes this checkout carries, in the order they are applied. */
+export async function moduleCodes(): Promise<string[]> {
+  const entries = await readdir(modulesDir, { withFileTypes: true }).catch(() => []);
+  return entries
+    .filter((entry) => entry.isDirectory() && entry.name !== 'schema')
+    .map((entry) => entry.name)
+    .sort();
+}
+
+/**
+ * Every module migration of this checkout, ordered by version.
+ *
+ * The order is global rather than per module, because they share one history
+ * table with the socle and a module may one day depend on another. A duplicate
+ * version anywhere is what `modules.test.ts` refuses.
+ */
+export async function moduleMigrationFiles(): Promise<ModuleFile[]> {
+  const out: ModuleFile[] = [];
+  for (const code of await moduleCodes()) {
+    const dir = join(modulesDir, code, 'supabase', 'migrations');
+    const exists = await stat(dir).catch(() => undefined);
+    if (exists === undefined) continue;
+    for (const file of (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort()) {
+      out.push({ code, file, path: join(dir, file), version: file.slice(0, 14) });
+    }
+  }
+  return out.sort((a, b) => a.version.localeCompare(b.version));
+}
+
+/** The pack seeds a module compiled: `supabase/seed/modules/<code>/*.sql`. */
+export async function moduleSeedFiles(): Promise<ModuleFile[]> {
+  const out: ModuleFile[] = [];
+  for (const code of await moduleCodes()) {
+    const dir = join(seedDir, 'modules', code);
+    const exists = await stat(dir).catch(() => undefined);
+    if (exists === undefined) continue;
+    for (const file of (await readdir(dir)).filter((f) => f.endsWith('.sql')).sort()) {
+      out.push({ code, file, path: join(dir, file), version: file.slice(0, 14) });
+    }
+  }
+  return out;
 }
 
 /**
@@ -44,6 +105,22 @@ export async function freshDatabase(options: Options = {}): Promise<PGlite> {
     }
   }
 
+  // The modules come after the socle and before the seeds: a module migration
+  // may reference `public.companies` or `public.accounts`, and a module's
+  // country seed writes its own reference tables, which have to exist first.
+  if (options.modules !== false) {
+    for (const migration of await moduleMigrationFiles()) {
+      const sql = await readFile(migration.path, 'utf8');
+      try {
+        await db.exec(sql);
+      } catch (error) {
+        throw new Error(
+          `module migration ${migration.code}/${migration.file} failed: ${(error as Error).message}`,
+        );
+      }
+    }
+  }
+
   if (options.seed !== false) {
     for (const file of await seedFiles()) {
       const sql = await readFile(join(seedDir, file), 'utf8');
@@ -51,6 +128,17 @@ export async function freshDatabase(options: Options = {}): Promise<PGlite> {
         await db.exec(sql);
       } catch (error) {
         throw new Error(`seed ${file} failed: ${(error as Error).message}`);
+      }
+    }
+
+    if (options.modules !== false) {
+      for (const seed of await moduleSeedFiles()) {
+        const sql = await readFile(seed.path, 'utf8');
+        try {
+          await db.exec(sql);
+        } catch (error) {
+          throw new Error(`module seed ${seed.code}/${seed.file} failed: ${(error as Error).message}`);
+        }
       }
     }
   }

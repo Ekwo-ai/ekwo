@@ -47,6 +47,7 @@ describe('migrations', () => {
       'account_templates', 'journal_templates', 'tax_templates',
       'tax_posting_templates', 'country_defaults',
       'tax_report_templates', 'tax_report_box_templates',
+      'modules', 'company_modules',
     ]) {
       expect(tables).toContain(expected);
     }
@@ -70,6 +71,8 @@ describe('migrations', () => {
       'install_country_template', 'account_id_by_code', 'commercial_entity',
       'init_instance', 'claim_instance_admin', 'register_instance', 'unregister_instance',
       'is_instance_admin', 'is_any_company_member', 'ekwo_schema_version',
+      'enable_module', 'disable_module', 'module_enabled', 'module_is_enabled',
+      'post_module_entry', 'module_entry_id',
     ]) {
       expect(functions).toContain(expected);
     }

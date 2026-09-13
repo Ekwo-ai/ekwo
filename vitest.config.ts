@@ -21,10 +21,15 @@ export default defineConfig({
     },
   },
   test: {
-    // The core's tests, and the tests each format brick brought with it. A
-    // brick is published on its own, so its suite stays where it lives; one
-    // `npm test` has to run both, or a brick breaks where nobody looks.
-    include: ['tests/**/*.test.ts', 'packages/formats/*/test/**/*.test.ts'],
+    // The core's tests, the tests each format brick brought with it, and the
+    // tests of each module. A brick and a module are published on their own,
+    // so their suites stay where they live; one `npm test` has to run all
+    // three, or one of them breaks where nobody looks.
+    include: [
+      'tests/**/*.test.ts',
+      'packages/formats/*/test/**/*.test.ts',
+      'modules/*/tests/**/*.test.ts',
+    ],
     testTimeout: 60_000,
     hookTimeout: 60_000,
   },

@@ -21,5 +21,12 @@
       "@ekwo-ai/xbrl-cbso": ["./packages/formats/xbrl-cbso/src/index.ts"]
     }
   },
-  "include": ["packages/*/src", "packages/formats/*/src", "packages/formats/*/test", "tests", "scripts"]
+  "include": [
+    "packages/*/src",
+    "packages/formats/*/src",
+    "packages/formats/*/test",
+    "modules/*/tests",
+    "tests",
+    "scripts"
+  ]
 }

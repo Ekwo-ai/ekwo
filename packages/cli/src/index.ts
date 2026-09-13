@@ -32,7 +32,15 @@ export {
 } from './bootstrap.js';
 export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js';
 export { describeCertification, needsWarning, type Certification, type CertificationFacts } from './pack/certification.js';
-export { compileFrameworkPack, compilePack, frameworkSeedFileName, seedFileName } from './pack/compile.js';
+export {
+  compileAssetsSeed,
+  compileFrameworkPack,
+  compileModuleSeeds,
+  compilePack,
+  frameworkSeedFileName,
+  moduleSeedFileName,
+  seedFileName,
+} from './pack/compile.js';
 export {
   DEFAULT_CHART,
   GENERIC_PACK,
@@ -59,8 +67,24 @@ export {
   type PackStatementLine,
   type PackStatementRule,
   type PackTax,
+  type PackAssets,
+  type PackAssetCategory,
 } from './pack/read.js';
 export { validate, type Issue } from './pack/schema.js';
+export {
+  allModuleMigrations,
+  exposeSchemaNote,
+  listModules,
+  moduleMigrations,
+  moduleSeeds,
+  readModule,
+  readModuleSchema,
+  resolveModulesDir,
+  ModuleError,
+  type EkwoModule,
+  type ModuleManifest,
+} from './module/read.js';
+export { applyModuleMigrations, moduleCommand, MODULE_FLAGS } from './commands/module.js';
 export { COMMANDS, help, run, version } from './cli.js';
 export { CONFIG_FILE, readConfig, writeConfig, type EkwoConfig } from './config.js';
 export {

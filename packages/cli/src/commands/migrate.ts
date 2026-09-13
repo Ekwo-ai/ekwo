@@ -5,19 +5,29 @@
  * run. The reference seeds are re-applied too: they are idempotent, and a new
  * release that adds an account to a chart would otherwise leave every
  * installation one row short.
+ *
+ * **The modules this release carries are migrated too, by default.** A module
+ * is a schema whose tables are empty and whose row level security is on until
+ * a company enables it, so there is nothing to ask before creating them — and
+ * a module whose schema is half there is the state nobody can reason about.
+ * `--no-modules` leaves them alone, which is also what to pass before running
+ * `supabase db push`: the Supabase CLI knows the socle's files and not a
+ * module's, so it would report them as history it has no file for.
  */
 
 import { boolFlag, rejectUnknownFlags, type ParsedArgs } from '../args.js';
 import { migrationsDir, seedDir } from '../bundle.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { applyMigrations, listMigrations, migrationGap } from '../migrations.js';
+import { applyModuleMigrations } from './module.js';
+import { allModuleMigrations, listModules } from '../module/read.js';
 import { isInteractive } from '../prompt.js';
 import { applySeeds } from '../seeds.js';
 import { schemaIsInstalled } from '../bootstrap.js';
 import { syncSchemaVersion } from '../status.js';
 import { dim, heading, line, note, skipped, step, warn } from '../ui.js';
 
-export const MIGRATE_FLAGS = [...CONNECTION_FLAGS, 'skip-seeds', 'yes'] as const;
+export const MIGRATE_FLAGS = [...CONNECTION_FLAGS, 'skip-seeds', 'no-modules', 'yes'] as const;
 
 export async function migrateCommand(args: ParsedArgs): Promise<number> {
   rejectUnknownFlags(args, MIGRATE_FLAGS);
@@ -26,7 +36,10 @@ export async function migrateCommand(args: ParsedArgs): Promise<number> {
 
   try {
     const migrations = await listMigrations(migrationsDir());
-    const gap = await migrationGap(db, migrations);
+    const modules = boolFlag(args, 'no-modules') ? [] : await listModules();
+    // A module's versions live in the same history, so they are not "unknown"
+    // — they are simply not the socle's. The gap is computed against both.
+    const gap = await migrationGap(db, [...migrations, ...allModuleMigrations(modules)]);
 
     heading('Migrations');
     note(dim(`${gap.applied.length} applied, ${gap.pending.length} pending`));
@@ -46,6 +59,10 @@ export async function migrateCommand(args: ParsedArgs): Promise<number> {
       await applyMigrations(db, migrations, (migration) => {
         step(migration.file);
       });
+    }
+
+    if (modules.length > 0) {
+      await applyModuleMigrations(db, modules, { heading: true });
     }
 
     if (!boolFlag(args, 'skip-seeds')) {
