@@ -1076,6 +1076,45 @@ export async function createBankTransaction(
 // Members
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Preferences
+// ---------------------------------------------------------------------------
+
+export const SetPreferencesInput = z.object({
+  preferred_company_id: uuid.nullable().optional().describe('The company to open on.'),
+  language: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('Two letters, optionally a region. Labels are read in it first.'),
+  timezone: z.string().nullable().optional().describe('An IANA name.'),
+  date_format: z.string().nullable().optional(),
+  number_format: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('How this person likes a number written. Not the pattern of a document number, which belongs to the country.'),
+  theme: z.string().nullable().optional(),
+});
+
+export async function setPreferences(
+  backend: Backend,
+  args: z.infer<typeof SetPreferencesInput>,
+): Promise<unknown> {
+  // Only what the caller actually named crosses: an absent key leaves the
+  // preference alone and an explicit null clears it, which is a distinction
+  // the schema makes and this tool must not flatten.
+  const patch: Row = {};
+  for (const [key, value] of Object.entries(args)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  const saved = only(
+    await backend.rpc<Row>('set_preferences', { p_patch: patch }),
+    'the preferences could not be saved',
+  );
+  return { preferences: saved };
+}
+
 export const InviteMemberInput = z.object({
   company_id: companyId,
   email: z.string().min(3).describe('The address the invitation is for. Matched when it is accepted.'),

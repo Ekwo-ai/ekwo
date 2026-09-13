@@ -543,6 +543,34 @@ export async function listBankAccounts(
 // Members and invitations
 // ---------------------------------------------------------------------------
 
+export const GetPreferencesInput = z.object({
+  company_id: uuid
+    .optional()
+    .describe('Resolve the language chain against this company. Left out, only what the user themselves chose is returned.'),
+});
+
+export async function getPreferences(
+  backend: Backend,
+  args: z.infer<typeof GetPreferencesInput>,
+): Promise<unknown> {
+  const [stored] = await backend.select<Row>({
+    table: 'user_preferences',
+    columns: columns.USER_PREFERENCES,
+    limit: 1,
+  });
+
+  const chain = await backend.rpc<unknown>('preferred_languages', {
+    p_company_id: args.company_id ?? null,
+  });
+  const languages = (chain[0] ?? []) as string[] | Record<string, unknown>;
+
+  return {
+    preferences: stored ?? null,
+    languages: Array.isArray(languages) ? languages : (languages['preferred_languages'] ?? []),
+    note: 'Every preference may be null, and null is an answer: take the company\u2019s, then the country pack\u2019s. A label is picked with label_for(name, name_i18n, languages), in that order.',
+  };
+}
+
 export const ListInvitationsInput = z.object({
   company_id: companyId,
   include_settled: z

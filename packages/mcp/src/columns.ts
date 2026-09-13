@@ -270,6 +270,18 @@ export const PAYMENT = [
  * is of no use to a client, and a list of hashes is a thing to leak rather
  * than a thing to show.
  */
+/** What one person chose for themselves. Null everywhere is the fresh state. */
+export const USER_PREFERENCES = [
+  'user_id',
+  'preferred_company_id',
+  'language',
+  'timezone',
+  'date_format',
+  'number_format',
+  'theme',
+  'updated_at::text',
+];
+
 export const INVITATION = [
   'id',
   'company_id',

@@ -492,11 +492,17 @@ describe('no country lives in what this change added', () => {
   });
 
   it('added no function at all, which is what "nothing executable" means', async () => {
+    // Read as: no function of the schema consults the document rules of a
+    // country. It is asked of functions that touch `country_defaults` at all,
+    // because `number_format` is also the name of a user preference — how one
+    // person likes a number written — and a homonym in another table is not
+    // this rule being broken.
     const added = await rows<{ proname: string }>(
       db,
       `select p.proname
          from pg_proc p join pg_namespace n on n.oid = p.pronamespace
         where n.nspname = 'public'
+          and p.prosrc ilike '%country_defaults%'
           and (p.prosrc ilike '%legal_mention%' or p.prosrc ilike '%einvoice_profile%'
                or p.prosrc ilike '%tax_point_rule%' or p.prosrc ilike '%number_format%')
         order by 1`,

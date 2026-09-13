@@ -116,3 +116,29 @@ describe('invitations through the server', () => {
     expect(seenByAccountant['your_capabilities']).not.toContain('members.manage');
   });
 });
+
+describe('preferences through the server', () => {
+  it('saves what the caller named, and resolves the language chain', async () => {
+    const saved = record(await writeTools.setPreferences(asOwner, { language: 'nl' }));
+    expect(record(saved['preferences'])['language']).toBe('nl');
+
+    const read = record(await readTools.getPreferences(asOwner, { company_id: fx.companyId }));
+    const languages = read['languages'] as string[];
+    expect(languages[0]).toBe('nl');
+    expect(languages.length).toBeGreaterThan(1);
+
+    // Clearing puts the question back to the company and to the pack.
+    await writeTools.setPreferences(asOwner, { language: null });
+    const after = record(await readTools.getPreferences(asOwner, { company_id: fx.companyId }));
+    expect((after['languages'] as string[])[0]).not.toBe('nl');
+  });
+
+  it('never shows one user the preferences of another', async () => {
+    await writeTools.setPreferences(asAccountant, { theme: 'dark' });
+    const mine = record(await readTools.getPreferences(asOwner, {}));
+    expect(record(mine['preferences'] ?? {})['theme']).toBeNull();
+
+    const theirs = record(await readTools.getPreferences(asAccountant, {}));
+    expect(record(theirs['preferences'] ?? {})['theme']).toBe('dark');
+  });
+});

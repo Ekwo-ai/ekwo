@@ -144,6 +144,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'get_preferences',
+    {
+      title: 'What this user prefers',
+      description:
+        'The signed-in user\u2019s own preferences — which company an interface opens on, the language they read labels in, their timezone and how they like a date and a number written — and the language chain to read labels with: theirs, then the company\u2019s, then the country pack\u2019s. Every one of them may be null, and null means "take the next answer in the chain" rather than a default this installation picked.',
+      inputSchema: read.GetPreferencesInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.getPreferences(backend, args)),
+  );
+
+  server.registerTool(
     'list_invitations',
     {
       title: 'Invitations into a company',
@@ -419,6 +431,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (args) => guard(() => write.createBankTransaction(backend, args)),
+  );
+
+  server.registerTool(
+    'set_preferences',
+    {
+      title: 'Change what this user prefers',
+      description:
+        'Writes the signed-in user\u2019s own preferences and nobody else\u2019s. Only the fields you name change: leave one out and it is untouched, pass null and it is cleared, which puts that question back to the company and then to the country pack. It changes nothing in the books.',
+      inputSchema: write.SetPreferencesInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.setPreferences(backend, args)),
   );
 
   server.registerTool(
