@@ -434,6 +434,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'update_company_profile',
+    {
+      title: 'Change the company itself',
+      description:
+        'Changes what a company says about itself on its documents: the names it goes by, its address and identifiers, its logo, its stated capital, its activity code and the bank account customers are asked to pay into. Only the fields you name change. It touches nothing in the ledger, and it needs company.write — the owner preset, not the accountant one.',
+      inputSchema: write.UpdateCompanyProfileInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.updateCompanyProfile(backend, args)),
+  );
+
+  server.registerTool(
     'set_preferences',
     {
       title: 'Change what this user prefers',

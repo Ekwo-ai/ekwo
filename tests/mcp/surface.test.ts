@@ -51,6 +51,7 @@ const WRITE_TOOLS = [
   'unreconcile',
   'create_bank_account',
   'create_bank_transaction',
+  'update_company_profile',
   'set_preferences',
   'invite_member',
   'revoke_invitation',

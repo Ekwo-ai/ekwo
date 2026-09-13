@@ -1077,6 +1077,79 @@ export async function createBankTransaction(
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// The company itself
+// ---------------------------------------------------------------------------
+
+export const UpdateCompanyProfileInput = z.object({
+  company_id: companyId,
+  name: z.string().min(1).optional(),
+  trade_name: z.string().nullable().optional().describe('The name it trades under, if not the statutory one.'),
+  legal_name: z.string().nullable().optional(),
+  legal_form: z.string().nullable().optional(),
+  vat_number: z.string().nullable().optional(),
+  registration_number: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('The number of the commercial register of its country. There is no second column for it.'),
+  address_line1: z.string().nullable().optional(),
+  address_line2: z.string().nullable().optional(),
+  postal_code: z.string().nullable().optional(),
+  city: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  website: z.string().nullable().optional(),
+  logo_url: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('Where the logo is. A URL or a storage path: the core keeps no file.'),
+  share_capital: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('A decimal string. Several legal forms must state it on every document.'),
+  share_capital_currency: z
+    .string()
+    .length(3)
+    .nullable()
+    .optional()
+    .describe("Left out, the company's own currency."),
+  activity_code: z.string().nullable().optional().describe('NACE, APE, SIC — the code itself.'),
+  activity_scheme: z.string().nullable().optional().describe('Which register the code belongs to.'),
+  default_bank_account_id: uuid
+    .nullable()
+    .optional()
+    .describe('Fills the payee IBAN of a sales document that names none. list_bank_accounts says what exists.'),
+  document_template: z.string().nullable().optional().describe('A code the renderer interprets.'),
+});
+
+export async function updateCompanyProfile(
+  backend: Backend,
+  args: z.infer<typeof UpdateCompanyProfileInput>,
+): Promise<unknown> {
+  const { company_id, ...rest } = args;
+  const patch: Row = {};
+  for (const [key, value] of Object.entries(rest)) {
+    if (value !== undefined) patch[key] = value;
+  }
+  if (Object.keys(patch).length === 0) {
+    throw new EkwoMcpError('nothing_to_change: name at least one field of the profile to change.');
+  }
+
+  const updated = only(
+    await backend.update<Row>(
+      'companies',
+      patch,
+      [{ column: 'id', op: 'eq', value: company_id }],
+      columns.COMPANY,
+    ),
+    'the company could not be changed. Changing the company itself needs company.write, which the owner preset holds',
+  );
+  return { company: updated };
+}
+
+// ---------------------------------------------------------------------------
 // Preferences
 // ---------------------------------------------------------------------------
 

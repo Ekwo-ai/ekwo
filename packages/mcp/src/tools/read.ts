@@ -377,30 +377,34 @@ export async function getDocument(
   // through the company's fiscal country — the country whose VAT applies, not
   // the address. Both are null-tolerant: a country that has said nothing
   // returns nothing, and the caller is never handed another country's answer.
-  const [mentions, company] = await Promise.all([
+  const [mentions, headers] = await Promise.all([
     backend.select<Row>({
       table: 'document_legal_mentions',
       columns: columns.DOCUMENT_LEGAL_MENTION,
       where: [{ column: 'document_id', op: 'eq', value: args.document_id }],
       order: [{ column: 'sequence' }],
     }),
-    backend.select<{ fiscal_country: string }>({
-      table: 'companies',
-      columns: ['fiscal_country'],
-      where: [{ column: 'id', op: 'eq', value: document['company_id'] as string }],
+    backend.select<Row>({
+      table: 'document_header',
+      columns: columns.DOCUMENT_HEADER,
+      where: [{ column: 'document_id', op: 'eq', value: args.document_id }],
     }),
   ]);
-  const fiscalCountry = company[0]?.fiscal_country;
+  const header = headers[0] ?? null;
+
+  // The country rules used to be fetched here, company then country_defaults,
+  // which is what `document_header` now does in one read. They keep their own
+  // key in the answer because that is what a caller asks for by name — but
+  // they are a slice of the header and not a second query.
   const countryRules =
-    fiscalCountry === undefined
+    header === null
       ? null
-      : ((
-          await backend.select<Row>({
-            table: 'country_defaults',
-            columns: columns.COUNTRY_DOCUMENT_RULES,
-            where: [{ column: 'country', op: 'eq', value: fiscalCountry }],
-          })
-        )[0] ?? null);
+      : Object.fromEntries(
+          columns.COUNTRY_DOCUMENT_RULES.map((column) => {
+            const name = column.split('::')[0] as string;
+            return [name, header[name] ?? null];
+          }),
+        );
 
   return {
     document: { ...document, contact_name: contact[document['contact_id'] as string] ?? null },
@@ -409,6 +413,7 @@ export async function getDocument(
       account: accountById.get(line['account_id'] as string) ?? null,
       tax: taxById.get(line['tax_id'] as string) ?? null,
     })),
+    header,
     legal_mentions: mentions,
     country_rules: countryRules,
     entry,

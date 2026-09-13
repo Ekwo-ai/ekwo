@@ -451,12 +451,22 @@ Legal entities kept in this instance. One instance may hold several.
 | `default_purchase_account_id` | `uuid` | Expense account a purchase line falls back to when it names none. Wired from country_defaults.purchase_account_code at install. |
 | `language` | `character(2)` | not null — Language this company keeps its books in. Chosen at install; decides which label of name_i18n lands in accounts.name. |
 | `region` | `text` | Province or state, ISO 3166-2 without the country prefix: QC, BC, CA. Null in a country that taxes uniformly. |
+| `trade_name` | `text` | The name the company trades under, when it is not the statutory one. A renderer shows this and keeps legal_name for the footer. |
+| `logo_url` | `text` | Where the logo is, as a URL or a storage path. The core stores no file: an accounting schema that held binaries would be backing up images with the ledger. |
+| `share_capital` | `numeric(16,2)` | Capital to be stated on documents where the law requires it. Null where it does not, which is not zero. |
+| `share_capital_currency` | `character(3)` | Currency the capital is expressed in. Filled with the company's own currency when it is left empty, and never with a currency written into the schema. |
+| `activity_code` | `text` | The company's activity in the register of its country — NACE, APE, SIC. Text, because the registers are not numbers and not the same length. |
+| `activity_scheme` | `text` | Which register activity_code belongs to. A code without its scheme cannot be looked up. |
+| `default_bank_account_id` | `uuid` | The account a customer is asked to pay into. It fills documents.payee_iban (BT-84) when a sales document names none. |
+| `document_template` | `text` | A code the renderer interprets. The core never reads it: what a document looks like is not an accounting question. |
 
 Constraints:
 
 - `CHECK ((country ~ '^[A-Z]{2}$'::text))`
 - `CHECK ((currency_code ~ '^[A-Z]{3}$'::text))`
 - `CHECK ((fiscal_country ~ '^[A-Z]{2}$'::text))`
+- `CHECK (((share_capital IS NULL) OR (share_capital_currency IS NOT NULL)))`
+- `CHECK (((share_capital IS NULL) OR (share_capital >= (0)::numeric)))`
 - `PRIMARY KEY (id)`
 
 ### `company_invitations`
@@ -1442,8 +1452,10 @@ Constraints:
 | `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `close_fiscal_year(p_fiscal_year_id uuid)` | Closes a fiscal year: the result leaves the income statement the way the country model says, and every income and expense account goes back to zero. The entry that moves the result is `appropriation`, the one that empties the income statement is `closing`. The balance sheet needs no entry — the reports read the ledger from the beginning. The allocation decided by a meeting is never part of it. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
+| `companies_default_capital_currency()` | A capital stated with no currency is stated in the company's own. The alternative was a literal in the schema, which is one country's answer given to every country. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. |
+| `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `enable_module(p_company_id uuid, p_code text, p_settings jsonb)` | Enables a module on a company, and updates its settings when it is already enabled. The owner's decision, checked here because the table has no write policy. |

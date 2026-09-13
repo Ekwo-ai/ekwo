@@ -142,3 +142,37 @@ describe('preferences through the server', () => {
     expect(record(theirs['preferences'] ?? {})['theme']).toBe('dark');
   });
 });
+
+describe('the company profile through the server', () => {
+  it('changes only what was named, and needs company.write', async () => {
+    const updated = record(
+      await writeTools.updateCompanyProfile(asOwner, {
+        company_id: fx.companyId,
+        trade_name: 'Invitations',
+        share_capital: '18600.00',
+        activity_code: '70.22',
+        activity_scheme: 'NACE-BEL 2008',
+      }),
+    );
+    const company = record(updated['company']);
+    expect(company['trade_name']).toBe('Invitations');
+    expect(company['share_capital']).toBe('18600.00');
+    // No currency was given, so the company's own was taken — and not one
+    // written into the schema.
+    expect(company['share_capital_currency']).toBe(company['currency_code']);
+    expect(company['name']).toBe('Invitations MCP SRL');
+
+    await expect(
+      writeTools.updateCompanyProfile(asAccountant, {
+        company_id: fx.companyId,
+        trade_name: 'Par la comptable',
+      }),
+    ).rejects.toThrow(/company\.write/);
+  });
+
+  it('refuses a call that names nothing to change', async () => {
+    await expect(
+      writeTools.updateCompanyProfile(asOwner, { company_id: fx.companyId }),
+    ).rejects.toThrow(/nothing_to_change/);
+  });
+});

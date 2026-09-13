@@ -510,5 +510,13 @@ export async function ensureBankAccount(
     [id, journal.id],
   );
 
+  // And the company points at it, so the first invoice carries an IBAN a
+  // customer can pay into. Only when nothing was chosen: the operator picking
+  // a different account later is a choice this step must not take back.
+  await db.query(
+    'update companies set default_bank_account_id = $1 where id = $2 and default_bank_account_id is null',
+    [id, companyId],
+  );
+
   return { id, outcome, label, accountCode };
 }
