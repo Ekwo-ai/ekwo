@@ -79,6 +79,12 @@ OpenAPI description, and row level security decides who sees what.
 - **Country rules are data.** A tax points at the ledger accounts it posts to
   and at the boxes of the VAT return it feeds. Adding a régime is a row, not
   a release.
+- **Every label is data, in every language the country pack publishes.**
+  Identifiers and error codes are English and never move; what a person reads
+  is a row. Belgium ships its chart of accounts, its journals, its VAT codes,
+  its declaration boxes and its annual accounts in French, Dutch, German and
+  English, and a company keeping its books in Dutch reads Dutch throughout.
+  [`docs/languages.md`](docs/languages.md) is the mechanism.
 - **Belgium and France out of the box.** PCMN (AR du 21 octobre 2018) and PCG
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
@@ -273,7 +279,8 @@ a close run too early. An invoice is printed from three views —
 renderer reads the seller, the buyer, the amounts, the lines and the sentences
 the law requires without being configured with any of them.
 `docs/schema.md` describes every table and column; `docs/mapping.md` lines each
-one up against Odoo, EN 16931 and the FEC.
+one up against Odoo, EN 16931 and the FEC; `docs/languages.md` says how a label
+reaches a reader in their own language.
 
 ## Who may do what
 

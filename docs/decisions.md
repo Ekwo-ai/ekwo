@@ -532,8 +532,8 @@ fixed amount over lines.
 **No fiscal year closing function yet.** Carrying balances forward and merging
 the result into retained earnings is a real piece of work with several
 national variants; `fiscal_years.is_closed` already blocks writes, and the
-closing entry itself comes next. *(Superseded on 12 September 2026 by "P0-8 —
-opening and closing are parameters, not code" below.)*
+closing entry itself comes next. *(Superseded on 12 September 2026 by "Opening and closing are
+parameters, not code" below.)*
 
 **No multi-currency revaluation.** `currencies`, `currency_rates`,
 `amount_currency` and `documents.exchange_rate` are in place; the periodic
@@ -567,9 +567,8 @@ to turn public sign-ups off, which the schema cannot do by itself.
 
 ## A country is a pack of data, compiled into SQL (12 September 2026)
 
-The one taxonomy in the international plan we will not get to redo, decided
-before any code, after a dedicated analysis (the full French text is in
-`docs/decisions/2026-09-12-country-pack-format.fr.md`).
+The one taxonomy in the international plan that will not get to be redone,
+settled before any code was written.
 
 **The truth of a country lives in `packs/<cc>/`**: JSON with a published JSON
 schema for everything structured, one `accounts.csv` for the chart, an
@@ -612,7 +611,7 @@ sheet on any chart, including the code-less charts of the UK and the US.
 year-end close; cash-basis VAT and non-deductible VAT (`tax_on_base`);
 realised exchange differences at matching; translated labels. **Kept in
 phase 0 and still not built**: the append-only `audit_log` by trigger. No
-table of that name exists in the schema; it is a P0-9 item like the two
+table of that name exists in the schema; it is still to come, like the two
 `ekwo pack` subcommands above. **Deferred**: revaluation of open items, cash
 accounting as a ledger (a report derived from matched payments instead), the
 cash-flow statement (indirect, when it comes), several taxes on one line
@@ -692,15 +691,14 @@ it. The comment is in a published migration, so it stays where it is and this
 paragraph is the correction.
 
 **Accepted, validated, not yet compiled**, because the tables they need do not
-exist: `tax_report.json` (P0-3), `statements.json` (P0-4), the `documents`,
-`einvoicing` and `bank` sections of the manifest (P0-7), and the journal, tax
-and box labels of `i18n/` (only account labels are compiled). The compiler
-names each one it skipped, in its output and in the header of every seed it
-writes, so nothing is quietly dropped. `tax_report.json` is written for both
-countries already — the Belgian 71/72 and the French CA3 totals — so that P0-3
-has the data it needs on the day it starts. *(P0-3 has since landed:
-`tax_report.json` and the box labels of `i18n/` are compiled — see the entry
-at the end of this file.)*
+exist: `tax_report.json`, `statements.json`, the `documents`, `einvoicing`
+and `bank` sections of the manifest, and the journal, tax and box labels of
+`i18n/` (only account labels are compiled). The compiler names each one it
+skipped, in its output and in the header of every seed it writes, so nothing
+is quietly dropped. `tax_report.json` is written for both countries already —
+the Belgian 71/72 and the French CA3 totals — so that the declaration boxes
+have the data they need on the day that work starts. *(All of these have since
+been compiled; the entries below say when.)*
 
 
 ## Ekwo maintains a pack; only an accountant reviews one (12 September 2026)
@@ -729,7 +727,7 @@ paragraph above, which said Ekwo certifies Belgium and France.
 
 
 
-## P0-3 — declaration boxes are data (12 September 2026)
+## Declaration boxes are data (12 September 2026)
 
 `vat_return()` summed whatever the tax postings wrote on the ledger lines —
 which never knew a country — and then hard-coded the Belgian frame VI: boxes
@@ -799,7 +797,7 @@ published migration is a country literal in the repository whatever the file's
 date says. The exception is written into that README beside the rule.
 
 
-## P0-8 — opening and closing are parameters, not code (12 September 2026)
+## Opening and closing are parameters, not code (12 September 2026)
 
 The first release said the year-end close was "a real piece of work with
 several national variants". The variants turned out to be one value.
@@ -861,8 +859,8 @@ doubles every carried balance on the day it ships.
 One consequence to know: once a year is closed, its income statement read
 from the *movements* of that year is zero, because the closing entry is one of
 them. That is what a post-closing trial balance is, and it is true of every
-system that closes the income statement at all. The statements of P0-4 read a
-closed year by leaving out `entries.kind <> 'normal'`.
+system that closes the income statement at all. The financial statements read
+a closed year by leaving out `entries.kind <> 'normal'`.
 
 **`entries.kind` says what an entry is for, and is not writable by hand.**
 `normal`, `opening`, `closing`. The first draft of this change identified a
@@ -919,7 +917,7 @@ appropriation entry is posted as a separate entry *before* the closing entry,
 so that a statutory income statement can show a movement on 693: merged into
 one entry the two movements cancel and the line disappears.
 
-## P0-5 — one tax engine, several kinds (12 September 2026)
+## One tax engine, several kinds of tax (12 September 2026)
 
 The core knew one tax: European VAT, fully deductible, computed on a price
 that excludes it, rounded to the cent. The pack format already had words for
@@ -984,7 +982,7 @@ The repo-wide guard catches a country *literal*; `tax_on_base.test.ts` adds
 the subtler one, a country's *answer* used as a fallback.
 
 **`cash_basis`, `rounding_method` and `cash_rounding_unit` land without a
-reader.** P0-6 implements VAT on collection; `half_up` is what `round()` on a
+reader.** VAT on collection comes later; `half_up` is what `round()` on a
 numeric already does in every country, so the default changes nothing; the
 Swiss five-centime unit waits for Switzerland. The alternative was migrating a
 table of tax rows and their postings a second time, which is the argument
@@ -997,14 +995,14 @@ wholly non-deductible one for frais de réception (art. 45 § 3 CTVA); France
 gains fuel at 20 % with the 80 % deduction of CGI art. 298, 4, 1°. Adding a
 tax is a minor version, and `ekwo pack upgrade` will diff on that number when
 it is built, so a pack that grows without saying so is a pack nobody can
-upgrade to. The P0-1
-before/after test still proves that **nothing that existed changed**: `after`
+upgrade to. The before/after test the pack format shipped with still
+proves that **nothing that existed changed**: `after`
 is narrowed to the natural keys `before` held, and the four new codes are
 named in a test of their own, so a row that appears without anyone saying so
 still fails.
 
 
-## P0-4 — a country has charts, and a statement is data (12 September 2026)
+## A country has charts, and a financial statement is data (12 September 2026)
 
 Two changes in one sub-task, in that order, because the second depends on the
 first: a statement presents a chart, so which chart has to exist before what
@@ -1150,7 +1148,7 @@ taxonomy 26.0.15, and null on the lines where nothing could be verified.
 has two rubrics swapped, which is its own fix.
 
 
-## P0-7 — what a country requires on a document is data (12 September 2026)
+## What a country requires on a document is data (12 September 2026)
 
 An invoice is where a country speaks loudest, and the core answered for it.
 The number was built as `CODE/YYYY/NNNN` in a function; the legal payment
@@ -1181,8 +1179,8 @@ lands.
 **`tax_point_rule` is the country's general rule, and the exception is on the
 tax.** France taxes goods on delivery and services on collection. A second
 country column for the second half would be a country model that contradicts
-itself; the service rule is `taxes.cash_basis`, which P0-5 landed and P0-6
-gives behaviour to. So France declares `delivery_date` and its service taxes
+itself; the service rule is `taxes.cash_basis`, which the tax engine landed and
+cash-basis VAT gives behaviour to. So France declares `delivery_date` and its service taxes
 will say the rest themselves.
 
 **`party_scheme` and `vat_scheme` are both there because they are not the same
@@ -1265,7 +1263,7 @@ binds everybody at once — and the calendar is in the legal reference. The
 third is an `exempt` mention for either country: both packs carry an
 exemption tax, neither law prescribes one sentence for it, and a sentence we
 would have written ourselves is not data.
-## P0-6 — VAT when the cash moves, and the exchange difference when it settles (12 September 2026)
+## VAT when the cash moves, and the exchange difference when it settles (12 September 2026)
 
 Two rules a country decides that the core had no way of applying, and they
 meet in one place: the moment a document is settled.
@@ -1535,7 +1533,7 @@ prorates the first annuity for every company, because article 196, § 2, 1° CIR
 `prorata = 'none'` on the asset. All three are in `modules/assets/README.md`
 under a heading that says an accountant should read them.
 
-## ST13 — a company has a face, members have capabilities, machines have keys (13 September 2026)
+## A company has a face, members have capabilities, machines have keys (13 September 2026)
 
 Everything an accounting product has that the core did not: a company profile
 an invoice can be printed from, invitations, user preferences, fine
@@ -1617,8 +1615,8 @@ that is handed a `service_role` key is not a small decision.
 Every *preference* column of `user_preferences` is nullable and carries no
 default — `preferred_company_id`, `language`, `timezone`,
 `date_display_format`, `number_display_format`, `theme` — and null means "take
-the company's answer, then the pack's", which is the rule P0-7 and P0-8
-already keep for a country. Three columns are not nullable and are not
+the company's answer, then the pack's", which is the rule the document and
+year-end decisions already keep for a country. Three columns are not nullable and are not
 preferences: `user_id`, which is the key, and `created_at` / `updated_at`,
 which are when the row was written. A row's own timestamp is not an answer
 somebody inherits, so `now()` on those two is not the kind of default this
@@ -1641,7 +1639,8 @@ know which table they were in to know what they had. The guard that watches
 for a country rule leaking into a function had already had to learn the
 difference, which is what made the homonym visible.
 
-**The numbering engine P0-7 deferred.** That entry said, in as many words,
+**The numbering engine the document rules deferred.** That entry said, in as
+many words,
 that `next_entry_number()` did not read `number_format` and that "a numbering
 engine that consumes a format is its own piece of work". This is it, on the
 grammar already published: `{CODE}`, `{YYYY}`, `{YY}`, `{MM}` and a `{N…}`
@@ -1759,7 +1758,8 @@ was rewritten onto it rather than keeping its own assembly.
 **The first financial year is a parameter.** `ekwo init` opened it on 1
 January in two string literals, which is right for Belgium and France and
 wrong for the United Kingdom, India and Australia — and
-`country_defaults.fiscal_year_default` has carried the answer since P0-7.
+`country_defaults.fiscal_year_default` has carried the answer since the
+country model learned what a document requires.
 `fiscal_year_bounds()` is its reader, in the schema rather than in the CLI
 because three callers ask the same question and three answers is how a company
 ends up with two overlapping first years. A pack that says nothing gets
@@ -1778,7 +1778,8 @@ the function creates or raises.
 **One rule of the modules change had to be narrowed, and it would have had to
 be narrowed by whatever landed next.** A module's migrations were asked to
 sort after *every* socle migration, so that one recorded history reads in
-order. ST13 was the first socle change to land after a module, and it broke
+order. This release was the first socle change to land after a module, and it
+broke
 that test by existing: the socle will always gain a migration the week after a
 module ships, and the only way to restore a total order is to rename a
 published module migration — the one thing rule 1 of
@@ -1806,7 +1807,7 @@ viewer reads, an accountant works, an owner holds everything — and a code
 added after the socle's migration has to name the owner itself, because that
 preset was filled with `select 'owner', code from capabilities` at the time.
 
-## ST14 — the audit of 13 September 2026
+## The audit of 13 September 2026
 
 **A currency and a decimal are rounded half up, on the absolute value, at the
 currency's decimals — one rule, in every language this repository is written
@@ -1851,3 +1852,75 @@ three. Making the rule read the column is its own piece of work — it touches
 `post_document`, `post_payment`, `settle_cash_basis_tax`, the statements and
 the three format packages, and it needs a currency with something other than
 two decimals in a pack before it can be tested honestly. It is not done here.
+
+## A label is data, and a declared language is a promise (13 September 2026)
+
+The schema had been bilingual in shape since the country packs landed —
+`name_i18n` beside `name`, `label_for()` to choose between them — and
+monolingual in fact. All four language files of Belgium and France held
+`{}`. A Belgian company keeping its books in Dutch got a chart of accounts, a
+set of journals and a VAT return in French, because the columns existed and
+nobody had written the rows.
+
+**Identifiers are English, permanently; labels are data.** Table names, column
+names, enum values, function names and error codes are English `snake_case`
+and are part of the interface a program tests against. Error messages are
+English too, prefixed by a stable code — `period_locked: …` — so that a client
+matching on the code can write its own sentence in any language without the
+core ever holding two vocabularies. Everything a person reads because a
+country said so is a row.
+
+**Two tables were missing their column, and that was the whole gap.** The
+accounts, the charts, the declaration boxes, the statement lines, the legal
+mentions and the fixed-asset categories already carried a translation; the
+journals and the taxes did not. So "translate Belgium" was never only a data
+job: a company reading `Verkoopdagboek` over a chart in Dutch needed
+`journal_templates.name_i18n` and `tax_templates.name_i18n` to exist first.
+`country_defaults.name_i18n` came with them, because the country's own name is
+shown as often as anything else.
+
+**A declared language must be complete, and an undeclared one may be partial.**
+These are the two halves of one rule. `languages` in the manifest is a promise
+to a reader, and `ekwo pack check` holds the pack to it: every account of every
+chart, every journal, every tax, every box, every statement line, every legal
+mention and every asset category, or the check fails naming what is missing. A
+half-translated pack is worse than an untranslated one — a chart of accounts in
+Dutch under a return in French leaves nobody able to tell whether the software
+is incomplete or the rule is different. But refusing anything short of complete
+would mean no language ever gets contributed, so a file that is *not* declared
+is allowed to be partial and falls back key by key. That is the path: write
+what you are sure of, add the code to `languages` on the day it is finished.
+
+**A translation lives in one file and nowhere else.** A legal mention carried
+its `text_i18n` inline in the manifest and an asset category its `name_i18n`
+inline in `assets.json`, which meant that adding Dutch to Belgium touched three
+files and that two of them could disagree with the third. They moved into
+`i18n/<lang>.json`, which now carries every section. One file per language is
+what makes a translation reviewable by somebody who reads that language and
+nothing else.
+
+**Where a country publishes the wording, the pack uses it rather than
+translating.** Belgium publishes its minimum chart of accounts in four
+languages, its VAT return boxes in three and the models of its Central Balance
+Sheet Office in four; those are the labels, and their source is cited in
+`packs/be/i18n/README.md`. The German set is the Accounting Standards
+Commission's own, which that Commission itself publishes as an unofficial
+translation — so it is authoritative exactly as far as that document is, and
+the README says so. France has no official English chart of accounts and there
+is nothing to transcribe, so `packs/fr/i18n/en.json` is the wording the
+profession uses, said plainly in its README. The rule when neither exists is to
+leave the key absent: an absent key falls back and is visibly untranslated,
+where a guessed one is wrong and looks right.
+
+**The check lists the cause before the consequence.** Take a box out of a
+declaration form and every language stops resolving it, so a single structural
+mistake used to bury itself under forty translation errors. Structural problems
+are now listed first. Nothing about the check changed except the order, and the
+order is what makes it usable.
+
+**`ekwo init` asks rather than assumes.** It offered the pack's own language as
+the answer to press Enter on, which is right for one Belgian company in three.
+The question now lists what the pack publishes, with nothing pre-selected, and
+`--language` is required outside an interactive session whenever there is a
+choice. `country_defaults.languages` is where the list comes from, because an
+installation has the compiled seeds and no pack folder to read.

@@ -1,11 +1,10 @@
-# Ekwo beyond Belgium and France
+# Ekwo OS beyond Belgium and France
 
-> The plan for making the core usable in any country, decided on
-> 12 September 2026. The format of a country pack — the one taxonomy in this
-> plan we will not get to redo — was decided the same day, before any code,
-> and is written up in `decisions.md` with the full analysis in
-> `decisions/`. This document is the map; that decision is the first step
-> on it.
+> The plan for making the core usable in any country. The format of a country
+> pack — the one taxonomy in this plan that will not get to be redone — was
+> settled first, before any code was written, and is recorded in
+> [`decisions.md`](decisions.md). This document is the map; that decision is
+> the first step on it.
 
 ## The premise
 
@@ -29,11 +28,11 @@ and a generator.
 | Gap | Why it matters outside Belgium and France |
 |---|---|
 | No pack object | UK, US or Canada would each add a third place where a country lives |
-| ~~Nothing on the invoice itself~~ — done in P0-7: numbering, payment terms, tax point, e-invoicing profile, bank formats and the legal mentions are pack data | Every country prescribes different sentences on an invoice, and a renderer that hard-codes them is a renderer per country |
-| ~~No year-end close, no opening balances~~ — done in P0-8; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
+| ~~Nothing on the invoice itself~~ — **done**: numbering, payment terms, tax point, e-invoicing profile, bank formats and the legal mentions are pack data | Every country prescribes different sentences on an invoice, and a renderer that hard-codes them is a renderer per country |
+| ~~No year-end close, no opening balances~~ — **done**; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
 | Currencies without realised gains or revaluation | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
-| ~~A tax engine that knows only EU VAT~~ — closed by P0-5, except stacked taxes on one line | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec, phase 1); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
+| ~~A tax engine that knows only EU VAT~~ — **done**, except stacked taxes on one line | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec, phase 1); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
 | No cash-flow statement, no audit log | Expected before tax compliance in the English-speaking world |
 
 ## Four phases
@@ -67,17 +66,17 @@ one line wait for the countries that need them.
    the template accounts and on `company_packs`, `ekwo init --chart` — with
    the Belgian association chart as the first second chart.
 5. The generalised tax engine: kind, recoverability, jurisdiction,
-   tax-inclusive prices, non-deductible VAT, rounding rules. **Done** (P0-5,
-   12 September 2026): `tax_kind`, `recoverable`, `jurisdiction`,
+   tax-inclusive prices, non-deductible VAT, rounding rules. **Done**
+   (12 September 2026): `tax_kind`, `recoverable`, `jurisdiction`,
    `price_include`, `cash_basis` on the taxes and their templates;
    `rounding_method` and `cash_rounding_unit` on the country model; the
    `tax_on_base` posting, which books non-deductible VAT on the account of the
    line it taxes. Belgian cars at 50 % and French fuel at 80 % are in the
    packs. The gross-to-net computation of a tax-inclusive price and the
    behaviour of `cash_basis` are not: the first waits for the country that
-   sells that way, the second is P0-6.
-6. Cash-basis VAT and realised exchange differences. **Done** (P0-6,
-   12 September 2026): `post_document` books a cash-basis tax — and the base
+   sells that way, the second is phase 6.
+6. Cash-basis VAT and realised exchange differences. **Done**
+   (12 September 2026): `post_document` books a cash-basis tax — and the base
    it is computed on — on the transition account the pack names and on no
    declaration box, and `reconcile()` moves the settled share, pro rata and
    cumulative, to the account and the box it is declared on. `post_document`
@@ -88,8 +87,8 @@ one line wait for the countries that need them.
    the six services taxes that fall due on collection; the option for the
    debits is the tax that was already there. Out of scope and staying out:
    revaluation of open items, and cash accounting as a ledger.
-7. Document rules, e-invoicing profiles and bank formats as data. **Done**
-   (P0-7): twelve columns on the country model — gapless numbering and the
+7. Document rules, e-invoicing profiles and bank formats as data. **Done**:
+   twelve columns on the country model — gapless numbering and the
    number pattern, the legal payment term and where its interest comes from,
    the tax point, the e-invoicing profile and the day it becomes obligatory,
    the ISO 6523 party and VAT schemes, the bank statement and payment

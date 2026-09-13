@@ -7,8 +7,7 @@ one SQL seed that is committed. There is no module per country, no Python
 hook, and no field in the format through which a pack could run anything.
 
 The decision behind this, with the alternatives that were weighed, is in
-[`decisions.md`](decisions.md) and in
-[`decisions/2026-09-12-country-pack-format.fr.md`](decisions/2026-09-12-country-pack-format.fr.md).
+[`decisions.md`](decisions.md).
 
 ## What a pack is
 
@@ -20,8 +19,10 @@ packs/be/
 ├── taxes.json         taxes and their postings, per kind of document
 ├── tax_report.json    the boxes of the periodic return and their totals
 ├── statements.json    the balance sheet, the income statement and their rules
+├── assets.json        the section of the fixed assets module, where the country has one
 └── i18n/
-    ├── nl.json        labels by code, in another language
+    ├── README.md      where each language's wording comes from
+    ├── nl.json        every label of the pack, in one more language
     ├── de.json
     └── en.json
 
@@ -299,7 +300,6 @@ missing rather than borrowing another country's law.
       "code": "reverse_charge",
       "applies_when": "reverse_charge",
       "text": "Autoliquidation — taxe à acquitter par le cocontractant.",
-      "text_i18n": { "nl": "Btw verlegd — …", "en": "Reverse charge — …" },
       "sequence": 10,
       "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20"
     }
@@ -404,7 +404,8 @@ the pack. `install_country_template` writes **`company_packs`**: which version
 that company copied, and when. `ekwo status` prints both and says so when a
 company is behind.
 
-Moving a company from one version to the next is `ekwo pack upgrade` (P0-9),
+Moving a company from one version to the next is `ekwo pack upgrade`, still to
+come,
 which shows the difference and applies only what is safe: an addition is
 added, a validity that closes is closed, and anything else is listed and never
 applied without being asked for. Installing again in the meantime adds what is
@@ -418,18 +419,51 @@ edit, which is how the return of a past period keeps giving the same answer.
 
 ## Languages
 
-`i18n/<lang>.json` holds labels by code. They land in
-`account_templates.name_i18n`, and `install_country_template(company, country,
-language)` copies `coalesce(name_i18n->>language, name)` into `accounts.name`
-while keeping the whole object beside it — so a company can be installed in
-Dutch and read in English later without importing anything again. A code the
-pack does not translate keeps the pack's own label.
+The pack's own files are written in `defaults.language`. Every other language
+is one file, `i18n/<lang>.json`, and that file is the only place a translation
+lives — the manifest carries no second wording and neither does `assets.json`.
+One file per language means a contributor edits one file and a reviewer reads
+one file.
 
-Account labels and declaration-box labels are compiled today; a box is keyed
-by the same reference its formulas use — `59`, or `08:tax` where a form
-carries a base and a tax on one line. Journals and taxes have their
-`name_i18n` in the format and no column yet; the compiler says so when it
-skips them.
+```json
+{
+  "language": "nl",
+  "pack_name": "België",
+  "charts":           { "default": "MAR — minimum algemeen rekeningenstelsel" },
+  "accounts":         { "400000": "Handelsdebiteuren" },
+  "journals":         { "SAL": "Verkoopdagboek" },
+  "taxes":            { "BE-S-21": "Verkoop 21 %" },
+  "tax_report_boxes": { "54": "Btw op de handelingen van de roosters 01, 02 en 03" },
+  "statement_lines":  { "BE-BNB-ABBR-BS:10/15": "EIGEN VERMOGEN" },
+  "legal_mentions":   { "reverse_charge": "Btw verlegd — …" },
+  "asset_categories": { "machinery": "Installaties, machines en uitrusting" }
+}
+```
+
+A box is keyed by the same reference its formulas use — `59`, or `08:tax`
+where a form carries a base and a tax on one line. A statement line is keyed
+`<statement>:<line>`, because two statements may both carry a line `20`.
+
+**The manifest declares which languages the pack publishes**, and that
+declaration is a promise rather than a description:
+
+```json
+"languages": ["nl", "de", "en"]
+```
+
+`ekwo pack check` fails, naming every missing key, if a declared language stops
+covering the accounts of every chart, the journals, the taxes, the boxes, the
+statement lines, the legal mentions or the asset categories. A file that is
+**not** declared may be partial — a key it does not carry falls back to the
+pack's own label — which is how a language is contributed one section at a
+time. A label under a code the pack does not carry is refused either way.
+
+The labels land in `name_i18n` / `text_i18n` on every template table, and
+`install_country_template(company, country, language)` copies the chosen one
+into `name` while keeping the whole object beside it, so a company installed in
+Dutch can be read in English later without importing anything again.
+[`languages.md`](languages.md) is the whole mechanism, including how a reader's
+own preference comes before the company's.
 
 ## Certification
 

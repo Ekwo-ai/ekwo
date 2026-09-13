@@ -11,6 +11,38 @@ somewhere has already run it.
 
 ### Added
 
+- **Every label a user reads, in every language the country pack publishes.**
+  The schema was bilingual in shape and monolingual in fact: `name_i18n` sat on
+  the chart of accounts, the declaration boxes and the statement lines, and all
+  four language files of Belgium and France were empty. A Belgian company
+  keeping its books in Dutch was handed a chart of accounts, a set of journals
+  and a VAT return in French.
+  **Belgium now ships in Dutch, German and English, and France in English.**
+  354 accounts across both Belgian charts, 394 French ones, the journals, the
+  taxes, the boxes of the periodic return, the lines of the annual accounts,
+  the sentences an invoice must print and the fixed-asset categories — complete,
+  from the official wording where a country publishes one. Sources are cited in
+  `packs/<cc>/i18n/README.md`.
+  `journal_templates`, `journals`, `tax_templates`, `taxes` and
+  `country_defaults` gain `name_i18n`, which is what was missing for a company
+  to read its journals and its VAT codes in its own language;
+  `install_country_template()` copies them through `label_for()` the way it
+  already copied the accounts.
+  **A pack declares its languages** — `languages` in the manifest — and the
+  declaration is a promise: `ekwo pack check` fails, naming every missing key,
+  if a declared language stops covering the pack. A language file that is not
+  declared may be partial and falls back, which is how a language is
+  contributed one section at a time. A label under a code the pack does not
+  carry is refused either way.
+  **One file per language.** A translation now lives only in
+  `i18n/<lang>.json`: the inline `text_i18n` of a legal mention and the
+  `name_i18n` of an asset category moved there, so a contributor edits one file
+  and a reviewer reads one file.
+  `country_defaults.languages` records what a pack publishes, `ekwo init` lists
+  those languages with nothing pre-selected rather than guessing, `ekwo pack
+  list` shows them, and the demo company says which language it keeps its books
+  in. [`docs/languages.md`](docs/languages.md) is the mechanism end to end.
+
 - **Modules: one Postgres schema each, and the ledger only through a
   function.** The socle stays in `public` and knows nothing about what is built
   beside it. `public.modules` is the registry — a table, written by the last
@@ -386,7 +418,7 @@ somewhere has already run it.
 
 ### Added
 
-- **One tax engine, several kinds (P0-5).** `tax_kind`
+- **One tax engine, several kinds of tax.** `tax_kind`
   (`vat`/`gst`/`sales_tax`/`withholding`/`other`), `recoverable`,
   `jurisdiction`, `price_include` and `cash_basis` on `taxes` and
   `tax_templates`; `rounding_method` and `cash_rounding_unit` on
@@ -438,7 +470,7 @@ somewhere has already run it.
   function in `public`, no file under `supabase/migrations/`, and no source
   file of the CLI, the MCP server or the core may hold a country code.
 
-- **Declaration boxes are data, and `vat_return()` holds no country (P0-3).**
+- **Declaration boxes are data, and `vat_return()` holds no country.**
   Migration `20260912090407` adds `tax_report_templates` — one declaration form
   of one country — and `tax_report_box_templates` — one box, with `plus_boxes`,
   `minus_boxes` and `floor_zero` where it is a total. `ekwo pack build`
@@ -548,7 +580,7 @@ somewhere has already run it.
   and Postgres refuses the call that works today.
 
   `accounts.statement_hint` and `account_templates.statement_hint` are added
-  in the same migration; `financial_statement()` reads them in P0-4.
+  in the same migration; `financial_statement()` reads them in a later release.
 
 - **Country packs, and the compiler that turns one into a seed.** A country
   now lives in `packs/<cc>/`: `pack.json` (manifest, defaults, roles,
