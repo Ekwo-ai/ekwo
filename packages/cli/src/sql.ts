@@ -95,7 +95,17 @@ export async function connect(connectionString: string): Promise<SqlClient> {
   // it makes on somebody's behalf. A caller reaching the database through
   // PostgREST cannot set this, which is the whole point of it being a setting.
   // `set_config(..., false)` is session-wide, and the pool is capped at one.
-  await sql`select set_config('ekwo.installing', 'on', false)`.catch(() => {});
+  //
+  // Not swallowed. A connection that cannot say it is installing is one every
+  // guard in the schema will refuse later, with a message about a capability
+  // the operator does not have and cannot get — so the failure belongs here,
+  // where it names itself.
+  try {
+    await sql`select set_config('ekwo.installing', 'on', false)`;
+  } catch (error) {
+    await sql.end({ timeout: 5 }).catch(() => {});
+    throw error;
+  }
 
   return wrap(sql);
 }
