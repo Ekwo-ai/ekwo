@@ -83,9 +83,43 @@ OpenAPI description, and row level security decides who sees what.
   (règlement ANC 2022-06), with their VAT codes and declaration boxes.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
+- **Modules, one Postgres schema each.** Fixed assets and budgets ship with
+  this release, in `assets` and `budgets`. A module depends on the socle by
+  foreign key, reaches the ledger only through one function, and is enabled per
+  company. The socle ignores its modules.
 - **Tested on real Postgres.** The test suite runs the migrations, the seeds,
   the accounting scenarios, the installer and the MCP server against Postgres
   compiled to WebAssembly.
+
+## Modules
+
+The socle is `public`. Beside it, a module is a schema of its own with its own
+migrations, its own row level security and its own tests.
+
+| Module | Schema | What it does |
+|---|---|---|
+| [`assets`](modules/assets/) | `assets` | Fixed assets, their depreciation schedule and their disposal. Durations, declining coefficients and the prorata convention are country pack data. |
+| [`budgets`](modules/budgets/) | `budgets` | A budget per financial year and the variance against what the ledger holds. No country data, and nothing written to the ledger. |
+
+```sh
+npx ekwo module list                          # what is here, and what the database holds
+npx ekwo module migrate                       # apply their migrations and country seeds
+npx ekwo module enable assets --company "…"   # turn one on for a company
+```
+
+Then add the schema to the project's exposed schemas — Supabase dashboard →
+Project Settings → API, or `[api] schemas` in `supabase/config.toml`. No
+migration can do that: it is a setting of the API and not of the database, and
+`ekwo module enable` prints the line every time.
+
+**A module never writes the ledger by hand.** It hands its lines to
+`post_module_entry()`, which builds the draft and calls `post_entry()` — so
+sides, rounding, numbering and period locks stay in one place. The entry is
+tagged `(module_code, ref)`, unique per company, which is what makes running a
+depreciation twice a no-op rather than a duplicate. A test over every file of
+`modules/**` refuses a write to `entries` or `entry_lines`.
+
+[`docs/modules.md`](docs/modules.md) is how to write one.
 
 ## Install on your own Supabase project
 
@@ -344,8 +378,9 @@ says this in full. Read it before you file anything.
 Each folder carries a short README saying what lives there and the rule
 that applies to it: [`supabase/`](supabase/), [`supabase/migrations/`](supabase/migrations/),
 [`supabase/seed/`](supabase/seed/), [`packages/core/`](packages/core/),
-[`packages/cli/`](packages/cli/), [`packages/mcp/`](packages/mcp/), [`tests/`](tests/),
-[`docs/`](docs/), [`scripts/`](scripts/) and [`ee/`](ee/). The long-form reference is in `docs/`.
+[`packages/cli/`](packages/cli/), [`packages/mcp/`](packages/mcp/), [`modules/`](modules/),
+[`tests/`](tests/), [`docs/`](docs/), [`scripts/`](scripts/) and [`ee/`](ee/). The long-form
+reference is in `docs/`.
 
 ## Development
 

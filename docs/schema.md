@@ -144,6 +144,7 @@ the return say the same thing, because they are the same rows.
 | [`chart_templates`](#chart_templates) | Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one. |
 | [`companies`](#companies) | Legal entities kept in this instance. One instance may hold several. |
 | [`company_members`](#company_members) | Who may read or write a company. `owner` administers, `accountant` books, `viewer` reads. |
+| [`company_modules`](#company_modules) | Modules enabled on a company, and the settings that company keeps for each. Written by enable_module() and disable_module() and by nothing else: there is no write policy. |
 | [`company_packs`](#company_packs) | Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one. |
 | [`contacts`](#contacts) | Third parties. `contact_type` is explicit rather than two hidden counters. |
 | [`country_defaults`](#country_defaults) | Which template account plays which role, per country. |
@@ -163,6 +164,7 @@ the return say the same thing, because they are the same rows.
 | [`journals`](#journals) | Books of entry. The code is the first segment of every entry number. |
 | [`legal_mention_templates`](#legal_mention_templates) | The sentences a country requires on an invoice, and the closed condition that says when each applies. Reference data filled by a pack, never copied into a company. |
 | [`matching_sequences`](#matching_sequences) |  |
+| [`modules`](#modules) | One row per module this installation carries, written by the module's own first migration. The registry is a table, not code. |
 | [`payments`](#payments) | Money in and out. Amounts are positive; `direction` carries the sign. |
 | [`products`](#products) | What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation. |
 | [`reconciliations`](#reconciliations) | One row per pairing of a debit with a credit. Full matching is the sum of partials. |
@@ -455,6 +457,22 @@ Constraints:
 - `CHECK ((role <> 'instance_admin'::member_role))`
 - `PRIMARY KEY (company_id, user_id)`
 
+### `company_modules`
+
+Modules enabled on a company, and the settings that company keeps for each. Written by enable_module() and disable_module() and by nothing else: there is no write policy.
+
+| Column | Type | Notes |
+|---|---|---|
+| `company_id` | `uuid` | not null |
+| `module_code` | `text` | not null |
+| `enabled_at` | `timestamp with time zone` | not null |
+| `enabled_by` | `uuid` |  |
+| `settings` | `jsonb` | not null — Per-company settings of the module, in its own vocabulary. The socle never reads inside this object. |
+
+Constraints:
+
+- `PRIMARY KEY (company_id, module_code)`
+
 ### `company_packs`
 
 Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one.
@@ -561,6 +579,10 @@ Which template account plays which role, per country.
 | `fiscal_year_default` | `text` | Month the financial year usually opens on: calendar, april, july, october. A default offered, never imposed — fiscal_years holds what a company actually keeps. |
 | `fx_gain_code` | `text` | Account a realised exchange gain is booked on, from the pack. Null until the pack names one, and then a matching that realises a gain is refused rather than booked somewhere plausible. |
 | `fx_loss_code` | `text` | The same for a realised loss. A pair, because every chart in scope keeps the gain and the loss apart. |
+| `asset_disposal_gain_code` | `text` | Net-result disposal: the account a gain on the disposal of a fixed asset lands on (Belgium 763). Null under the gross style, and null until a pack names one. |
+| `asset_disposal_loss_code` | `text` | Net-result disposal: the account a loss lands on (Belgium 663). Left empty where the chart keeps one account for both signs, and then the gain account answers for both. |
+| `asset_disposal_proceeds_code` | `text` | Gross disposal: the income account the proceeds of a sale are booked on in full (France 775). Null under the net-result style. |
+| `asset_disposal_value_code` | `text` | Gross disposal: the charge account the net book value of the asset sold is booked on in full (France 675). Null under the net-result style. |
 
 Constraints:
 
@@ -743,6 +765,8 @@ Journal entries. A document and its entry are two layers joined by a foreign key
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
 | `kind` | `entry_kind` | not null — normal, opening or closing. Written by opening_balance(), close_fiscal_year() and reopen_fiscal_year(), and by nothing else. |
+| `module_code` | `text` | Which module wrote this entry, or null for an entry of the socle. Set by post_module_entry(). |
+| `module_ref` | `text` | What the entry is for, in the module's own words — `depreciation:2026-03` , `disposal:<uuid>`. Unique per company and module, which is what makes a module's posting idempotent. |
 
 Constraints:
 
@@ -957,6 +981,30 @@ Constraints:
 Constraints:
 
 - `PRIMARY KEY (company_id)`
+
+### `modules`
+
+One row per module this installation carries, written by the module's own first migration. The registry is a table, not code.
+
+| Column | Type | Notes |
+|---|---|---|
+| `code` | `text` | not null |
+| `name` | `text` | not null |
+| `description` | `text` |  |
+| `schema_name` | `text` | not null — The Postgres schema the module lives in. PostgREST only exposes it once it is listed in the API settings, which no migration can do — `ekwo module enable` prints the line to add. |
+| `version` | `text` | not null |
+| `status` | `module_status` | not null |
+| `requires_socle_min` | `text` | Oldest socle migration version this module needs. Read by `ekwo module enable` against the migration history. |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((code ~ '^[a-z][a-z0-9_]{1,30}$'::text))`
+- `CHECK ((schema_name ~ '^[a-z][a-z0-9_]{1,30}$'::text))`
+- `CHECK ((schema_name <> 'public'::text))`
+- `PRIMARY KEY (code)`
+- `UNIQUE (schema_name)`
 
 ### `payments`
 
@@ -1310,9 +1358,12 @@ Constraints:
 | `close_fiscal_year(p_fiscal_year_id uuid)` | Closes a fiscal year: the result leaves the income statement the way the country model says, and every income and expense account goes back to zero. The entry that moves the result is `appropriation`, the one that empties the income statement is `closing`. The balance sheet needs no entry — the reports read the ledger from the beginning. The allocation decided by a meeting is never part of it. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
+| `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
+| `enable_module(p_company_id uuid, p_code text, p_settings jsonb)` | Enables a module on a company, and updates its settings when it is already enabled. The owner's decision, checked here because the table has no write policy. |
 | `entries_guard_kind()` | Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on. |
+| `entries_guard_module()` | Keeps the module tag of an entry honest: a module the company holds, never posted on insert, never moved afterwards. |
 | `evaluate_totals(p_values jsonb, p_formulas jsonb, p_keep_zero boolean)` | Works out the plus/minus totals of a declaration form or of a financial statement, in the order they depend on each other. The one place that calculation lives: vat_return() and financial_statement() both call it. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
 | `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
@@ -1324,19 +1375,24 @@ Constraints:
 | `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
+| `module_enabled(p_company_id uuid, p_code text)` | The helper a module's row level security policies call: this module is enabled on this company and the caller is a member of it. One call, and the answer to a stranger is no. |
+| `module_entry_id(p_company_id uuid, p_module_code text, p_ref text)` | The entry a module already posted under a reference, or null. What a module reads before deciding it has work to do. |
+| `module_is_enabled(p_company_id uuid, p_code text)` | Whether a module is enabled on a company, regardless of who is asking. Definer so a policy on company_modules cannot recurse into it. |
+| `module_settings(p_company_id uuid, p_code text)` | The settings a company keeps for one of its modules, or null when the module is not enabled. The socle never looks inside the object. |
 | `next_entry_number(p_journal_id uuid, p_date date)` | Next number for a journal and year, as CODE/YYYY/NNNN. Atomic: the counter row is locked, not the journal. Definer, because the counter is infrastructure and nobody writes it by hand. |
 | `next_matching_number(p_company_id uuid)` | Next reconciliation letter for a company, as A0001. Definer, for the same reason as next_entry_number. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. |
+| `post_module_entry(p_company_id uuid, p_module_code text, p_ref text, p_date date, p_description text, p_lines jsonb, p_journal_id uuid)` | The only way a module reaches the ledger: it hands over lines as data and this builds the draft and calls post_entry(). The tag (module_code, ref) is unique per company, so posting the same thing twice is refused by the database. |
 | `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role, both in the company currency at the payment's rate. Matches nothing. |
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line, in the currency the two share when it is not the company's, and books what the matching reveals: the realised exchange difference, and the share of a cash-basis tax that has become due. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
@@ -1346,6 +1402,244 @@ Constraints:
 | `unreconcile(p_reconciliation_id uuid)` | Undoes a matching, and with it what the matching had booked: the exchange difference it realised and the share of a cash-basis tax it had made due. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. No country rule lives in this function. |
+
+---
+
+# Modules
+
+One Postgres schema each, beside the socle. A module depends on `public` by foreign key
+and reaches the ledger only through `post_module_entry()`. It is enabled per company, and
+PostgREST serves its schema only once the project exposes it.
+
+## `assets` — Fixed assets
+
+Fixed assets, their depreciation schedule and their disposal. Durations, declining coefficients and the prorata convention are country pack data.
+
+### Tables
+
+| Table | Purpose |
+|---|---|
+| [`assets`](#assets-assets) | One fixed asset: what it cost, how it is depreciated, and the three accounts that carry it. The schedule is assets.depreciation_lines. |
+| [`category_templates`](#assets-category_templates) | The usual duration and method of a kind of asset in one country, with the source it comes from. A suggestion an asset may depart from, which is why it is never copied into a company. |
+| [`country_rules`](#assets-country_rules) | How one country depreciates and derecognises. Filled by `ekwo pack build` from packs/<cc>/assets.json, read where it stands, never copied into a company. |
+| [`depreciation_lines`](#assets-depreciation_lines) | One planned period of depreciation. `entry_id` is the entry that booked it, and is what makes running the depreciation of a period twice a no-op. |
+| [`disposals`](#assets-disposals) | What leaving the books cost or earned: one row per asset, written by assets.dispose_asset(). There is no undo, for the reason there is no unpost. |
+
+#### `assets`
+
+One fixed asset: what it cost, how it is depreciated, and the three accounts that carry it. The schedule is assets.depreciation_lines.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `code` | `text` | not null |
+| `name` | `text` | not null |
+| `description` | `text` |  |
+| `category_code` | `text` |  |
+| `document_line_id` | `uuid` |  |
+| `contact_id` | `uuid` |  |
+| `product_id` | `uuid` |  |
+| `acquisition_date` | `date` | not null |
+| `in_service_date` | `date` |  |
+| `cost` | `numeric(16,2)` | not null |
+| `residual_value` | `numeric(16,2)` | not null |
+| `method` | `assets.depreciation_method` | not null |
+| `duration_months` | `integer` | not null |
+| `coefficient` | `numeric(7,3)` | Multiplier of the straight-line rate under a declining balance. France 1,25 / 1,75 / 2,25 by duration; Belgium doubles the rate. Required by a check constraint for that method, because a declining balance with no coefficient is a straight line nobody asked for. |
+| `prorata` | `assets.prorata_rule` | How much of the first period this asset takes. Null reads the country rule for its method, and an asset in a country whose pack says nothing is refused by name rather than given another country's convention. |
+| `asset_account_id` | `uuid` | not null |
+| `depreciation_account_id` | `uuid` | not null |
+| `expense_account_id` | `uuid` | not null |
+| `state` | `assets.asset_state` | not null |
+| `notes` | `text` |  |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((cost > (0)::numeric))`
+- `CHECK (((method <> 'declining_balance'::assets.depreciation_method) OR (coefficient IS NOT NULL)))`
+- `CHECK ((duration_months > 0))`
+- `CHECK (((in_service_date IS NULL) OR (in_service_date >= acquisition_date)))`
+- `CHECK (((residual_value >= (0)::numeric) AND (residual_value < cost)))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (company_id, code)`
+
+#### `category_templates`
+
+The usual duration and method of a kind of asset in one country, with the source it comes from. A suggestion an asset may depart from, which is why it is never copied into a company.
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `code` | `text` | not null |
+| `name` | `text` | not null |
+| `name_i18n` | `jsonb` | not null |
+| `method` | `assets.depreciation_method` | not null |
+| `duration_months` | `integer` | not null |
+| `coefficient` | `numeric(7,3)` |  |
+| `prorata` | `assets.prorata_rule` | Overrides the country rule for this category. Null is the ordinary case: the rule of the country, for the method this category uses. |
+| `account_type` | `account_type` | Which of the eighteen account types the asset account of this category is, so a client can propose the accounts of a chart it has never seen. Advisory: nothing resolves an account from it. |
+| `sequence` | `integer` | not null |
+| `legal_reference` | `text` |  |
+
+Constraints:
+
+- `CHECK (((method <> 'declining_balance'::assets.depreciation_method) OR (coefficient IS NOT NULL)))`
+- `CHECK ((duration_months > 0))`
+- `PRIMARY KEY (country, code)`
+
+#### `country_rules`
+
+How one country depreciates and derecognises. Filled by `ekwo pack build` from packs/<cc>/assets.json, read where it stands, never copied into a company.
+
+| Column | Type | Notes |
+|---|---|---|
+| `country` | `character(2)` | not null |
+| `prorata_straight_line` | `assets.prorata_rule` | not null |
+| `prorata_declining` | `assets.prorata_rule` | not null |
+| `day_count` | `assets.day_count` | not null |
+| `declining_cap_percent` | `numeric(7,3)` | Largest annuity a declining balance may take in one period, as a percentage of the acquisition value. Null where the country caps nothing. |
+| `declining_switch_to_linear` | `boolean` | not null — Whether the declining balance switches to the straight line over the remaining periods once that gives the larger annuity. True everywhere the declining balance is a tax incentive rather than a valuation method. |
+| `disposal_style` | `assets.disposal_style` |  |
+| `legal_reference` | `text` |  |
+
+Constraints:
+
+- `CHECK (((declining_cap_percent IS NULL) OR ((declining_cap_percent > (0)::numeric) AND (declining_cap_percent <= (100)::numeric))))`
+- `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `PRIMARY KEY (country)`
+
+#### `depreciation_lines`
+
+One planned period of depreciation. `entry_id` is the entry that booked it, and is what makes running the depreciation of a period twice a no-op.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `asset_id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `sequence` | `integer` | not null |
+| `period_start` | `date` | not null |
+| `period_end` | `date` | not null |
+| `amount` | `numeric(16,2)` | not null |
+| `accumulated` | `numeric(16,2)` | not null |
+| `net_book_value` | `numeric(16,2)` | not null |
+| `entry_id` | `uuid` |  |
+| `posted_at` | `timestamp with time zone` |  |
+| `created_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((amount >= (0)::numeric))`
+- `CHECK ((period_end >= period_start))`
+- `CHECK (((posted_at IS NULL) OR (entry_id IS NOT NULL)))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (asset_id, period_end)`
+- `UNIQUE (asset_id, sequence)`
+
+#### `disposals`
+
+What leaving the books cost or earned: one row per asset, written by assets.dispose_asset(). There is no undo, for the reason there is no unpost.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `asset_id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `disposal_date` | `date` | not null |
+| `proceeds` | `numeric(16,2)` | not null |
+| `counterpart_account_id` | `uuid` |  |
+| `contact_id` | `uuid` |  |
+| `cost` | `numeric(16,2)` | not null |
+| `accumulated` | `numeric(16,2)` | not null |
+| `net_book_value` | `numeric(16,2)` | not null |
+| `result` | `numeric(16,2)` | not null |
+| `entry_id` | `uuid` |  |
+| `created_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((proceeds >= (0)::numeric))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (asset_id)`
+
+### Functions
+
+| Function | Purpose |
+|---|---|
+| `can_disable(p_company_id uuid)` | Why this company cannot disable the assets module, or null when it can. The convention disable_module() reads. |
+| `create_asset(p_company_id uuid, p_code text, p_name text, p_acquisition_date date, p_cost numeric, p_asset_account text, p_depreciation_account text, p_expense_account text, p_category_code text, p_duration_months integer, p_method assets.depreciation_method, p_coefficient numeric, p_residual_value numeric, p_in_service_date date, p_document_line_id uuid, p_contact_id uuid, p_description text)` | Creates an asset and its schedule in one call. A category of the country pack fills in the method, the duration and the coefficient; anything the caller passes wins over it. |
+| `days360(p_from date, p_to date)` | Days between two dates on a year of 360 days and months of 30, the day capped at the 30th. Half-open: days360(1 January, 1 January of the next year) is 360. |
+| `dispose_asset(p_asset_id uuid, p_date date, p_proceeds numeric, p_counterpart_account text, p_contact_id uuid)` | Takes an asset off the books on a date: clears its cost and its accumulated depreciation, books the proceeds, and presents the result the way the country's pack says — one gain or loss line, or the value and the proceeds in full. |
+| `generate_schedule(p_asset_id uuid)` | Writes the depreciation schedule of an asset, period by period, rounded to the cent with the last line taking the remainder. Refuses to rewrite a schedule whose lines are already booked. |
+| `movements(p_company_id uuid, p_from date, p_to date)` | What came in, what was written off and what went out between two dates, per asset — the movement table an annual account asks for beside the register. |
+| `prorata_fraction(p_rule assets.prorata_rule, p_day_count assets.day_count, p_start date, p_period_start date, p_period_end date)` | The share of a period that runs from the day an asset entered service. A prorata in days counts the day of entry into service itself, which is the convention that makes a full year come to exactly one. |
+| `register(p_company_id uuid, p_at date)` | The table of fixed assets at a date: what each one cost, what has been written off it, and what is left. Reads what has been booked, so it ties to the ledger. |
+| `rules(p_company_id uuid)` | The depreciation rules of this company's country, or an empty row when its pack says nothing. The callers name what is missing rather than borrowing another country's answer. |
+| `run_depreciation(p_company_id uuid, p_period_end date)` | Books every planned period that ends on or before a date, one entry per period, through post_module_entry(). Idempotent: a period already booked is skipped, and the unique tag on the entry refuses a second one anyway. A closed financial year refuses the posting, because post_entry() asserts the period is open. |
+
+## `budgets` — Budgets
+
+A budget per financial year, its lines per account and period, and the variance against what the ledger actually holds. No country data, and nothing written to the ledger.
+
+### Tables
+
+| Table | Purpose |
+|---|---|
+| [`budgets`](#budgets-budgets) | One budget of one company, usually for one financial year. A company may hold several — a plan and a revision are two budgets and not two columns. |
+| [`lines`](#budgets-lines) | What one account is expected to carry over one period, in the sign a business says it: an income and a cost are both positive. |
+
+#### `budgets`
+
+One budget of one company, usually for one financial year. A company may hold several — a plan and a revision are two budgets and not two columns.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `fiscal_year_id` | `uuid` | The year this budget is for, where it is for one. Null on a rolling budget, whose lines carry their own periods anyway. |
+| `code` | `text` | not null |
+| `name` | `text` | not null |
+| `state` | `budgets.budget_state` | not null |
+| `notes` | `text` |  |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `PRIMARY KEY (id)`
+- `UNIQUE (company_id, code)`
+
+#### `lines`
+
+What one account is expected to carry over one period, in the sign a business says it: an income and a cost are both positive.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `budget_id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `account_id` | `uuid` | not null |
+| `period_start` | `date` | not null |
+| `period_end` | `date` | not null |
+| `amount` | `numeric(16,2)` | not null |
+| `note` | `text` |  |
+| `created_at` | `timestamp with time zone` | not null |
+| `updated_at` | `timestamp with time zone` | not null |
+
+Constraints:
+
+- `CHECK ((period_end >= period_start))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (budget_id, account_id, period_start, period_end)`
+
+### Functions
+
+| Function | Purpose |
+|---|---|
+| `variance(p_company_id uuid, p_budget_id uuid, p_from date, p_to date)` | Budget against ledger, per account, over a period. Both figures are in the sign a business states them in — an income account's credit balance is flipped — and the variance is the actual less the plan. Reads posted entries of kind `normal` only: a closing or appropriation entry is not what a period earned. |
 
 ---
 

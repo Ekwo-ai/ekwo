@@ -9,11 +9,18 @@ nothing`), so applying it twice is harmless.
 | `05_framework_generic.sql` | **Generated from `packs/generic`.** The generic financial statements by account type: a balance sheet and an income statement that fit any chart of any country, and the fallback for a chart that declares none | yes |
 | `10_pack_be.sql` | **Generated from `packs/be`.** Two charts — the PCMN, 353 accounts (AR du 21 octobre 2018), and an association chart of 349 — 6 journals, 19 VAT codes with their Intervat boxes, the NBB abbreviated schemes, default account roles | yes |
 | `11_pack_fr.sql` | **Generated from `packs/fr`.** French PCG, 392 accounts (règlement ANC 2022-06), 6 journals, 17 VAT codes with their CA3 lines, the 2050-2053 liasse, default account roles | yes |
+| `modules/<code>/*.sql` | **Generated from `packs/<cc>/<code>.json`.** The country data of one module — for `assets`, how a country prorates a first period, whether its declining balance is capped, how it derecognises an asset, and the usual durations of a kind of asset | **no** — applied by the module migration runner |
 | `90_demo_company.sql` | A fictional company, « Exemple Conseil SRL », with contacts, four catalogue products, posted documents, a matched payment and a bank statement | **no** — sample data only |
 
 `config.toml` lists the generated files and the currencies under `[db.seed].sql_paths`; the demo file
 is deliberately left out. Load it by hand on a scratch project when you want
 something to look at.
+
+`modules/` is left out of that list too, and of the flat read this folder gets
+everywhere else: `assets.category_templates` exists only on an installation
+that carries the `assets` module, and a seed applied where its tables are
+missing is a seed nobody can re-run. `ekwo migrate` and `ekwo module migrate`
+apply them, for the modules they installed.
 
 ## Three of these files are generated
 

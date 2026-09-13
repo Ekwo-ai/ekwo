@@ -1387,3 +1387,131 @@ what breaks when it moves. `@ekwo-ai/xbrl-cbso` and `@ekwo-ai/factur-x` come in 
 subtree; the FEC leaves `@ekwo-ai/core` for `@ekwo-ai/fec`. Should the core still
 be private when the phase 1 formats begin, `packages/formats/` splits out as one
 public repository with the same structure.
+
+
+## Modules — one schema each, and the ledger only through a function (13 September 2026)
+
+The socle is an accounting core, and fixed assets, budgets, a carbon ledger or
+a crypto register are not it. Each of them is a set of tables, a calculation
+and a report that a company either wants or does not — and every one of them
+ends the same way, with an entry. The question this answers is where they live
+and what they are allowed to touch.
+
+**One Postgres schema per module, and the socle stays in `public`.** `assets`,
+`budgets`, `carbon`. The alternative was a prefix on the socle's own tables —
+`asset_*`, `budget_*` — which is what most products do and what makes a schema
+nobody can read after the fourth module. A schema is also what makes the rest
+of this possible: one line of PostgREST configuration turns a module on for the
+API, one `revoke` closes it, `docs/schema.md` has a section per module, and a
+module that is not installed is not an empty table, it is nothing at all.
+
+**The registry is a table, not a plugin system.** `public.modules` holds one row
+per module this installation carries, written by the last statement of the
+module's own first migration; `company_modules` says which company has enabled
+which. There is deliberately no registry in TypeScript: a module that is
+installed is a schema that exists and a row that says so, and one query answers
+"what is here" for the CLI, the MCP server and a human. A plugin registry in
+code would have been a second place to keep in step with the database, and the
+first release where they disagreed would be a module that half exists.
+
+**A module never writes the ledger by hand: `post_module_entry()` does.** This
+is the whole architecture. The sub-task as written asked for a *privilege* —
+revoke insert on `entries` from the module schema — and Postgres has no such
+thing: privileges belong to roles, not to schemas, and a module's functions run
+as the signed-in user, who legitimately writes the ledger through
+`post_document`. So the rule was made structural instead. A module hands over a
+company, a date, a tag and its lines as data, and the socle builds the draft and
+calls `post_entry()` — exactly what `post_document`, `post_payment` and
+`close_fiscal_year` already do. The words `entries` and `entry_lines` therefore
+do not appear in a write statement anywhere under `modules/`, and a test over
+every file proves it. That is a stronger guarantee than the revoke would have
+been, and it is checkable.
+
+**The tag is what makes a module idempotent, and the database enforces it.**
+`entries.module_code` and `entries.module_ref`, with a unique index on
+`(company_id, module_code, module_ref)`. `assets.run_depreciation` cannot book
+the same period twice because the second insert fails, not because the function
+remembered to look — which is the failure mode of every "check then write" we
+have seen, WeCompta's own depreciation button included. Tagging by
+`(module_code, ref)` is also why `entry_kind` gains no value per module: a
+depreciation entry is an ordinary entry that a report may leave in, and a
+fifteenth enum value per module would be a report that has to know every module
+before it can filter.
+
+**A module is enabled per company, and the table has no write policy.**
+`enable_module()` and `disable_module()` are definer functions with the owner
+check written inside, for the reason `register_instance()` is: a guard that
+lives in the function applies to psql and to PostgREST alike, and a guard that
+lives in a policy applies to whoever respects it. `module_enabled(company,
+code)` — the module being on *and* the caller being a member — is the one call
+every module policy makes, which is why it joins the eight helpers `anon` may
+execute: what it gives away to a stranger is the word `is_company_member`
+already gives them.
+
+**Disabling asks the module, by convention and not by column.**
+`disable_module()` looks for `<schema>.can_disable(uuid)` and runs it if it
+exists: null allows, a sentence refuses and is quoted in the error. A column on
+`modules` naming the function would have been one more thing to keep in step
+with the code; the absence of the function is itself meaningful, and `budgets`
+is the module that exercises it — turning it off takes nothing away, because
+row level security hides the rows and enabling it again gives them back.
+Nothing a module wrote is ever deleted by a disable.
+
+**A country is data inside a module too, and the accounts are roles of the
+chart.** `packs/<cc>/assets.json` says how a country prorates a first period,
+whether its declining balance is capped and how it derecognises an asset;
+`ekwo pack build` compiles it into `supabase/seed/modules/assets/`, applied by
+the module migration runner and by nothing else, because those tables do not
+exist on an installation without the module. The accounts, though, went into
+`country_defaults` and `defaults.roles` rather than into a table of the
+module's own: a role is the answer to "which account of this chart plays this
+part", there is one place a pack answers that, and putting the fourth answer
+somewhere else would mean `ekwo pack check` — which already refuses a role code
+missing from any chart the pack ships — was not checking it.
+
+**A disposal is two mechanisms, and the enum names them and not the
+countries.** Belgium clears the asset and puts the difference on one account,
+763 or 663; France books the net book value as a charge on 675 and the proceeds
+as an income on 775, both in full, and the income statement prints the two.
+Neither is a variant of the other, so `assets.country_rules.disposal_style` is
+`net_result` or `gross`, named after the mechanism — the same decision
+`closing_style` made, for the same reason. Four nullable role columns follow,
+two per style, none with a default: a pack that has said nothing gets a refusal
+naming the role it is missing.
+
+**Migrations of a module share the socle's history, and sort after it.**
+`supabase_migrations.schema_migrations`, the plain timestamp as `version`, the
+module in the `name` — `assets/assets`. Anything else forks the history that
+makes `ekwo migrate` and `supabase db push` interchangeable, which is the whole
+point of having written it Supabase's way. The consequence is a rule and a
+test: a module's timestamps come after every socle migration, and no two
+migrations anywhere share a version. `ekwo migrate` applies the modules by
+default — a schema whose migrations are half applied is the state nobody can
+reason about, and an empty table under row level security is not a feature
+anybody has been given — and `--no-modules` is what to pass before running
+`supabase db push`, which knows the socle's files and not a module's.
+
+**The one thing no migration can do is expose the schema.** PostgREST serves
+what the project lists under its exposed schemas, which is a setting of the API.
+So `ekwo module enable` prints the line to add, every time, and the MCP server
+turns the profile error PostgREST answers with into the same sentence rather
+than into something that reads like a bug in the server.
+
+**What `assets` deliberately does not do.** It refuses a schedule by output
+(`units_of_production` is in the enum and raises by name, the way
+`post_document` refuses a fixed-amount tax), it refuses to rewrite a schedule
+whose lines are already booked, and it refuses a disposal while a period that
+has already ended is unbooked. Each of those is a place where guessing would
+have produced a register that no longer ties to the ledger, which is the one
+thing a fixed asset register is for.
+
+**Three conventions here are our reading of the mechanics.** A prorata in days
+counts the day of entry into service — 184/365 for a Belgian asset in service on
+1 July, 256/360 for a French one on 15 April — which is the convention that
+makes a full year come to exactly one, and not the only one in use. A declining
+balance measures what is left to run in periods and not in months. And Belgium
+prorates the first annuity for every company, because article 196, § 2, 1° CIR
+92 obliges it for companies that are not small ones and the core holds no
+"small company" column; a small company that takes the whole first annuity sets
+`prorata = 'none'` on the asset. All three are in `modules/assets/README.md`
+under a heading that says an accountant should read them.

@@ -109,24 +109,56 @@ instead if the account already exists, and no key is needed.
 | Command | What it does |
 |---|---|
 | `ekwo init` | The whole installation, interactive or not. |
-| `ekwo migrate` | Applies the migrations this release adds, after showing the gap. Re-applies the reference seeds, which are idempotent. |
+| `ekwo migrate` | Applies the migrations this release adds, after showing the gap — the socle's, then the modules'. Re-applies the reference seeds, which are idempotent. `--no-modules` leaves the modules alone. |
 | `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, the country packs it holds and, per company, the pack version it copied. Exits 1 when something is pending. |
 | `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
 | `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
+| `ekwo module` | What is installed beside the socle, applies a module's migrations and its country seeds, and turns one on or off for a company. |
 | `ekwo pack` | Compiles a country pack into its seed, and refuses a seed that is no longer the output of its pack. Runs in a checkout of the repository only. |
 
 There is no `eject`, because there is nothing to eject from. The schema is in
 your database, the migrations are in the repository under AGPL-3.0, and
 `supabase db push` applies them without this CLI ever running again.
 
+## `ekwo module`
+
+A module is a Postgres schema beside the socle — `assets` for fixed assets,
+`budgets` for a plan against the ledger. Its migrations travel with this
+package, and `ekwo migrate` applies them by default.
+
+```sh
+ekwo module list                          # what this release carries, and what the database holds
+ekwo module migrate [<code>]              # the migrations, and the country seeds they need
+ekwo module enable assets --company "…"   # turn it on for one company
+ekwo module disable assets --company "…"  # turn it off; nothing it wrote is deleted
+```
+
+`enable` and `disable` go through `enable_module()` and `disable_module()`
+rather than writing the table: the guard is in the function, so it applies to
+psql and PostgREST alike. The CLI sets the request claim for an owner of the
+company, the way `ekwo register` does, and `--as-user <uuid>` names another.
+
+**One thing this CLI cannot do**, and says so every time: PostgREST serves a
+schema other than `public` only once the project lists it under its exposed
+schemas. That is a setting of the API, not of the database, so `ekwo module
+enable` prints the line to add — Supabase dashboard → Project Settings → API,
+or `[api] schemas` in `supabase/config.toml`.
+
+**Before `supabase db push`**, run `ekwo migrate --no-modules`. The Supabase
+CLI knows the socle's migration files and not a module's, so it would report
+them as history it has no file for.
+
 ## `ekwo pack`, in a checkout
 
 A country is data: `packs/<cc>/` holds a manifest, the chart of accounts as
 CSV, the taxes as JSON, and — accepted today, compiled by later sub-tasks —
 the declaration boxes, the financial statements and the translations. The
-compiler turns one into `supabase/seed/<n>_pack_<cc>.sql`, which is committed.
+compiler turns one into `supabase/seed/<n>_pack_<cc>.sql`, which is committed —
+and, where a pack carries a section for a module, into
+`supabase/seed/modules/<code>/<n>_pack_<cc>.sql`, applied by the module
+migration runner and by nothing else.
 
 ```sh
 ekwo pack list           # the packs this checkout carries, and their certification

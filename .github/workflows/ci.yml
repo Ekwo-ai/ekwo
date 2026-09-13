@@ -35,6 +35,18 @@ jobs:
         run: |
           diff -r --exclude='*.md' supabase/migrations packages/cli/dist/assets/migrations
           diff -r --exclude='*.md' supabase/seed packages/cli/dist/assets/seed
+      # The modules travel with the CLI too: `ekwo migrate` applies them, and a
+      # user running `npx ekwo` has no clone to read them from.
+      - name: The CLI ships the modules
+        run: |
+          for module in modules/*/; do
+            name=$(basename "$module")
+            [ "$name" = "schema" ] && continue
+            diff "$module/module.json" "packages/cli/dist/assets/modules/$name/module.json"
+            diff -r "$module/supabase/migrations" \
+                    "packages/cli/dist/assets/modules/$name/supabase/migrations"
+          done
+          diff modules/schema/module.1.json packages/cli/dist/assets/modules/schema/module.1.json
 
   hygiene:
     runs-on: ubuntu-latest
@@ -65,13 +77,14 @@ jobs:
       - name: Migrations are additive
         run: |
           # A released migration must never be edited. On a pull request,
-          # every .sql file under supabase/migrations that changed must be new.
-          # The README of that folder is documentation — it carries the table
-          # of what each migration does, so every pull request that adds one
-          # edits it, and the rule is about the SQL a database has already run.
+          # every .sql file under supabase/migrations — and under a module's
+          # own migrations folder, which is the same rule one schema out —
+          # that changed must be new. The README of those folders is
+          # documentation, so it is not in the glob.
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" -- 'supabase/migrations/*.sql' || true)
+            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" \
+                        -- 'supabase/migrations/*.sql' 'modules/*/supabase/migrations/*.sql' || true)
             if [ -n "$changed" ]; then
               echo "These migrations were modified or deleted:"
               echo "$changed"

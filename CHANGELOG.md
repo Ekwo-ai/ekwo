@@ -11,6 +11,67 @@ somewhere has already run it.
 
 ### Added
 
+- **Modules: one Postgres schema each, and the ledger only through a
+  function.** The socle stays in `public` and knows nothing about what is built
+  beside it. `public.modules` is the registry — a table, written by the last
+  statement of a module's own first migration, never a plugin list in code —
+  and `company_modules` says which company has enabled which, written only by
+  `enable_module()` and `disable_module()` because the table has no write
+  policy at all. `module_enabled(company, code)` is the one call a module's row
+  level security policies make, and it joins the eight helpers `anon` may
+  execute: what it gives a stranger is the word `is_company_member` already
+  gives them.
+  **`post_module_entry()` is how a module reaches the ledger**: it hands over a
+  company, a date, a tag and its lines as data, and the socle builds the draft
+  and calls `post_entry()`. `entries.module_code` and `entries.module_ref`
+  carry the tag, and a unique index on `(company_id, module_code, module_ref)`
+  is what makes a module idempotent — the database refuses the second posting
+  rather than the module remembering to look. No `entry_kind` value per module.
+  Nine guards hold the rest: row level security on every module table, every
+  company table's policies through `module_enabled()`, `company_id` on every
+  table that is not reference data, no function of a module schema executable
+  by PUBLIC or `anon`, no country, currency or language literal under
+  `modules/**`, no write to `entries` or `entry_lines` and no direct
+  `post_entry()`, a manifest that validates against `modules/schema/module.1.json`,
+  migration timestamps that sort after every socle migration and are unique
+  across the repository, and a module held to what its manifest says about
+  posting.
+  `ekwo module list|migrate|enable|disable`; `ekwo migrate` applies the modules
+  by default and `--no-modules` leaves them out, which is what to pass before
+  `supabase db push`. Module migrations share the socle's history with the
+  module in the recorded `name` (`assets/assets`). The MCP server registers a
+  module's tools under the prefix its manifest declares, reading
+  `public.modules` for what is installed, and turns PostgREST's profile error
+  into the sentence that names the setting — because exposing a schema is the
+  one thing no migration can do.
+
+- **`assets` — fixed assets, their depreciation and their disposal.** Straight
+  line and declining balance, with the country's prorata convention, its
+  declining cap and its switch back to the straight line as pack data in
+  `packs/<cc>/assets.json`; the usual durations of a kind of asset as
+  `assets.category_templates`, each one naming what it comes from. Every amount
+  is rounded to the cent and the last line takes the remainder, so a schedule
+  sums to exactly `cost − residual_value` — asserted on every asset of every
+  test. `run_depreciation` books one entry per period through
+  `post_module_entry()` and is a no-op the second time; a closed financial year
+  refuses it, because `post_entry()` asserts the period. `dispose_asset` follows
+  the country's own mechanism: `net_result` puts the difference on one account
+  (Belgium 763/663), `gross` books the net book value as a charge and the
+  proceeds as an income in full (France 675/775) — the enum names the mechanism
+  and never a country, as `closing_style` does. `units_of_production` is in the
+  enum and refused by name. Four nullable `country_defaults` columns, none with
+  a default, carry the accounts each style needs; both packs move to 1.4.0.
+
+- **`budgets` — what was planned, against what was booked.** The module that
+  proves the mechanism holds for one that is not `assets`: no country data, no
+  pack section, no seed, and not one line written to the ledger. A budget per
+  financial year, its lines per account and period, and
+  `budgets.variance(company, budget, from, to)` against posted entries of kind
+  `normal`. The sign is the one a business says out loud — an income and a cost
+  are both positive — and it comes from `accounts.internal_group`. It writes no
+  `can_disable()`, which is the other half of that convention: turning it off
+  takes nothing away.
+
 - **The format libraries live here now, under `packages/formats/`, one MIT
   package per format and never one per country.** `@ekwo-ai/xbrl-cbso` and
   `@ekwo-ai/factur-x` came in by subtree with their history; the French FEC
@@ -223,6 +284,12 @@ somewhere has already run it.
   installation.
 
 ### Changed
+
+- `docs/schema.md` gains a section per module schema, generated the same way
+  the socle's is. `docs/modules.md` is how to write one; `docs/decisions.md`
+  carries the reasoning. `supabase/config.toml` says in a comment which line
+  exposes a module schema, and leaves it out by default. `ekwo migrate` applies
+  the modules this release carries unless `--no-modules` is passed.
 
 - **The postings of one side of a tax share out the amount of the group**, the
   last taking the remainder, instead of each rounding on its own. No tax had

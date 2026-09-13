@@ -23,6 +23,16 @@ sql_paths = [
   "./seed/11_pack_fr.sql",
 ]
 
+# PostgREST serves only the schemas listed here. The socle is `public`; a
+# module is a schema of its own and is served only once it is added — which no
+# migration can do, because this is a setting of the API and not of the
+# database. `ekwo module enable` prints the line to add, and on a hosted
+# project it is Project Settings → API → Exposed schemas.
+#
+#   schemas = ["public", "assets", "budgets"]
+#
+# They are left out by default: a module nobody enabled is a schema nobody
+# should be able to reach over the API.
 [api]
 enabled = true
 schemas = ["public"]

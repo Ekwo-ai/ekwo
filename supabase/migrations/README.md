@@ -53,6 +53,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260912105720_entry_kind_appropriation` | `entry_kind` gains `appropriation`. Its own file: a new enum value cannot be used in the transaction that added it |
 | `20260912105721_appropriation_entry_kind` | `close_fiscal_year()` marks the entry that moves the result `appropriation` and keeps `closing` for the one that empties the income statement; `reopen_fiscal_year()` undoes both; `statement_account_matches()` leaves `closing` out of an income statement and of an allocation section |
 | `20260912111751_document_rules` | twelve `country_defaults` columns for what a country requires on a document — gapless numbering and the number pattern, the legal payment term and its interest reference, the tax point, the e-invoicing profile and the day it becomes obligatory, the ISO 6523 party and VAT schemes, the bank statement and payment formats, the usual opening of the financial year, none of them with a default; `legal_mention_templates` and its closed `applies_when` vocabulary; the `document_legal_mentions` view; `document_line_items` gains the treatment and the exemption reason of its tax. No function |
+| `20260913074512_modules` | the module mechanism: `modules` and `company_modules`, `enable_module()` / `disable_module()` / `module_enabled()`, `entries.module_code` and `entries.module_ref` with the unique index that makes a module idempotent, and `post_module_entry()` — the one way a module reaches the ledger |
+| `20260913075903_asset_disposal_roles` | four nullable `country_defaults` columns, none with a default, for the two ways a country derecognises a fixed asset. Read by the `assets` module |
 | `20260912112132_cash_basis_vat_and_fx` | VAT on a cash basis and the realised exchange difference: `fx_gain_code` and `fx_loss_code` on the country model, `payments.exchange_rate`, `fx_entry_id` and `tax_transfer_entry_id` on `reconciliations`; `post_document` and `post_payment` book the company currency and write `amount_currency`; `settle_cash_basis_tax()`, called by `reconcile()` and `unreconcile()`, moves the share of a waiting tax that settlement has made due |
 
 ## Rules for a new migration
@@ -95,3 +97,18 @@ Always number after the newest file on `main`, and check `git log` first.
 
 Write the migration, then the test that proves it in `tests/`, then the
 doc. A migration without a test is a migration nobody has run.
+
+## A module's migrations are not in this folder
+
+They live in `modules/<code>/supabase/migrations/` and follow every rule above,
+with two of their own. They are recorded in **the same history** —
+`supabase_migrations.schema_migrations`, the plain timestamp as `version`, the
+module in the `name` (`assets/assets`) — and **their timestamps sort after every
+migration of this folder**, so one history stays in order. A test refuses a
+module migration that is older than the newest socle one, and another refuses
+two migrations anywhere that share a version.
+
+`ekwo migrate` applies this folder, then the modules, then the seeds.
+`supabase db push` applies this folder only, and knows nothing of a module's
+files — so `ekwo migrate --no-modules` is what to run before it. See
+[`docs/modules.md`](../../docs/modules.md).
