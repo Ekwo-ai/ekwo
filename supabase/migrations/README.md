@@ -56,6 +56,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260913074512_modules` | the module mechanism: `modules` and `company_modules`, `enable_module()` / `disable_module()` / `module_enabled()`, `entries.module_code` and `entries.module_ref` with the unique index that makes a module idempotent, and `post_module_entry()` — the one way a module reaches the ledger |
 | `20260913075903_asset_disposal_roles` | four nullable `country_defaults` columns, none with a default, for the two ways a country derecognises a fixed asset. Read by the `assets` module |
 | `20260912112132_cash_basis_vat_and_fx` | VAT on a cash basis and the realised exchange difference: `fx_gain_code` and `fx_loss_code` on the country model, `payments.exchange_rate`, `fx_entry_id` and `tax_transfer_entry_id` on `reconciliations`; `post_document` and `post_payment` book the company currency and write `amount_currency`; `settle_cash_basis_tax()`, called by `reconcile()` and `unreconcile()`, moves the share of a waiting tax that settlement has made due |
+| `20260913083216_capabilities` | `capabilities` and `role_capabilities`, `company_members.capabilities_granted` / `capabilities_revoked`, `has_capability()` and `member_capabilities()`. Every policy that tested a role now tests a capability; the role becomes a preset. Three triggers guard the acts a policy cannot express — posting an entry, booking a document, closing a year — and the two counters ask for a capability instead of a role that `NULL in (…)` had quietly made optional |
 
 ## Rules for a new migration
 

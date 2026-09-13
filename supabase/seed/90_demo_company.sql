@@ -66,6 +66,17 @@ begin
 
   insert into company_members (company_id, user_id, role) values (v_company, v_owner, 'owner');
 
+  -- From here the sample books are kept by the fictional owner, and not by
+  -- whoever happens to be running the installer. `ekwo demo` acts as the real
+  -- administrator so that `claim_instance_admin()` is satisfied rather than
+  -- circumvented — and that administrator is not a member of this fictional
+  -- company, so posting as them is exactly what the capability guards refuse.
+  -- Transaction-local, so the claim the caller set comes back when this block
+  -- commits.
+  perform set_config('request.jwt.claims',
+                     json_build_object('sub', v_owner, 'role', 'authenticated')::text,
+                     true);
+
   perform install_country_template(v_company, 'BE');
 
   insert into fiscal_years (company_id, name, start_date, end_date, is_closed) values

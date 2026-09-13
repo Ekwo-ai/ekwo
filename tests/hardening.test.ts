@@ -64,16 +64,19 @@ describe('the anonymous role', () => {
           and has_function_privilege('anon', p.oid, 'execute')
         order by 1`,
     );
-    // Eight since 20260911210131, nine since modules: `module_enabled` is
-    // what a module's policies call, and it answers "this module is on for
-    // this company **and** you are a member of it" — so what it gives an
-    // anonymous request away is the same word `is_company_member` already
-    // does. Without the grant, an anonymous select on a module table would
+    // Eight since 20260911210131, and one more for each question a policy
+    // learned to ask since. `has_capability` is what every policy of the core
+    // now calls, and `module_enabled` is what a module's policies call — the
+    // latter answering "this module is on for this company **and** you are a
+    // member of it", so what it gives an anonymous request away is the same
+    // word `is_company_member` already does. Both answer about `auth.uid()`,
+    // which is null for `anon`. Without the grants, an anonymous select would
     // raise "permission denied for function" instead of returning nothing.
     expect(callable.map((r) => r.proname)).toEqual([
       'can_write_company',
       'company_has_no_member',
       'company_role',
+      'has_capability',
       'instance_has_no_admin',
       'is_any_company_member',
       'is_company_member',

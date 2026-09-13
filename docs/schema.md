@@ -141,6 +141,7 @@ the return say the same thing, because they are the same rows.
 | [`bank_accounts`](#bank_accounts) | Bank and card accounts, each mapped to a ledger account and a journal. |
 | [`bank_statements`](#bank_statements) | Imported statements. `is_consistent` compares the declared closing balance with the sum of the lines. |
 | [`bank_transactions`](#bank_transactions) | Statement lines. `amount` is signed; `raw` keeps whatever the source sent. |
+| [`capabilities`](#capabilities) | Everything a member may be allowed to do, one row per code. Seeded by this migration for the core; a module adds its own with `area` set to the module code. |
 | [`chart_templates`](#chart_templates) | Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one. |
 | [`companies`](#companies) | Legal entities kept in this instance. One instance may hold several. |
 | [`company_members`](#company_members) | Who may read or write a company. `owner` administers, `accountant` books, `viewer` reads. |
@@ -168,6 +169,7 @@ the return say the same thing, because they are the same rows.
 | [`payments`](#payments) | Money in and out. Amounts are positive; `direction` carries the sign. |
 | [`products`](#products) | What a document line is filled in from: code, name, unit, price, account and tax. Not stock: no quantity on hand and no valuation. |
 | [`reconciliations`](#reconciliations) | One row per pairing of a debit with a credit. Full matching is the sum of partials. |
+| [`role_capabilities`](#role_capabilities) | What each preset holds. A role is never tested by a policy; it is resolved here into capabilities. |
 | [`statement_line_rules`](#statement_line_rules) | How an account of a company reaches a line. Presentation maps by range of the legal chart; choosing an account to post to by prefix stays forbidden, and is a different question. |
 | [`statement_line_templates`](#statement_line_templates) | The lines of a statement, in the order it prints them, and the plus/minus lists a total is computed from. |
 | [`statement_templates`](#statement_templates) | Financial statements per framework, from packs/<cc>/statements.json and packs/generic/. Reference data: never copied into a company. |
@@ -373,6 +375,21 @@ Constraints:
 
 - `PRIMARY KEY (id)`
 
+### `capabilities`
+
+Everything a member may be allowed to do, one row per code. Seeded by this migration for the core; a module adds its own with `area` set to the module code.
+
+| Column | Type | Notes |
+|---|---|---|
+| `code` | `text` | not null |
+| `area` | `text` | not null — What the code belongs to — a table family of the core, or the code of a module. |
+| `description` | `text` | not null |
+
+Constraints:
+
+- `CHECK ((code ~ '^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$'::text))`
+- `PRIMARY KEY (code)`
+
 ### `chart_templates`
 
 Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one.
@@ -451,6 +468,8 @@ Who may read or write a company. `owner` administers, `accountant` books, `viewe
 | `role` | `member_role` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `capabilities_granted` | `text[]` | not null — Capabilities this member holds beyond their preset. |
+| `capabilities_revoked` | `text[]` | not null — Capabilities this member does not hold whatever their preset says. A revoke wins over a grant and over a role. |
 
 Constraints:
 
@@ -1092,6 +1111,19 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (debit_line_id, credit_line_id)`
 
+### `role_capabilities`
+
+What each preset holds. A role is never tested by a policy; it is resolved here into capabilities.
+
+| Column | Type | Notes |
+|---|---|---|
+| `role` | `member_role` | not null |
+| `capability` | `text` | not null |
+
+Constraints:
+
+- `PRIMARY KEY (role, capability)`
+
 ### `statement_line_rules`
 
 How an account of a company reaches a line. Presentation maps by range of the legal chart; choosing an account to post to by prefix stays forbidden, and is a different question.
@@ -1354,6 +1386,7 @@ Constraints:
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Open receivables (or payables) by age, from unmatched ledger lines. p_group is 'receivable' or 'payable'. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
 | `available_statements(p_company_id uuid, p_at date)` | Statements a company may ask for: those of its country and chart, plus the generic framework. `is_default` marks the ones its chart declares. |
+| `can_write_company(p_company_id uuid)` | Whether the current user may write the books of a company. Kept for callers that have it; it is now one capability and not a role. |
 | `claim_instance_admin(p_user_id uuid)` | Makes a user an instance administrator. The first claim is open; afterwards only an administrator may appoint one. |
 | `close_fiscal_year(p_fiscal_year_id uuid)` | Closes a fiscal year: the result leaves the income statement the way the country model says, and every income and expense account goes back to zero. The entry that moves the result is `appropriation`, the one that empties the income statement is `closing`. The balance sheet needs no entry — the reports read the ledger from the beginning. The allocation decided by a meeting is never part of it. |
 | `commercial_entity(p_contact_id uuid)` | Root of the contact parent chain; the entity a document is booked against. |
@@ -1370,11 +1403,13 @@ Constraints:
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
 | `fiscal_years_guard_closed()` | Refuses a hand-written change to is_closed. A column any client may flip is not a lock. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
+| `has_capability(p_company_id uuid, p_capability text)` | Whether the current user may do one named thing in one company. Revoked beats granted, granted beats the preset, and a non-member holds nothing. |
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
 | `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
+| `member_capabilities(p_company_id uuid, p_user_id uuid)` | The capabilities one member effectively holds on one company, preset and adjustments resolved. Reading another member's needs members.manage. |
 | `module_enabled(p_company_id uuid, p_code text)` | The helper a module's row level security policies call: this module is enabled on this company and the caller is a member of it. One call, and the answer to a stranger is no. |
 | `module_entry_id(p_company_id uuid, p_module_code text, p_ref text)` | The entry a module already posted under a reference, or null. What a module reads before deciding it has work to do. |
 | `module_is_enabled(p_company_id uuid, p_code text)` | Whether a module is enabled on a company, regardless of who is asking. Definer so a policy on company_modules cannot recurse into it. |
