@@ -13,7 +13,7 @@
  * company created afterwards, since a company copies the templates at
  * install. A template is reference data and a seed is allowed to re-state it;
  * a row that belongs to a company is never touched here, and moving a company
- * from one pack version to the next is `ekwo pack upgrade` (P0-9), which
+ * from one pack version to the next is `ekwo pack upgrade`, still to come, which
  * shows the diff first.
  *
  * What an upsert cannot do is remove: a template dropped from a pack stays in
@@ -44,7 +44,7 @@ export function compilePack(pack: Pack): string {
   out.push(...taxes(pack, country));
   out.push(...postings(pack, country));
   out.push(...taxReport(pack, country));
-  out.push(...statements(pack.statements, pack.lineLabels, country));
+  out.push(...statements(pack.statements, pack.labels.statement_lines, country));
   out.push(...defaults(pack, country));
   out.push(...documentRules(pack, country));
 
@@ -82,7 +82,7 @@ export function compileAssetsSeed(pack: Pack): string | undefined {
   const country = pack.manifest.country;
 
   const out: string[] = [
-    `-- Ekwo — ${pack.manifest.name}: how this country depreciates and derecognises a fixed asset.`,
+    `-- Ekwo OS — ${pack.manifest.name}: how this country depreciates and derecognises a fixed asset.`,
     '--',
     `-- Generated from packs/${pack.slug}/assets.json at version ${pack.manifest.version}, do not edit.`,
     `-- Change the pack and run \`ekwo pack build ${pack.slug}\`; \`ekwo pack check --all\``,
@@ -261,7 +261,7 @@ function accounts(pack: Pack, country: string): string[] {
     for (const a of [...chart.accounts].sort(byCode)) {
       values.push(
         `  (${text(country)}, ${text(chart.code)}, ${text(a.code)}, ${text(a.name)}, ` +
-          `${json(pack.accountLabels[a.code])}, ${text(a.type)}, ` +
+          `${json(pack.labels.accounts[a.code])}, ${text(a.type)}, ` +
           `${a.reconcilable ? 'true' : 'false'}, ${text(a.parent)}, ${a.sequence})`,
       );
     }
@@ -387,13 +387,15 @@ function journals(pack: Pack, country: string): string[] {
   const rows = [...pack.manifest.journals].sort((a, b) => a.code.localeCompare(b.code));
   const values = rows.map(
     (j, index) =>
-      `  (${text(country)}, ${text(j.code)}, ${text(j.name)}, ${text(j.type)}, ${j.sequence ?? (index + 1) * 10})`,
+      `  (${text(country)}, ${text(j.code)}, ${text(j.name)}, ${json(pack.labels.journals[j.code])}, ` +
+      `${text(j.type)}, ${j.sequence ?? (index + 1) * 10})`,
   );
   return [
-    'insert into journal_templates (country, code, name, journal_type, sequence) values',
+    'insert into journal_templates (country, code, name, name_i18n, journal_type, sequence) values',
     values.join(',\n'),
     'on conflict (country, code) do update set',
     '  name         = excluded.name,',
+    '  name_i18n    = excluded.name_i18n,',
     '  journal_type = excluded.journal_type,',
     '  sequence     = excluded.sequence;',
     '',
@@ -404,7 +406,8 @@ function taxes(pack: Pack, country: string): string[] {
   const rows = [...pack.taxes].sort(byCode);
   const values = rows.map(
     (t) =>
-      `  (${text(country)}, ${text(t.code)}, ${text(t.name)}, ${text(t.description)}, ` +
+      `  (${text(country)}, ${text(t.code)}, ${text(t.name)}, ${json(pack.labels.taxes[t.code])}, ` +
+      `${text(t.description)}, ` +
       `${text(t.amount_type)}, ${number(t.rate)}, ${text(t.scope)}, ${text(t.treatment)}, ` +
       `${date(t.valid_from)}, ${date(t.valid_to)}, ${text(t.legal_reference)}, ` +
       `${text(t.vat_category)}, ${text(t.exemption_code)}, ${t.sequence}, ` +
@@ -413,7 +416,7 @@ function taxes(pack: Pack, country: string): string[] {
   );
   return [
     'insert into tax_templates',
-    '  (country, code, name, description, amount_type, amount, applies_to, treatment,',
+    '  (country, code, name, name_i18n, description, amount_type, amount, applies_to, treatment,',
     '   valid_from, valid_to, legal_reference, vat_category, exemption_code, sequence,',
     '   tax_kind, recoverable, jurisdiction, price_include, cash_basis,',
     '   cash_basis_transition_account_code)',
@@ -421,6 +424,7 @@ function taxes(pack: Pack, country: string): string[] {
     values.join(',\n'),
     'on conflict (country, code) do update set',
     '  name            = excluded.name,',
+    '  name_i18n       = excluded.name_i18n,',
     '  description     = excluded.description,',
     '  amount_type     = excluded.amount_type,',
     '  amount          = excluded.amount,',
@@ -514,7 +518,7 @@ function taxReport(pack: Pack, country: string): string[] {
   const values = boxes.map(
     (b) =>
       `  (${text(country)}, ${text(report.code)}, ${text(b.box)}, ${text(b.kind)}, ${text(b.name)}, ` +
-      `${json(pack.boxLabels[`${b.box}|${b.kind}`])}, ${b.sequence}, ` +
+      `${json(pack.labels.tax_report_boxes[`${b.box}|${b.kind}`])}, ${b.sequence}, ` +
       `${array(b.plus)}, ${array(b.minus)}, ${b.floor_zero ? 'true' : 'false'}, ` +
       `${b.hidden ? 'true' : 'false'}, ${text(b.xml_element)}, ${text(b.legal_reference)})`,
   );
@@ -545,6 +549,14 @@ function defaults(pack: Pack, country: string): string[] {
   const row = [
     text(country),
     text(pack.manifest.name),
+    json(pack.labels.pack_name),
+    // The pack's own language first: it is the one every label is written in,
+    // and an installer that offered the translations before it would put the
+    // country's own wording last on its own chart of accounts.
+    array([
+      ...(pack.manifest.defaults.language === undefined ? [] : [pack.manifest.defaults.language]),
+      ...(pack.manifest.languages ?? []),
+    ]),
     text(pack.manifest.defaults.currency),
     text(roles['receivable'] ?? null),
     text(roles['payable'] ?? null),
@@ -589,7 +601,7 @@ function defaults(pack: Pack, country: string): string[] {
   ];
   return [
     'insert into country_defaults',
-    '  (country, name, currency_code, receivable_code, payable_code, suspense_code,',
+    '  (country, name, name_i18n, languages, currency_code, receivable_code, payable_code, suspense_code,',
     '   rounding_code, retained_earnings_code, sales_account_code, purchase_account_code,',
     '   bank_account_code, cash_account_code, sales_journal_code, purchase_journal_code,',
     '   misc_journal_code, language_default, closing_style, current_year_result_profit_code,',
@@ -601,6 +613,8 @@ function defaults(pack: Pack, country: string): string[] {
     `  (${row.join(', ')})`,
     'on conflict (country) do update set',
     '  name                   = excluded.name,',
+    '  name_i18n              = excluded.name_i18n,',
+    '  languages              = excluded.languages,',
     '  currency_code          = excluded.currency_code,',
     '  receivable_code        = excluded.receivable_code,',
     '  payable_code           = excluded.payable_code,',

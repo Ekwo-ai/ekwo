@@ -16,7 +16,6 @@
     {
       "code": "formation-expenses",
       "name": "Frais d'établissement",
-      "name_i18n": { "nl": "Oprichtingskosten", "en": "Formation expenses" },
       "method": "straight_line",
       "duration_months": 60,
       "account_type": "asset_fixed",
@@ -26,7 +25,6 @@
     {
       "code": "intangible-rd",
       "name": "Frais de recherche et de développement",
-      "name_i18n": { "nl": "Kosten van onderzoek en ontwikkeling", "en": "Research and development" },
       "method": "straight_line",
       "duration_months": 36,
       "account_type": "asset_fixed",
@@ -36,7 +34,6 @@
     {
       "code": "software",
       "name": "Logiciels, concessions, brevets et licences",
-      "name_i18n": { "nl": "Software, concessies, octrooien en licenties", "en": "Software, concessions, patents and licences" },
       "method": "straight_line",
       "duration_months": 60,
       "account_type": "asset_fixed",
@@ -46,7 +43,6 @@
     {
       "code": "building-industrial",
       "name": "Bâtiments industriels",
-      "name_i18n": { "nl": "Industriële gebouwen", "en": "Industrial buildings" },
       "method": "straight_line",
       "duration_months": 240,
       "account_type": "asset_fixed",
@@ -56,7 +52,6 @@
     {
       "code": "building-commercial",
       "name": "Bâtiments commerciaux et de bureaux",
-      "name_i18n": { "nl": "Handels- en kantoorgebouwen", "en": "Commercial and office buildings" },
       "method": "straight_line",
       "duration_months": 396,
       "account_type": "asset_fixed",
@@ -66,7 +61,6 @@
     {
       "code": "machinery",
       "name": "Installations, machines et outillage",
-      "name_i18n": { "nl": "Installaties, machines en uitrusting", "en": "Plant, machinery and equipment" },
       "method": "straight_line",
       "duration_months": 120,
       "account_type": "asset_fixed",
@@ -76,7 +70,6 @@
     {
       "code": "machinery-declining",
       "name": "Installations, machines et outillage — régime dégressif",
-      "name_i18n": { "nl": "Installaties, machines en uitrusting — degressief", "en": "Plant and machinery — declining balance" },
       "method": "declining_balance",
       "duration_months": 120,
       "coefficient": 2,
@@ -87,7 +80,6 @@
     {
       "code": "furniture",
       "name": "Mobilier",
-      "name_i18n": { "nl": "Meubilair", "en": "Furniture" },
       "method": "straight_line",
       "duration_months": 120,
       "account_type": "asset_fixed",
@@ -97,7 +89,6 @@
     {
       "code": "it-equipment",
       "name": "Matériel de bureau et matériel informatique",
-      "name_i18n": { "nl": "Kantoor- en informaticamaterieel", "en": "Office and computer equipment" },
       "method": "straight_line",
       "duration_months": 36,
       "account_type": "asset_fixed",
@@ -107,7 +98,6 @@
     {
       "code": "vehicle",
       "name": "Matériel roulant",
-      "name_i18n": { "nl": "Rollend materieel", "en": "Vehicles" },
       "method": "straight_line",
       "duration_months": 60,
       "account_type": "asset_fixed",

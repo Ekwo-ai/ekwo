@@ -16,7 +16,6 @@
     {
       "code": "software",
       "name": "Logiciels",
-      "name_i18n": { "en": "Software" },
       "method": "straight_line",
       "duration_months": 36,
       "account_type": "asset_fixed",
@@ -26,7 +25,6 @@
     {
       "code": "building-commercial",
       "name": "Constructions à usage commercial",
-      "name_i18n": { "en": "Commercial buildings" },
       "method": "straight_line",
       "duration_months": 240,
       "account_type": "asset_fixed",
@@ -36,7 +34,6 @@
     {
       "code": "fixtures",
       "name": "Installations générales et agencements",
-      "name_i18n": { "en": "Fixtures and fittings" },
       "method": "straight_line",
       "duration_months": 120,
       "account_type": "asset_fixed",
@@ -46,7 +43,6 @@
     {
       "code": "machinery",
       "name": "Matériel industriel",
-      "name_i18n": { "en": "Industrial plant" },
       "method": "straight_line",
       "duration_months": 120,
       "account_type": "asset_fixed",
@@ -56,7 +52,6 @@
     {
       "code": "machinery-declining",
       "name": "Matériel industriel — régime dégressif",
-      "name_i18n": { "en": "Industrial plant — declining balance" },
       "method": "declining_balance",
       "duration_months": 120,
       "coefficient": 2.25,
@@ -67,7 +62,6 @@
     {
       "code": "furniture",
       "name": "Mobilier de bureau",
-      "name_i18n": { "en": "Office furniture" },
       "method": "straight_line",
       "duration_months": 120,
       "account_type": "asset_fixed",
@@ -77,7 +71,6 @@
     {
       "code": "it-equipment",
       "name": "Matériel de bureau et matériel informatique",
-      "name_i18n": { "en": "Office and computer equipment" },
       "method": "straight_line",
       "duration_months": 36,
       "account_type": "asset_fixed",
@@ -87,7 +80,6 @@
     {
       "code": "it-equipment-declining",
       "name": "Matériel informatique — régime dégressif",
-      "name_i18n": { "en": "Computer equipment — declining balance" },
       "method": "declining_balance",
       "duration_months": 36,
       "coefficient": 1.25,
@@ -98,7 +90,6 @@
     {
       "code": "vehicle",
       "name": "Matériel de transport",
-      "name_i18n": { "en": "Vehicles" },
       "method": "straight_line",
       "duration_months": 60,
       "account_type": "asset_fixed",

@@ -149,14 +149,10 @@ describe('installing a company', () => {
   });
 
   it('copies the labels in the language the company keeps its books in', async () => {
-    // The packs of this release carry no translation yet, so the test puts
-    // one on the template and proves the copy reads it. This is the path
-    // `i18n/nl.json` will take the day a Dutch label is written.
+    // The Belgian pack is written in French and publishes Dutch, German and
+    // English, so a company that keeps its books in Dutch reads Dutch — from
+    // the seed, with nothing arranged by this test.
     await db.exec('begin');
-    await db.query(
-      `update account_templates set name_i18n = '{"nl": "Handelsdebiteuren", "en": "Trade receivables"}'::jsonb
-        where country = 'BE' and code = '400000'`,
-    );
     const company = await one<{ id: string }>(
       db,
       `insert into companies (name, country, fiscal_country, currency_code, language)
@@ -170,15 +166,58 @@ describe('installing a company', () => {
       [company.id],
     );
     expect(account.name).toBe('Handelsdebiteuren');
-    expect(account.name_i18n['en']).toBe('Trade receivables');
+    expect(account.name_i18n['en']).toBe('Customers');
 
-    // A label the pack does not translate keeps the pack's own.
+    // The other languages travel with the row, so a reader who prefers German
+    // is answered without going back to the template.
+    expect(account.name_i18n['de']).toBe('Kunden');
+
+    // A label the pack does not translate keeps the pack's own. Every account
+    // of Belgium is translated, so the case is made rather than found.
+    await db.query(`update account_templates set name_i18n = '{}'::jsonb
+                     where country = 'BE' and code = '440000'`);
+    const untranslated = await one<{ id: string }>(
+      db,
+      `insert into companies (name, country, fiscal_country, currency_code, language)
+       values ('Tweede BV', 'BE', 'BE', 'EUR', 'nl') returning id`,
+    );
+    await db.query('select install_country_template($1, $2)', [untranslated.id, 'BE']);
     const other = await one<{ name: string }>(
       db,
       `select name from accounts where company_id = $1 and code = '440000'`,
-      [company.id],
+      [untranslated.id],
     );
     expect(other.name).toBe('Fournisseurs');
+    await db.exec('rollback');
+  });
+
+  it('copies the journals and the taxes in that language too', async () => {
+    // The chart of accounts was translated before the journals and the taxes
+    // were, which left a company reading "Journal des ventes" over a chart in
+    // Dutch. Both now carry name_i18n, and both are picked the same way.
+    await db.exec('begin');
+    const company = await one<{ id: string }>(
+      db,
+      `insert into companies (name, country, fiscal_country, currency_code, language)
+       values ('Derde BV', 'BE', 'BE', 'EUR', 'nl') returning id`,
+    );
+    await db.query('select install_country_template($1, $2)', [company.id, 'BE']);
+
+    const journal = await one<{ name: string; name_i18n: Record<string, string> }>(
+      db,
+      `select name, name_i18n from journals where company_id = $1 and code = 'SAL'`,
+      [company.id],
+    );
+    expect(journal.name).toBe('Verkoopdagboek');
+    expect(journal.name_i18n['de']).toBe('Verkaufsjournal');
+
+    const tax = await one<{ name: string; name_i18n: Record<string, string> }>(
+      db,
+      `select name, name_i18n from taxes where company_id = $1 and code = 'BE-S-21'`,
+      [company.id],
+    );
+    expect(tax.name).toBe('Verkoop 21 %');
+    expect(tax.name_i18n['en']).toBe('Sale 21%');
     await db.exec('rollback');
   });
 

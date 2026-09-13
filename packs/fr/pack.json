@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "schema_min": "20260913075903",
-  "released_at": "2026-09-12",
+  "released_at": "2026-09-13",
   "certification": {
     "status": "maintained",
     "sources": [
@@ -55,6 +55,7 @@
     },
     "fiscal_year_default": "calendar"
   },
+  "languages": ["en"],
   "journals": [
     {
       "code": "SAL",
@@ -118,9 +119,6 @@
         "code": "reverse_charge",
         "applies_when": "reverse_charge",
         "text": "Autoliquidation — TVA due par le preneur.",
-        "text_i18n": {
-          "en": "Reverse charge — VAT to be accounted for by the customer."
-        },
         "sequence": 10,
         "legal_reference": "Code général des impôts, art. 283"
       },
@@ -128,9 +126,6 @@
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Exonération de TVA — livraison intracommunautaire.",
-        "text_i18n": {
-          "en": "Exempt intra-Community supply."
-        },
         "sequence": 20,
         "legal_reference": "Code général des impôts, art. 262 ter, I"
       },
@@ -138,9 +133,6 @@
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Autoliquidation — TVA due par le preneur.",
-        "text_i18n": {
-          "en": "Reverse charge — VAT due by the customer."
-        },
         "sequence": 30,
         "legal_reference": "Code général des impôts, art. 283-2 ; directive 2006/112/CE, art. 44 et 196"
       },
@@ -148,9 +140,6 @@
         "code": "export",
         "applies_when": "export",
         "text": "Exonération de TVA — exportation hors de l'Union européenne.",
-        "text_i18n": {
-          "en": "Exempt export outside the European Union."
-        },
         "sequence": 40,
         "legal_reference": "Code général des impôts, art. 262, I"
       },
@@ -158,9 +147,6 @@
         "code": "small_business",
         "applies_when": "small_business",
         "text": "TVA non applicable, art. 293 B du CGI.",
-        "text_i18n": {
-          "en": "VAT not applicable, article 293 B of the French tax code."
-        },
         "sequence": 50,
         "legal_reference": "Code général des impôts, art. 293 B"
       },
@@ -168,9 +154,6 @@
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "En cas de retard de paiement, des pénalités sont exigibles sans qu'un rappel soit nécessaire, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement.",
-        "text_i18n": {
-          "en": "Late payment gives rise to interest without any reminder being necessary, together with a fixed recovery indemnity of 40 €."
-        },
         "sequence": 60,
         "legal_reference": "Code de commerce, art. L441-10 et D441-5"
       }

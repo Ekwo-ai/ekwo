@@ -1,6 +1,6 @@
--- Ekwo — France: how this country depreciates and derecognises a fixed asset.
+-- Ekwo OS — France: how this country depreciates and derecognises a fixed asset.
 --
--- Generated from packs/fr/assets.json at version 1.4.0, do not edit.
+-- Generated from packs/fr/assets.json at version 1.5.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -35,7 +35,7 @@ select v.country::char(2), v.code, v.name, v.name_i18n::jsonb,
   from (values
     ('FR', 'software', 'Logiciels', '{"en":"Software"}'::jsonb, 'straight_line', 36, null, null, 'asset_fixed', 10, 'Durée d''usage de trois ans (BOI-BIC-AMT-10-40-10). L''amortissement exceptionnel sur douze mois des logiciels acquis est une option fiscale distincte, art. 236, II du code général des impôts.'),
     ('FR', 'building-commercial', 'Constructions à usage commercial', '{"en":"Commercial buildings"}'::jsonb, 'straight_line', 240, null, null, 'asset_fixed', 20, 'Durée d''usage des constructions : vingt à cinquante ans selon la nature du bâtiment (BOI-BIC-AMT-10-40-10). Vingt ans est la borne basse ; la durée retenue se justifie par l''utilisation attendue du bien (règlement ANC 2014-03, art. 214-1).'),
-    ('FR', 'fixtures', 'Installations générales et agencements', '{"en":"Fixtures and fittings"}'::jsonb, 'straight_line', 120, null, null, 'asset_fixed', 30, 'Durée d''usage de dix ans pour les agencements et installations (BOI-BIC-AMT-10-40-10).'),
+    ('FR', 'fixtures', 'Installations générales et agencements', '{"en":"General installations and fittings"}'::jsonb, 'straight_line', 120, null, null, 'asset_fixed', 30, 'Durée d''usage de dix ans pour les agencements et installations (BOI-BIC-AMT-10-40-10).'),
     ('FR', 'machinery', 'Matériel industriel', '{"en":"Industrial plant"}'::jsonb, 'straight_line', 120, null, null, 'asset_fixed', 40, 'Durée d''usage du matériel et de l''outillage : six ans et huit mois à dix ans (BOI-BIC-AMT-10-40-10). Dix ans est retenu ici.'),
     ('FR', 'machinery-declining', 'Matériel industriel — régime dégressif', '{"en":"Industrial plant — declining balance"}'::jsonb, 'declining_balance', 120, 2.25, null, 'asset_fixed', 50, 'Code général des impôts, art. 39 A, 1 — coefficient de 2,25 pour une durée normale d''utilisation supérieure à six ans, pour les biens acquis à compter du 1er janvier 2001. Le régime est réservé aux biens d''équipement énumérés par le texte.'),
     ('FR', 'furniture', 'Mobilier de bureau', '{"en":"Office furniture"}'::jsonb, 'straight_line', 120, null, null, 'asset_fixed', 60, 'Durée d''usage de dix ans pour le mobilier de bureau (BOI-BIC-AMT-10-40-10).'),

@@ -668,6 +668,8 @@ Which template account plays which role, per country.
 | `asset_disposal_loss_code` | `text` | Net-result disposal: the account a loss lands on (Belgium 663). Left empty where the chart keeps one account for both signs, and then the gain account answers for both. |
 | `asset_disposal_proceeds_code` | `text` | Gross disposal: the income account the proceeds of a sale are booked on in full (France 775). Null under the net-result style. |
 | `asset_disposal_value_code` | `text` | Gross disposal: the charge account the net book value of the asset sold is booked on in full (France 675). Null under the net-result style. |
+| `name_i18n` | `jsonb` | not null — The country's own name by language, from packs/<cc>/i18n/. `name` holds it in English, which is what a country pack manifest is written in. |
+| `languages` | `text[]` | not null — Languages this country pack publishes every label in, the language of the pack itself first. An installer offers them; nothing in the schema restricts a company to them. |
 
 Constraints:
 
@@ -1000,6 +1002,7 @@ Constraints:
 | `name` | `text` | not null |
 | `journal_type` | `journal_type` | not null |
 | `sequence` | `integer` | not null |
+| `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. The language the pack itself is written in stays in `name`. |
 
 Constraints:
 
@@ -1024,6 +1027,7 @@ Books of entry. The code is the first segment of every entry number.
 | `active` | `boolean` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
+| `name_i18n` | `jsonb` | not null — Label by language, copied from the template at install. `name` holds the language the company chose, and a company may rename a journal without losing the other languages. |
 
 Constraints:
 
@@ -1309,7 +1313,7 @@ Where a tax lands: ledger account and VAT-return box, per tax and per document k
 | `sequence` | `integer` | not null |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
-| `report_code` | `text` | Declaration form the box belongs to. Copied from the template; read by vat_return(company, from, to, report_code) from P0-3. |
+| `report_code` | `text` | Declaration form the box belongs to. Copied from the template, and read by vat_return(company, from, to, report_code) to pick out the boxes of one form where a country files more than one. |
 
 Constraints:
 
@@ -1397,8 +1401,9 @@ Reference taxes per country, with their period of validity.
 | `recoverable` | `boolean` | not null — False when the buyer never gets the tax back: American sales tax, Canadian PST. Where it lands is said by a tax_on_base posting. |
 | `jurisdiction` | `text` | ISO 3166-2 with the country prefix — CA-QC, US-CA — for a tax levied by a state. Null in Europe. |
 | `price_include` | `boolean` | not null — The unit price already holds the tax (UK and Australian retail). `taxes` carried this from the start and the template did not. |
-| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid. Column only: P0-6 implements the behaviour, this migration just stops the pack from losing the value. |
-| `cash_basis_transition_account_code` | `text` | Account the tax waits on until the invoice is paid. Column only, read by P0-6. |
+| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid rather than when it is issued, which is how France taxes services. post_document() books it on the transition account below and on no declaration box; reconcile() moves the settled share to the account and the box it is declared on. |
+| `cash_basis_transition_account_code` | `text` | Account the tax waits on between the invoice and its payment, by code in the chart of this country. Only read when cash_basis is true. |
+| `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. A translation of the same tax, never a different rate or a different rule. |
 
 Constraints:
 
@@ -1434,8 +1439,9 @@ VAT and similar taxes, with temporal validity and a legal reference.
 | `tax_kind` | `tax_kind` | not null — vat, gst, sales_tax, withholding, other. A label for the reports, never an input to the calculation. |
 | `recoverable` | `boolean` | not null — False when the buyer never gets the tax back. The ledger consequence is a tax_on_base posting, not this column. |
 | `jurisdiction` | `text` | ISO 3166-2 with the country prefix, for a tax levied by a state. Null in Europe. |
-| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid. Column only until P0-6. |
-| `cash_basis_transition_account_id` | `uuid` | Account the tax waits on until the invoice is paid. Column only until P0-6. |
+| `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid rather than when it is issued. The share that has been settled is what reaches the declaration. |
+| `cash_basis_transition_account_id` | `uuid` | Account the tax waits on between the invoice and its payment. Only read when cash_basis is true. |
+| `name_i18n` | `jsonb` | not null — Label by language, copied from the template at install. `name` holds the language the company chose. |
 
 Constraints:
 

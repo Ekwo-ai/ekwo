@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "schema_min": "20260913075903",
-  "released_at": "2026-09-12",
+  "released_at": "2026-09-13",
   "certification": {
     "status": "maintained",
     "sources": [
@@ -53,6 +53,7 @@
     },
     "fiscal_year_default": "calendar"
   },
+  "languages": ["nl", "de", "en"],
   "journals": [
     {
       "code": "SAL",
@@ -132,11 +133,6 @@
         "code": "reverse_charge",
         "applies_when": "reverse_charge",
         "text": "Autoliquidation — taxe à acquitter par le cocontractant.",
-        "text_i18n": {
-          "nl": "Btw verlegd — belasting te voldoen door de medecontractant.",
-          "de": "Steuerschuldnerschaft des Leistungsempfängers.",
-          "en": "Reverse charge — VAT to be accounted for by the customer."
-        },
         "sequence": 10,
         "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20"
       },
@@ -144,11 +140,6 @@
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Livraison intracommunautaire exonérée — autoliquidation par l'acquéreur.",
-        "text_i18n": {
-          "nl": "Vrijgestelde intracommunautaire levering — btw verlegd naar de afnemer.",
-          "de": "Steuerfreie innergemeinschaftliche Lieferung — Steuerschuldnerschaft des Erwerbers.",
-          "en": "Exempt intra-Community supply — reverse charge by the customer."
-        },
         "sequence": 20,
         "legal_reference": "Code de la TVA, art. 39bis"
       },
@@ -156,11 +147,6 @@
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Autoliquidation — TVA due par le preneur.",
-        "text_i18n": {
-          "nl": "Btw verlegd — belasting verschuldigd door de afnemer.",
-          "de": "Steuerschuldnerschaft des Leistungsempfängers.",
-          "en": "Reverse charge — VAT due by the customer."
-        },
         "sequence": 30,
         "legal_reference": "Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196"
       },
@@ -168,11 +154,6 @@
         "code": "export",
         "applies_when": "export",
         "text": "Exportation exonérée de TVA.",
-        "text_i18n": {
-          "nl": "Van btw vrijgestelde uitvoer.",
-          "de": "Steuerfreie Ausfuhrlieferung.",
-          "en": "Exempt export."
-        },
         "sequence": 40,
         "legal_reference": "Code de la TVA, art. 39"
       },
@@ -180,11 +161,6 @@
         "code": "small_business",
         "applies_when": "small_business",
         "text": "Régime particulier de franchise des petites entreprises — TVA non applicable.",
-        "text_i18n": {
-          "nl": "Bijzondere vrijstellingsregeling voor kleine ondernemingen — btw niet van toepassing.",
-          "de": "Sonderregelung für Kleinunternehmen — keine Mehrwertsteuer.",
-          "en": "Small business exemption scheme — no VAT charged."
-        },
         "sequence": 50,
         "legal_reference": "Code de la TVA, art. 56bis"
       },
@@ -192,11 +168,6 @@
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "À défaut de paiement à l'échéance, un intérêt au taux légal applicable aux transactions commerciales et une indemnité forfaitaire de 40 € pour frais de recouvrement sont dus de plein droit et sans mise en demeure.",
-        "text_i18n": {
-          "nl": "Bij niet-betaling op de vervaldag zijn van rechtswege en zonder ingebrekestelling interesten tegen de wettelijke rentevoet voor handelstransacties verschuldigd, alsook een forfaitaire vergoeding van 40 € voor invorderingskosten.",
-          "de": "Bei Zahlungsverzug sind von Rechts wegen und ohne Mahnung Zinsen zum gesetzlichen Satz für Handelsgeschäfte sowie eine Pauschale von 40 € für Beitreibungskosten geschuldet.",
-          "en": "If not paid when due, interest at the statutory rate for commercial transactions and a fixed recovery indemnity of 40 € fall due by law and without notice."
-        },
         "sequence": 60,
         "legal_reference": "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 5 et 6"
       }

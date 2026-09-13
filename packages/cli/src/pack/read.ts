@@ -67,9 +67,9 @@ export interface PackTax {
   price_include: boolean;
   /** ISO 3166-2 with the country prefix, for a tax levied by a state. */
   jurisdiction: string | null;
-  /** Due on collection. Compiled to a column; read by P0-6. */
+  /** Due on collection. Compiled to a column the cash-basis engine reads. */
   cash_basis: boolean;
-  /** Account the tax waits on until the invoice is paid. Read by P0-6. */
+  /** Account the tax waits on until the invoice is paid. */
   cash_basis_transition_account: string | null;
   sequence: number;
   postings: { invoice: PackPosting[]; credit_note: PackPosting[] };
@@ -252,14 +252,14 @@ export interface Pack {
   taxes: PackTax[];
   /** `statements.json`, with every line and rule normalised. */
   statements: PackStatement[];
-  /** Languages found under `i18n/`, whether or not they hold anything yet. */
+  /**
+   * Languages this pack publishes, the language of its own files first. A
+   * language the manifest declares covers every label; one that is only a
+   * file under `i18n/` may be partial.
+   */
   languages: string[];
-  /** Account labels by code, then by language, gathered from `i18n/`. */
-  accountLabels: Record<string, Record<string, string>>;
-  /** Box labels by `box|kind`, then by language, gathered from `i18n/`. */
-  boxLabels: Record<string, Record<string, string>>;
-  /** Statement line labels by `statement:line`, then by language, from `i18n/`. */
-  lineLabels: Record<string, Record<string, string>>;
+  /** Every translated label of the pack, by section, by key, by language. */
+  labels: PackLabels;
   /** What this country requires on a document, how it is exchanged, and its bank formats. */
   documents: PackDocumentRules;
   /** The periodic return of this pack, from `tax_report.json`. */
@@ -288,11 +288,11 @@ export interface Manifest {
     journal_roles?: Record<string, string | undefined>;
     [key: string]: unknown;
   };
+  languages?: string[];
   journals: { code: string; type: string; name: string; sequence?: number }[];
   charts?: {
     code: string;
     name: string;
-    name_i18n?: Record<string, string>;
     accounts: string;
     default?: boolean;
     audience?: string;
@@ -312,6 +312,35 @@ export interface FrameworkManifest {
   released_at?: string;
   language?: string;
   certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+}
+
+/**
+ * Every label of a pack in every language but its own, read from `i18n/`.
+ *
+ * One shape throughout: section, then the key the label belongs to, then the
+ * language. It is the only place a translation lives — the rest of the pack
+ * is written in `defaults.language` and carries no second wording, so a
+ * contributor adding a language edits one file and a reviewer reads one file.
+ */
+export interface PackLabels {
+  /** The country itself, by language. The one section keyed by language alone. */
+  pack_name: Record<string, string>;
+  /** By chart code. */
+  charts: Record<string, Record<string, string>>;
+  /** By account code, across every chart. */
+  accounts: Record<string, Record<string, string>>;
+  /** By journal code. */
+  journals: Record<string, Record<string, string>>;
+  /** By tax code. */
+  taxes: Record<string, Record<string, string>>;
+  /** By `box|kind`, because a form may carry a base and a tax on one line. */
+  tax_report_boxes: Record<string, Record<string, string>>;
+  /** By `statement:line`, because two statements may both carry a line `20`. */
+  statement_lines: Record<string, Record<string, string>>;
+  /** By legal mention code. */
+  legal_mentions: Record<string, Record<string, string>>;
+  /** By fixed-asset category code. */
+  asset_categories: Record<string, Record<string, string>>;
 }
 
 /** A pack with no country: statements by account type, and nothing else. */
@@ -407,7 +436,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     charts.push({
       code: entry.code,
       name: entry.name,
-      name_i18n: entry.name_i18n ?? {},
+      name_i18n: {},
       file,
       accounts,
       is_default: entry.default === true,
@@ -439,46 +468,83 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     statements = normaliseStatements(raw as Record<string, unknown>, charts);
   }
 
+  const documents = normaliseDocumentRules(manifest);
+
+  // The section of a module. A pack that carries none simply has no country
+  // rule for that module, and the module refuses by name where it needs one.
+  let assets: PackAssets | null = null;
+  if (existsSync(join(root, 'assets.json'))) {
+    const raw = await readJson(join(root, 'assets.json'));
+    issues.push(...validate(raw, defs['module_assets'] ?? {}, schema, 'assets.json'));
+    assets = normaliseAssets(raw as Record<string, unknown>);
+    issues.push(...assetReferences(assets, manifest));
+  }
+
+  // The languages. Read last, because a label is checked against the section
+  // it belongs to, and every section has to exist first.
+  const labels: PackLabels = {
+    pack_name: {},
+    charts: {},
+    accounts: {},
+    journals: {},
+    taxes: {},
+    tax_report_boxes: {},
+    statement_lines: {},
+    legal_mentions: {},
+    asset_categories: {},
+  };
   const languages: string[] = [];
-  const accountLabels: Record<string, Record<string, string>> = {};
-  const boxLabels: Record<string, Record<string, string>> = {};
-  const lineLabels: Record<string, Record<string, string>> = {};
   const i18nDir = join(root, 'i18n');
   if (existsSync(i18nDir)) {
     for (const file of (await readdir(i18nDir)).filter((f) => f.endsWith('.json')).sort()) {
-      const translations = (await readJson(join(i18nDir, file))) as {
-        language?: string;
-        accounts?: Record<string, string>;
-        journals?: Record<string, string>;
-        taxes?: Record<string, string>;
-        tax_report_boxes?: Record<string, string>;
-        statement_lines?: Record<string, string>;
-      };
+      const translations = (await readJson(join(i18nDir, file))) as Record<string, unknown>;
       issues.push(...validate(translations, defs['i18n'] ?? {}, schema, `i18n/${file}`));
-      const language = translations.language ?? file.replace(/\.json$/, '');
+      const language = (translations['language'] as string | undefined) ?? file.replace(/\.json$/, '');
       languages.push(language);
-      for (const [code, label] of Object.entries(translations.accounts ?? {})) {
-        (accountLabels[code] ??= {})[language] = label;
+      const section = (name: string): Record<string, string> =>
+        (translations[name] ?? {}) as Record<string, string>;
+
+      if (typeof translations['pack_name'] === 'string') {
+        labels.pack_name[language] = translations['pack_name'];
       }
-      const untranslated = Object.keys(translations.accounts ?? {}).filter(
-        (code) => !codesOfCharts(charts).has(code),
-      );
-      for (const code of untranslated) {
-        issues.push({ path: `i18n/${file}`, message: `account ${code} is not in this chart` });
-      }
+
+      // A key names something the pack carries, or it is a typo nobody would
+      // ever see: a label under a code that does not exist reaches no reader.
+      const byCode = (
+        name: keyof PackLabels & ('charts' | 'accounts' | 'journals' | 'taxes' | 'legal_mentions' | 'asset_categories'),
+        known: Set<string>,
+        what: string,
+      ): void => {
+        for (const [code, label] of Object.entries(section(name))) {
+          if (!known.has(code)) {
+            issues.push({ path: `i18n/${file} ${name}`, message: `${code} is not ${what} of this pack` });
+            continue;
+          }
+          ((labels[name][code] ??= {}) as Record<string, string>)[language] = label;
+        }
+      };
+
+      byCode('charts', new Set(charts.map((c) => c.code)), 'a chart');
+      byCode('accounts', codesOfCharts(charts), 'an account');
+      byCode('journals', new Set(manifest.journals.map((j) => j.code)), 'a journal');
+      byCode('taxes', new Set(taxes.map((t) => t.code)), 'a tax');
+      byCode('legal_mentions', new Set(documents.mentions.map((m) => m.code)), 'a legal mention');
+      byCode('asset_categories', new Set((assets?.categories ?? []).map((c) => c.code)), 'a fixed-asset category');
+
       // A box is translated by the same reference the formulas use: `54`, or
       // `08:tax` where the form carries a base and a tax on one line.
-      for (const [ref, label] of Object.entries(translations.tax_report_boxes ?? {})) {
+      for (const [ref, label] of Object.entries(section('tax_report_boxes'))) {
         const resolved = resolveBoxRef(ref, report?.boxes ?? []);
         if (typeof resolved === 'string') {
           issues.push({ path: `i18n/${file} ${ref}`, message: resolved });
           continue;
         }
-        (boxLabels[`${resolved.box}|${resolved.kind}`] ??= {})[language] = label;
+        (labels.tax_report_boxes[`${resolved.box}|${resolved.kind}`] ??= {})[language] = label;
       }
+
       // A statement line is translated by `<statement>:<line>`, which is how a
       // line is named everywhere else once two statements carry a line `20`.
-      for (const [ref, label] of Object.entries(translations.statement_lines ?? {})) {
+      for (const [ref, label] of Object.entries(section('statement_lines'))) {
         const [statementCode, lineCode] = ref.includes(':') ? ref.split(':') : [undefined, undefined];
         const line = statements
           .find((st) => st.code === statementCode)
@@ -490,27 +556,21 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
           });
           continue;
         }
-        (lineLabels[`${statementCode as string}:${lineCode as string}`] ??= {})[language] = label;
-      }
-      if (
-        Object.keys(translations.journals ?? {}).length > 0 ||
-        Object.keys(translations.taxes ?? {}).length > 0
-      ) {
-        deferred.push(`i18n/${file} — only account, box and statement labels are compiled; journals and taxes wait for their column`);
+        (labels.statement_lines[`${statementCode as string}:${lineCode as string}`] ??= {})[language] = label;
       }
     }
   }
 
-  const documents = normaliseDocumentRules(manifest);
+  // A language the manifest declares is a promise that every label exists in
+  // it. A language that is only a file may be partial, and falls back.
+  issues.push(...languageCoverage(manifest, languages, labels, charts, taxes, statements, report, documents, assets));
 
-  // The section of a module. A pack that carries none simply has no country
-  // rule for that module, and the module refuses by name where it needs one.
-  let assets: PackAssets | null = null;
-  if (existsSync(join(root, 'assets.json'))) {
-    const raw = await readJson(join(root, 'assets.json'));
-    issues.push(...validate(raw, defs['module_assets'] ?? {}, schema, 'assets.json'));
-    assets = normaliseAssets(raw as Record<string, unknown>);
-    issues.push(...assetReferences(assets, manifest));
+  // The rows that carry a translation get theirs from the language files, so
+  // that one file is the whole of one language.
+  for (const chart of charts) chart.name_i18n = labels.charts[chart.code] ?? {};
+  for (const mention of documents.mentions) mention.text_i18n = labels.legal_mentions[mention.code] ?? {};
+  for (const category of assets?.categories ?? []) {
+    category.name_i18n = labels.asset_categories[category.code] ?? {};
   }
 
   // A posting with a box belongs to a form. The pack names one in
@@ -529,7 +589,16 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   issues.push(...documentReferences(documents));
 
   if (issues.length > 0) {
-    const shown = issues.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
+    // The cause before the consequence. A label problem is almost always
+    // downstream of a structural one — take a box out of the declaration and
+    // every language stops resolving it — so the structure is listed first and
+    // the reader is not made to scroll past forty translations to reach the one
+    // line that explains them.
+    const ordered = [
+      ...issues.filter((i) => !i.path.startsWith('i18n/')),
+      ...issues.filter((i) => i.path.startsWith('i18n/')),
+    ];
+    const shown = ordered.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
     const more = issues.length > shown.length ? `\n  … and ${issues.length - shown.length} more` : '';
     throw new PackError(`pack_invalid: packs/${slug} — ${issues.length} problem(s)\n${shown.join('\n')}${more}`);
   }
@@ -542,10 +611,15 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     accounts,
     taxes,
     statements,
-    languages,
-    accountLabels,
-    boxLabels,
-    lineLabels,
+    // The pack's own language first, then the ones the manifest declares, in
+    // the order it declares them — not the order `readdir` happens to return.
+    // This list is what an installer shows a human being.
+    languages: [
+      ...(manifest.defaults.language === undefined ? [] : [manifest.defaults.language]),
+      ...(manifest.languages ?? []),
+      ...languages.filter((l) => !(manifest.languages ?? []).includes(l)),
+    ],
+    labels,
     documents,
     report,
     reportCode,
@@ -703,6 +777,83 @@ function codesOfCharts(charts: PackChart[]): Set<string> {
   const codes = new Set<string>();
   for (const chart of charts) for (const account of chart.accounts) codes.add(account.code);
   return codes;
+}
+
+/**
+ * What a declared language owes the reader.
+ *
+ * `languages` in the manifest is a promise: somebody who sets their books to
+ * Dutch sees Dutch everywhere, not a chart of accounts in Dutch and a
+ * declaration form in French. So a declared language must have its file, and
+ * that file must carry every label the pack shows a user — the charts, the
+ * accounts of every chart, the journals, the taxes, the boxes of the
+ * declaration, the lines of every statement, the legal mentions of an
+ * invoice, and the fixed-asset categories where the pack has them.
+ *
+ * A language that is only a file under `i18n/` and is not declared is not
+ * held to this: it may be partial, and a key it does not carry falls back to
+ * the pack's own label. That is the way to contribute a language one section
+ * at a time without promising a reader something the pack cannot keep.
+ */
+function languageCoverage(
+  manifest: Manifest,
+  found: string[],
+  labels: PackLabels,
+  charts: PackChart[],
+  taxes: PackTax[],
+  statements: PackStatement[],
+  report: PackReport | null,
+  documents: PackDocumentRules,
+  assets: PackAssets | null,
+): Issue[] {
+  const issues: Issue[] = [];
+  const own = manifest.defaults.language;
+
+  const sections: [keyof PackLabels & string, string[]][] = [
+    ['charts', charts.map((c) => c.code)],
+    ['accounts', [...codesOfCharts(charts)].sort()],
+    ['journals', manifest.journals.map((j) => j.code)],
+    ['taxes', taxes.map((t) => t.code)],
+    ['tax_report_boxes', (report?.boxes ?? []).map((b) => `${b.box}|${b.kind}`)],
+    [
+      'statement_lines',
+      statements.flatMap((st) => st.lines.map((line) => `${st.code}:${line.code}`)),
+    ],
+    ['legal_mentions', documents.mentions.map((m) => m.code)],
+    ['asset_categories', (assets?.categories ?? []).map((c) => c.code)],
+  ];
+
+  for (const language of manifest.languages ?? []) {
+    if (language === own) {
+      issues.push({
+        path: 'pack.json languages',
+        message: `${language} is the language the pack itself is written in (defaults.language); do not list it again`,
+      });
+      continue;
+    }
+    if (!found.includes(language)) {
+      issues.push({
+        path: 'pack.json languages',
+        message: `${language} is declared and packs/${manifest.country.toLowerCase()}/i18n/${language}.json does not exist`,
+      });
+      continue;
+    }
+    if (labels.pack_name[language] === undefined) {
+      issues.push({ path: `i18n/${language}.json`, message: 'pack_name is missing' });
+    }
+    for (const [name, keys] of sections) {
+      const held = labels[name] as Record<string, Record<string, string>>;
+      const missing = keys.filter((key) => held[key]?.[language] === undefined);
+      if (missing.length === 0) continue;
+      const shown = missing.slice(0, 8).join(', ');
+      const more = missing.length > 8 ? `, and ${missing.length - 8} more` : '';
+      issues.push({
+        path: `i18n/${language}.json ${name}`,
+        message: `${missing.length} of ${keys.length} missing: ${shown}${more}`,
+      });
+    }
+  }
+  return issues;
 }
 
 /**

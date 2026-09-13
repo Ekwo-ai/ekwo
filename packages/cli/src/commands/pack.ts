@@ -54,6 +54,7 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
         `${bold(slug)}  ${pack.manifest.name} ${pack.manifest.version} · ` +
           `${pack.charts.length} chart(s), ${pack.charts.reduce((n, c) => n + c.accounts.length, 0)} accounts · ` +
           `${pack.taxes.length} taxes · ${pack.statements.length} statements · ` +
+          `${pack.languages.join(', ')} · ` +
           `certification ${pack.manifest.certification?.status ?? 'none'}`,
       );
       for (const chart of pack.charts) {
