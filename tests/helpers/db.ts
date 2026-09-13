@@ -153,6 +153,12 @@ export async function freshDatabase(options: Options = {}): Promise<PGlite> {
     grant execute on all functions in schema public to authenticated;
   `);
 
+  // This connection is the installer, and says so. `is_installer()` is what
+  // the guards read instead of "auth.uid() is null", so a test that arranges
+  // a fixture as the owner keeps working and a test that puts a session or a
+  // machine key on the connection stops being the installer for its duration.
+  await db.exec(`select set_config('ekwo.installing', 'on', false);`);
+
   return db;
 }
 
@@ -185,12 +191,17 @@ export async function asUser<T>(
 ): Promise<T> {
   await db.exec(
     `select set_config('request.jwt.claims', '${JSON.stringify({ sub: userId, role })}', false);
+     select set_config('ekwo.installing', '', false);
      set role ${role};`,
   );
   try {
     return await fn();
   } finally {
-    await db.exec(`reset role; select set_config('request.jwt.claims', '', false);`);
+    await db.exec(
+      `reset role;
+       select set_config('request.jwt.claims', '', false);
+       select set_config('ekwo.installing', 'on', false);`,
+    );
   }
 }
 

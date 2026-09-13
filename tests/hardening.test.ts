@@ -144,3 +144,77 @@ describe('a member and an administrator', () => {
     expect(Array.isArray(balance)).toBe(true);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The audit of 13 September 2026: a guard that answers NULL never fires.
+//
+// `company_role()` is NULL for a stranger, and two helpers were built on it
+// with a bare comparison, so they were NULL too. `if not <that>(…) then raise`
+// does not branch on NULL: the stranger walked into the body of a SECURITY
+// DEFINER function. Migration 20260913101536 makes both answer `false`, and
+// this is the rule that keeps the shape safe for whoever writes the next one.
+// ---------------------------------------------------------------------------
+
+describe('a boolean helper a guard is written on', () => {
+  it('answers false, not NULL, for somebody who is a member of nothing', async () => {
+    await asUser(db, strangerId, async () => {
+      const answers = await rows<Record<string, boolean | null>>(
+        db,
+        `select is_company_owner($1)  as owner,
+                can_write_company($1) as writer,
+                is_company_member($1) as member,
+                has_capability($1, 'company.write') as capable,
+                is_installer() as installer`,
+        [companyId],
+      );
+      expect(answers[0]).toEqual({
+        owner: false,
+        writer: false,
+        member: false,
+        capable: false,
+        installer: false,
+      });
+    });
+  });
+
+  it('is never tested by a function body in a way NULL would slip through', async () => {
+    // Derived by calling them, not by reading them: every public function
+    // that answers a boolean about a company — no argument, one company, or a
+    // company and a name — is asked as a stranger, and none may answer NULL.
+    // While that holds, the shape `if not <helper>(…) then raise` is safe
+    // wherever somebody writes it, which is the property this file defends.
+    const helpers = await rows<{ proname: string; args: string }>(
+      db,
+      `select p.proname,
+              array_to_string(array(select format_type(t, null)
+                                      from unnest(p.proargtypes) t), ', ') as args
+         from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname = 'public'
+          and p.prorettype = 'boolean'::regtype
+          and array_to_string(array(select format_type(t, null)
+                                      from unnest(p.proargtypes) t), ', ')
+              in ('', 'uuid', 'uuid, text')
+        order by 1`,
+    );
+    expect(helpers.length).toBeGreaterThan(8);
+
+    const nullable: string[] = [];
+    await asUser(db, strangerId, async () => {
+      for (const helper of helpers) {
+        const call =
+          helper.args === ''
+            ? `${helper.proname}()`
+            : helper.args === 'uuid'
+              ? `${helper.proname}($1)`
+              : `${helper.proname}($1, 'budgets')`;
+        const answer = await rows<{ answer: boolean | null }>(
+          db,
+          `select ${call} as answer`,
+          helper.args === '' ? [] : [companyId],
+        );
+        if (answer[0]?.answer === null) nullable.push(`${helper.proname}(${helper.args})`);
+      }
+    });
+    expect(nullable, 'these helpers answer NULL for a stranger').toEqual([]);
+  });
+});

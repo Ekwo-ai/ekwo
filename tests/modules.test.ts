@@ -91,7 +91,7 @@ describe('the registry', () => {
 // ------------------------------------------------------------ enable / disable
 
 describe('enabling a module', () => {
-  it('is the owner of the company, and nobody else', async () => {
+  it('needs company.write, which the accountant preset does not hold', async () => {
     const accountant = crypto.randomUUID();
     await db.query(
       `insert into company_members (company_id, user_id, role) values ($1, $2, 'accountant')`,
@@ -100,12 +100,41 @@ describe('enabling a module', () => {
     const message = await asUser(db, accountant, () =>
       expectError(db, `select enable_module($1, 'budgets')`, [companyId]),
     );
-    expect(message).toMatch(/not_company_owner/);
+    expect(message).toMatch(/not_allowed: enabling a module on this company needs company.write/);
 
     const row = await asUser(db, ownerId, () =>
       one<{ enable_module: string }>(db, `select enable_module($1, 'budgets')`, [companyId]),
     );
     expect(row.enable_module).toContain('budgets');
+  });
+
+  // The guard used to be `if not is_company_owner(p_company_id)`, and
+  // `is_company_owner` answered NULL for somebody who is not a member at all.
+  // `not NULL` is NULL, the `if` never branched, and this was the exploit:
+  // `company_modules` has no write policy, so the definer function was the
+  // only door and it stood open to anyone with a login.
+  it('is closed to the owner of another company, who is a member of nothing here', async () => {
+    const other = await newCompany(db, { country: 'BE', name: 'Ailleurs SRL' });
+
+    const enabling = await asUser(db, other.ownerId, () =>
+      expectError(db, `select enable_module($1, 'budgets')`, [companyId]),
+    );
+    expect(enabling).toMatch(/not_allowed/);
+
+    const disabling = await asUser(db, other.ownerId, () =>
+      expectError(db, `select disable_module($1, 'budgets')`, [companyId]),
+    );
+    expect(disabling).toMatch(/not_allowed/);
+
+    // And the settings, which `enable_module` doubles as the writer of.
+    const overwriting = await asUser(db, other.ownerId, () =>
+      expectError(db, `select enable_module($1, 'budgets', '{"stolen":true}'::jsonb)`, [companyId]),
+    );
+    expect(overwriting).toMatch(/not_allowed/);
+
+    expect(
+      await one<{ on: boolean }>(db, `select module_is_enabled($1, 'budgets') as on`, [companyId]),
+    ).toEqual({ on: true });
   });
 
   it('refuses a module nobody installed', async () => {

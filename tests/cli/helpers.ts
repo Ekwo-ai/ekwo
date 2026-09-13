@@ -52,6 +52,8 @@ export async function emptyDatabase(): Promise<{ db: SqlClient; pg: PGlite }> {
   await pg.waitReady;
   const shim = await readFile(join(repoRoot, 'tests', 'helpers', 'supabase-shim.sql'), 'utf8');
   await pg.exec(shim);
+  // What `connect()` does on a real connection: this one is the installer.
+  await pg.exec(`select set_config('ekwo.installing', 'on', false);`);
   return { db: adapt(pg as unknown as Queryable, pg), pg };
 }
 

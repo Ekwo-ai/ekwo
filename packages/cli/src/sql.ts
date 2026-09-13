@@ -89,6 +89,14 @@ export async function connect(connectionString: string): Promise<SqlClient> {
     throw error;
   }
 
+  // This connection is the installer. The guards inside the schema ask
+  // `is_installer()` rather than "is there no session", so the runner has to
+  // say so out loud; `asUser()` below withdraws it for the length of the call
+  // it makes on somebody's behalf. A caller reaching the database through
+  // PostgREST cannot set this, which is the whole point of it being a setting.
+  // `set_config(..., false)` is session-wide, and the pool is capped at one.
+  await sql`select set_config('ekwo.installing', 'on', false)`.catch(() => {});
+
   return wrap(sql);
 }
 
@@ -112,9 +120,13 @@ export async function asUser<T>(
 ): Promise<T> {
   const claims = JSON.stringify({ sub: userId, role: 'authenticated' });
   await db.query('select set_config($1, $2, false)', ['request.jwt.claims', claims]);
+  // Acting for somebody is not installing: the guards must judge this call on
+  // what that person may do, not on the connection it happens to travel over.
+  await db.query('select set_config($1, $2, false)', ['ekwo.installing', '']);
   try {
     return await fn();
   } finally {
     await db.query('select set_config($1, $2, false)', ['request.jwt.claims', '']);
+    await db.query('select set_config($1, $2, false)', ['ekwo.installing', 'on']);
   }
 }
