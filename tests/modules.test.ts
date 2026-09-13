@@ -506,7 +506,8 @@ describe('the migrations of a module', () => {
   // migration, which is a promise no module can keep: the socle gains a
   // migration the week after a module ships, and the only way to restore a
   // total order is to rename a published module migration — the one thing
-  // rule 1 of `supabase/migrations/README.md` forbids. ST13 was the first
+  // rule 1 of `supabase/migrations/README.md` forbids. The company profile
+  // release was the first
   // socle change to land after a module and it failed exactly there.
   //
   // What a module can promise, and what the order actually needs, is the test

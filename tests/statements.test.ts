@@ -8,7 +8,7 @@ import { readFrameworkPack, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { demoCompanyId, newCompany, newContact, newDocument, newUser } from './helpers/factory.js';
 
-// P0-4, second half: a financial statement is data. The schema could produce a
+// A financial statement is data. The schema could produce a
 // trial balance and nothing an accountant files; a balance sheet was a query
 // somebody would have written in the application, once per country.
 //

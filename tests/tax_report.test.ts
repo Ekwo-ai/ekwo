@@ -7,7 +7,7 @@ import { PackError, readPack, resolveBoxRef } from '../packages/cli/src/index.js
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { demoCompanyId, newCompany, newContact, newDocument } from './helpers/factory.js';
 
-// P0-3: a declaration form is data. `vat_return()` used to sum the ledger
+// A declaration form is data. `vat_return()` used to sum the ledger
 // boxes — which never knew a country — and then hard-code the Belgian frame
 // VI behind `fiscal_country = 'BE'`. The boxes and their formulas now come
 // from `packs/<cc>/tax_report.json`, and this file holds the two things that

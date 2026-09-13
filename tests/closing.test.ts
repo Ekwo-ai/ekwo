@@ -988,7 +988,7 @@ describe('a pack that declares a closing style', () => {
 
 describe('the migration of this change', () => {
   it('holds no country code of its own', async () => {
-    // P0-3 keeps this true for every migration in the repository; this one
+    // A test keeps this true for every migration in the repository; this one
     // says it for the file that introduces the closing parameters, which are
     // exactly the place a country would have been tempting.
     const sql = await readFile(

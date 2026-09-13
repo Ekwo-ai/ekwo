@@ -13,7 +13,7 @@ import {
   type Fixture,
 } from './helpers/factory.js';
 
-// P0-6. Two things that only become true when a document is settled: a tax
+// Two things that only become true when a document is settled: a tax
 // that falls due on collection, and an exchange difference that is realised.
 // Every figure below is checked to the cent, because the point of the whole
 // sub-task is that a French service business files a return that ties out.
@@ -734,7 +734,7 @@ describe('the packs', () => {
     ]);
   });
 
-  it('make the column P0-7 exposes on a document line say something true', async () => {
+  it('make the column the document rules expose on a document line say something true', async () => {
     // `document_line_items.tax_cash_basis` reads `taxes.cash_basis`, which
     // until this change nothing ever set. It answers now.
     const seen = await rows<{ tax_cash_basis: boolean }>(
@@ -775,7 +775,7 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
 
   it('accepts the packs of this repository as they are', async () => {
     // `readPack` runs the rules and throws on the first issue, so reading
-    // both packs is the assertion. What is read back is what P0-6 added.
+    // both packs is the assertion. What is read back is what cash-basis VAT added.
     for (const slug of ['be', 'fr']) {
       const pack = await readPack(slug, packsDir());
       expect(pack.manifest.defaults.roles['fx_gain'], slug).toMatch(/^\d+$/);

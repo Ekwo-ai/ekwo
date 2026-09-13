@@ -6,7 +6,7 @@ import { compilePack, packsDir, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { accountId, ledgerOf, newCompany, newContact, newDocument, taxId, type Fixture } from './helpers/factory.js';
 
-// P0-5, the generalised tax engine. Two things are proved here:
+// The generalised tax engine. Two things are proved here:
 //
 //   * the columns exist, carry today's behaviour as their default, and reach a
 //     company through `install_country_template`;
@@ -57,7 +57,7 @@ describe('the columns of the generalised engine', () => {
   });
 
   it('defaults every existing tax to a fully recoverable VAT on a price without it', async () => {
-    // P0-6 gave the French services taxes a cash basis, and they are the only
+    // Cash-basis VAT gave the French services taxes a cash basis, and they are the only
     // ones: everything else falls due when it is invoiced, and a tax that
     // waits names the account it waits on.
     const odd = await rows(
@@ -470,7 +470,7 @@ describe('no country decided anywhere but in a pack', () => {
   it('reads the rounding rule of a company from its country model and nowhere else', async () => {
     // Nothing in the core may answer "how does this company round" without
     // going through `country_defaults`. Proving the negative: no function of
-    // the schema mentions a rounding method at all yet — P0-6 and the first
+    // the schema mentions a rounding method at all yet — cash-basis VAT and the first
     // country that rounds differently will be the ones to read the column.
     const guilty = await rows<{ proname: string }>(
       db,

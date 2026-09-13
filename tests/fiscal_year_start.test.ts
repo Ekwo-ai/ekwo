@@ -2,7 +2,8 @@
  * The first financial year is a parameter too.
  *
  * `ekwo init` opened it on 1 January in two string literals. The country
- * model has carried the answer since P0-7, and these are its readers: the
+ * model has carried the answer since document rules became pack data, and
+ * these are its readers: the
  * function that turns a month into two days, the installer, and the company
  * an assistant creates.
  */

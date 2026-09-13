@@ -7,7 +7,7 @@ import { readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { newCompany } from './helpers/factory.js';
 
-// P0-4, first half: a country has charts of accounts, not one chart. The key
+// A country has charts of accounts, not one chart. The key
 // of `account_templates` was `(country, code)`, which says a Belgian ASBL and a
 // Belgian company keep the same books. They do not — and Germany has two, and
 // every country with a regulated profession has more.

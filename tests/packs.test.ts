@@ -59,7 +59,8 @@ const QUERIES: Record<string, string> = {
 /**
  * The natural key of a row, per table.
  *
- * P0-5 added taxes to both packs, so the two databases no longer hold the
+ * The generalised tax engine added taxes to both packs, so the two databases
+ * no longer hold the
  * same *number* of rows and `toEqual` on the whole table would only prove
  * that. The claim this file makes is narrower and is the one that matters:
  * **nothing that existed changed**. So `after` is narrowed to the keys
@@ -125,7 +126,7 @@ describe('the compiled packs against the seeds they replace', () => {
     }
   });
 
-  it('add the four taxes P0-5 brought, and not a row more', async () => {
+  it('add the four taxes the tax engine brought, and not a row more', async () => {
     const left = await templateRows(before);
     const right = await templateRows(after);
     const added = (table: string): TemplateRow[] => {
@@ -143,8 +144,8 @@ describe('the compiled packs against the seeds they replace', () => {
       'FR/445870',
     ]);
     // Belgian cars and receptions, French fuel: the partially and the wholly
-    // non-deductible VAT the engine could not express before P0-5. Then the
-    // six French services taxes of P0-6, which fall due when they are paid.
+    // non-deductible VAT the engine could not express before. Then the six
+    // French services taxes that fall due when they are paid.
     expect(added('tax_templates').map((r) => `${r['country']}/${r['code']}`)).toEqual([
       'BE/BE-P-21-50-I',
       'BE/BE-P-21-50-S',

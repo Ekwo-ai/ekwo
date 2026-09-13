@@ -6,7 +6,7 @@ import { compilePack, listPacks, readPack, readSchema, validate } from '../packa
 import { asUser, expectError, freshDatabase, one, repoRoot, rows, seedFiles } from './helpers/db.js';
 import { newCompany, newContact, newDocument } from './helpers/factory.js';
 
-// P0-7: what a country requires on a document is data. Twelve columns of
+// What a country requires on a document is data. Twelve columns of
 // `country_defaults`, one table of sentences, and two views that read them —
 // and nothing executable, which is the point of the sub-task.
 
@@ -52,7 +52,7 @@ describe('the document columns of the country model', () => {
   ];
 
   it('are all nullable and none of them carries a default', async () => {
-    // The rule P0-8 set when it landed the closing style, applied to the
+    // The rule the year-end close set when it landed the closing style, applied to the
     // twelve columns of this one: a default legal payment term, a default
     // e-invoicing profile or a default tax point would each be one country's
     // law given to every country that has not spoken. A silent pack gets
@@ -492,9 +492,9 @@ describe('no country lives in what this change added', () => {
   });
 
   it('left the document rules of a country to one reader, and no other', async () => {
-    // P0-7 shipped with nothing executable: no function read any of these
-    // columns, and this test asserted an empty list. ST13 wrote the numbering
-    // engine P0-7 said would come — "a numbering engine that consumes a
+    // These columns shipped with nothing executable: no function read any of
+    // them, and this test asserted an empty list. The numbering engine that
+    // entry said would come has since been written — "a numbering engine that consumes a
     // format is its own piece of work" — so one function reads them now, and
     // the rule becomes: exactly one, named here. `numbering_rules()` answers
     // both questions the number asks, `next_entry_number()` and `post_entry()`
