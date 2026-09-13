@@ -238,3 +238,64 @@ describe('country templates', () => {
     ]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The audit of 13 September 2026: 85 foreign keys had no index.
+//
+// Postgres indexes the referenced side of a foreign key and nothing on the
+// referencing side, so every delete of a parent and every join written the
+// natural way read the whole child table. On the demo company nothing is
+// slow, which is why it survived 49 migrations.
+//
+// The question is asked of the catalogue rather than of a list kept by hand:
+// a foreign key added tomorrow arrives with its index, or this fails.
+// ---------------------------------------------------------------------------
+
+describe('every foreign key', () => {
+  it('has an index that leads with its columns', async () => {
+    const missing = await rows<{ schema_name: string; table_name: string; columns: string }>(
+      db,
+      `select n.nspname as schema_name, t.relname as table_name,
+              (select string_agg(a.attname, ', ' order by x.ord)
+                 from unnest(c.conkey) with ordinality x(attnum, ord)
+                 join pg_attribute a
+                   on a.attrelid = c.conrelid and a.attnum = x.attnum) as columns
+         from pg_constraint c
+         join pg_class t on t.oid = c.conrelid
+         join pg_namespace n on n.oid = t.relnamespace
+        where c.contype = 'f'
+          and n.nspname not in ('pg_catalog', 'information_schema', 'auth')
+          and not exists (
+            select 1 from pg_index i
+             where i.indrelid = c.conrelid
+               and (i.indkey::int2[])[0:array_length(c.conkey, 1) - 1] = c.conkey::int2[]
+          )
+        order by 1, 2, 3`,
+    );
+    expect(
+      missing.map((m) => `${m.schema_name}.${m.table_name} (${m.columns})`),
+      'these foreign keys have no index: add one in the migration that added the key',
+    ).toEqual([]);
+  });
+
+  it('leaves no company_id without one either', async () => {
+    // Every policy of this schema filters on `company_id`, so a table that
+    // carries one and does not index it is a table every read scans.
+    const missing = await rows<{ schema_name: string; table_name: string }>(
+      db,
+      `select n.nspname as schema_name, c.relname as table_name
+         from pg_class c
+         join pg_namespace n on n.oid = c.relnamespace
+         join pg_attribute a
+           on a.attrelid = c.oid and a.attname = 'company_id' and a.attnum > 0
+        where c.relkind = 'r'
+          and n.nspname not in ('pg_catalog', 'information_schema', 'auth')
+          and not exists (
+            select 1 from pg_index i
+             where i.indrelid = c.oid and (i.indkey::int2[])[0] = a.attnum
+          )
+        order by 1, 2`,
+    );
+    expect(missing.map((m) => `${m.schema_name}.${m.table_name}`)).toEqual([]);
+  });
+});

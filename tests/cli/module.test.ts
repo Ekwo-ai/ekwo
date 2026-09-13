@@ -88,10 +88,14 @@ describe('applying them', () => {
         `select version, name from supabase_migrations.schema_migrations order by version`,
       );
       expect(history.length).toBe(all.length);
-      expect(history.filter((row) => row.name.includes('/')).map((row) => row.name)).toEqual([
-        'assets/assets',
-        'budgets/budgets',
-      ]);
+      // Every module migration of this checkout, recorded under its module —
+      // derived rather than written down, so a module gaining a second
+      // migration does not make this the test that has to be edited.
+      expect(history.filter((row) => row.name.includes('/')).map((row) => row.name).sort()).toEqual(
+        allModuleMigrations(modules)
+          .map((migration) => migration.name)
+          .sort(),
+      );
 
       // The registry the modules wrote for themselves.
       const registry = await db.query<{ code: string }>(`select code from modules order by code`);
