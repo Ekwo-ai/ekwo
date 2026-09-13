@@ -97,6 +97,43 @@ describe('a straight-line schedule', () => {
     ]);
   });
 
+  it('follows a financial year that is not the calendar year', async () => {
+    // `fiscal_years` has always allowed a shifted year, so a schedule that
+    // assumed January would be a module quietly disagreeing with the books.
+    // The periods are anchored on the year that covers the day the asset
+    // entered service, and each one takes that year's own end date where the
+    // company has declared it.
+    const shifted = await newCompany(db, { country: 'BE', name: 'Exercice décalé SRL' });
+    await asUser(db, shifted.ownerId, async () => {
+      await db.query(`select enable_module($1, 'assets')`, [shifted.companyId]);
+    });
+    await db.query(`delete from fiscal_years where company_id = $1`, [shifted.companyId]);
+    for (const year of [2026, 2027, 2028]) {
+      await db.query(
+        `insert into fiscal_years (company_id, name, start_date, end_date)
+         values ($1, $2, make_date($3, 7, 1), make_date($3 + 1, 6, 30))`,
+        [shifted.companyId, `Exercice ${year}/${year + 1}`, year],
+      );
+    }
+
+    const asset = await one<{ id: string }>(
+      db,
+      `select assets.create_asset($1, 'MAC-01', 'Machine', date '2026-08-01', 12000,
+              '231000', '231900', '630200', null, 24) as id`,
+      [shifted.companyId],
+    );
+    const lines = await schedule(asset.id);
+
+    expect(lines.map((line) => [line.period_start, line.period_end])).toEqual([
+      ['2026-07-01', '2027-06-30'],
+      ['2027-07-01', '2028-06-30'],
+      ['2028-07-01', '2029-06-30'],
+    ]);
+    // 334 of the 365 days of the first year, then a full annuity, then the rest.
+    expect(amounts(lines)).toEqual(['5490.41', '6000.00', '509.59']);
+    expect(lines.at(-1)?.accumulated).toBe('12000.00');
+  });
+
   it('leaves the residual value on the books', async () => {
     const asset = await one<{ id: string }>(
       db,
