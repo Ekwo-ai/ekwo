@@ -783,8 +783,15 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
 
 describe('the migration of this change', () => {
   it('compiles the exchange accounts a pack names, and nothing when it names none', async () => {
+    // The country model's own statement, not the whole seed: an account code
+    // appears in the chart too, so "does 666000 occur" is not the question.
+    const countryDefaults = (sql: string): string => {
+      const at = sql.indexOf('insert into country_defaults');
+      return sql.slice(at, sql.indexOf('on conflict (country)', at));
+    };
+
     const pack = await readPack('fr', packsDir());
-    expect(compilePack(pack)).toContain("'766000', '666000')");
+    expect(countryDefaults(compilePack(pack))).toContain("'766000', '666000'");
 
     const roles = { ...pack.manifest.defaults.roles };
     delete (roles as Record<string, unknown>)['fx_gain'];
@@ -793,7 +800,8 @@ describe('the migration of this change', () => {
       ...pack,
       manifest: { ...pack.manifest, defaults: { ...pack.manifest.defaults, roles } },
     });
-    expect(sql).toContain('null, null)');
+    expect(countryDefaults(sql)).not.toContain("'766000'");
+    expect(countryDefaults(sql)).not.toContain("'666000'");
   });
 
   it('is closed to the anonymous role', async () => {
