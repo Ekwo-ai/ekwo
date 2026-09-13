@@ -1072,6 +1072,59 @@ export async function createBankTransaction(
 // Locks
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Members
+// ---------------------------------------------------------------------------
+
+export const InviteMemberInput = z.object({
+  company_id: companyId,
+  email: z.string().min(3).describe('The address the invitation is for. Matched when it is accepted.'),
+  role: z
+    .enum(['owner', 'accountant', 'viewer'])
+    .optional()
+    .describe('The preset. Default viewer, which reads and changes nothing.'),
+  capabilities: z
+    .array(z.string())
+    .optional()
+    .describe('Capability codes granted on top of the preset, e.g. members.manage. get_company lists what this installation knows.'),
+  valid_for_days: z.number().int().min(1).max(365).optional().describe('Default 14.'),
+});
+
+export async function inviteMember(
+  backend: Backend,
+  args: z.infer<typeof InviteMemberInput>,
+): Promise<unknown> {
+  const answer = only(
+    await backend.rpc<Row>('invite_member', {
+      p_company_id: args.company_id,
+      p_email: args.email,
+      p_role: args.role ?? 'viewer',
+      p_capabilities: args.capabilities ?? [],
+      p_valid_for: `${args.valid_for_days ?? 14} days`,
+    }),
+    'the invitation could not be issued',
+  );
+  return {
+    invitation: answer,
+    note: 'The token is in this answer and nowhere else — only its hash is stored. Give it to the person you invited; they accept it signed in with the address above.',
+  };
+}
+
+export const RevokeInvitationInput = z.object({
+  invitation_id: uuid,
+});
+
+export async function revokeInvitation(
+  backend: Backend,
+  args: z.infer<typeof RevokeInvitationInput>,
+): Promise<unknown> {
+  const answer = only(
+    await backend.rpc<Row>('revoke_invitation', { p_invitation_id: args.invitation_id }),
+    'the invitation could not be withdrawn',
+  );
+  return { invitation: answer };
+}
+
 export const LockPeriodInput = z.object({
   company_id: companyId,
   lock_date: isoDate.nullable().optional().describe('Nothing may be booked on or before this date. null lifts the lock.'),

@@ -144,6 +144,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'list_invitations',
+    {
+      title: 'Invitations into a company',
+      description:
+        'The people invited into a company and not yet on its books, with the preset and the capabilities each was invited with, and whether the invitation is still pending, expired, accepted or withdrawn. Only somebody who manages members sees them. The token is never in here: it is shown once, when the invitation is issued.',
+      inputSchema: read.ListInvitationsInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.listInvitations(backend, args)),
+  );
+
+  server.registerTool(
     'list_bank_transactions',
     {
       title: 'Bank transactions',
@@ -407,6 +419,30 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
       annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
     },
     async (args) => guard(() => write.createBankTransaction(backend, args)),
+  );
+
+  server.registerTool(
+    'invite_member',
+    {
+      title: 'Invite somebody into a company',
+      description:
+        'Invites an address into a company with a preset — viewer reads, accountant keeps the books, owner also administers — and any capability granted on top of it. It returns a token once and stores only its hash, so hand the token to the person you invited: they accept it themselves, signed in with that address. It does not send an e-mail, and it does not create an account. Inviting the same address again withdraws the invitation that was pending.',
+      inputSchema: write.InviteMemberInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.inviteMember(backend, args)),
+  );
+
+  server.registerTool(
+    'revoke_invitation',
+    {
+      title: 'Withdraw an invitation',
+      description:
+        'Withdraws an invitation that has not been accepted, so its token stops working. An invitation that has already become a membership is refused: a member is removed from the company, which is a different act and not one this server does.',
+      inputSchema: write.RevokeInvitationInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.revokeInvitation(backend, args)),
   );
 
   server.registerTool(

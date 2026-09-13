@@ -32,6 +32,20 @@ as $$
   select nullif(auth.jwt() ->> 'sub', '')::uuid;
 $$;
 
+-- GoTrue always puts the address in the JWT, so `auth.email()` reads the claim
+-- on a real project. Here it falls back to the row, so a test does not have to
+-- mint a token to be recognised by the address it signed up with.
+create or replace function auth.email()
+returns text
+language sql
+stable
+as $$
+  select coalesce(
+    nullif(auth.jwt() ->> 'email', ''),
+    (select u.email from auth.users u where u.id = auth.uid())
+  );
+$$;
+
 create or replace function auth.role()
 returns text
 language sql

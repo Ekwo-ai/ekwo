@@ -138,9 +138,34 @@ export async function getCompany(
     order: [{ column: 'country' }],
   });
 
+  // Who is on the books, and what the person asking may actually do. A role
+  // is a preset here and nothing more: the capabilities are the answer, and
+  // a tool that reported the role alone would be reporting the label rather
+  // than the permission.
+  const members = await backend.select<Row>({
+    table: 'company_members',
+    columns: ['user_id', 'role', 'capabilities_granted', 'capabilities_revoked', 'created_at::text'],
+    where: [{ column: 'company_id', op: 'eq', value: args.company_id }],
+  });
+  // A function returning `setof text` comes back as a list of strings over
+  // PostgREST and as a list of one-column rows over Postgres. Both are read
+  // here, so the answer is the same list on either route.
+  const mine = await backend.rpc<unknown>('member_capabilities', {
+    p_company_id: args.company_id,
+  });
+  const capabilities = mine
+    .map((row) =>
+      typeof row === 'string'
+        ? row
+        : ((row as Record<string, unknown>)['member_capabilities'] as string | undefined),
+    )
+    .filter((code): code is string => typeof code === 'string');
+
   return {
     company,
     country_packs: packs,
+    members,
+    your_capabilities: capabilities,
     locks: {
       lock_date: company['lock_date'],
       tax_lock_date: company['tax_lock_date'],
@@ -512,6 +537,52 @@ export async function listBankAccounts(
         ? 'This company has no bank account. create_bank_account adds one; until then a payment books on the default account of its journal.'
         : undefined,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Members and invitations
+// ---------------------------------------------------------------------------
+
+export const ListInvitationsInput = z.object({
+  company_id: companyId,
+  include_settled: z
+    .boolean()
+    .optional()
+    .describe('Also the ones already accepted or withdrawn. Default false.'),
+});
+
+export async function listInvitations(
+  backend: Backend,
+  args: z.infer<typeof ListInvitationsInput>,
+): Promise<unknown> {
+  const invitations = await backend.select<Row>({
+    table: 'company_invitations',
+    columns: columns.INVITATION,
+    where: [{ column: 'company_id', op: 'eq', value: args.company_id }],
+    order: [{ column: 'created_at', ascending: false }],
+  });
+
+  const now = Date.now();
+  const described = invitations.map((invitation) => ({
+    ...invitation,
+    state: invitationState(invitation, now),
+  }));
+
+  return {
+    invitations:
+      args.include_settled === true
+        ? described
+        : described.filter((invitation) => invitation.state === 'pending'),
+    note: 'The token is shown once, when the invitation is issued, and is never readable afterwards. A lost one is replaced by inviting the same address again.',
+  };
+}
+
+/** Pending, expired, accepted or withdrawn — four states off three columns. */
+function invitationState(invitation: Row, now: number): string {
+  if (invitation['accepted_at'] !== null && invitation['accepted_at'] !== undefined) return 'accepted';
+  if (invitation['revoked_at'] !== null && invitation['revoked_at'] !== undefined) return 'withdrawn';
+  const expires = Date.parse(String(invitation['expires_at']));
+  return Number.isNaN(expires) || expires > now ? 'pending' : 'expired';
 }
 
 export const TrialBalanceInput = z.object({

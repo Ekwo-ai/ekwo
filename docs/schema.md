@@ -144,6 +144,7 @@ the return say the same thing, because they are the same rows.
 | [`capabilities`](#capabilities) | Everything a member may be allowed to do, one row per code. Seeded by this migration for the core; a module adds its own with `area` set to the module code. |
 | [`chart_templates`](#chart_templates) | Charts of accounts a country offers, from the `charts` list of packs/<cc>/pack.json. One of them is the default `ekwo init` installs when nobody names one. |
 | [`companies`](#companies) | Legal entities kept in this instance. One instance may hold several. |
+| [`company_invitations`](#company_invitations) | Pending and past invitations into a company. The token is handed over once and kept only as a sha256 hash. |
 | [`company_members`](#company_members) | Who may read or write a company. `owner` administers, `accountant` books, `viewer` reads. |
 | [`company_modules`](#company_modules) | Modules enabled on a company, and the settings that company keeps for each. Written by enable_module() and disable_module() and by nothing else: there is no write policy. |
 | [`company_packs`](#company_packs) | Which version of which country pack a company copied. A company may hold two: a foreign VAT registration is one. |
@@ -456,6 +457,34 @@ Constraints:
 - `CHECK ((currency_code ~ '^[A-Z]{3}$'::text))`
 - `CHECK ((fiscal_country ~ '^[A-Z]{2}$'::text))`
 - `PRIMARY KEY (id)`
+
+### `company_invitations`
+
+Pending and past invitations into a company. The token is handed over once and kept only as a sha256 hash.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `email` | `text` | not null — The address the invitation is for, lower-cased. accept_invitation() refuses anyone signed in with another. |
+| `role` | `member_role` | not null |
+| `capabilities_granted` | `text[]` | not null — Capabilities the new member holds on top of their preset, written onto company_members when the invitation is accepted. |
+| `token_hash` | `text` | not null |
+| `invited_by` | `uuid` | auth.users.id of whoever issued it. No foreign key, for the same reason company_members has none. |
+| `created_at` | `timestamp with time zone` | not null |
+| `expires_at` | `timestamp with time zone` | not null |
+| `accepted_at` | `timestamp with time zone` |  |
+| `accepted_by` | `uuid` |  |
+| `revoked_at` | `timestamp with time zone` |  |
+
+Constraints:
+
+- `CHECK (((accepted_at IS NULL) = (accepted_by IS NULL)))`
+- `CHECK ((email = lower(email)))`
+- `CHECK ((email ~~ '%_@_%'::text))`
+- `CHECK ((expires_at > created_at))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (token_hash)`
 
 ### `company_members`
 
@@ -1382,6 +1411,7 @@ Constraints:
 
 | Function | Purpose |
 |---|---|
+| `accept_invitation(p_token text)` | Turns an invitation into a membership for the signed-in user, whose address has to be the one invited. Single use, and refused once expired. |
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Open receivables (or payables) by age, from unmatched ledger lines. p_group is 'receivable' or 'payable'. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
@@ -1407,6 +1437,7 @@ Constraints:
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
 | `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
+| `invite_member(p_company_id uuid, p_email text, p_role member_role, p_capabilities jsonb, p_valid_for interval)` | Invites an address into a company and returns the token once. Only the hash is stored; re-inviting the same address revokes the pending invitation. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `member_capabilities(p_company_id uuid, p_user_id uuid)` | The capabilities one member effectively holds on one company, preset and adjustments resolved. Reading another member's needs members.manage. |
@@ -1426,8 +1457,9 @@ Constraints:
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |

@@ -265,6 +265,25 @@ export const PAYMENT = [
   'state',
 ];
 
+/**
+ * An invitation, without its secret. `token_hash` is deliberately absent: it
+ * is of no use to a client, and a list of hashes is a thing to leak rather
+ * than a thing to show.
+ */
+export const INVITATION = [
+  'id',
+  'company_id',
+  'email',
+  'role',
+  'capabilities_granted',
+  'invited_by',
+  'created_at::text',
+  'expires_at::text',
+  'accepted_at::text',
+  'accepted_by',
+  'revoked_at::text',
+];
+
 export const INSTANCE = [
   'instance_id',
   'organization_name',
