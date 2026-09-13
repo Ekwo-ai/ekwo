@@ -573,7 +573,8 @@ before any code, after a dedicated analysis (the full French text is in
 
 **The truth of a country lives in `packs/<cc>/`**: JSON with a published JSON
 schema for everything structured, one `accounts.csv` for the chart, an
-`i18n/` folder of labels, a `golden/` folder of expected results. No YAML, no
+`i18n/` folder of labels, and — *planned, not built* — a `golden/` folder of
+expected results. No YAML, no
 TOML, no package per country: the CLI has one dependency and Node reads JSON.
 `ekwo pack build` compiles a pack into a seed SQL file that is committed, and
 the CI refuses a seed that is not the exact output of its pack — the SQL is
@@ -584,9 +585,11 @@ install time.
 
 **A pack is versioned** (semver in its manifest); `country_packs` records what
 the instance holds and `company_packs` what each company copied.
-`ekwo pack upgrade` diffs by natural key `(country, code)` and follows three
-rules: an addition is applied, a validity that closes is applied, everything
-else is listed and never applied without explicit consent. A new VAT rate is
+`ekwo pack upgrade` — **planned, not built**: `ekwo pack` carries `build`,
+`check` and `list` today, and neither `upgrade` nor `status` exists — diffs by
+natural key `(country, code)` and follows three rules: an addition is applied,
+a validity that closes is applied, everything else is listed and never applied
+without explicit consent. A new VAT rate is
 a new tax plus a `valid_to` on the old one, never an edit. Once published, an
 account code and its type, a tax code and its meaning, and a box in a form
 version are immutable: things are retired, never renamed or deleted.
@@ -607,8 +610,10 @@ sheet on any chart, including the code-less charts of the UK and the US.
 
 **Kept in phase 0**: the pack format; opening balances and a parameterised
 year-end close; cash-basis VAT and non-deductible VAT (`tax_on_base`);
-realised exchange differences at matching; an append-only `audit_log` by
-trigger; translated labels. **Deferred**: revaluation of open items, cash
+realised exchange differences at matching; translated labels. **Kept in
+phase 0 and still not built**: the append-only `audit_log` by trigger. No
+table of that name exists in the schema; it is a P0-9 item like the two
+`ekwo pack` subcommands above. **Deferred**: revaluation of open items, cash
 accounting as a ledger (a report derived from matched payments instead), the
 cash-flow statement (indirect, when it comes), several taxes on one line
 (`document_line_taxes`, with Canada). Shifted and 52/53-week years were
@@ -665,7 +670,7 @@ helpers.
 
 **Canada, before it arrives.** Two columns land now rather than with the pack
 that needs them, because adding them later would mean migrating
-`tax_postings` and `entry_lines` a second time, over years of postings:
+`tax_postings` a second time, over years of postings:
 `report_code` on `tax_posting_templates` and `tax_postings` — a box number is
 unique inside one form, and a Canadian company files two returns at once,
 where line 101 of the federal one is not line 101 of the Québec one — and
@@ -678,6 +683,13 @@ What waits for the pack itself is the group tax (`tax_amount_type = group`
 plus `tax_group_members`) and `entry_line_boxes`, the table that lets one base
 line feed two forms; both are phase 1, and `report_code` and `region` are here
 now so that migration happens once.
+
+The header comment of `20260912080311` names `entry_lines` as a second table
+`report_code` would have to be added to. It was never added there, and it is
+not needed there: a ledger line carries `declaration_box`, and which form that
+box belongs to is a fact about the posting it came from, which already holds
+it. The comment is in a published migration, so it stays where it is and this
+paragraph is the correction.
 
 **Accepted, validated, not yet compiled**, because the tables they need do not
 exist: `tax_report.json` (P0-3), `statements.json` (P0-4), the `documents`,
@@ -978,11 +990,14 @@ Swiss five-centime unit waits for Switzerland. The alternative was migrating a
 table of tax rows and their postings a second time, which is the argument
 `20260912080311` made for `report_code`. Three columns is where this stops.
 
-**Both packs move to 1.1.0.** Belgium gains the vehicle taxes at 50 % and a
+**Both packs move to 1.1.0** — and have moved on since: Belgium and France are
+both at **1.4.0** as this is written, `generic` at 1.1.0. Belgium gains the
+vehicle taxes at 50 % and a
 wholly non-deductible one for frais de réception (art. 45 § 3 CTVA); France
 gains fuel at 20 % with the 80 % deduction of CGI art. 298, 4, 1°. Adding a
-tax is a minor version, and `ekwo pack upgrade` diffs on that number, so a
-pack that grows without saying so is a pack nobody can upgrade to. The P0-1
+tax is a minor version, and `ekwo pack upgrade` will diff on that number when
+it is built, so a pack that grows without saying so is a pack nobody can
+upgrade to. The P0-1
 before/after test still proves that **nothing that existed changed**: `after`
 is narrowed to the natural keys `before` held, and the four new codes are
 named in a test of their own, so a row that appears without anyone saying so
@@ -1384,7 +1399,10 @@ package, and `ekwo pack check` resolves every key against it — for the NBB sch
 a key has to resolve to the very line code that carries it. A brick declares no
 `schema_min`: the contract is the shape of the rows, and the end-to-end test is
 what breaks when it moves. `@ekwo-ai/xbrl-cbso` and `@ekwo-ai/factur-x` come in by
-subtree; the FEC leaves `@ekwo-ai/core` for `@ekwo-ai/fec`. Should the core still
+subtree; the FEC leaves `@ekwo-ai/core` for `@ekwo-ai/fec` — `packages/core`
+still re-exports it from `src/fec.ts`, marked `@deprecated` and unchanged, so
+that `@ekwo-ai/core` and `@ekwo-ai/core/fec` keep working for one version;
+the re-export goes in the next. Should the core still
 be private when the phase 1 formats begin, `packages/formats/` splits out as one
 public repository with the same structure.
 
@@ -1531,13 +1549,17 @@ one of them, through `is_company_member`, `can_write_company` and
 `is_company_owner`. That is a permission model with three positions: a
 bookkeeper who may post invoices and must never move a period lock has no row
 to sit on, and the answer in every product that meets the case is a fourth
-role, then a fifth. So `capabilities` is a table of twenty codes,
+role, then a fifth. So `capabilities` is a table of twenty codes — twenty-one
+since `entries.import` (`20260913092527`), and five more once the `assets` and
+`budgets` modules add their own —
 `role_capabilities` says what each preset holds, and
 `company_members.capabilities_granted` / `capabilities_revoked` adjust one
 member in both directions. A revoke wins over a grant and over a preset —
 including on an owner, because a company that wants its owner unable to close
 a year is describing its own separation of duties, not making a mistake. Every
-policy now calls `has_capability()`, and `can_write_company()` is rewritten on
+policy **of the socle** now calls `has_capability()` — a module's policies
+went on asking `can_write_company()` until 13 September 2026, when each module
+took its own codes — and `can_write_company()` is rewritten on
 top of it rather than left beside it: it is the answer to `entries.write` and
 nothing else. **The three roles do exactly what they did the day before**, and
 that is the half of it a test would notice.
@@ -1592,9 +1614,15 @@ database connection, not a session — and adding a password grant to a binary
 that is handed a `service_role` key is not a small decision.
 
 **A preference has no default, and a label is chosen in one place.**
-`user_preferences` is nullable everywhere: null means "take the company's
-answer, then the pack's", which is the rule P0-7 and P0-8 already keep for a
-country. `label_for(name, name_i18n, languages)` is now the only spelling of
+Every *preference* column of `user_preferences` is nullable and carries no
+default — `preferred_company_id`, `language`, `timezone`,
+`date_display_format`, `number_display_format`, `theme` — and null means "take
+the company's answer, then the pack's", which is the rule P0-7 and P0-8
+already keep for a country. Three columns are not nullable and are not
+preferences: `user_id`, which is the key, and `created_at` / `updated_at`,
+which are when the row was written. A row's own timestamp is not an answer
+somebody inherits, so `now()` on those two is not the kind of default this
+rule is about. `label_for(name, name_i18n, languages)` is now the only spelling of
 the resolution that was written out wherever it was needed, and
 `preferred_languages(company)` builds the chain — the user, then the company,
 then the pack. `install_country_template()` is republished on it and keeps
