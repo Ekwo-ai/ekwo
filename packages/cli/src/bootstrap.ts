@@ -37,8 +37,14 @@ export interface BootstrapOptions {
   organization: string;
   country: string;
   company: string;
-  /** Calendar year of the first financial year. */
+  /** Calendar year the first financial year opens in. */
   fiscalYear: number;
+  /**
+   * First day of that year, as YYYY-MM-DD. Left out, the month comes from
+   * `country_defaults.fiscal_year_default` — and a pack that declares none
+   * produces a refusal naming the flag, never a January nobody chose.
+   */
+  fiscalYearStart?: string | undefined;
   /** `auth.users.id` of the first administrator. */
   adminUserId: string;
   /** ISO 4217 code. Left out, the country model decides; it is `EUR` for both countries shipped. */
@@ -55,6 +61,9 @@ export interface BootstrapResult {
   instanceId: string;
   companyId: string;
   fiscalYearName: string;
+  /** The first and last day the financial year was opened on. */
+  fiscalYearStart: string;
+  fiscalYearEnd: string;
   /** The currency the company was created with. */
   currencyCode: string;
   /** The language the chart of accounts was copied in. */
@@ -89,6 +98,22 @@ export async function countryCurrency(db: SqlClient, country: string): Promise<s
  */
 export async function countryLanguage(db: SqlClient, country: string): Promise<string | undefined> {
   return scalar<string>(db, 'select language_default from country_defaults where country = $1', [
+    country.toUpperCase(),
+  ]);
+}
+
+/**
+ * The month the country model opens a financial year on, or nothing.
+ *
+ * `ekwo init` reads it to know whether it has to ask. The dates themselves
+ * are never computed here: `fiscal_year_bounds()` in the schema is the one
+ * place that turns a month into two days.
+ */
+export async function countryFiscalYearOpening(
+  db: SqlClient,
+  country: string,
+): Promise<string | undefined> {
+  return scalar<string>(db, 'select fiscal_year_default from country_defaults where country = $1', [
     country.toUpperCase(),
   ]);
 }
@@ -376,10 +401,19 @@ export async function bootstrap(
       `chart ${copied?.chart_code ?? '?'} in ${language}`,
   });
 
-  // 6. The first financial year. Calendar year: a different one is a single
-  //    insert, and the application will offer it.
-  const start = `${options.fiscalYear}-01-01`;
-  const end = `${options.fiscalYear}-12-31`;
+  // 6. The first financial year, on the month the country model names. The
+  //    dates are computed by the schema — `fiscal_year_bounds()` — because
+  //    `ekwo init`, the MCP server and whoever opens next year all have to
+  //    get the same answer, and two answers is how a company ends up with two
+  //    overlapping first years.
+  const bounds = await first<{ start_date: string; end_date: string }>(
+    db,
+    'select start_date::text, end_date::text from fiscal_year_bounds($1, $2, $3::date)',
+    [country, options.fiscalYear, options.fiscalYearStart ?? null],
+  );
+  if (bounds === undefined) throw new Error('fiscal_year_bounds_failed: no row returned');
+  const start = bounds.start_date;
+  const end = bounds.end_date;
   const fiscalYearName = `FY${options.fiscalYear}`;
   const existingYear = await first<{ name: string }>(
     db,
@@ -392,7 +426,11 @@ export async function bootstrap(
        values ($1, $2, $3, $4)`,
       [companyId, fiscalYearName, start, end],
     );
-    steps.push({ name: 'financial year', outcome: 'created', detail: fiscalYearName });
+    steps.push({
+      name: 'financial year',
+      outcome: 'created',
+      detail: `${fiscalYearName} — ${start} to ${end}`,
+    });
   } else {
     steps.push({ name: 'financial year', outcome: 'already', detail: existingYear.name });
   }
@@ -415,6 +453,8 @@ export async function bootstrap(
     instanceId,
     companyId,
     fiscalYearName,
+    fiscalYearStart: start,
+    fiscalYearEnd: end,
     currencyCode,
     language,
     packVersion: copied?.version,

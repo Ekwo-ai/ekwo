@@ -1481,6 +1481,7 @@ Constraints:
 | `companies_default_capital_currency()` | A capital stated with no currency is stated in the company's own. The alternative was a literal in the schema, which is one country's answer given to every country. |
 | `company_role(p_company_id uuid)` | Role of the current user on a company, or NULL when they are not a member. |
 | `create_api_key(p_company_id uuid, p_name text, p_capabilities jsonb, p_expires_at timestamp with time zone)` | Issues a machine key on one company and returns the secret once. Only the hash is stored, and no capability can be put on a key that the person issuing it does not hold. |
+| `create_company(p_name text, p_country character, p_currency_code character, p_language character, p_chart_code text, p_fiscal_year integer, p_fiscal_year_start date, p_owner_user_id uuid)` | Creates a company, makes the caller its first member, copies the country pack into it and opens its first financial year on the month that pack declares. An instance-level act, like the policy on companies. |
 | `current_api_key()` | The key presented in this transaction, or nothing. What a client reads back to know what it may do. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
@@ -1493,6 +1494,7 @@ Constraints:
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period, in chronological order. |
 | `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
+| `fiscal_year_bounds(p_country character, p_year integer, p_start date, OUT start_date date, OUT end_date date)` | The first and last day of a financial year opening in a given calendar year, on the month the country pack declares — or on a day the caller names. Raises rather than assuming January. |
 | `fiscal_years_guard_closed()` | Refuses a hand-written change to is_closed. A column any client may flip is not a lock. |
 | `format_number(p_format text, p_code text, p_date date, p_number integer)` | One document number, rendered from the pattern the country pack declares. Raises rather than guessing at a token it does not know. |
 | `general_ledger(p_company_id uuid, p_from date, p_to date, p_account_ids uuid[])` | Posted lines of a period per account, with the balance carried forward from before the period. |
@@ -1523,8 +1525,8 @@ Constraints:
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `revoke_api_key(p_api_key_id uuid)` | Withdraws a key. There is no un-withdraw: a secret that has been out of the building is issued again, not brought back. |
 | `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
 | `set_preferences(p_patch jsonb)` | Writes the signed-in user's preferences. A key that is present is written, null included; a key that is absent is left alone; a key nobody declared is refused. |

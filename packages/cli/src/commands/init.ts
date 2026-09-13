@@ -20,7 +20,15 @@
 
 import { boolFlag, numberFlag, rejectUnknownFlags, stringFlag, type ParsedArgs } from '../args.js';
 import { createAuthUser, type CreateAuthUser } from '../auth.js';
-import { bootstrap, countryCharts, countryCurrency, countryLanguage, countryPack, installedPacks } from '../bootstrap.js';
+import {
+  bootstrap,
+  countryCharts,
+  countryCurrency,
+  countryFiscalYearOpening,
+  countryLanguage,
+  countryPack,
+  installedPacks,
+} from '../bootstrap.js';
 import { describeCertification, needsWarning } from '../pack/certification.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
@@ -44,6 +52,7 @@ export const INIT_FLAGS = [
   'admin-password',
   'admin-user-id',
   'fiscal-year',
+  'fiscal-year-start',
   'currency',
   'language',
   'iban',
@@ -122,6 +131,24 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       (interactive ? await askRequired('Name of the first company?', organization) : organization);
 
     const fiscalYear = numberFlag(args, 'fiscal-year') ?? new Date().getUTCFullYear();
+
+    // When the first financial year opens. The country model names a month —
+    // `calendar`, `april`, `july`, `october` — and the flag names a day. A
+    // pack that declares neither is asked about when there is a terminal, and
+    // refused when there is not: opening somebody's books on a date nobody
+    // chose is found out a year later, in a closing.
+    const packOpening = await countryFiscalYearOpening(db, country);
+    const askedStart = stringFlag(args, 'fiscal-year-start');
+    if (askedStart !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(askedStart)) {
+      throw new Error(`bad_date: --fiscal-year-start takes a day as YYYY-MM-DD, not "${askedStart}".`);
+    }
+    const fiscalYearStart =
+      askedStart ??
+      (packOpening !== undefined
+        ? undefined
+        : interactive
+          ? await askRequired(`First day of the financial year ${fiscalYear}? (YYYY-MM-DD)`)
+          : requiredFiscalYearStart(country));
 
     // The currency has to be settled before the company row exists:
     // `companies.currency_code` is `not null`, so there is no later moment at
@@ -226,6 +253,7 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       country,
       company,
       fiscalYear,
+      ...(fiscalYearStart === undefined ? {} : { fiscalYearStart }),
       adminUserId,
       currencyCode,
       language,
@@ -276,7 +304,7 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
           ? 'none recorded'
           : `${pack.version} — ${describeCertification({ status: pack.certificationStatus, by: pack.certifiedBy, on: pack.certifiedAt })}`,
       ],
-      ['financial year', outcome.fiscalYearName],
+      ['financial year', `${outcome.fiscalYearName} — ${outcome.fiscalYearStart} to ${outcome.fiscalYearEnd}`],
       ['bank account', bankAccount === undefined ? 'none — ekwo doctor will say so' : bankAccount.iban],
       ['schema version', schemaVersion ?? 'unknown'],
       ['config', configFile],
@@ -304,6 +332,18 @@ function requiredCountry(packs: { country: string; name: string }[]): never {
   throw new Error(
     'missing_input: the country was not given and this is not a terminal. Pass --country, ' +
       `one of: ${packs.map((p) => `${p.country} (${p.name})`).join(', ')}.`,
+  );
+}
+
+/**
+ * The refusal when the pack names no opening month, `--fiscal-year-start` is
+ * missing and nobody can be asked. It names the field the pack should carry
+ * as well as the flag, because one of the two is the real fix.
+ */
+function requiredFiscalYearStart(country: string): never {
+  throw new Error(
+    `missing_input: the ${country} pack declares no defaults.fiscal_year_default and this is not a ` +
+      'terminal. Pass --fiscal-year-start YYYY-MM-DD, or add the field to the pack.',
   );
 }
 

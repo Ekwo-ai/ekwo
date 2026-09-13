@@ -79,7 +79,11 @@ ${bold('ekwo init')}
   --admin-email <address>   The first administrator, created in your Supabase Auth.
   --admin-password <pw>     Their password. Omitted: an invite link is generated.
   --admin-user-id <uuid>    Use an account that already exists instead.
-  --fiscal-year <year>      First financial year, calendar. Defaults to this year.
+  --fiscal-year <year>      Calendar year the first financial year opens in.
+                            Defaults to this year.
+  --fiscal-year-start <d>   First day of it, as YYYY-MM-DD. Defaults to the
+                            month the country pack opens a year on; required
+                            when the pack names none.
   --language <xx>           Language of the books. Defaults to the country pack's.
   --demo                    Also load the sample company.
   --register                Register without being asked. --register-email sets

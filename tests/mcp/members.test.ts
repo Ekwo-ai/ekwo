@@ -10,7 +10,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readTools, writeTools, type Backend } from '../../packages/mcp/src/index.js';
 import { freshDatabase, one } from '../helpers/db.js';
-import { newCompany, newUser, type Fixture } from '../helpers/factory.js';
+import { newCompany, newInstanceAdmin, newUser, type Fixture } from '../helpers/factory.js';
 import { backendFor, list, record } from './helpers.js';
 
 let db: PGlite;
@@ -212,5 +212,34 @@ describe('machine keys through the server', () => {
         capabilities: ['bank.write'],
       }),
     ).rejects.toThrow(/members\.manage/);
+  });
+});
+
+describe('creating a company through the server', () => {
+  it('is an instance-level act, and it opens the year the pack opens', async () => {
+    await expect(
+      writeTools.createCompany(asOwner, { name: 'Refusee SRL', country: 'BE' }),
+    ).rejects.toThrow(/not_instance_admin/);
+
+    const adminId = await newInstanceAdmin(db);
+    const asAdmin = backendFor(db, adminId);
+    const answer = record(
+      await writeTools.createCompany(asAdmin, {
+        name: 'Nouvelle SRL',
+        country: 'BE',
+        fiscal_year: 2026,
+      }),
+    );
+    const company = record(answer['company']);
+    expect(company['name']).toBe('Nouvelle SRL');
+
+    const years = list(answer['fiscal_years']);
+    expect(years).toHaveLength(1);
+    const expected = await one<{ start_date: string; end_date: string }>(
+      db,
+      `select start_date::text, end_date::text from fiscal_year_bounds('BE', 2026)`,
+    );
+    expect(years[0]?.['start_date']).toBe(expected.start_date);
+    expect(years[0]?.['end_date']).toBe(expected.end_date);
   });
 });

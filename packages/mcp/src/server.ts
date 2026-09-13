@@ -446,6 +446,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'create_company',
+    {
+      title: 'Create a company',
+      description:
+        'Creates a company on a country pack: its chart of accounts, its journals and its taxes are copied in, its first financial year is opened on the month that country opens one on, and you become its first member. Creating a company is an instance-level act — it needs an instance administrator, and being one is not the same as being on anybody\u2019s books. Ask the user for the country rather than guessing: the wrong answer is a whole chart of accounts.',
+      inputSchema: write.CreateCompanyInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async (args) => guard(() => write.createCompany(backend, args)),
+  );
+
+  server.registerTool(
     'update_company_profile',
     {
       title: 'Change the company itself',

@@ -396,3 +396,44 @@ describe('bootstrap', () => {
     expect(country[0]?.country).toBe('FR');
   });
 });
+
+describe('the first financial year', () => {
+  it('opens on the month the country model names, and not on January', async () => {
+    await db.query(`update country_defaults set fiscal_year_default = 'april' where country = 'BE'`);
+    const result = await bootstrap(db, {
+      organization: 'Exercice decale',
+      country: 'BE',
+      company: 'Exercice decale SRL',
+      fiscalYear: 2026,
+      adminUserId: await makeAuthUser(db, 'april@example.test'),
+    });
+    expect(result.fiscalYearStart).toBe('2026-04-01');
+    expect(result.fiscalYearEnd).toBe('2027-03-31');
+  });
+
+  it('takes the day it is given, whatever the country says', async () => {
+    const result = await bootstrap(db, {
+      organization: 'Exercice choisi',
+      country: 'BE',
+      company: 'Exercice choisi SRL',
+      fiscalYear: 2026,
+      fiscalYearStart: '2026-10-01',
+      adminUserId: await makeAuthUser(db, 'october@example.test'),
+    });
+    expect(result.fiscalYearStart).toBe('2026-10-01');
+    expect(result.fiscalYearEnd).toBe('2027-09-30');
+  });
+
+  it('refuses to open one at all when the pack declares no month', async () => {
+    await db.query(`update country_defaults set fiscal_year_default = null where country = 'BE'`);
+    await expect(
+      bootstrap(db, {
+        organization: 'Sans exercice',
+        country: 'BE',
+        company: 'Sans exercice SRL',
+        fiscalYear: 2026,
+        adminUserId: await makeAuthUser(db, 'silent@example.test'),
+      }),
+    ).rejects.toThrow(/no_fiscal_year_default/);
+  });
+});

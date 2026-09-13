@@ -1080,6 +1080,56 @@ export async function createBankTransaction(
 // The company itself
 // ---------------------------------------------------------------------------
 
+export const CreateCompanyInput = z.object({
+  name: z.string().min(1),
+  country: z
+    .string()
+    .length(2)
+    .describe('Which country pack: its chart of accounts, its taxes and its declaration form. list_companies shows what the installation already uses.'),
+  currency_code: z.string().length(3).optional().describe("Left out, the country pack's."),
+  language: z
+    .string()
+    .length(2)
+    .optional()
+    .describe("Language the books are kept in — it decides the labels of the chart. Left out, the country pack's."),
+  chart_code: z.string().optional().describe('Which chart, where the country offers several.'),
+  fiscal_year: z.number().int().min(1900).max(2200).optional().describe('Calendar year the first financial year opens in. Default this year.'),
+  fiscal_year_start: isoDate
+    .optional()
+    .describe('First day of it. Left out, the month the country pack opens a year on — and a pack that names none is a refusal, not a January.'),
+});
+
+export async function createCompany(
+  backend: Backend,
+  args: z.infer<typeof CreateCompanyInput>,
+): Promise<unknown> {
+  const company = only(
+    await backend.rpc<Row>('create_company', {
+      p_name: args.name,
+      p_country: args.country.toUpperCase(),
+      p_currency_code: args.currency_code?.toUpperCase() ?? null,
+      p_language: args.language?.toLowerCase() ?? null,
+      p_chart_code: args.chart_code ?? null,
+      p_fiscal_year: args.fiscal_year ?? null,
+      p_fiscal_year_start: args.fiscal_year_start ?? null,
+    }),
+    'the company could not be created. Creating one is an instance-level act: it needs an instance administrator',
+  );
+
+  const years = await backend.select<Row>({
+    table: 'fiscal_years',
+    columns: columns.FISCAL_YEAR,
+    where: [{ column: 'company_id', op: 'eq', value: company['id'] as string }],
+    order: [{ column: 'start_date' }],
+  });
+
+  return {
+    company,
+    fiscal_years: years,
+    note: 'The chart of accounts, the journals and the taxes of the country pack have been copied into it, and you are its first member.',
+  };
+}
+
 export const UpdateCompanyProfileInput = z.object({
   company_id: companyId,
   name: z.string().min(1).optional(),
