@@ -70,6 +70,7 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260913103355_cash_basis_needs_a_box` | `post_document()` raises `no_cash_basis_box` before it writes the entry, where the pack names no declaration box on a tax that falls due on collection. Without it the amount sat on the transition account for ever: `settle_cash_basis_tax()` only moves a line carrying a box amount, so nothing settled and nothing raised |
 | `20260913104014_aged_balance_named_group` | `aged_balance()` raises `invalid_group` for anything that is not `receivable` or `payable`. It used to test `= 'payable'` and report everything else as receivable — a full, plausible, wrong report |
 | `20260913104232_foreign_key_indexes` | 71 indexes: every foreign key of the socle that had none, and with it the `company_id` of the five tables that had none. Postgres indexes only the referenced side, so a parent delete and every natural join were reading the whole child table. `tests/schema.test.ts` asks the catalogue the same question, so the list is never maintained by hand. The `assets` and `budgets` modules carry the same migration for their own 14 |
+| `20260913105120_declared_no_reader` | comments only. Five columns a pack fills and nothing reads yet — `rounding_method`, `cash_rounding_unit`, `bank_statement_formats`, `payment_formats`, `currencies.decimal_places` — say so in their own comment, and `docs/schema.md` is generated from those. `reconciliations.fx_entry_id` says the opposite, because it is read |
 
 ## Rules for a new migration
 

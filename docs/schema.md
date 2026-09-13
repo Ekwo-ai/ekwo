@@ -643,8 +643,8 @@ Which template account plays which role, per country.
 | `misc_journal_code` | `text` | not null |
 | `cash_account_code` | `text` | Ledger account behind the cash journal of this country, from the pack of that country. |
 | `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
-| `rounding_method` | `rounding_method` | not null — How this country rounds a tax amount. half_up is what post_document does today, in every country, so the default changes nothing. |
-| `cash_rounding_unit` | `numeric(8,4)` | not null — Smallest coin when it is not the cent: 0.05 in Switzerland. 0 means the cent, which is every country of phase 0. |
+| `rounding_method` | `rounding_method` | not null — How a country rounds a tax amount, from the pack. **Declared, no reader yet**: every rounding in the schema is round(x, 2), which is half_up, which is what both packs declare — so the column is recorded and not consulted. It becomes behaviour with the sub-task that makes rounding read the currency's decimals. |
+| `cash_rounding_unit` | `numeric(8,4)` | not null — The smallest coin a cash total is rounded to when it is not the cent — 0.05 in Switzerland, 0.05 in the Netherlands for cash. **Declared, no reader yet**: no cash-payment path exists in the socle, so nothing rounds a total to it. Zero means the cent, which is what both packs declare. |
 | `closing_style` | `closing_style` | Which of the three mechanisms close_fiscal_year() follows for a company of this country. Null until the pack says; there is no default, because a default would be one country's answer given to every other. |
 | `current_year_result_profit_code` | `text` | Account the result of the year lands on when the year is profitable. Belgium 693, France 120. Null where the result goes straight to retained earnings. |
 | `current_year_result_loss_code` | `text` | Same, for a loss. Belgium 793, France 129. Both countries keep a profit and a loss apart, so this is a pair and not one account. |
@@ -659,8 +659,8 @@ Which template account plays which role, per country.
 | `einvoice_mandatory_from` | `date` | The day the obligation starts. Where reception and emission start on different days, this is reception, which is what binds every company at once. |
 | `party_scheme` | `text` | ISO 6523 ICD of the identifier a party is addressed by on the network, four digits. The pack carries the value; the core never guesses one. |
 | `vat_scheme` | `text` | ISO 6523 ICD of the VAT identifier, four digits. Distinct from party_scheme: a company is addressed by its registration number and taxed on its VAT number, and they are not the same identifier. |
-| `bank_statement_formats` | `text[]` | Statement formats a bank of this country delivers, most usual first. A list, because a country rarely has one. |
-| `payment_formats` | `text[]` | Payment initiation formats a bank of this country accepts, most usual first. |
+| `bank_statement_formats` | `text[]` | Statement formats a bank of this country sends — coda, camt.053, cfonb120 — from the pack. **Declared, no reader yet**: the socle has no statement importer; this is what one will dispatch on. A client that offers an import today reads it to know what to offer. |
+| `payment_formats` | `text[]` | Payment file formats a bank of this country accepts — pain.001, cfonb160 — from the pack. **Declared, no reader yet**: the socle writes no payment file. Same shape as bank_statement_formats, and it will be read by the same phase. |
 | `fiscal_year_default` | `text` | Month the financial year usually opens on: calendar, april, july, october. A default offered, never imposed — fiscal_years holds what a company actually keeps. |
 | `fx_gain_code` | `text` | Account a realised exchange gain is booked on, from the pack. Null until the pack names one, and then a matching that realises a gain is refused rather than booked somewhere plausible. |
 | `fx_loss_code` | `text` | The same for a realised loss. A pair, because every chart in scope keeps the gain and the loss apart. |
@@ -711,7 +711,7 @@ ISO 4217 currencies known to this instance.
 | `code` | `character(3)` | not null |
 | `name` | `text` | not null |
 | `symbol` | `text` |  |
-| `decimal_places` | `smallint` | not null |
+| `decimal_places` | `smallint` | not null — Decimals this currency is written with: 2 for the euro, 0 for the yen, 3 for the dinar. **Declared, no reader yet**: every rounding in the schema and in the format packages is at two decimals, which is right for every currency the packs carry. Making the rounding rule read this column is a sub-task of its own; until it lands, a zero-decimal currency is held correctly and rounded as if it had two. |
 | `active` | `boolean` | not null |
 
 Constraints:
@@ -1167,7 +1167,7 @@ One row per pairing of a debit with a credit. Full matching is the sum of partia
 | `matching_number` | `text` | not null |
 | `matched_at` | `date` | not null |
 | `created_at` | `timestamp with time zone` | not null |
-| `fx_entry_id` | `uuid` | Entry that booked the exchange difference this matching realised, when there was one. |
+| `fx_entry_id` | `uuid` | The entry that booked the realised exchange difference this matching revealed, or null. Written by reconcile() and read by unreconcile(), which reverses it. |
 | `tax_transfer_entry_id` | `uuid` | Entry that moved the cash-basis tax this matching made due, when there was one. |
 
 Constraints:

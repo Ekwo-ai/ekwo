@@ -1830,3 +1830,24 @@ shared as code: `rounding.ts` is the same file in `packages/formats/factur-x`,
 `packages/formats/xbrl-cbso` and `packages/mcp`, and `tests/rounding.test.ts`
 runs one vector through all three and then compares the three files byte for
 byte. A copy that drifts fails the build.
+
+**Five columns are declared and read by nobody, and now they say so.**
+`country_defaults.rounding_method`, `country_defaults.cash_rounding_unit`,
+`country_defaults.bank_statement_formats`, `country_defaults.payment_formats`
+and `currencies.decimal_places` are each filled by a pack and consulted by no
+code path. Every one of them was added for the right reason — the alternative
+is migrating a table of years of rows a second time — and none is removed.
+What was missing is the sentence that tells the next reader which columns are
+load-bearing and which are a promise, because a column with a plausible name
+and no reader is read as behaviour, and a pack author fills it expecting
+something to happen. `20260913105120` puts that sentence in each column's own
+comment, and `docs/schema.md` is generated from those.
+
+One of the five has to stop being a comment: **`decimal_places` is what "at
+the currency's decimals" means**, and every rounding in the schema and in the
+three copies of `rounding.ts` is at two. Two is right for every currency the
+packs carry and wrong for the yen, which has none, and the dinar, which has
+three. Making the rule read the column is its own piece of work — it touches
+`post_document`, `post_payment`, `settle_cash_basis_tax`, the statements and
+the three format packages, and it needs a currency with something other than
+two decimals in a pack before it can be tested honestly. It is not done here.
