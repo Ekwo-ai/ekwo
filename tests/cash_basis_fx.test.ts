@@ -447,7 +447,46 @@ describe('a tax that waits and has nowhere to wait', () => {
       [fr.companyId],
     );
   });
+
+  // The audit of 13 September 2026. `settle_cash_basis_tax()` only ever moves
+  // a line carrying a box amount, and `post_document` writes one only when the
+  // posting names a box — so a cash-basis tax with no box booked its amount
+  // onto the transition account and it stayed there for ever: settled by
+  // nothing, declared by nothing, and with nothing raised anywhere.
+  it('is refused at posting when its posting names no box, instead of waiting for ever', async () => {
+    const customer = await newContact(db, fr.companyId, { name: 'Client Sans Case', country: 'FR' });
+    await db.query(
+      `update tax_postings set declaration_box = null
+        where tax_id = (select id from taxes where company_id = $1 and code = 'FR-S-10-ENC')
+          and posting_type = 'tax' and document_kind = 'invoice'`,
+      [fr.companyId],
+    );
+    const documentId = await newDocument(db, fr.companyId, {
+      docType: 'sale_invoice',
+      number: 'FAC-ENC-SANS-CASE',
+      contactId: customer,
+      date: '2026-12-02',
+      lines: [{ unitPrice: 100, taxCode: 'FR-S-10-ENC', accountCode: '706000' }],
+    });
+    const message = await expectError(db, `select post_document($1)`, [documentId]);
+    expect(message).toMatch(/no_cash_basis_box/);
+
+    // Nothing was written: the refusal is before the entry, not after it.
+    expect(await ledger(documentId)).toEqual([]);
+
+    await db.query(
+      `update tax_postings set declaration_box = (
+         select declaration_box from tax_posting_templates tpt
+          join tax_templates tt on tt.id = tpt.tax_template_id
+         where tt.code = 'FR-S-10-ENC' and tpt.posting_type = 'tax'
+           and tpt.document_kind = 'invoice' limit 1)
+        where tax_id = (select id from taxes where company_id = $1 and code = 'FR-S-10-ENC')
+          and posting_type = 'tax' and document_kind = 'invoice'`,
+      [fr.companyId],
+    );
+  });
 });
+
 
 // ---------------------------------------------------------------------------
 // The difference a rate makes, realised when the money arrives
@@ -778,6 +817,24 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
         }
       }),
     ).rejects.toThrow(/a cost is not deferred to a payment/);
+  });
+
+  // The audit of 13 September 2026. A tax that waits also needs a box to fall
+  // due *into*: `settle_cash_basis_tax()` only ever moves a line carrying a
+  // box amount, so without one the amount sits on the transition account for
+  // ever, settled by nothing and declared by nothing.
+  it('refuses one whose posting names no box to fall due into', async () => {
+    await expect(
+      packWith((taxes) => {
+        for (const tax of taxes) {
+          if (tax['code'] !== 'FR-S-20-ENC') continue;
+          const postings = (tax['postings'] as Record<string, Record<string, unknown>[]>)['invoice']!;
+          for (const posting of postings) {
+            if (posting['type'] === 'tax') delete posting['box'];
+          }
+        }
+      }),
+    ).rejects.toThrow(/name the box it falls due into/);
   });
 });
 

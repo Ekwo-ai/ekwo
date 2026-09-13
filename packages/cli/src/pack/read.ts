@@ -1435,6 +1435,18 @@ function crossReferences(manifest: Manifest, charts: PackChart[], taxes: PackTax
             message: 'a share nobody gets back is a cost, and a cost is not deferred to a payment',
           });
         }
+        // And it needs a box to fall due *into*. `settle_cash_basis_tax()`
+        // only ever moves a line that carries a box amount, and a posting
+        // with no box produces none — so the tax would sit on the transition
+        // account for ever, settled by nothing and declared by nothing, with
+        // no error anywhere. Refused here, where the pack can be corrected.
+        if (postings.some((p) => p.type === 'tax' && p.box === null)) {
+          issues.push({
+            path: `taxes.json ${tax.code}.${kind}`,
+            message:
+              'a tax that falls due on collection has to name the box it falls due into, or the amount waits on the transition account for ever',
+          });
+        }
       }
       for (const posting of postings) {
         if (posting.type === 'tax' && posting.account === null) {
