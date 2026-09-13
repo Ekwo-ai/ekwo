@@ -9,6 +9,7 @@
  * as positive amounts).
  */
 import type { BnbCode, YearValues } from '../types.js';
+import { roundCurrency } from '../rounding.js';
 
 export interface ReportingLine {
   /** Reporting code, e.g. `"21/28"`. Empty for a heading. */
@@ -346,6 +347,7 @@ export function mergeSections(...sections: ReadonlyMap<BnbCode, Pair>[]): Record
   return values;
 }
 
+/** The one rounding rule, at two decimals. See `../rounding.ts`. */
 function round2(v: number): number {
-  return Math.round(v * 100) / 100;
+  return roundCurrency(v, 2);
 }

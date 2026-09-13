@@ -3,6 +3,7 @@
  * application. Run them before generating to catch inconsistent inputs early.
  */
 import type { BnbCode, YearValues } from './types.js';
+import { roundCurrency } from './rounding.js';
 
 export interface EquationViolation {
   /** Code of the total that does not add up. */
@@ -99,6 +100,7 @@ export function checkBnbEquations(
   return violations;
 }
 
+/** The one rounding rule, at two decimals. See `rounding.ts`. */
 function round2(v: number): number {
-  return Math.round(v * 100) / 100;
+  return roundCurrency(v, 2);
 }

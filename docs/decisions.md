@@ -1770,3 +1770,28 @@ rewriting those policies onto them is the right next step and it belongs in
 the module's own migration: a migration of the socle that named `assets` would
 be the socle knowing what is built beside it, which is the one thing
 `docs/modules.md` says it must not.
+
+## ST14 — the audit of 13 September 2026
+
+**A currency and a decimal are rounded half up, on the absolute value, at the
+currency's decimals — one rule, in every language this repository is written
+in.** Three packages answered it three ways: `factur-x` added an epsilon and
+rounded, `xbrl-cbso` rounded without one, and the MCP server used
+`toFixed(2)`. All three are `Math.round` underneath in spirit, and `Math.round`
+goes towards positive infinity — so -0.005 became -0.00 in one place and -0.01
+in another, and a credit note stopped being its invoice with the sign flipped.
+The other case is the one a binary float cannot hold: `2.675 * 100` is
+267.49999999999994, so half up gives 2.67 where the rule says 2.68.
+
+Half up on the absolute value is what an invoice, a VAT return and a set of
+annual accounts are written with, and it is symmetric by construction. The
+decimals are the currency's, which is two for every currency this repository
+has met and is not two for all of them — `currencies.decimal_places` is the
+column that will answer it, and until something reads that column the helpers
+take the number as an argument and default it to two.
+
+A format brick may not import the core or another brick, so the rule cannot be
+shared as code: `rounding.ts` is the same file in `packages/formats/factur-x`,
+`packages/formats/xbrl-cbso` and `packages/mcp`, and `tests/rounding.test.ts`
+runs one vector through all three and then compares the three files byte for
+byte. A copy that drifts fails the build.

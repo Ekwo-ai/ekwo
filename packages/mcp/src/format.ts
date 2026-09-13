@@ -11,13 +11,14 @@
  */
 
 import { EkwoMcpError } from './backend.js';
+import { roundCurrency } from './rounding.js';
 
 export type Decimal = string;
 
 /** A numeric, as the decimal string the ledger holds. */
 export function money(value: unknown): Decimal | null {
   if (value === null || value === undefined) return null;
-  if (typeof value === 'number') return value.toFixed(2);
+  if (typeof value === 'number') return roundCurrency(value, 2).toFixed(2);
   const text = String(value);
   return text.length === 0 ? null : text;
 }
@@ -42,7 +43,7 @@ export function moneyFields<T extends Record<string, unknown>>(rows: T[], keys: 
 
 /** An amount on its way into the database: `"1210.00"`, never 1210.0000001. */
 export function amountIn(value: string | number): string {
-  const text = typeof value === 'number' ? value.toFixed(2) : value.trim();
+  const text = typeof value === 'number' ? roundCurrency(value, 2).toFixed(2) : value.trim();
   if (!/^-?\d+(\.\d+)?$/.test(text)) {
     throw new EkwoMcpError(`bad_amount: ${String(value)} is not a decimal amount`);
   }

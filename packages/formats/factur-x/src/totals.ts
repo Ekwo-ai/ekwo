@@ -1,8 +1,10 @@
 import type { Invoice, InvoiceLine, InvoiceTotals, VatBreakdown, VatCategory } from './types.js';
+import { roundCurrency } from './rounding.js';
 import { defaultVatCategory } from './vat.js';
 
+/** The one rounding rule, at two decimals. See `rounding.ts`. */
 export function round2(v: number): number {
-  return Math.round((v + Number.EPSILON) * 100) / 100;
+  return roundCurrency(v, 2);
 }
 
 /** The VAT category of a line, explicit or derived from the parties. */
