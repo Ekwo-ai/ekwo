@@ -234,11 +234,11 @@ no move, and there is deliberately no counterpart to them.
 ### To the Factur-X invoice object
 
 [`@ekwo-ai/factur-x`](../packages/formats/factur-x/) takes a plain
-invoice object and emits EN 16931 CII XML. It is **not** a dependency of this
-repository: it lives in a private repository, and `npm ci` in CI has no
-credentials for it, so depending on it would make a fresh clone fail to
-install. The mapping is therefore written here and asserted in
-`tests/mcp/products.test.ts` without the library.
+invoice object and emits EN 16931 CII XML. It lives in this repository under
+`packages/formats/`, but `@ekwo-ai/core` does not depend on it: a format is
+something you add on top of the ledger, not something the ledger needs. The
+mapping is therefore written here and asserted in `tests/mcp/products.test.ts`
+without the library.
 
 Read `document_line_items` and build one line per row:
 
