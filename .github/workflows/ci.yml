@@ -131,3 +131,16 @@ jobs:
           else
             echo "No tag yet, so nothing has been released and there is nothing to protect."
           fi
+
+      # `docs/schema.md` is generated from the migrations, and a hand-written
+      # line in it is a lie that outlives the person who wrote it. The
+      # generator is deterministic, so the diff being empty is the whole test.
+      - name: docs/schema.md is the output of the migrations
+        run: |
+          node scripts/generate-schema-doc.mjs
+          if ! git diff --exit-code docs/schema.md; then
+            echo
+            echo "docs/schema.md is not what the migrations say."
+            echo "Run 'npm run docs:schema' and commit the result with your migration."
+            exit 1
+          fi
