@@ -1646,11 +1646,12 @@ What it does not relax: a duplicate is still refused, by the unique index on
 `(company_id, number)` that has been there since the first release — stricter
 than per journal, and it fires when the entry is written rather than when it
 is posted — and an explicit number from somebody without the capability is
-refused exactly as before. The guard carries no `auth.uid() is null`
-exemption, unlike the permission checks, because a gapless sequence is a rule
-about the books and not a permission: an importer running over a superuser
-connection sets the request claim for the user it acts for, the way `ekwo
-demo` already does.
+refused exactly as before. The guard carries no exemption for the
+installation, unlike the permission checks, because a gapless sequence is a
+rule about the books and not a permission: an importer running over a
+superuser connection sets the request claim for the user it acts for, the way
+`ekwo demo` already does. It asks for the capability and for nothing else,
+which is also how a machine key holding `entries.import` is admitted.
 
 **And the counter catches up.** `number_counter()` reads a counter back out of
 a number through the pattern it was written with, and
@@ -1682,6 +1683,36 @@ request in its own transaction, a key is for a client that holds a connection,
 which is the self-hosted route the MCP server already has. Forging the setting
 buys nothing: what goes into it is the hash, and the hash is only readable by
 somebody who already holds `members.manage` and can simply issue a key.
+
+**The installer is named, because "no session" turned out to mean "a key".**
+Eleven guards were written as `auth.uid() is not null and not
+has_capability(…)`, meaning "the installation itself is exempt": `ekwo
+migrate`, the seeds and the CLI hold a database connection and no session, and
+a guard that asks for a capability would refuse the install. A key is
+precisely a caller with no `auth.uid()` — that is the design, not an accident
+— so every one of those guards stood aside for it, and the narrowest caller in
+the schema became the widest: a key issued with `["entries.read"]` could post
+an entry, book a document, close a year, invite a member, create a company and
+issue itself a second key carrying everything. Corrected on 13 September 2026
+by **`is_installer()`**, which is true only when the runner set
+`ekwo.installing` on its own connection, and false outright when there is a
+session or when `ekwo.api_key` is set. A caller reaching the database through
+PostgREST cannot set a GUC, and a caller holding a key has one set for it, so
+neither can ever be the installer whatever it does. `has_capability()` is now
+the only authority over people and machines alike, which is what this section
+already claimed it was.
+
+**A guard that answers NULL never fires.** The same audit found the other half
+of it: `is_company_owner()` and `can_write_company()` were built on
+`company_role()`, which is NULL for somebody who is not a member. In a policy
+that is harmless — `USING (NULL)` admits nothing — but `if not
+is_company_owner(c) then raise` does not branch on NULL, and
+`enable_module()` / `disable_module()` are SECURITY DEFINER on a table with no
+write policy, so they were the only door and it was open to any signed-in
+stranger. Both helpers now answer `false`, the two module functions ask for
+`company.write` instead of a role, and `hardening.test.ts` calls every boolean
+helper of the schema as a stranger and refuses one that answers NULL — so the
+shape stays safe for whoever writes the next guard.
 
 **A company has a face.** Eight columns on `companies` — trade name, logo URL
 or storage path (the core keeps no file), stated capital with its own

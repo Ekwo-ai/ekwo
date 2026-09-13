@@ -300,3 +300,198 @@ describe('who sees the keys of a company', () => {
     expect(byAccountant).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// The audit of 13 September 2026: a key was the widest caller, not the
+// narrowest.
+//
+// Eleven guards were written as `auth.uid() is not null and not
+// has_capability(…)`, meant as "the installer is exempt". A key is precisely a
+// caller with no `auth.uid()`, so every one of them stood aside for it.
+// Migration 20260913102115 names the installer instead — `is_installer()`,
+// false whenever `ekwo.api_key` is set — and `has_capability()` becomes the
+// only authority over a key, which is what it was always documented to be.
+// ---------------------------------------------------------------------------
+
+describe('a key that may only read', () => {
+  let readOnly: string;
+  let otherCompany: string;
+  let yearId: string;
+  let journalId: string;
+
+  beforeAll(async () => {
+    // Every `.read` capability and not one more — the viewer preset, as a
+    // machine. A key that could not even see a row would be refused by row
+    // level security before a guard was reached, and it is the guards that
+    // are on trial here.
+    const reads = (
+      await rows<{ code: string }>(db, `select code from capabilities where code like '%.read'`)
+    ).map((r) => r.code);
+    readOnly = (await issue(ownerId, 'Lecture seule', reads)).secret;
+    otherCompany = (await newCompany(db, { name: 'Voisine SRL' })).companyId;
+    yearId = (
+      await one<{ id: string }>(db, `select id from fiscal_years where company_id = $1 limit 1`, [
+        companyId,
+      ])
+    ).id;
+    journalId = (
+      await one<{ id: string }>(
+        db,
+        `select id from journals where company_id = $1 and code = 'MISC'`,
+        [companyId],
+      )
+    ).id;
+  });
+
+  it('cannot issue itself a second key carrying everything', async () => {
+    const message = await withKey(readOnly, () =>
+      expectError(
+        db,
+        `select * from create_api_key($1, 'Promotion', '["company.write","members.manage"]'::jsonb)`,
+        [companyId],
+      ),
+    );
+    expect(message).toMatch(/not_allowed: issuing a key for this company needs members\.manage/);
+  });
+
+  it('cannot post an entry', async () => {
+    const message = await withKey(readOnly, () =>
+      expectError(
+        db,
+        `insert into entries (company_id, journal_id, entry_date, description, state)
+         values ($1, $2, date '2026-06-01', 'Par la cle', 'posted')`,
+        [companyId, journalId],
+      ),
+    );
+    expect(message).toMatch(/not_allowed: posting an entry in this company needs entries\.post/);
+  });
+
+  it('cannot draw a number, nor a matching number', async () => {
+    const number = await withKey(readOnly, () =>
+      expectError(db, `select next_entry_number($1, date '2026-06-01')`, [journalId]),
+    );
+    expect(number).toMatch(/not_allowed: drawing a number/);
+
+    const matching = await withKey(readOnly, () =>
+      expectError(db, `select next_matching_number($1)`, [companyId]),
+    );
+    expect(matching).toMatch(/not_allowed: matching in this company/);
+  });
+
+  it('cannot book a document: row level security never hands it the row', async () => {
+    const changed = await withKey(readOnly, () =>
+      rows(db, `update documents set state = 'posted' where id = $1 returning id`, [documentId]),
+    );
+    expect(changed).toEqual([]);
+    expect(
+      (await one<{ state: string }>(db, `select state from documents where id = $1`, [documentId]))
+        .state,
+    ).not.toBe('posted');
+  });
+
+  it('cannot close a financial year, for the same reason', async () => {
+    const changed = await withKey(readOnly, () =>
+      rows(db, `update fiscal_years set is_closed = true where id = $1 returning id`, [yearId]),
+    );
+    expect(changed).toEqual([]);
+  });
+
+  it('cannot invite a member, nor create a company of its own', async () => {
+    const invite = await withKey(readOnly, () =>
+      expectError(db, `select * from invite_member($1, 'complice@example.test', 'owner')`, [
+        companyId,
+      ]),
+    );
+    expect(invite).toMatch(/not_allowed/);
+
+    const created = await withKey(readOnly, () =>
+      expectError(db, `select * from create_company('Fantome SRL', $1)`, ['BE']),
+    );
+    expect(created).toMatch(/not_instance_admin/);
+  });
+
+  it('cannot reach the company next door at all', async () => {
+    const message = await withKey(readOnly, () =>
+      expectError(
+        db,
+        `select * from create_api_key($1, 'Chez le voisin', '["entries.read"]'::jsonb)`,
+        [otherCompany],
+      ),
+    );
+    expect(message).toMatch(/not_allowed/);
+
+    const seen = await withKey(readOnly, () =>
+      rows(db, `select id from entries where company_id = $1`, [otherCompany]),
+    );
+    expect(seen).toEqual([]);
+  });
+
+  it('is never the installer, whatever the connection it travels over says', async () => {
+    // The connection this test suite holds *is* the installer: `freshDatabase`
+    // set `ekwo.installing`. Presenting a key withdraws it for the length of
+    // the transaction, which is the property the guards rest on.
+    const outside = await one<{ installer: boolean }>(db, `select is_installer() as installer`);
+    expect(outside.installer).toBe(true);
+
+    const inside = await withKey(readOnly, () =>
+      one<{ installer: boolean }>(db, `select is_installer() as installer`),
+    );
+    expect(inside.installer).toBe(false);
+  });
+});
+
+describe('a caller with neither a session nor a key', () => {
+  it('is not the installer just because it reached the authenticated role', async () => {
+    // What a PostgREST request with no JWT looks like. It cannot set a GUC,
+    // so it cannot claim to be installing.
+    await db.exec(`set role authenticated;`);
+    try {
+      const answer = await one<{ installer: boolean }>(
+        db,
+        `select is_installer() as installer from (select set_config('ekwo.installing', '', true)) s`,
+      );
+      expect(answer.installer).toBe(false);
+    } finally {
+      await db.exec(`reset role;`);
+    }
+  });
+});
+
+// A key that may change a draft and still may not put it in the ledger. This
+// is where the three triggers of 20260913083216 are the only thing standing
+// in the way: row level security hands the row over, and the guard has to
+// fire. Before 20260913102115 it did not, for any key at all.
+describe('a key that may write but not post', () => {
+  let writer: string;
+  let yearId: string;
+
+  beforeAll(async () => {
+    const caps = (
+      await rows<{ code: string }>(
+        db,
+        `select code from capabilities
+          where code like '%.read' or code in ('documents.write', 'entries.write', 'settings.write')`,
+      )
+    ).map((r) => r.code);
+    writer = (await issue(ownerId, 'Saisie', caps)).secret;
+    yearId = (
+      await one<{ id: string }>(db, `select id from fiscal_years where company_id = $1 limit 1`, [
+        companyId,
+      ])
+    ).id;
+  });
+
+  it('is refused when it books a document', async () => {
+    const message = await withKey(writer, () =>
+      expectError(db, `update documents set state = 'posted' where id = $1`, [documentId]),
+    );
+    expect(message).toMatch(/not_allowed: booking a document in this company needs documents\.post/);
+  });
+
+  it('is refused when it closes a financial year', async () => {
+    const message = await withKey(writer, () =>
+      expectError(db, `update fiscal_years set is_closed = true where id = $1`, [yearId]),
+    );
+    expect(message).toMatch(/not_allowed: closing or re-opening a financial year/);
+  });
+});
