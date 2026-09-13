@@ -269,7 +269,10 @@ and `edition` gates no feature.
 `general_ledger`, `aged_balance`, `vat_return`, `financial_statement` and
 `fec_lines` read it back — `financial_statement` on the schemes of the country
 pack, the Belgian abbreviated model or the French liasse, or on a generic
-framework by account type that fits any chart of accounts.
+framework by account type that fits any chart of accounts. The FEC of a
+financial year opens on its *à-nouveaux*, computed from the ledger and never
+posted, and carries the result of a year nobody has closed yet, so the file
+rebuilds the balance sheet it belongs to.
 `opening_balance(company, year, lines)` takes the trial balance of whatever
 kept the books before, and `close_fiscal_year(year)` closes a year the way the
 country pack says — straight to retained earnings, into a current-year result
