@@ -579,3 +579,120 @@ function stripStrings(text: string): string {
 function relative(path: string): string {
   return path.slice(repoRoot.length + 1);
 }
+
+// ---------------------------------------------------------------------------
+// The audit of 13 September 2026: a module shared the socle's lock.
+//
+// Every module policy asked `can_write_company()`, which is `entries.write` —
+// so whoever could draft a journal entry could also rewrite the fixed asset
+// register and next year's budget. Each module now declares its own
+// vocabulary in its own migration, which is where a module's words belong.
+// ---------------------------------------------------------------------------
+
+describe('a module’s own capabilities', () => {
+  it('are declared by the module, with the module code as their area', async () => {
+    const declared = await rows<{ code: string; area: string }>(
+      db,
+      `select code, area from capabilities
+        where area in (select code from modules) order by code`,
+    );
+    expect(declared).toEqual([
+      { code: 'assets.post', area: 'assets' },
+      { code: 'assets.read', area: 'assets' },
+      { code: 'assets.write', area: 'assets' },
+      { code: 'budgets.read', area: 'budgets' },
+      { code: 'budgets.write', area: 'budgets' },
+    ]);
+  });
+
+  it('are in the presets the socle uses: a viewer reads, an accountant works', async () => {
+    const preset = async (role: string): Promise<string[]> =>
+      (
+        await rows<{ capability: string }>(
+          db,
+          `select capability from role_capabilities
+            where role = $1::member_role
+              and capability in (select code from capabilities where area in (select code from modules))
+            order by capability`,
+          [role],
+        )
+      ).map((r) => r.capability);
+
+    expect(await preset('viewer')).toEqual(['assets.read', 'budgets.read']);
+    expect(await preset('accountant')).toEqual([
+      'assets.post',
+      'assets.read',
+      'assets.write',
+      'budgets.read',
+      'budgets.write',
+    ]);
+    expect(await preset('owner')).toEqual([
+      'assets.post',
+      'assets.read',
+      'assets.write',
+      'budgets.read',
+      'budgets.write',
+    ]);
+  });
+
+  it('is what every policy of a module now tests, and not the socle’s write lock', async () => {
+    const offenders = await rows<{ schemaname: string; tablename: string; policyname: string }>(
+      db,
+      `select p.schemaname, p.tablename, p.policyname
+         from pg_policies p
+        where p.schemaname in (select schema_name from modules)
+          and (coalesce(p.qual, '') like '%can_write_company%'
+               or coalesce(p.with_check, '') like '%can_write_company%')
+        order by 1, 2, 3`,
+    );
+    expect(
+      offenders,
+      'a module policy tests the socle’s write lock instead of its own capability',
+    ).toEqual([]);
+  });
+
+  it('keeps a member who holds entries.write but not the module’s out of it', async () => {
+    const other = await newCompany(db, { country: 'BE', name: 'Immobilisee SRL' });
+    await asUser(db, other.ownerId, async () => {
+      await db.query(`select enable_module($1, 'assets')`, [other.companyId]);
+      await db.query(`select enable_module($1, 'budgets')`, [other.companyId]);
+    });
+
+    const bookkeeper = crypto.randomUUID();
+    await db.query(
+      `insert into company_members (company_id, user_id, role, capabilities_revoked)
+       values ($1, $2, 'accountant', array['assets.write', 'budgets.write', 'assets.read'])`,
+      [other.companyId, bookkeeper],
+    );
+
+    await asUser(db, bookkeeper, async () => {
+      // Still an accountant of the company by every other measure.
+      expect(
+        (await rows(db, `select 1 as ok where has_capability($1, 'entries.write')`, [other.companyId]))
+          .length,
+      ).toBe(1);
+
+      // And nothing of the register: not a read, and not a write.
+      expect(await rows(db, `select id from assets.assets`)).toEqual([]);
+      const refused = await expectError(
+        db,
+        `insert into assets.assets (company_id, code, name, acquisition_date, cost,
+                                    asset_account_id, depreciation_account_id, expense_account_id,
+                                    duration_months, method)
+         values ($1, 'IM-1', 'Machine', date '2026-01-01', 1000,
+                 account_id_by_code($1, '240000'), account_id_by_code($1, '240900'),
+                 account_id_by_code($1, '630200'), 60, 'straight_line')`,
+        [other.companyId],
+      );
+      expect(refused).toMatch(/row-level security|violates/i);
+
+      const budget = await expectError(
+        db,
+        `insert into budgets.budgets (company_id, fiscal_year_id, name)
+         values ($1, (select id from fiscal_years where company_id = $1 limit 1), 'Plan')`,
+        [other.companyId],
+      );
+      expect(budget).toMatch(/row-level security|violates/i);
+    });
+  });
+});

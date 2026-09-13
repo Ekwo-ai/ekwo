@@ -1761,15 +1761,22 @@ applied order never depended on the timestamps anyway — `ekwo migrate` runs
 the socle first and the modules after.
 
 **The module policies already go through `has_capability()`, and their own
-codes are theirs to add.** `assets` and `budgets` write
+codes are theirs to add.** `assets` and `budgets` wrote
 `module_enabled(company, code) and can_write_company(company)`, and
-`can_write_company()` is now one capability — so a member who loses
-`entries.write` loses the module with it, which is the behaviour that was
-there before. Adding `assets.read` / `assets.write` to `capabilities` and
-rewriting those policies onto them is the right next step and it belongs in
-the module's own migration: a migration of the socle that named `assets` would
-be the socle knowing what is built beside it, which is the one thing
-`docs/modules.md` says it must not.
+`can_write_company()` is one capability — so a member who lost `entries.write`
+lost the module with it, which was the behaviour that was there before. **Done
+on 13 September 2026**, each in its own migration, because a migration of the
+socle that named `assets` would be the socle knowing what is built beside it.
+`assets` declares `assets.read` / `assets.write` / `assets.post`, `budgets`
+declares `budgets.read` / `budgets.write` and no `post` because it writes
+nothing to the ledger; `capabilities.area` is the module code, which is what
+that column was for. `assets.post` is asked *as well as* `entries.post`, not
+instead of it: one says the module may send this to the ledger, the other is
+the socle's own question, and an accountant who posts the books may be
+deliberately kept off the asset register. The presets follow the socle's — a
+viewer reads, an accountant works, an owner holds everything — and a code
+added after the socle's migration has to name the owner itself, because that
+preset was filled with `select 'owner', code from capabilities` at the time.
 
 ## ST14 — the audit of 13 September 2026
 
