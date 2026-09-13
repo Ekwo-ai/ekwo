@@ -15,6 +15,7 @@ import { EkwoMcpError, type Backend, type Row } from './backend.js';
 import * as columns from './columns.js';
 import * as read from './tools/read.js';
 import * as write from './tools/write.js';
+import { toolsetsFor } from './tools/modules.js';
 
 export const SERVER_NAME = '@ekwo-ai/mcp';
 export const SERVER_VERSION = '0.1.0';
@@ -48,7 +49,18 @@ async function guard(run: () => Promise<unknown>): Promise<CallToolResult> {
   }
 }
 
-export function buildServer(backend: Backend): McpServer {
+export interface ServerOptions {
+  /**
+   * The modules this installation carries, from `public.modules`. Their tools
+   * are registered under the module's own prefix — `assets_list`,
+   * `budgets_variance` — and a module that is not installed is not offered,
+   * because a tool a model cannot use is worse than a tool it cannot see.
+   * `bin.ts` asks the database; a test passes the list it wants.
+   */
+  modules?: readonly string[];
+}
+
+export function buildServer(backend: Backend, options: ServerOptions = {}): McpServer {
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
     {
@@ -599,6 +611,28 @@ export function buildServer(backend: Backend): McpServer {
       ],
     }),
   );
+
+  // ------------------------------------------------------------------ modules
+  //
+  // The socle's tools are written out above because they are the socle. A
+  // module's are declared as data and registered here, so adding a module to
+  // this server is adding a toolset to `tools/modules.ts` and nothing else —
+  // the same shape the registry table takes in the database.
+
+  for (const toolset of toolsetsFor(options.modules ?? [])) {
+    for (const tool of toolset.tools) {
+      server.registerTool(
+        `${toolset.prefix}_${tool.verb}`,
+        {
+          title: tool.title,
+          description: tool.description,
+          inputSchema: tool.input.shape,
+          annotations: { readOnlyHint: tool.readOnly, openWorldHint: false },
+        },
+        async (args) => guard(() => tool.run(backend, args as Record<string, never>)),
+      );
+    }
+  }
 
   return server;
 }

@@ -15,6 +15,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { openBackend, readConfig } from './config.js';
 import { buildServer } from './server.js';
+import { installedModules } from './tools/modules.js';
 
 async function main(): Promise<void> {
   const argument = process.argv[2];
@@ -29,7 +30,11 @@ async function main(): Promise<void> {
 
   const config = readConfig(process.env);
   const backend = await openBackend(config);
-  const server = buildServer(backend);
+  // What this installation carries, from the registry table. A database that
+  // predates the module framework answers with nothing, and the socle's own
+  // tools are all a client then sees.
+  const modules = await installedModules(backend);
+  const server = buildServer(backend, { modules });
 
   const shutdown = async (): Promise<void> => {
     await server.close().catch(() => {});
@@ -41,7 +46,8 @@ async function main(): Promise<void> {
 
   await server.connect(new StdioServerTransport());
   process.stderr.write(
-    `ekwo-mcp: connected over ${config.mode === 'sql' ? 'a direct Postgres connection' : 'PostgREST as the signed-in user'}\n`,
+    `ekwo-mcp: connected over ${config.mode === 'sql' ? 'a direct Postgres connection' : 'PostgREST as the signed-in user'}` +
+      `${modules.length > 0 ? `, modules: ${modules.join(', ')}` : ''}\n`,
   );
 }
 

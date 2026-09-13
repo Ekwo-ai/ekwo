@@ -30,6 +30,12 @@ export interface Order {
 export interface SelectQuery {
   table: string;
   /**
+   * The Postgres schema the table lives in. Undefined is `public`, which is
+   * the socle; a module names its own — `assets`, `budgets` — and PostgREST
+   * serves it only once the project lists it under its exposed schemas.
+   */
+  schema?: string;
+  /**
    * Columns to read. A `numeric` column is asked for as `amount::text`, so it
    * arrives as the decimal string Postgres holds rather than as a float that
    * JSON happened to survive. Both backends understand that spelling.
@@ -53,13 +59,19 @@ export interface Backend {
    * one composite row and an array for a set, and a tool should not have to
    * care which route it came over.
    */
-  rpc<T = Row>(fn: string, args?: Record<string, unknown>): Promise<T[]>;
+  rpc<T = Row>(fn: string, args?: Record<string, unknown>, schema?: string): Promise<T[]>;
   /** The same, for a function that returns nothing. */
-  rpcVoid(fn: string, args?: Record<string, unknown>): Promise<void>;
+  rpcVoid(fn: string, args?: Record<string, unknown>, schema?: string): Promise<void>;
   select<T = Row>(query: SelectQuery): Promise<T[]>;
-  insert<T = Row>(table: string, rows: Row[], returning?: string[]): Promise<T[]>;
-  update<T = Row>(table: string, patch: Row, where: Filter[], returning?: string[]): Promise<T[]>;
-  remove(table: string, where: Filter[]): Promise<void>;
+  insert<T = Row>(table: string, rows: Row[], returning?: string[], schema?: string): Promise<T[]>;
+  update<T = Row>(
+    table: string,
+    patch: Row,
+    where: Filter[],
+    returning?: string[],
+    schema?: string,
+  ): Promise<T[]>;
+  remove(table: string, where: Filter[], schema?: string): Promise<void>;
   close(): Promise<void>;
 }
 
@@ -168,6 +180,17 @@ const IDENTIFIER = /^[a-z_][a-z0-9_]*$/;
  * of them comes from a tool argument. This function is the proof of that
  * rather than a defence against it, and it costs nothing to keep true.
  */
+/**
+ * `assets.assets`, or `assets` when there is no schema to name.
+ *
+ * Both halves go through `identifier()`, so a module code that came from the
+ * registry rather than from this package still cannot be anything but a plain
+ * lowercase name.
+ */
+export function qualified(schema: string | undefined, name: string): string {
+  return schema === undefined ? identifier(name) : `${identifier(schema)}.${identifier(name)}`;
+}
+
 export function identifier(name: string): string {
   if (!IDENTIFIER.test(name)) {
     throw new EkwoMcpError(`bad_identifier: ${name} is not a plain column or table name`);

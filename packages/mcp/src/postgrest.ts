@@ -132,27 +132,38 @@ export async function postgrestBackend(options: PostgrestBackendOptions): Promis
     actingAs = data.user?.id;
   }
 
+  /**
+   * The client, pointed at one schema.
+   *
+   * PostgREST serves a schema other than `public` through the `Accept-Profile`
+   * and `Content-Profile` headers, which `supabase-js` sets for you through
+   * `.schema()`. It answers 406 for a schema the project does not expose, and
+   * no migration can expose one — `ekwo module enable` prints the line to add.
+   */
+  const on = (schema: string | undefined): typeof client =>
+    schema === undefined ? client : (client.schema(identifier(schema)) as unknown as typeof client);
+
   return {
     mode: 'postgrest',
     actingAs,
 
-    async rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T[]> {
-      const answer = (await client.rpc(identifier(fn), args)) as Answer<unknown>;
+    async rpc<T>(fn: string, args: Record<string, unknown> = {}, schema?: string): Promise<T[]> {
+      const answer = (await on(schema).rpc(identifier(fn), args)) as Answer<unknown>;
       const data = unwrap(answer, fn);
       // A function returning one composite row comes back as an object, a
       // set-returning one as an array. Tools see an array either way.
       return (Array.isArray(data) ? data : [data]) as T[];
     },
 
-    async rpcVoid(fn: string, args: Record<string, unknown> = {}): Promise<void> {
-      const answer = (await client.rpc(identifier(fn), args)) as Answer<unknown>;
+    async rpcVoid(fn: string, args: Record<string, unknown> = {}, schema?: string): Promise<void> {
+      const answer = (await on(schema).rpc(identifier(fn), args)) as Answer<unknown>;
       if (answer.error !== null) {
         throw explain(answer.error.message);
       }
     },
 
     async select<T>(query: SelectQuery): Promise<T[]> {
-      let builder = client.from(identifier(query.table)).select(query.columns.join(','));
+      let builder = on(query.schema).from(identifier(query.table)).select(query.columns.join(','));
       builder = applyFilters(builder, query.where);
       for (const order of query.order ?? []) {
         builder = builder.order(identifier(order.column), { ascending: order.ascending !== false });
@@ -161,8 +172,13 @@ export async function postgrestBackend(options: PostgrestBackendOptions): Promis
       return unwrap((await builder) as Answer<T[]>, `select from ${query.table}`);
     },
 
-    async insert<T>(table: string, rows: Row[], returning: string[] = ['*']): Promise<T[]> {
-      const answer = (await client
+    async insert<T>(
+      table: string,
+      rows: Row[],
+      returning: string[] = ['*'],
+      schema?: string,
+    ): Promise<T[]> {
+      const answer = (await on(schema)
         .from(identifier(table))
         .insert(rows)
         .select(returning.join(','))) as Answer<T[]>;
@@ -174,15 +190,16 @@ export async function postgrestBackend(options: PostgrestBackendOptions): Promis
       patch: Row,
       where: Filter[],
       returning: string[] = ['*'],
+      schema?: string,
     ): Promise<T[]> {
-      let builder = client.from(identifier(table)).update(patch);
+      let builder = on(schema).from(identifier(table)).update(patch);
       builder = applyFilters(builder, where);
       const answer = (await builder.select(returning.join(','))) as Answer<T[]>;
       return unwrap(answer, `update ${table}`);
     },
 
-    async remove(table: string, where: Filter[]): Promise<void> {
-      let builder = client.from(identifier(table)).delete();
+    async remove(table: string, where: Filter[], schema?: string): Promise<void> {
+      let builder = on(schema).from(identifier(table)).delete();
       builder = applyFilters(builder, where);
       const answer = (await builder) as Answer<unknown>;
       if (answer.error !== null) throw explain(answer.error.message);

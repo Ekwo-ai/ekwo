@@ -21,6 +21,13 @@ export { ENV, isServiceRoleKey, openBackend, readConfig, type Config } from './c
 export { amountIn, decimal, money, moneyFields, type Decimal } from './format.js';
 export { connect, sqlBackend, type SqlBackendOptions, type SqlClient } from './sql.js';
 export { postgrestBackend, type PostgrestBackendOptions } from './postgrest.js';
-export { SERVER_NAME, SERVER_VERSION, buildServer } from './server.js';
+export { SERVER_NAME, SERVER_VERSION, buildServer, type ServerOptions } from './server.js';
 export * as readTools from './tools/read.js';
 export * as writeTools from './tools/write.js';
+export {
+  MODULE_TOOLSETS,
+  installedModules,
+  toolsetsFor,
+  type ModuleTool,
+  type ModuleToolset,
+} from './tools/modules.js';

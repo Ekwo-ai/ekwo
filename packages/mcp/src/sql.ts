@@ -18,6 +18,7 @@ import {
   columnName,
   explain,
   identifier,
+  qualified,
   type Backend,
   type Filter,
   type Row,
@@ -100,7 +101,11 @@ export interface SqlBackendOptions {
  * stringified here and the placeholder carries an explicit `::jsonb`, which
  * makes the two routes agree instead of agreeing by accident on one driver.
  */
-function callOf(fn: string, args: Record<string, unknown>): { call: string; params: unknown[] } {
+function callOf(
+  fn: string,
+  args: Record<string, unknown>,
+  schema?: string,
+): { call: string; params: unknown[] } {
   const entries = Object.entries(args);
   const params: unknown[] = [];
   const parts = entries.map(([name, value], index) => {
@@ -108,7 +113,7 @@ function callOf(fn: string, args: Record<string, unknown>): { call: string; para
     params.push(json ? JSON.stringify(value) : value);
     return `${identifier(name)} => $${index + 1}${json ? '::jsonb' : ''}`;
   });
-  return { call: `${identifier(fn)}(${parts.join(', ')})`, params };
+  return { call: `${qualified(schema, fn)}(${parts.join(', ')})`, params };
 }
 
 export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
@@ -140,8 +145,8 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
     mode: 'sql',
     actingAs: options.userId,
 
-    async rpc<T>(fn: string, args: Record<string, unknown> = {}): Promise<T[]> {
-      const { call, params } = callOf(fn, args);
+    async rpc<T>(fn: string, args: Record<string, unknown> = {}, schema?: string): Promise<T[]> {
+      const { call, params } = callOf(fn, args, schema);
       // Aggregated as JSON so the shape matches what PostgREST returns for the
       // same function, instead of depending on how a driver types a column.
       const rows = await asUser((tx) =>
@@ -153,14 +158,14 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
       return (rows[0]?.value ?? []) as T[];
     },
 
-    async rpcVoid(fn: string, args: Record<string, unknown> = {}): Promise<void> {
-      const { call, params } = callOf(fn, args);
+    async rpcVoid(fn: string, args: Record<string, unknown> = {}, schema?: string): Promise<void> {
+      const { call, params } = callOf(fn, args, schema);
       await asUser((tx) => tx.query(`select ${call}`, params));
     },
 
     async select<T>(query: SelectQuery): Promise<T[]> {
       const params: unknown[] = [];
-      let sql = `select ${selectList(query.columns)} from ${identifier(query.table)}`;
+      let sql = `select ${selectList(query.columns)} from ${qualified(query.schema, query.table)}`;
       sql += whereClause(query.where, params);
       if (query.order !== undefined && query.order.length > 0) {
         const parts = query.order.map(
@@ -175,7 +180,12 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
       return asUser((tx) => tx.query<T>(sql, params));
     },
 
-    async insert<T>(table: string, rows: Row[], returning: string[] = ['*']): Promise<T[]> {
+    async insert<T>(
+      table: string,
+      rows: Row[],
+      returning: string[] = ['*'],
+      schema?: string,
+    ): Promise<T[]> {
       if (rows.length === 0) return [];
       const columns = Object.keys(rows[0] as Row).map(identifier);
       const params: unknown[] = [];
@@ -187,7 +197,7 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
         return `(${slots.join(', ')})`;
       });
       const sql =
-        `insert into ${identifier(table)} (${columns.join(', ')}) values ${tuples.join(', ')}` +
+        `insert into ${qualified(schema, table)} (${columns.join(', ')}) values ${tuples.join(', ')}` +
         ` returning ${returning[0] === '*' ? '*' : selectList(returning)}`;
       return asUser((tx) => tx.query<T>(sql, params));
     },
@@ -197,6 +207,7 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
       patch: Row,
       where: Filter[],
       returning: string[] = ['*'],
+      schema?: string,
     ): Promise<T[]> {
       const params: unknown[] = [];
       const assignments = Object.keys(patch).map((column) => {
@@ -207,15 +218,15 @@ export function sqlBackend(db: SqlClient, options: SqlBackendOptions): Backend {
         throw new EkwoMcpError(`empty_update: nothing to change on ${table}`);
       }
       const sql =
-        `update ${identifier(table)} set ${assignments.join(', ')}` +
+        `update ${qualified(schema, table)} set ${assignments.join(', ')}` +
         whereClause(where, params) +
         ` returning ${returning[0] === '*' ? '*' : selectList(returning)}`;
       return asUser((tx) => tx.query<T>(sql, params));
     },
 
-    async remove(table: string, where: Filter[]): Promise<void> {
+    async remove(table: string, where: Filter[], schema?: string): Promise<void> {
       const params: unknown[] = [];
-      const sql = `delete from ${identifier(table)}` + whereClause(where, params);
+      const sql = `delete from ${qualified(schema, table)}` + whereClause(where, params);
       await asUser((tx) => tx.query(sql, params));
     },
 

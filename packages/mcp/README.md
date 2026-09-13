@@ -131,6 +131,16 @@ Every write names its company explicitly.
 `lock_period` are annotated destructive in the protocol, so a client can ask
 before calling them.
 
+**The modules.** A module of this installation gets its own tools, under the
+prefix its `module.json` declares, and the server reads `public.modules` at
+startup to know which: `assets_list`, `assets_create`, `assets_schedule`,
+`assets_run_depreciation`, `assets_dispose`, `budgets_list`,
+`budgets_upsert_lines`, `budgets_variance`. A module that is not installed is
+not offered, because a tool a model cannot use is worse than a tool it cannot
+see. PostgREST serves a module's schema only once the project exposes it, and
+the refusal it answers with is a profile error that says nothing useful — so
+every module tool turns it into the sentence that names the setting.
+
 **Resources.** `ekwo://companies/{id}/chart` is the whole chart of accounts;
 `ekwo://companies/{id}/taxes` is every tax with the ledger account and the
 declaration box each of its postings feeds.
