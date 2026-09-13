@@ -11,7 +11,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readTools, writeTools, type Backend } from '../../packages/mcp/src/index.js';
 import { freshDatabase } from '../helpers/db.js';
-import { newCompany, type Fixture } from '../helpers/factory.js';
+import { newCompany, numberShape, type Fixture } from '../helpers/factory.js';
 import { addBankAccount, backendFor, ledgerOfEntry, list, record } from './helpers.js';
 
 let db: PGlite;
@@ -113,7 +113,7 @@ describe('the books, through the tools', () => {
     entryId = String(entry['id']);
 
     expect(entry['state']).toBe('posted');
-    expect(entry['number']).toMatch(/^SAL\/2026\/\d{4}$/);
+    expect(entry['number']).toMatch(await numberShape(db, fx.companyId, 'SAL', '2026-06-15'));
     expect(entry['total_debit']).toBe('1210.00');
     expect(entry['total_credit']).toBe('1210.00');
 

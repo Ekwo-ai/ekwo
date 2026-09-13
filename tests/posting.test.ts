@@ -1,7 +1,15 @@
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { expectError, freshDatabase, one, rows } from './helpers/db.js';
-import { ledgerOf, newCompany, newContact, newDocument, type Fixture } from './helpers/factory.js';
+import {
+  expectedNumber,
+  ledgerOf,
+  newCompany,
+  newContact,
+  newDocument,
+  numberShape,
+  type Fixture,
+} from './helpers/factory.js';
 
 let db: PGlite;
 let fx: Fixture;
@@ -43,7 +51,7 @@ describe('post_document — Belgian sales', () => {
     expect(entry.total_debit).toBe('1210.00');
     expect(entry.total_credit).toBe('1210.00');
     expect(entry.state).toBe('posted');
-    expect(entry.number).toMatch(/^SAL\/2026\/\d{4}$/);
+    expect(entry.number).toMatch(await numberShape(db, fx.companyId, 'SAL', '2026-06-15'));
 
     const document = await one<{ state: string; amount_total: string; payment_state: string }>(
       db,
@@ -284,14 +292,20 @@ describe('post_document — refusals', () => {
     expect(message).toMatch(/accounts_third_party_reconcilable/);
   });
 
-  it('numbers entries per journal and per year', async () => {
-    const numbers = await rows<{ number: string }>(
+  it('numbers entries per journal and per year, on the pattern the pack declares', async () => {
+    const shape = await numberShape(db, fx.companyId, 'SAL', '2026-06-15');
+    const sales = await rows<{ number: string }>(
       db,
-      `select number from entries where company_id = $1 and number like 'SAL/%' order by number`,
+      `select e.number from entries e join journals j on j.id = e.journal_id
+        where e.company_id = $1 and j.code = 'SAL' and e.number is not null
+        order by e.number`,
       [fx.companyId],
     );
-    expect(numbers.length).toBeGreaterThan(1);
-    expect(numbers[0]?.number).toBe('SAL/2026/0001');
-    expect(new Set(numbers.map((n) => n.number)).size).toBe(numbers.length);
+    expect(sales.length).toBeGreaterThan(1);
+    for (const entry of sales) expect(entry.number).toMatch(shape);
+    // The first one is the pattern with the counter at one — built from the
+    // pack here, not typed out, so a pack that renumbers renumbers this too.
+    expect(sales[0]?.number).toBe(await expectedNumber(db, fx.companyId, 'SAL', '2026-06-15', 1));
+    expect(new Set(sales.map((n) => n.number)).size).toBe(sales.length);
   });
 });

@@ -2,11 +2,12 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
 import {
-  demoCompanyId,
   DEMO_OWNER,
+  demoCompanyId,
   newCompany,
   newContact,
   newDocument,
+  numberShape,
 } from './helpers/factory.js';
 
 let db: PGlite;
@@ -157,7 +158,7 @@ describe('row level security', () => {
       one<{ number: string; state: string }>(db, `select * from post_document($1)`, [doc]),
     );
     expect(entry.state).toBe('posted');
-    expect(entry.number).toMatch(/^SAL\/2026\/\d{4}$/);
+    expect(entry.number).toMatch(await numberShape(db, companyId, 'SAL', '2026-09-15'));
 
     // And money against it, which draws a matching letter from the other counter.
     const matching = await asUser(db, accountantId, async () => {

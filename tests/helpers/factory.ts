@@ -198,3 +198,77 @@ export async function ledgerOf(db: PGlite, documentId: string): Promise<LedgerLi
     [documentId],
   );
 }
+
+/**
+ * What a number of this company looks like, as a pattern, read from the
+ * country pack rather than written down here.
+ *
+ * A test that asserts `SAL/2026/0001` asserts Belgium's answer, which is the
+ * thing the schema stopped doing when numbering started reading
+ * `country_defaults.number_format`. These two helpers build the expectation
+ * from the pattern the pack declares, so a pack that changes its numbering
+ * changes what the tests expect with it.
+ */
+export async function numberFormatOf(db: PGlite, companyId: string): Promise<string> {
+  const row = await one<{ number_format: string | null }>(
+    db,
+    `select number_format from numbering_rules($1)`,
+    [companyId],
+  );
+  if (row.number_format === null) throw new Error('this company has no number format to test against');
+  return row.number_format;
+}
+
+const NUMBER_TOKENS = /(\{CODE\}|\{YYYY\}|\{YY\}|\{MM\}|\{N+\})/;
+
+function renderNumberPart(
+  part: string,
+  journalCode: string,
+  date: Date,
+  counter: string,
+): string {
+  const year = String(date.getUTCFullYear());
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+  if (part === '{CODE}') return journalCode;
+  if (part === '{YYYY}') return year;
+  if (part === '{YY}') return year.slice(-2);
+  if (part === '{MM}') return month;
+  if (/^\{N+\}$/.test(part)) return counter.padStart(part.length - 2, '0');
+  return part;
+}
+
+/** The exact number the nth document of a journal gets, on this pack. */
+export async function expectedNumber(
+  db: PGlite,
+  companyId: string,
+  journalCode: string,
+  isoDate: string,
+  counter: number,
+): Promise<string> {
+  const format = await numberFormatOf(db, companyId);
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  return format
+    .split(NUMBER_TOKENS)
+    .map((part) => renderNumberPart(part, journalCode, date, String(counter)))
+    .join('');
+}
+
+/** The shape every number of a journal has, on this pack. */
+export async function numberShape(
+  db: PGlite,
+  companyId: string,
+  journalCode: string,
+  isoDate: string,
+): Promise<RegExp> {
+  const format = await numberFormatOf(db, companyId);
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  const body = format
+    .split(NUMBER_TOKENS)
+    .map((part) =>
+      /^\{N+\}$/.test(part)
+        ? `\\d{${part.length - 2},}`
+        : renderNumberPart(part, journalCode, date, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    )
+    .join('');
+  return new RegExp(`^${body}$`);
+}

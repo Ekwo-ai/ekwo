@@ -19,7 +19,13 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
-import { newCompany, newContact, newDocument, type Fixture } from './helpers/factory.js';
+import {
+  newCompany,
+  newContact,
+  newDocument,
+  numberShape,
+  type Fixture,
+} from './helpers/factory.js';
 
 let db: PGlite;
 
@@ -171,7 +177,7 @@ describe('an opening balance imported from whatever kept the books before', () =
     expect(entry.journal_type).toBe('opening');
     expect(entry.entry_date).toBe('2026-01-01');
     expect(entry.state).toBe('posted');
-    expect(entry.number).toMatch(/^OPN\/2026\/\d{4}$/);
+    expect(entry.number).toMatch(await numberShape(db, fx.companyId, 'OPN', '2026-01-01'));
 
     expect(await balancesAt(fx.companyId, '2026-01-01', '2026-12-31')).toEqual([
       { code: '100000', closing_balance: '-15630.00' },

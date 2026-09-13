@@ -491,9 +491,17 @@ describe('no country lives in what this change added', () => {
     }
   });
 
-  it('added no function at all, which is what "nothing executable" means', async () => {
-    // Read as: no function of the schema consults the document rules of a
-    // country. It is asked of functions that touch `country_defaults` at all,
+  it('left the document rules of a country to one reader, and no other', async () => {
+    // P0-7 shipped with nothing executable: no function read any of these
+    // columns, and this test asserted an empty list. ST13 wrote the numbering
+    // engine P0-7 said would come — "a numbering engine that consumes a
+    // format is its own piece of work" — so one function reads them now, and
+    // the rule becomes: exactly one, named here. `numbering_rules()` answers
+    // both questions the number asks, `next_entry_number()` and `post_entry()`
+    // call it, and nothing else goes near `country_defaults` for a document
+    // rule.
+    //
+    // The query asks about functions that touch `country_defaults` at all,
     // because `number_format` is also the name of a user preference — how one
     // person likes a number written — and a homonym in another table is not
     // this rule being broken.
@@ -507,6 +515,6 @@ describe('no country lives in what this change added', () => {
                or p.prosrc ilike '%tax_point_rule%' or p.prosrc ilike '%number_format%')
         order by 1`,
     );
-    expect(added.map((f) => f.proname)).toEqual([]);
+    expect(added.map((f) => f.proname)).toEqual(['numbering_rules']);
   });
 });
