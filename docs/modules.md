@@ -84,17 +84,36 @@ that carries `company_id` gets a policy of the shape
 
 ```sql
 create policy assets_select on assets.assets
-  for select using (public.module_enabled(company_id, 'assets'));
+  for select using (
+    public.module_enabled(company_id, 'assets')
+    and public.has_capability(company_id, 'assets.read')
+  );
 create policy assets_write on assets.assets
-  for all using (public.module_enabled(company_id, 'assets') and public.can_write_company(company_id))
-  with check (public.module_enabled(company_id, 'assets') and public.can_write_company(company_id));
+  for all using (
+    public.module_enabled(company_id, 'assets')
+    and public.has_capability(company_id, 'assets.write')
+  )
+  with check (
+    public.module_enabled(company_id, 'assets')
+    and public.has_capability(company_id, 'assets.write')
+  );
 ```
 
 `module_enabled()` is the module being on for that company **and** the caller
-being a member of it, so one call is the whole question and a stranger gets
-nothing. A table with no `company_id` is reference data of the installation,
-like `country_defaults`, and gets the signed-in select policy. A test refuses
-any other arrangement.
+being a member of it, so a stranger gets nothing before a capability is even
+asked about. A table with no `company_id` is reference data of the
+installation, like `country_defaults`, and gets the signed-in select policy. A
+test refuses any other arrangement.
+
+**The capability is the module's own**, declared in the module's own migration
+with `capabilities.area` set to the module code — `assets.read` /
+`assets.write` / `assets.post`, `budgets.read` / `budgets.write` — and added to
+the three presets there too, because the socle filled the owner preset with
+`select 'owner', code from capabilities` at its own migration time and a code
+that arrives later has to name itself. Borrowing the socle's
+`can_write_company()` is what these two did until 13 September 2026, and it
+meant whoever could draft a journal entry could also rewrite the fixed asset
+register. A test refuses a module policy that tests it.
 
 **4. A module does its own grants.** `public` gets them from Supabase's default
 privileges; a schema a migration created gets nothing at all. Every module
