@@ -51,7 +51,11 @@ jobs:
   hygiene:
     runs-on: ubuntu-latest
     steps:
+      # Full history and tags: "additive" is a question about what came
+      # before, and a shallow clone cannot answer it.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -76,19 +80,54 @@ jobs:
           fi
       - name: Migrations are additive
         run: |
-          # A released migration must never be edited. On a pull request,
-          # every .sql file under supabase/migrations — and under a module's
-          # own migrations folder, which is the same rule one schema out —
-          # that changed must be new. The README of those folders is
-          # documentation, so it is not in the glob.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
-            changed=$(git diff --diff-filter=MD --name-only "origin/${{ github.base_ref }}" \
-                        -- 'supabase/migrations/*.sql' 'modules/*/supabase/migrations/*.sql' || true)
+          set -euo pipefail
+          # A released migration must never be edited. It has run on databases
+          # we do not control, and a new file is the only way to correct one.
+          #
+          # This used to run on `pull_request` only, and everything was pushed
+          # straight to `main` — so between 11 and 13 September 2026 eight
+          # published migrations were edited across two and three commits each
+          # and the job never looked. It now runs on both events, and on a
+          # push to `main` it compares against two things: the commit that was
+          # there a moment ago, and the latest tag, which is the released set.
+          # A branch that was merged cleanly passes the first and would still
+          # be caught by the second if it had rewritten a released file.
+          #
+          # The README of those folders is documentation, so it is not in the
+          # glob.
+          check() {
+            base="$1"
+            label="$2"
+            changed=$(git diff --diff-filter=MD --name-only "$base" -- \
+                        'supabase/migrations/*.sql' \
+                        'modules/*/supabase/migrations/*.sql' || true)
             if [ -n "$changed" ]; then
-              echo "These migrations were modified or deleted:"
+              echo "Against $label ($base), these migrations were modified or deleted:"
               echo "$changed"
-              echo "Add a new migration instead."
+              echo "Add a new migration instead; a published one is never edited."
               exit 1
             fi
+            echo "No published migration changed against $label."
+          }
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags origin "${{ github.base_ref }}"
+            check "origin/${{ github.base_ref }}" "the base branch"
+            exit 0
+          fi
+
+          before="${{ github.event.before }}"
+          if [ -n "$before" ] \
+             && [ "$before" != "0000000000000000000000000000000000000000" ] \
+             && git cat-file -e "$before^{commit}" 2>/dev/null; then
+            check "$before" "the previous commit of this branch"
+          else
+            echo "No previous commit to compare against — a first push, or a forced update."
+          fi
+
+          tag=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -n "$tag" ]; then
+            check "$tag" "the latest tag"
+          else
+            echo "No tag yet, so nothing has been released and there is nothing to protect."
           fi

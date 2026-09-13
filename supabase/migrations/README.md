@@ -76,14 +76,31 @@ Always number after the newest file on `main`, and check `git log` first.
    one corrects it. The CI's *hygiene* job refuses a pull request that
    modifies or deletes a published migration.
 
-   This was broken **once**, on 12 September 2026, knowingly and with the
-   only reason that can justify it: no installation anywhere had run these
-   files. Five country literals — the Belgian frame VI in `…121000`, and four
-   backfills naming two countries in `…183000`, `…074712` and `…080311` —
-   were removed from their own files rather than only overridden later,
-   because "a country is data" is now a test over every file of this
-   directory, and a literal in a published migration is a literal in the
-   repository. It does not become a habit: the next one gets a new file.
+   **What actually happened between 11 and 13 September 2026.** Eight files
+   of this directory carry two or three commits each:
+   `…121000_reporting`, `…183000_country_journal_defaults`,
+   `…074712_country_packs`, `…080311_report_code_and_region`,
+   `…090407_tax_report_boxes`, `…094412_opening_and_closing`,
+   `…100412_financial_statements` and `…084402_user_preferences`. Some of it
+   was the deliberate removal of five country literals on 12 September —
+   the Belgian frame VI in `…121000` and four backfills naming two countries
+   — recorded here at the time. The rest was not deliberate: it was work
+   continuing on a file that had already been pushed.
+
+   None of it reached an installation. Every one of those pushes went
+   straight to `main`, no tag existed, `ekwo` had not been released, and no
+   database outside this repository had run any of these files — which is
+   the one circumstance in which editing a published migration costs
+   nothing. The reason it went unnoticed is that the CI job below was gated
+   on `pull_request` and nothing ever opened one.
+
+   **The rule is absolute from `v0.2.0` on.** The job now also runs on every
+   push to `main`, comparing against the previous commit and against the
+   latest tag, so a modified or deleted `.sql` under this directory or under
+   `modules/*/supabase/migrations/` fails the build whatever route it took.
+   History is not rewritten: the eight files stay as they are, and what they
+   contain today is what a fresh installation gets. From here a mistake in a
+   published migration is corrected by a new migration, always.
 2. **Every new table gets row level security in the same file** — `enable
    row level security` and at least one policy. A test fails otherwise.
 3. **Every table that belongs to a company carries `company_id`**, and its
