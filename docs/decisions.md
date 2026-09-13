@@ -2000,6 +2000,14 @@ answer to give and a missing label is not a reason to hold an export back.
 A pack is asked for nothing at all when there is nothing to carry: a first set
 of books opens on nil and needs neither a journal nor a result account.
 
+**And the deprecated FEC re-export is gone**, which is the other half of a
+sentence written on 12 September: `packages/core` kept `src/fec.ts` alive,
+marked `@deprecated` and unchanged, so that `@ekwo-ai/core` and
+`@ekwo-ai/core/fec` went on working for one version — "the re-export goes in
+the next". This is the next one. The core still depends on `@ekwo-ai/fec`,
+because `EkwoClient.generateFec()` writes the file it has just fetched; what it
+no longer does is re-export somebody else's API as its own.
+
 **For an accountant to read.** Three things here are our reading rather than a
 rule we can cite. The opening lines are one entry per year rather than one per
 account, numbered from the opening journal's code and the day the year opens —
