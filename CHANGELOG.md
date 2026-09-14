@@ -11,6 +11,51 @@ somewhere has already run it.
 
 ### Added
 
+- **An append-only audit trail, and the first pack upgrade.**
+  The ledger was already immutable — an entry is posted once and corrected by a
+  reversal — but everything *around* it was not: the chart of accounts, the
+  journals, the taxes and the accounts they post to, the bank accounts, the
+  contacts, the products, the financial years, the members and their roles, the
+  pack version a company holds. Those decide how every future entry is booked,
+  and nothing recorded that one of them had moved.
+  **`audit_log`** records who (`auth.uid()`, and the machine key where one was
+  presented), what (the table, the natural key, the row before and after as
+  `jsonb`, the operation), when, and the company the change belongs to. Beside
+  the ordinary edits it records the acts: a document posted or cancelled, an
+  entry posted or reversed, a payment booked, matched or unmatched, a financial
+  year closed or reopened, a pack upgraded. The ledger itself is not audited: a
+  posted entry is immutable and is corrected by a reversal, so what is recorded
+  is the act of posting and never the lines.
+  **Append-only is a trigger, not a policy.** Policies do not apply to the table
+  owner and `service_role` carries BYPASSRLS, so an audit trail defended only by
+  row level security is one the operator can quietly rewrite. Nothing updates a
+  row and nothing deletes one, except `purge_audit_log(date)` — `service_role`
+  only, no default retention, and it writes its own row saying how many it
+  dropped. Members of a company read its trail and nobody else sees anything.
+  `api_keys.key_hash` and `company_invitations.token_hash` are never copied into
+  it.
+  **`ekwo pack status`** shows what each company copied against what the
+  installation holds, and changes nothing. **`ekwo pack upgrade <company>`**
+  moves it: the difference is computed by natural key and every difference falls
+  into one of three rules — an addition is copied in, a closed validity is
+  applied, and everything else is listed and left exactly where it was until
+  `--apply`. A row the company holds and the pack does not is never applied at
+  all: nothing is removed from a company's books by an upgrade. The recorded
+  version moves only when nothing is left waiting. The rules live in the schema,
+  `pack_upgrade_diff()` and `pack_upgrade()`, so an application or an assistant
+  asking the same question gets the same answer.
+  **The upgrade is tested from the published 1.0.0**, not from a fixture: the
+  four hand-written seeds kept since the pack format replaced them are replayed,
+  a company is installed from them, this release's packs land on top, and the
+  test asserts that nothing is silent.
+  **Versioning the socle.** Each of `ekwo`, `@ekwo-ai/core` and `@ekwo-ai/mcp`
+  declares a `schema_min`, in `package.json` and as a constant, the way a country
+  pack declares one in its manifest; the MCP server asks `ekwo_schema_version()`
+  before it offers a tool and refuses an older database by name; `ekwo migrate`
+  recommends a snapshot before it applies anything, because migrations move
+  forward only and there is no `down`.
+  **`read_audit_log`** is the MCP tool for it — filters on table, natural key,
+  user, act, operation and date range — and there is no tool that writes it.
 - **Every label a user reads, in every language the country pack publishes.**
   The schema was bilingual in shape and monolingual in fact: `name_i18n` sat on
   the chart of accounts, the declaration boxes and the statement lines, and all

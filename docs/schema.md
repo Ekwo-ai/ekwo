@@ -139,6 +139,7 @@ the return say the same thing, because they are the same rows.
 | [`analytic_values`](#analytic_values) | Values of an axis, optionally hierarchical. |
 | [`api_keys`](#api_keys) | Machine access to one company. Hashed at rest, scoped to an explicit list of capabilities, and never wider than the person who issued it. |
 | [`attachments`](#attachments) | Files attached to any record. `entity_type` is constrained rather than free text. |
+| [`audit_log`](#audit_log) | Append-only record of every change to the configuration and reference data of a company, and of the acts that change the state of a document, a payment, a financial year or a pack. Written by trigger, never by a client; no update and no delete, for anyone. |
 | [`bank_accounts`](#bank_accounts) | Bank and card accounts, each mapped to a ledger account and a journal. |
 | [`bank_statements`](#bank_statements) | Imported statements. `is_consistent` compares the declared closing balance with the sum of the lines. |
 | [`bank_transactions`](#bank_transactions) | Statement lines. `amount` is signed; `raw` keeps whatever the source sent. |
@@ -323,6 +324,30 @@ Constraints:
 
 - `CHECK ((entity_type = ANY (ARRAY['company'::text, 'contact'::text, 'document'::text, 'entry'::text, 'payment'::text, 'bank_statement'::text, 'bank_transaction'::text, 'fiscal_year'::text])))`
 - `CHECK (((byte_size IS NULL) OR (byte_size >= 0)))`
+- `PRIMARY KEY (id)`
+
+### `audit_log`
+
+Append-only record of every change to the configuration and reference data of a company, and of the acts that change the state of a document, a payment, a financial year or a pack. Written by trigger, never by a client; no update and no delete, for anyone.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `bigint` | not null |
+| `occurred_at` | `timestamp with time zone` | not null |
+| `actor_id` | `uuid` | auth.uid() at the time of the change. Null when the change came from a machine key or from a direct connection. |
+| `api_key_id` | `uuid` | The machine key presented in the transaction, when one was. |
+| `company_id` | `uuid` | The company the change belongs to, and what row level security reads. No foreign key: the trail outlives the row it describes. |
+| `table_name` | `text` | not null |
+| `record_id` | `uuid` |  |
+| `record_key` | `text` | not null — The natural key of the row — an account code, a country, a user id — so a deleted row is still identifiable. |
+| `operation` | `audit_operation` | not null |
+| `action` | `text` | The business act this change is, when it is one. Null for an ordinary edit. |
+| `old_values` | `jsonb` | The row before, as jsonb. Null on an insert. Secrets are replaced by null, never stored twice. |
+| `new_values` | `jsonb` | The row after, as jsonb. Null on a delete. |
+
+Constraints:
+
+- `CHECK (((length(table_name) > 0) AND (length(record_key) > 0)))`
 - `PRIMARY KEY (id)`
 
 ### `bank_accounts`
@@ -1480,6 +1505,11 @@ Constraints:
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Ageing of what is still open, read from the ledger and from the matching. Two groups, receivable and payable; anything else is refused by name rather than reported as receivable. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
+| `audit_changes()` | The generic audit trigger. One jsonb argument names the company column, the natural key, the columns to redact and the acts an insert or a delete stands for. |
+| `audit_entry_posting()` | Records that an entry was posted, cancelled, or posted as the reversal of another. The lines themselves are not audited: a posted entry is immutable and is corrected by a reversal. |
+| `audit_log_is_append_only()` | Refuses every update and every delete on audit_log, table owner included. purge_audit_log() sets ekwo.audit_purge for its own transaction, which is the one exception. |
+| `audit_record(p_company_id uuid, p_table text, p_record_id uuid, p_record_key text, p_operation audit_operation, p_action text, p_old jsonb, p_new jsonb)` | Writes one row of the audit trail. Called by the triggers of this schema and by the functions that perform an act; never by a client. |
+| `audit_state_change()` | Records the act a state column stands for — a document posted, a payment booked, a year closed — with the fields that identify the row and never the whole of it. |
 | `available_statements(p_company_id uuid, p_at date)` | Statements a company may ask for: those of its country and chart, plus the generic framework. `is_default` marks the ones its chart declares. |
 | `can_write_company(p_company_id uuid)` | Whether the current caller may write the books of a company. One capability, not a role, and false rather than NULL for a stranger. |
 | `catch_up_journal_sequence(p_journal_id uuid, p_date date, p_number text)` | Advances a journal counter to an imported number, so the next automatic one continues the series rather than colliding with it. Does nothing for a number that does not follow the country's pattern. |
@@ -1530,17 +1560,20 @@ Constraints:
 | `numbering_rules(p_company_id uuid, OUT number_format text, OUT numbering_gapless boolean)` | What the country of a company says about its document numbers: the pattern, and whether the law forbids a hole. The only function that reads either column. |
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
+| `pack_upgrade(p_company_id uuid, p_country character, p_apply boolean)` | Moves a company to the country pack version this installation holds: additions copied in, closed validities applied, everything else listed and left alone unless the caller asks for it. Records what it did in the audit trail. The recorded version moves only when nothing is left waiting. |
+| `pack_upgrade_diff(p_company_id uuid, p_country character)` | What separates a company from the country pack this installation now holds, by natural key, each difference carrying the rule that decides what an upgrade does with it. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. Where the country forbids a hole in the sequence it refuses a number chosen by hand, unless the caller holds entries.import — and then the counter catches up to it. |
 | `post_module_entry(p_company_id uuid, p_module_code text, p_ref text, p_date date, p_description text, p_lines jsonb, p_journal_id uuid)` | The only way a module reaches the ledger: it hands over lines as data and this builds the draft and calls post_entry(). The tag (module_code, ref) is unique per company, so posting the same thing twice is refused by the database. |
 | `post_payment(p_payment_id uuid)` | Books a payment: the bank side from the payment's bank account or its journal, the third-party side by role, both in the company currency at the payment's rate. Matches nothing. |
 | `preferred_languages(p_company_id uuid)` | The languages to try, in order: the user's own, then the company's, then the one the country pack declares. Feed it to label_for(). |
+| `purge_audit_log(p_before date)` | Drops audit rows older than a date the caller names, and records that it did. service_role only: retention is the operator's decision and no signed-in user may make it. |
 | `reconcile(p_line_a uuid, p_line_b uuid, p_amount numeric)` | Matches a debit line against a credit line, in the currency the two share when it is not the company's, and books what the matching reveals: the realised exchange difference, and the share of a cash-basis tax that has become due. |
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `revoke_api_key(p_api_key_id uuid)` | Withdraws a key. There is no un-withdraw: a secret that has been out of the building is issued again, not brought back. |
 | `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
 | `set_preferences(p_patch jsonb)` | Writes the signed-in user's preferences. A key that is present is written, null included; a key that is absent is left alone; a key nobody declared is refused. |

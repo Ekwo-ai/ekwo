@@ -584,8 +584,8 @@ install time.
 
 **A pack is versioned** (semver in its manifest); `country_packs` records what
 the instance holds and `company_packs` what each company copied.
-`ekwo pack upgrade` — **planned, not built**: `ekwo pack` carries `build`,
-`check` and `list` today, and neither `upgrade` nor `status` exists — diffs by
+`ekwo pack upgrade` — **built on 14 September 2026**, together with `ekwo pack
+status`; see the section at the end of this file — diffs by
 natural key `(country, code)` and follows three rules: an addition is applied,
 a validity that closes is applied, everything else is listed and never applied
 without explicit consent. A new VAT rate is
@@ -609,9 +609,8 @@ sheet on any chart, including the code-less charts of the UK and the US.
 
 **Kept in phase 0**: the pack format; opening balances and a parameterised
 year-end close; cash-basis VAT and non-deductible VAT (`tax_on_base`);
-realised exchange differences at matching; translated labels. **Kept in
-phase 0 and still not built**: the append-only `audit_log` by trigger. No
-table of that name exists in the schema; it is still to come, like the two
+realised exchange differences at matching; translated labels; and the
+append-only `audit_log` by trigger, **built on 14 September 2026** with the two
 `ekwo pack` subcommands above. **Deferred**: revaluation of open items, cash
 accounting as a ledger (a report derived from matched payments instead), the
 cash-flow statement (indirect, when it comes), several taxes on one line
@@ -2019,3 +2018,137 @@ expects it. And the destination of a result no meeting has allocated is the
 account the close would have used — 120 or 129 in France, 140 or 141 in
 Belgium rather than 693 or 793, which are inside the income statement and
 would carry nothing forward.
+
+
+## An append-only audit trail, and the first pack upgrade (14 September 2026)
+
+Two things that had been promised in this file since 12 September and did not
+exist: a record of who changed what, and a way to move a company from the pack
+version it copied to the one the installation now holds.
+
+### What is recorded, and what is deliberately not
+
+Everything the ledger does is already immutable: an entry is posted once and
+corrected by a reversal. What sat outside that guarantee is everything
+*around* the ledger — the chart of accounts, the journals, the taxes and the
+accounts they post to, the bank accounts, the contacts, the products, the
+financial years, who is a member of a company and with which role, which pack
+version the company holds. Those decide how every future entry is booked, and
+nothing recorded that one of them had moved. An auditor asking who changed the
+VAT account on this tax, and when, had no answer, and neither did the operator.
+
+`audit_log` is one table, one generic trigger function and seventeen triggers.
+It records `who` (`auth.uid()`, and the machine key where one was presented),
+`what` (the table, the natural key, the row before and after as `jsonb`, the
+operation), `when`, and the `company_id` row level security reads. Beside the
+ordinary edits it records the *acts*: a document posted or cancelled, an entry
+posted or reversed, a payment booked, matched or unmatched, a financial year
+closed or reopened, a pack upgraded.
+
+**The ledger itself is not audited.** `entries` and `entry_lines` are immutable
+once posted and are corrected by a reversal, which is already a visible act; a
+second copy of every ledger line would double the largest table in the schema
+to record what it already holds. What is recorded is the act of posting, never
+the content.
+
+**Not `pgaudit`.** The extension is unavailable under PGlite, so none of this
+could be tested where the rest of the schema is tested, and its output goes to
+the Postgres log — a file an application cannot query and a self-hosted
+operator often cannot reach. An audit trail nobody can read is a promise, not a
+control.
+
+### Three decisions inside it
+
+**Append-only is a trigger, not a policy.** Policies do not apply to the table
+owner, and on Supabase `service_role` carries BYPASSRLS — so an audit trail
+defended only by row level security is one the operator can quietly rewrite. A
+`before update or delete` trigger that raises holds for everyone. The one
+exception is `purge_audit_log(date)`, which lifts it for its own transaction,
+takes the cutoff it is asked for rather than a default retention, is reachable
+by `service_role` alone, and writes its own row saying how many it dropped.
+
+**`company_id` carries no foreign key.** The trail outlives the rows it
+describes: a cascade from `companies` would delete the record of the company's
+own deletion. It is indexed and the policy reads it, which is all a foreign key
+would have bought.
+
+**The installer's bulk copy is not audited row by row.** Installing a country
+pack copies a thousand accounts into a company, and a thousand rows saying
+"account created" carry nothing the single `company_packs` row does not.
+`is_installer()` is already this schema's name for the migration runner, the
+seeds and `ekwo init`, so the trigger stands down for it and for nothing else.
+A person, a machine key, and anyone connecting with `psql` are all audited —
+`is_installer()` is set by the runner on its own connection and can never be a
+session or a key. Creating a company through `create_company()`, which is what
+an instance administrator actually calls, is audited in full.
+
+Two secrets are never copied into the trail: `api_keys.key_hash` and
+`company_invitations.token_hash` are replaced by null. A hash is a credential
+that can be attacked offline, and the trail is read by more people than the
+table that owns it.
+
+### The upgrade, and why the version sometimes does not move
+
+A chart of accounts is not a file to overwrite — the company has been booking
+on those accounts for a year — so the difference is computed by natural key and
+every difference falls into one of the three rules this file promised in
+September: an addition is copied in, a closed validity is applied, and
+everything else is listed and left exactly where it was. That third rule is the
+point of the whole thing: silently overwriting a company's chart from a pack is
+how an upgrade destroys a year of bookkeeping, and there is no way to be sure
+from here which of the two is right, because an operator may have renamed an
+account deliberately.
+
+One thing is never applied whatever is asked: a row the company holds and the
+pack does not. Nothing is removed from a company's books by an upgrade.
+
+**The recorded version moves only when nothing is left waiting.** A company
+that still holds a difference nobody has decided on has not finished
+upgrading, and moving the number would hide that difference at the next run.
+
+The rules live in the schema — `pack_upgrade_diff()` and `pack_upgrade()` — and
+not in the CLI, so an application, a module or an assistant asking the same
+question gets the same answer. `ekwo pack status` is the read-only half.
+
+**The test is from 1.0.0, not from a fixture.** The first upgrade is the risk
+nobody can rehearse twice, so `tests/pack_upgrade.test.ts` replays the four
+published 1.0.0 seeds kept under `tests/fixtures/seeds-before-packs/` since the
+pack format replaced them, installs a company from them, loads the packs of
+this release on top, and asks what an upgrade does. Without that, "never
+silent" is an intention.
+
+### Versioning the socle
+
+The schema version was already exposed in `instance` and printed by `ekwo
+status`. Three things joined it.
+
+**Each package declares a `schema_min`**, in `package.json` under `ekwo.schemaMin`
+and as a constant in its source, the way a country pack declares one in its
+manifest — the rows a package reads and the functions it calls are a contract
+with a version of the database. **The MCP server enforces it**: it asks
+`ekwo_schema_version()` before it offers a single tool and refuses an older
+database by name, because what an assistant does with a missing column is
+improvise, and the improvisation is an accounting entry. The CLI declares one
+and prints it; it cannot fail on it, since it is the package that carries the
+migrations.
+
+**`ekwo migrate` recommends a snapshot before it applies anything**, and says
+why: migrations move forward only, there is no `down` and there will not be
+one, so undoing a schema change on a database with a year of entries in it is a
+restore and not a script.
+
+The rule that no published migration is ever edited is enforced by CI since
+13 September and was not redone here. The repository has no tag yet; the first
+one is a release decision and this change does not take it.
+
+**`ekwo doctor` gained one check and not an inventory.** It now reads the
+catalogue and says whether the audit trail is still what it claims to be: the
+guard trigger on the table, row level security on, no policy that lets a client
+write, update or delete a row, and `purge_audit_log` executable by nothing but
+`service_role`. A migration added later that put an insert policy on `audit_log`
+"so the application can log too" would break the one property the table exists
+for, and nothing else would notice. What is **left out** is the full
+expected-object comparison the card also scoped: an inventory of every table,
+column and function this release defines is a generated artefact like
+`docs/schema.md`, not a list kept by hand in the CLI, and it is worth its own
+change.

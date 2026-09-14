@@ -72,8 +72,10 @@ sequence that exercises the PostgREST route against a real project.
 - `fixtures/seeds-before-packs/` — the four chart and tax seeds as they were
   written by hand, before `packs/` compiled them. `packs.test.ts` loads them
   into one database and the generated pair into another and compares every
-  template row. They are frozen: they are the *before* of that comparison, not
-  a second source of truth.
+  template row, and `pack_upgrade.test.ts` installs a company from them and
+  upgrades it to this release, which is the only way to test the first upgrade
+  a real installation will ever run. They are frozen: they are the *before* of
+  both comparisons, not a second source of truth.
 - `cli/helpers.ts` — PGlite behind the CLI's `SqlClient`, an `auth.users` row
   standing in for an account GoTrue created, and a `fetch` that answers from a
   table of routes and records what it was sent.

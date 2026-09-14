@@ -404,11 +404,75 @@ the pack. `install_country_template` writes **`company_packs`**: which version
 that company copied, and when. `ekwo status` prints both and says so when a
 company is behind.
 
-Moving a company from one version to the next is `ekwo pack upgrade`, still to
-come,
-which shows the difference and applies only what is safe: an addition is
-added, a validity that closes is closed, and anything else is listed and never
-applied without being asked for. Installing again in the meantime adds what is
+### Where a company stands, and moving it
+
+Two commands read an installation rather than a checkout, so they need a
+connection and know nothing about `packs/`.
+
+```sh
+ekwo pack status --db-url "$EKWO_DB_URL"
+```
+
+```
+Packs loaded here (2)
+  BE Belgique  1.5.0
+  FR France    1.4.0
+
+Companies (2)
+  · Example One  BE/default  copied 1.0.0, loaded 1.5.0
+        4 addition(s), 1 closure(s) — applied by rule; 2 to review
+  · Example Two  FR/default  copied 1.4.0, loaded 1.4.0 — up to date
+```
+
+It changes nothing and exits 1 while a company is behind, so a cron can ask.
+
+```sh
+ekwo pack upgrade "Example One" --db-url "$EKWO_DB_URL"
+```
+
+```
+Example One — BE pack 1.0.0 → 1.5.0
+  · tax BE-P-21-50-I — added from the pack
+  · tax BE-S-06 — added from the pack
+  · tax BE-S-21 — validity closed on 2026-12-31
+  4 change(s) applied: an addition and a closed validity take nothing away.
+
+To review (2)
+  Not applied. Read them, then run again with --apply if the pack is right.
+  ! account 700000 — differs: {"pack":{…},"company":{…}}
+  ! tax_posting BE-S-21 — differs: {"pack":[…],"company":[…]}
+
+Yours, not the pack's (1)
+  Never applied by an upgrade: nothing is removed from a company's books.
+  account 999500 — held here, not in the pack
+
+Version
+  still 1.0.0: 2 difference(s) are waiting to be decided.
+```
+
+The difference is computed by natural key — an account code, a journal code, a
+tax code — and every difference falls into one of three rules:
+
+| Rule | What an upgrade does |
+|---|---|
+| `addition` | The pack has something the company does not. Copied in. |
+| `closure` | The pack has closed the validity of a tax the company still holds open. Applied — this is how a rate change reaches a company: the old one stops, the new one is an addition. |
+| `review` | Everything else: a label that differs, a rate that differs on the same code, a posting that books somewhere else. **Listed and never applied without `--apply`.** |
+
+A row the company holds and the pack does not is listed under its own heading
+and is never applied, whatever is asked: nothing is removed from a company's
+books by an upgrade. An account may carry entries and a tax may be on a posted
+document, and a pack that retires a code retires it with a `valid_to`.
+
+**The recorded version moves only when nothing is left waiting.** A company
+that still holds a difference it has not decided on has not finished
+upgrading, and moving the number would hide that difference at the next run.
+
+The same three rules are in the schema — `pack_upgrade_diff(company)` and
+`pack_upgrade(company, country, apply)` — so an application, a module or an
+assistant asking the same question gets the same answer, and every upgrade
+writes a `pack_upgraded` row into [`audit_log`](schema.md) naming what it
+applied and what it left. Installing again in the meantime adds what is
 missing and changes nothing that exists.
 
 **Immutable once published**: the country of a pack; the code of an account

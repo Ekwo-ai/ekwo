@@ -33,7 +33,7 @@ and a generator.
 | Currencies without realised gains or revaluation | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
 | ~~A tax engine that knows only EU VAT~~ — **done**, except stacked taxes on one line | GST with input credits (Canada, Australia, Singapore); stacked taxes on one line (GST + QST in Québec, phase 1); non-recoverable sales tax (US, Canadian PST); withholding (Spain, Italy, Portugal); tax-inclusive pricing (UK, Australia retail) |
-| No cash-flow statement, no audit log | Expected before tax compliance in the English-speaking world |
+| No cash-flow statement | Expected before tax compliance in the English-speaking world |
 
 ## Four phases
 
@@ -104,7 +104,13 @@ one line wait for the countries that need them.
 8. Opening balances and a parameterised year-end close. **Done** —
    `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()`, and
    `closing_style` with its four account roles in the pack.
-9. Pack versioning, `ekwo pack upgrade`, an append-only audit log.
+9. Pack versioning, `ekwo pack upgrade`, an append-only audit log. **Done** —
+   `country_packs` and `company_packs` carry the versions, `ekwo pack status`
+   and `ekwo pack upgrade` diff by natural key and apply only an addition and
+   a closed validity, and `audit_log` records every change to the
+   configuration of a company and every act that changes a state. The ledger
+   itself is not audited: a posted entry is immutable and is corrected by a
+   reversal.
 10. One golden test per pack, a certification status.
 11. End-to-end test, including an upgrade from the published version.
 12. Documentation: `docs/packs.md`, the contributor's guide.
