@@ -12,6 +12,10 @@ import { readTools, writeTools, type Backend } from '../../packages/mcp/src/inde
 import { freshDatabase, one } from '../helpers/db.js';
 import { newCompany, newInstanceAdmin, newUser, type Fixture } from '../helpers/factory.js';
 import { backendFor, list, record } from './helpers.js';
+import { somePack } from '../helpers/packs.js';
+
+// The companies these tests create are in some country, named once.
+const HOME = somePack.manifest.country;
 
 let db: PGlite;
 let fx: Fixture;
@@ -20,7 +24,7 @@ let asAccountant: Backend;
 
 beforeAll(async () => {
   db = await freshDatabase();
-  fx = await newCompany(db, { country: 'BE', name: 'Invitations MCP SRL' });
+  fx = await newCompany(db, { country: HOME, name: 'Invitations MCP SRL' });
   await db.query(`insert into auth.users (id, email) values ($1, $2) on conflict do nothing`, [
     fx.ownerId,
     'owner@mcp.test',
@@ -218,7 +222,7 @@ describe('machine keys through the server', () => {
 describe('creating a company through the server', () => {
   it('is an instance-level act, and it opens the year the pack opens', async () => {
     await expect(
-      writeTools.createCompany(asOwner, { name: 'Refusee SRL', country: 'BE' }),
+      writeTools.createCompany(asOwner, { name: 'Refusee SRL', country: HOME }),
     ).rejects.toThrow(/not_instance_admin/);
 
     const adminId = await newInstanceAdmin(db);
@@ -226,7 +230,7 @@ describe('creating a company through the server', () => {
     const answer = record(
       await writeTools.createCompany(asAdmin, {
         name: 'Nouvelle SRL',
-        country: 'BE',
+        country: HOME,
         fiscal_year: 2026,
       }),
     );

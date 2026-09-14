@@ -22,6 +22,10 @@ import {
   type SqlClient,
 } from '../../packages/cli/src/index.js';
 import { emptyDatabase, fakeFetch, makeAuthUser, migrationsPath, seedPath } from './helpers.js';
+import { somePack } from '../helpers/packs.js';
+
+// The instance these tests register is in some country, named once.
+const HOME = somePack.manifest.country;
 
 let db: SqlClient;
 let userId: string;
@@ -33,7 +37,7 @@ beforeEach(async () => {
   userId = await makeAuthUser(db, 'first@example.test');
   await bootstrap(db, {
     organization: 'Example Group',
-    country: 'BE',
+    country: HOME,
     company: 'Example One',
     fiscalYear: 2026,
     adminUserId: userId,
@@ -93,7 +97,7 @@ describe('register', () => {
     ]);
     expect(calls[0]?.body).toMatchObject({
       organization: 'Example Group',
-      country: 'BE',
+      country: HOME,
       edition: 'community',
       contact_email: 'operator@example.test',
     });
@@ -176,7 +180,7 @@ describe('payloadFor', () => {
     expect(payload).toEqual({
       instance_id: instance.instance_id,
       organization: 'Example Group',
-      country: 'BE',
+      country: HOME,
       edition: 'community',
       schema_version: instance.schema_version,
       contact_email: 'operator@example.test',

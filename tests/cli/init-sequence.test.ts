@@ -32,6 +32,7 @@ import {
   type SqlClient,
 } from '../../packages/cli/src/index.js';
 import { emptyDatabase, fakeFetch, migrationsPath, seedPath } from './helpers.js';
+import { roleOf, somePack } from '../helpers/packs.js';
 
 const supabaseUrl = 'https://abcdefghijklmnopqrst.supabase.co';
 const serviceRoleKey = 'a-service-role-key-that-never-reaches-disk';
@@ -60,6 +61,18 @@ function shimmedAuth(id: string): ReturnType<typeof fakeFetch> {
       : undefined,
   );
 }
+
+/**
+ * A country, once, for the whole file: the installation these tests run is in
+ * some country, and everything they expect about it — the tax it posts with,
+ * the sales account it books on — is read from that pack.
+ */
+const home = somePack;
+const HOME = home.manifest.country;
+/** The standard domestic sale tax of that pack, at the rate it charges most. */
+const saleTax = home.taxes
+  .filter((tax) => tax.scope === 'sale' && tax.treatment === 'domestic' && !tax.cash_basis)
+  .sort((a, b) => b.rate - a.rate)[0]!;
 
 describe('the full non-interactive install', () => {
   it('leaves an installation that can post an invoice', async () => {
@@ -91,7 +104,7 @@ describe('the full non-interactive install', () => {
     // 4. The six steps.
     const result = await bootstrap(db, {
       organization: 'Example Group',
-      country: 'BE',
+      country: HOME,
       company: 'Example One',
       fiscalYear: 2026,
       adminUserId: user.id,
@@ -100,7 +113,7 @@ describe('the full non-interactive install', () => {
 
     // 5. ekwo.json, and nothing secret in it.
     const path = await writeConfig(
-      { project_url: supabaseUrl, country: 'BE', ...(schemaVersion !== undefined ? { schema_version: schemaVersion } : {}) },
+      { project_url: supabaseUrl, country: HOME, ...(schemaVersion !== undefined ? { schema_version: schemaVersion } : {}) },
       cwd,
     );
     const written = await readFile(path, 'utf8');
@@ -121,7 +134,7 @@ describe('the full non-interactive install', () => {
     }
     expect(await readConfig(cwd)).toEqual({
       project_url: supabaseUrl,
-      country: 'BE',
+      country: HOME,
       schema_version: schemaVersion,
     });
 
@@ -135,16 +148,16 @@ describe('the full non-interactive install', () => {
     // And now the thing that matters: a sale posts on this installation.
     const contact = await db.query<{ id: string }>(
       `insert into contacts (company_id, name, contact_type, country)
-       values ($1, 'A Customer', 'customer', 'BE') returning id`,
-      [result.companyId],
+       values ($1, 'A Customer', 'customer', $2) returning id`,
+      [result.companyId, HOME],
     );
     const tax = await db.query<{ id: string }>(
-      `select id from taxes where company_id = $1 and code = 'BE-S-21'`,
-      [result.companyId],
+      `select id from taxes where company_id = $1 and code = $2`,
+      [result.companyId, saleTax.code],
     );
     const account = await db.query<{ id: string }>(
       'select id from accounts where company_id = $1 and code = $2',
-      [result.companyId, '704000'],
+      [result.companyId, roleOf(home, 'sales')],
     );
     const document = await db.query<{ id: string }>(
       `insert into documents (company_id, contact_id, doc_type, document_date, currency_code)
@@ -174,7 +187,7 @@ describe('the full non-interactive install', () => {
     await db.query('insert into auth.users (id, email) values ($1, $2)', [id, 'first@example.test']);
     await bootstrap(db, {
       organization: 'Example Group',
-      country: 'BE',
+      country: HOME,
       company: 'Example One',
       fiscalYear: 2026,
       adminUserId: id,
@@ -204,7 +217,7 @@ describe('the full non-interactive install', () => {
     await db.query('insert into auth.users (id, email) values ($1, $2)', [id, 'first@example.test']);
     await bootstrap(db, {
       organization: 'Example Group',
-      country: 'BE',
+      country: HOME,
       company: 'Example One',
       fiscalYear: 2026,
       adminUserId: id,

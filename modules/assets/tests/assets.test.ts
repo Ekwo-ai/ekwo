@@ -2,6 +2,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { asUser, expectError, freshDatabase, one, rows } from '../../../tests/helpers/db.js';
 import { newCompany } from '../../../tests/helpers/factory.js';
+import { allPacks } from '../../../tests/helpers/packs.js';
 
 // The `assets` module, end to end: a schedule is a calculation, so it is
 // pinned to the cent on a worked example per country and per method; the
@@ -664,15 +665,27 @@ describe('row level security', () => {
 });
 
 describe('the country data', () => {
-  it('carries Belgium and France, each with the source it comes from', async () => {
+  it('carries every pack that says something about fixed assets, with its source', async () => {
     const rules = await rows<{ country: string; disposal_style: string; declining_cap_percent: string | null }>(
       db,
       `select country, disposal_style::text, declining_cap_percent from assets.country_rules order by country`,
     );
-    expect(rules).toEqual([
-      { country: 'BE', disposal_style: 'net_result', declining_cap_percent: '40.000' },
-      { country: 'FR', disposal_style: 'gross', declining_cap_percent: null },
-    ]);
+    // A country that says nothing about fixed assets has no row here, and that
+    // is the module's answer rather than a hole in this list.
+    expect(rules).toEqual(
+      allPacks
+        .filter((pack) => pack.assets !== null)
+        .map((pack) => ({
+          country: pack.manifest.country,
+          disposal_style: pack.assets!.disposal_style,
+          declining_cap_percent:
+            pack.assets!.declining_cap_percent === null
+              ? null
+              : pack.assets!.declining_cap_percent.toFixed(3),
+        }))
+        .sort((a, b) => (a.country < b.country ? -1 : 1)),
+    );
+    expect(rules.length, 'no pack says anything about fixed assets').toBeGreaterThan(0);
 
     const unsourced = await rows(
       db,
@@ -688,37 +701,27 @@ describe('the country data', () => {
               asset_disposal_proceeds_code, asset_disposal_value_code
          from country_defaults order by country`,
     );
-    expect(roles).toEqual([
-      {
-        country: 'BE',
-        asset_disposal_gain_code: '763000',
-        asset_disposal_loss_code: '663000',
-        asset_disposal_proceeds_code: null,
-        asset_disposal_value_code: null,
-      },
-      {
-        // Estonia ships no `assets.json`, so it names no disposal account of
-        // either style.
-        country: 'EE',
-        asset_disposal_gain_code: null,
-        asset_disposal_loss_code: null,
-        asset_disposal_proceeds_code: null,
-        asset_disposal_value_code: null,
-      },
-      {
-        country: 'FR',
-        asset_disposal_gain_code: null,
-        asset_disposal_loss_code: null,
-        asset_disposal_proceeds_code: '775000',
-        asset_disposal_value_code: '675000',
-      },
-      {
-        country: 'LU',
-        asset_disposal_gain_code: null,
-        asset_disposal_loss_code: null,
-        asset_disposal_proceeds_code: null,
-        asset_disposal_value_code: null,
-      },
-    ]);
+    // The four roles of the manifest, one pair per disposal style: a pack names
+    // the pair its style uses and leaves the other empty. A pack that says
+    // nothing about fixed assets names neither pair.
+    expect(roles).toEqual(
+      allPacks
+        .map((pack) => ({
+          country: pack.manifest.country,
+          asset_disposal_gain_code: pack.manifest.defaults.roles['asset_disposal_gain'] ?? null,
+          asset_disposal_loss_code: pack.manifest.defaults.roles['asset_disposal_loss'] ?? null,
+          asset_disposal_proceeds_code:
+            pack.manifest.defaults.roles['asset_disposal_proceeds'] ?? null,
+          asset_disposal_value_code: pack.manifest.defaults.roles['asset_disposal_value'] ?? null,
+        }))
+        .sort((a, b) => (a.country < b.country ? -1 : 1)),
+    );
+    // And the pair a pack names is the pair its disposal style needs.
+    for (const pack of allPacks.filter((candidate) => candidate.assets !== null)) {
+      const roles = pack.manifest.defaults.roles;
+      const net = pack.assets!.disposal_style === 'net_result';
+      expect(typeof roles['asset_disposal_gain'] === 'string', pack.slug).toBe(net);
+      expect(typeof roles['asset_disposal_proceeds'] === 'string', pack.slug).toBe(!net);
+    }
   });
 });
