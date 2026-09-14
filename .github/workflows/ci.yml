@@ -164,7 +164,8 @@ jobs:
           node scripts/generate-expected-objects.mjs
           if ! git diff --exit-code packages/cli/assets/expected-objects.json; then
             echo
-            echo "The inventory is not what the migrations define."
+            echo "The inventory is not what the migrations define, or not what they grant."
             echo "Run 'npm run inventory' and commit the result with your migration."
+            echo "If a role gained a privilege you did not intend, the migration is the bug."
             exit 1
           fi

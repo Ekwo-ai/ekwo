@@ -12,10 +12,13 @@
  * about who should have access, not a delete the installer guesses at.
  */
 
+import { compareSection, describeFinding, type GrantFinding } from './grants.js';
 import {
   compareCatalogue,
   describeDifferences,
+  installedSections,
   readExpectedObjects,
+  readGrants,
   type CatalogueComparison,
   type ExpectedObjects,
 } from './inventory.js';
@@ -62,10 +65,17 @@ export async function doctor(
 ): Promise<DoctorReport> {
   const checks: Check[] = [];
 
+  // Read once and handed to both: the inventory carries the objects a release
+  // defines and the privileges it grants on them, and reading the file twice
+  // would be two answers to one question.
+  const expected = options.expected ?? (await readExpectedObjects());
+
   checks.push(await checkMigrations(db, migrations));
-  checks.push(await checkCatalogue(db, options.expected ?? (await readExpectedObjects())));
+  checks.push(await checkCatalogue(db, expected));
   checks.push(await checkRowLevelSecurity(db));
   checks.push(await checkPolicies(db));
+  checks.push(await checkGrants(db, expected));
+
   checks.push(await checkOrphanMembers(db));
   checks.push(await checkOrphanAdmins(db));
   checks.push(await checkBankAccounts(db));
@@ -179,6 +189,104 @@ async function checkCatalogue(db: SqlClient, expected: ExpectedObjects | undefin
 function cap(lines: string[], limit = 20): string[] {
   if (lines.length <= limit) return lines;
   return [...lines.slice(0, limit), `… and ${lines.length - limit} more (see --json)`];
+}
+
+/**
+ * The privileges the schema declares against the ones it holds.
+ *
+ * Row level security decides which rows a role sees; a grant decides whether
+ * the statement is allowed to run at all. Both are needed and only one of them
+ * used to be written down — until `20260914151207` the grants came from a
+ * Supabase project's default privileges, which hand `anon` everything and
+ * disappear the day `public` is recreated. This asks a live database whether
+ * it still matches the `grants` section of the inventory.
+ *
+ * Its own check rather than a category of `catalogue`, because the rule is not
+ * the same. A missing grant is a problem: it is invisible to every other check
+ * and it reaches a user as "permission denied for table companies". An extra
+ * grant to `anon` is a problem too — the anonymous role reaches the policy
+ * helpers and nothing else, and one more is a surface nobody meant to open. An
+ * extra grant to `authenticated` or `service_role` is a warning: often a local
+ * customisation, never nothing. A default privilege still standing is a
+ * warning wherever it is, because a privilege that comes from there comes from
+ * something no migration wrote and a recreated schema takes away.
+ */
+async function checkGrants(db: SqlClient, expected: ExpectedObjects | undefined): Promise<Check> {
+  if (expected === undefined) {
+    return {
+      name: 'grants',
+      severity: 'warning',
+      summary: 'this CLI ships no inventory, so the privileges cannot be compared',
+      details: ['Reinstall the package, or run `npm run inventory` in a checkout.'],
+    };
+  }
+
+  const findings: GrantFinding[] = [];
+  const defaults: string[] = [];
+  const schemas: string[] = [];
+
+  for (const section of await installedSections(db, expected)) {
+    // An inventory generated before the grants joined it has no declaration to
+    // compare against, and silence is not an assertion.
+    if (section.grants === undefined) continue;
+    schemas.push(section.schema);
+    const actual = await readGrants(db, section.schema);
+    findings.push(...compareSection(section.grants, actual));
+    for (const entry of actual.defaultPrivileges) {
+      defaults.push(
+        `${section.schema}: a default privilege still stands (${entry}) — grants should come from a migration`,
+      );
+    }
+  }
+
+  if (schemas.length === 0) {
+    return {
+      name: 'grants',
+      severity: 'warning',
+      summary: 'the inventory this CLI ships declares no privileges',
+      details: ['It was generated before the schema granted its own rights. Upgrade the CLI.'],
+    };
+  }
+
+  const problems = findings.filter((f) => f.difference === 'missing' || f.role === 'anon');
+  const warnings = findings.filter((f) => !problems.includes(f));
+  const data = { problems, warnings, defaultPrivileges: defaults };
+
+  if (problems.length > 0) {
+    return {
+      name: 'grants',
+      severity: 'problem',
+      summary: `${problems.length} privilege(s) do not match what this release declares`,
+      details: cap([
+        ...problems.map(describeFinding),
+        ...warnings.map((f) => `${describeFinding(f)} (warning)`),
+        ...defaults,
+        'A missing grant answers "permission denied" to the first client and to nothing else.',
+        'Run `ekwo migrate`; if that does not close it, the privileges were changed by hand.',
+      ]),
+      data,
+    };
+  }
+
+  if (warnings.length > 0 || defaults.length > 0) {
+    return {
+      name: 'grants',
+      severity: 'warning',
+      summary: `${warnings.length + defaults.length} privilege(s) wider than this release declares`,
+      details: cap([
+        ...warnings.map(describeFinding),
+        ...defaults,
+        'Row level security is then the only thing refusing a verb the schema meant to withhold.',
+      ]),
+      data,
+    };
+  }
+
+  return {
+    name: 'grants',
+    severity: 'ok',
+    summary: `every privilege in ${schemas.join(', ')} is the one the schema grants itself`,
+  };
 }
 
 async function checkRowLevelSecurity(db: SqlClient): Promise<Check> {

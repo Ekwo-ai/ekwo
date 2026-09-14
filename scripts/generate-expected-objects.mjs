@@ -18,6 +18,16 @@
  *
  * The socle is `public`. Each module is its own schema, listed separately, so
  * the doctor can require only the modules a database actually carries.
+ *
+ * Each section carries a `grants` block too — which of `anon`,
+ * `authenticated` and `service_role` may reach each table, view and function,
+ * and with which verbs. It belongs here rather than in a file of its own
+ * because a privilege and the object it sits on ship in the same migration:
+ * since `20260914151207` the schema grants its own rights by name instead of
+ * taking whatever a Supabase project's default privileges hand out, and a
+ * table added without its grants is exactly as broken as a table added
+ * without its policy. `describeGrants` is imported from the CLI, so this file
+ * and the doctor can never read the catalogue two different ways.
  */
 
 import { writeFile } from 'node:fs/promises';
@@ -25,6 +35,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // Node 22.18+ or 24 (TypeScript stripping enabled by default).
 import { freshDatabase, migrationFiles, moduleMigrationFiles } from '../tests/helpers/db.ts';
+import { GRANT_ROLES, describeGrants } from '../packages/cli/src/grants.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 export const INVENTORY_PATH = join(root, 'packages', 'cli', 'assets', 'expected-objects.json');
@@ -111,6 +122,8 @@ async function describe(db, schema) {
       .filter((c) => c.table_name === table)
       .map((c) => ({ name: c.name, type: c.type }));
 
+  const grants = await describeGrants(async (sql, params) => (await db.query(sql, params)).rows, schema);
+
   return {
     schema,
     tables: tables.map((t) => ({ name: t.name, columns: columnsOf(t.name) })),
@@ -123,6 +136,7 @@ async function describe(db, schema) {
       kind: t.kind,
       ...(t.labels === null || t.labels === undefined ? {} : { labels: t.labels }),
     })),
+    grants,
   };
 }
 
@@ -165,6 +179,16 @@ export function countObjects(section) {
     policies: section.policies.length,
     triggers: section.triggers.length,
     types: section.types.length,
+    // One count for the privileges, so the line a regeneration prints says
+    // whether a role gained a whole object rather than only a verb.
+    granted: GRANT_ROLES.map(
+      (role) =>
+        `${role} ${
+          [...section.grants.tables, ...section.grants.views, ...section.grants.functions].filter(
+            (o) => o[role].length > 0,
+          ).length
+        }`,
+    ).join('/'),
   };
 }
 

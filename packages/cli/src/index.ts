@@ -126,7 +126,9 @@ export { doctor, type Check, type DoctorOptions, type DoctorReport, type Severit
 export {
   compareCatalogue,
   describeDifferences,
+  installedSections,
   readExpectedObjects,
+  readGrants,
   resolveInventoryPath,
   InventoryError,
   type CatalogueComparison,
@@ -136,6 +138,19 @@ export {
   type ExpectedModule,
   type SectionComparison,
 } from './inventory.js';
+export {
+  GRANT_ROLES,
+  compareSection,
+  describeFinding,
+  describeGrants,
+  type Difference,
+  type GrantFinding,
+  type GrantRole,
+  type GrantedObject,
+  type GrantsSection,
+  type HeldBy,
+  type QueryRows,
+} from './grants.js';
 export {
   applyMigration,
   applyMigrations,

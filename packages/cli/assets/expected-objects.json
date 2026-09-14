@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.2.0",
-  "migration": "20260914134325",
+  "migration": "20260914152840",
   "socle": {
     "schema": "public",
     "tables": [
@@ -4313,7 +4313,1882 @@
           "not_subject"
         ]
       }
-    ]
+    ],
+    "grants": {
+      "schema": "public",
+      "usage": {
+        "anon": [
+          "usage"
+        ],
+        "authenticated": [
+          "usage"
+        ],
+        "service_role": [
+          "usage"
+        ]
+      },
+      "tables": [
+        {
+          "name": "account_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "accounts",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "analytic_axes",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "analytic_values",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "api_keys",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "attachments",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "audit_log",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "bank_accounts",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "bank_statements",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "bank_transactions",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "capabilities",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "chart_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "companies",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "company_invitations",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "company_members",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "company_modules",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "company_packs",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "contacts",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "country_defaults",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "country_packs",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "currencies",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "currency_rates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "document_lines",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "documents",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "entries",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "entry_line_analytics",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "entry_lines",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "fiscal_years",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "instance",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "instance_admins",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "journal_sequences",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "journal_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "journals",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "legal_mention_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "matching_sequences",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "modules",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "payments",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "products",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "reconciliations",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "role_capabilities",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "statement_line_rules",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "statement_line_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "statement_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "tax_posting_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "tax_postings",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "tax_report_box_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "tax_report_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "tax_templates",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "taxes",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        },
+        {
+          "name": "user_preferences",
+          "anon": [],
+          "authenticated": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ],
+          "service_role": [
+            "delete",
+            "insert",
+            "select",
+            "update"
+          ]
+        }
+      ],
+      "views": [
+        {
+          "name": "document_header",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "document_legal_mentions",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "document_line_items",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        },
+        {
+          "name": "document_tax_summary",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
+          ]
+        }
+      ],
+      "sequences": [
+        {
+          "name": "audit_log_id_seq",
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        }
+      ],
+      "functions": [
+        {
+          "name": "accept_invitation",
+          "arguments": "p_token text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "account_id_by_code",
+          "arguments": "p_company_id uuid, p_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "aged_balance",
+          "arguments": "p_company_id uuid, p_at date, p_group text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "amount_text_format",
+          "arguments": "p_rounding money_rounding",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "assert_may_close_year",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "assert_may_post_document",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "assert_may_post_entry",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "assert_period_open",
+          "arguments": "p_company_id uuid, p_date date, p_is_tax boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "audit_changes",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "audit_entry_posting",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "audit_log_is_append_only",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "audit_record",
+          "arguments": "p_company_id uuid, p_table text, p_record_id uuid, p_record_key text, p_operation audit_operation, p_action text, p_old jsonb, p_new jsonb",
+          "anon": [],
+          "authenticated": [],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "audit_state_change",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "available_statements",
+          "arguments": "p_company_id uuid, p_at date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "bank_statements_recompute",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "bank_statements_refresh_balance",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "can_write_company",
+          "arguments": "p_company_id uuid",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "catch_up_journal_sequence",
+          "arguments": "p_journal_id uuid, p_date date, p_number text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "claim_instance_admin",
+          "arguments": "p_user_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "close_fiscal_year",
+          "arguments": "p_fiscal_year_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "commercial_entity",
+          "arguments": "p_contact_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "companies_default_bank_account_is_ours",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "companies_default_capital_currency",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "company_has_no_member",
+          "arguments": "p_company_id uuid",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "company_members_capabilities_known",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "company_role",
+          "arguments": "p_company_id uuid",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "create_api_key",
+          "arguments": "p_company_id uuid, p_name text, p_capabilities jsonb, p_expires_at timestamp with time zone",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "create_company",
+          "arguments": "p_name text, p_country character, p_currency_code character, p_language character, p_chart_code text, p_fiscal_year integer, p_fiscal_year_start date, p_owner_user_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "currency_of_bank_account",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "currency_of_company",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "currency_unit",
+          "arguments": "p_rounding money_rounding",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "current_api_key",
+          "arguments": "",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "disable_module",
+          "arguments": "p_company_id uuid, p_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "document_lines_amount_untaxed",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "document_lines_refresh_totals",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "document_lines_resolve_account",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "documents_default_payee_iban",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "documents_refresh_amount_paid",
+          "arguments": "p_document_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "documents_refresh_payment_state",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "documents_refresh_totals",
+          "arguments": "p_document_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "ekwo_schema_version",
+          "arguments": "",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "enable_module",
+          "arguments": "p_company_id uuid, p_code text, p_settings jsonb",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "entries_guard_kind",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "entries_guard_module",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "entries_guard_period",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "entries_refresh_totals",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "entry_lines_guard_period",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "evaluate_totals",
+          "arguments": "p_values jsonb, p_formulas jsonb, p_rounding money_rounding, p_keep_zero boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "fec_lines",
+          "arguments": "p_company_id uuid, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "financial_statement",
+          "arguments": "p_company_id uuid, p_statement_code text, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "fiscal_year_at",
+          "arguments": "p_company_id uuid, p_date date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "fiscal_year_bounds",
+          "arguments": "p_country character, p_year integer, p_start date, OUT start_date date, OUT end_date date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "fiscal_years_guard_closed",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "fiscal_years_no_overlap",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "format_number",
+          "arguments": "p_format text, p_code text, p_date date, p_number integer",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "general_ledger",
+          "arguments": "p_company_id uuid, p_from date, p_to date, p_account_ids uuid[]",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "has_capability",
+          "arguments": "p_company_id uuid, p_capability text",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "has_opening_entry",
+          "arguments": "p_fiscal_year_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "init_instance",
+          "arguments": "p_organization_name text, p_country character, p_edition instance_edition",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "install_country_template",
+          "arguments": "p_company_id uuid, p_country character, p_language character, p_chart_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "instance_has_no_admin",
+          "arguments": "",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "invite_member",
+          "arguments": "p_company_id uuid, p_email text, p_role member_role, p_capabilities jsonb, p_valid_for interval",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "is_any_company_member",
+          "arguments": "",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "is_company_member",
+          "arguments": "p_company_id uuid",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "is_company_owner",
+          "arguments": "p_company_id uuid",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "is_installer",
+          "arguments": "",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "is_instance_admin",
+          "arguments": "",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "label_for",
+          "arguments": "p_name text, p_i18n jsonb, p_languages text[]",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "locale_of_country_pack",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "member_capabilities",
+          "arguments": "p_company_id uuid, p_user_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "module_enabled",
+          "arguments": "p_company_id uuid, p_code text",
+          "anon": [
+            "execute"
+          ],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "module_entry_id",
+          "arguments": "p_company_id uuid, p_module_code text, p_ref text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "module_is_enabled",
+          "arguments": "p_company_id uuid, p_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "module_settings",
+          "arguments": "p_company_id uuid, p_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "next_entry_number",
+          "arguments": "p_journal_id uuid, p_date date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "next_matching_number",
+          "arguments": "p_company_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "number_counter",
+          "arguments": "p_format text, p_number text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "numbering_rules",
+          "arguments": "p_company_id uuid, OUT number_format text, OUT numbering_gapless boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "opening_balance",
+          "arguments": "p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "opening_journal_id",
+          "arguments": "p_company_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "pack_upgrade",
+          "arguments": "p_company_id uuid, p_country character, p_apply boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "pack_upgrade_diff",
+          "arguments": "p_company_id uuid, p_country character",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "post_document",
+          "arguments": "p_document_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "post_entry",
+          "arguments": "p_entry_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "post_module_entry",
+          "arguments": "p_company_id uuid, p_module_code text, p_ref text, p_date date, p_description text, p_lines jsonb, p_journal_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "post_payment",
+          "arguments": "p_payment_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "preferred_languages",
+          "arguments": "p_company_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "purge_audit_log",
+          "arguments": "p_before date",
+          "anon": [],
+          "authenticated": [],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "reconcile",
+          "arguments": "p_line_a uuid, p_line_b uuid, p_amount numeric",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "reconciliations_refresh_lines",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "register_instance",
+          "arguments": "p_contact_email text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "reopen_fiscal_year",
+          "arguments": "p_fiscal_year_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "resolve_counterpart_account",
+          "arguments": "p_company_id uuid, p_contact_id uuid, p_is_sale boolean",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "resolve_line_account",
+          "arguments": "p_company_id uuid, p_doc_type doc_type, p_account_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "resolve_line_account",
+          "arguments": "p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "revoke_api_key",
+          "arguments": "p_api_key_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "revoke_invitation",
+          "arguments": "p_invitation_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "round_amount",
+          "arguments": "p_amount numeric, p_rounding money_rounding",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "rounding_of",
+          "arguments": "p_company_id uuid, p_currency_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "set_preferences",
+          "arguments": "p_patch jsonb",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "set_updated_at",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "settle_cash_basis_tax",
+          "arguments": "p_document_id uuid, p_date date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "statement_account_matches",
+          "arguments": "p_company_id uuid, p_statement_code text, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "tax_rate_at",
+          "arguments": "p_tax_id uuid, p_date date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "touch_api_key",
+          "arguments": "p_api_key_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "trial_balance",
+          "arguments": "p_company_id uuid, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "unmapped_accounts",
+          "arguments": "p_company_id uuid, p_statement_code text, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "unreconcile",
+          "arguments": "p_reconciliation_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "unregister_instance",
+          "arguments": "",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "use_api_key",
+          "arguments": "p_secret text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "vat_return",
+          "arguments": "p_company_id uuid, p_from date, p_to date, p_report_code text",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        }
+      ],
+      "defaultPrivileges": []
+    }
   },
   "modules": [
     {
@@ -4783,7 +6658,258 @@
             "months"
           ]
         }
-      ]
+      ],
+      "grants": {
+        "schema": "assets",
+        "usage": {
+          "anon": [
+            "usage"
+          ],
+          "authenticated": [
+            "usage"
+          ],
+          "service_role": [
+            "usage"
+          ]
+        },
+        "tables": [
+          {
+            "name": "assets",
+            "anon": [],
+            "authenticated": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ],
+            "service_role": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ]
+          },
+          {
+            "name": "category_templates",
+            "anon": [],
+            "authenticated": [
+              "select"
+            ],
+            "service_role": [
+              "select"
+            ]
+          },
+          {
+            "name": "country_rules",
+            "anon": [],
+            "authenticated": [
+              "select"
+            ],
+            "service_role": [
+              "select"
+            ]
+          },
+          {
+            "name": "depreciation_lines",
+            "anon": [],
+            "authenticated": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ],
+            "service_role": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ]
+          },
+          {
+            "name": "disposals",
+            "anon": [],
+            "authenticated": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ],
+            "service_role": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ]
+          }
+        ],
+        "views": [],
+        "sequences": [],
+        "functions": [
+          {
+            "name": "assert_may_post",
+            "arguments": "",
+            "trigger": true,
+            "anon": [],
+            "authenticated": [],
+            "service_role": []
+          },
+          {
+            "name": "can_disable",
+            "arguments": "p_company_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "create_asset",
+            "arguments": "p_company_id uuid, p_code text, p_name text, p_acquisition_date date, p_cost numeric, p_asset_account text, p_depreciation_account text, p_expense_account text, p_category_code text, p_duration_months integer, p_method assets.depreciation_method, p_coefficient numeric, p_residual_value numeric, p_in_service_date date, p_document_line_id uuid, p_contact_id uuid, p_description text",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "days360",
+            "arguments": "p_from date, p_to date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "dispose_asset",
+            "arguments": "p_asset_id uuid, p_date date, p_proceeds numeric, p_counterpart_account text, p_contact_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "generate_schedule",
+            "arguments": "p_asset_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "months_inclusive",
+            "arguments": "p_from date, p_to date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "movements",
+            "arguments": "p_company_id uuid, p_from date, p_to date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "period_end_for",
+            "arguments": "p_company_id uuid, p_period_start date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "period_is_monthly",
+            "arguments": "p_company_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "prorata_fraction",
+            "arguments": "p_rule assets.prorata_rule, p_day_count assets.day_count, p_start date, p_period_start date, p_period_end date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "register",
+            "arguments": "p_company_id uuid, p_at date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "rules",
+            "arguments": "p_company_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "run_depreciation",
+            "arguments": "p_company_id uuid, p_period_end date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
+          {
+            "name": "split_into_months",
+            "arguments": "p_asset_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          }
+        ],
+        "defaultPrivileges": []
+      }
     },
     {
       "code": "budgets",
@@ -4926,7 +7052,71 @@
             "closed"
           ]
         }
-      ]
+      ],
+      "grants": {
+        "schema": "budgets",
+        "usage": {
+          "anon": [
+            "usage"
+          ],
+          "authenticated": [
+            "usage"
+          ],
+          "service_role": [
+            "usage"
+          ]
+        },
+        "tables": [
+          {
+            "name": "budgets",
+            "anon": [],
+            "authenticated": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ],
+            "service_role": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ]
+          },
+          {
+            "name": "lines",
+            "anon": [],
+            "authenticated": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ],
+            "service_role": [
+              "delete",
+              "insert",
+              "select",
+              "update"
+            ]
+          }
+        ],
+        "views": [],
+        "sequences": [],
+        "functions": [
+          {
+            "name": "variance",
+            "arguments": "p_company_id uuid, p_budget_id uuid, p_from date, p_to date",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          }
+        ],
+        "defaultPrivileges": []
+      }
     }
   ]
 }

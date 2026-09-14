@@ -265,15 +265,20 @@ async function main() {
         }
       }
       // Dropping `public` takes Supabase's own default privileges with it —
-      // they live in `pg_default_acl`, keyed by the schema — and nothing in
-      // `supabase/migrations` puts them back, because on a real project they
-      // were never Ekwo's to set. Leave them out and the reinstall succeeds,
-      // `ekwo doctor` is happy, and the first PostgREST read answers
-      // "permission denied for table companies". So the reset restores the
-      // project's own setup before the migrations run on top of it: usage on
-      // the schema, and the default privileges a table, a sequence and a
-      // function created by `postgres` in `public` are given. Ekwo narrows the
-      // function half again in `20260911210131`, which is its business.
+      // they live in `pg_default_acl`, keyed by the schema — and until
+      // `20260914151207` nothing in `supabase/migrations` put them back. Leave
+      // them out and the reinstall succeeded, `ekwo doctor` was happy, and the
+      // first PostgREST read answered "permission denied for table companies",
+      // which is what the run of 14 September 2026 found.
+      //
+      // The schema grants its own rights now, so the reset no longer has to
+      // restore them for the install to work. It still does, and deliberately:
+      // a real project *has* them, and a reset that left them out would be a
+      // reset that quietly stopped exercising the thing the migration does
+      // about them. `20260914151207` revokes `anon` and `authenticated` from
+      // the three lines below, on its way past, and the run should find the
+      // publishable key refused on every table afterwards — which is the step
+      // named "the anonymous role reaches no table" further down.
       await db.exec(`
         drop schema if exists public cascade;
         drop schema if exists supabase_migrations cascade;
@@ -460,6 +465,29 @@ async function main() {
   if (signedIn === undefined) return report();
 
   const rest = api(supabaseUrl, anonKey, token);
+
+  // The publishable key on its own, with no Authorization header: what a
+  // visitor to the website holds. Before `20260914151207` this answered `[]`
+  // on every table, because the project's default privileges gave `anon` the
+  // read and row level security emptied it. The surface should be closed and
+  // not merely empty, so it answers 401/403 now — and PostgREST is the only
+  // place that can be checked, which is why it is checked here.
+  await step('the anonymous role reaches no table', async () => {
+    const refused = [];
+    for (const table of ['companies', 'entries', 'entry_lines', 'documents', 'audit_log']) {
+      const answer = await fetch(`${supabaseUrl}/rest/v1/${table}?select=id&limit=1`, {
+        headers: { apikey: anonKey },
+      });
+      const body = await answer.text();
+      if (answer.ok) {
+        throw new Error(
+          `GET /${table} as anon answered ${answer.status} ${body.slice(0, 200)} — it should be refused`,
+        );
+      }
+      refused.push(`${table} ${answer.status}`);
+    }
+    return refused.join(', ');
+  });
 
   let installation;
   const setup = await step('read the installation over PostgREST', async () => {

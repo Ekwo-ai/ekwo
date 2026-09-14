@@ -23,6 +23,7 @@
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { describeGrants, type GrantsSection } from './grants.js';
 import type { SqlClient } from './sql.js';
 import { scalar } from './sql.js';
 
@@ -67,6 +68,23 @@ export interface ExpectedSchema {
   policies: ExpectedPolicy[];
   triggers: ExpectedTrigger[];
   types: ExpectedType[];
+  /**
+   * Which of `anon`, `authenticated` and `service_role` may reach each of
+   * those objects, and with which verbs.
+   *
+   * Part of the inventory rather than a file of its own, because a privilege
+   * and the object it is on ship in the same migration: since
+   * `20260914151207` the schema grants its own rights by name instead of
+   * taking whatever a Supabase project's default privileges hand out, and a
+   * table added without its grants is exactly as broken as a table added
+   * without its policy.
+   *
+   * `doctor.ts` compares it separately from the categories above, because the
+   * rule is not the same: a missing grant is a fault, an extra one to `anon`
+   * is a fault, and an extra one to a signed-in user is worth saying out loud
+   * without failing a build.
+   */
+  grants: GrantsSection;
 }
 
 export interface ExpectedModule extends ExpectedSchema {
@@ -234,6 +252,8 @@ async function readSchema(db: SqlClient, schema: string): Promise<ExpectedSchema
     [schema],
   );
 
+  const grants = await describeGrants((sql, params) => db.query(sql, params), schema);
+
   return {
     schema,
     tables: tables.map((t) => ({
@@ -251,7 +271,22 @@ async function readSchema(db: SqlClient, schema: string): Promise<ExpectedSchema
       kind: t.kind,
       ...(t.labels === null ? {} : { labels: t.labels }),
     })),
+    grants,
   };
+}
+
+/** The live grants of one schema, for the doctor's own check. */
+export async function readGrants(db: SqlClient, schema: string): Promise<GrantsSection> {
+  return describeGrants((sql, params) => db.query(sql, params), schema);
+}
+
+/** The schemas of an inventory this database actually carries. */
+export async function installedSections(
+  db: SqlClient,
+  expected: ExpectedObjects,
+): Promise<ExpectedSchema[]> {
+  const carried = await installedModules(db);
+  return [expected.socle, ...expected.modules.filter((m) => carried.has(m.code))];
 }
 
 // ---------------------------------------------------------------- comparing

@@ -126,6 +126,7 @@ describe('doctor', () => {
       'catalogue',
       'row level security',
       'policies',
+      'grants',
       'company members',
       'instance administrators',
       'bank accounts',
@@ -222,5 +223,57 @@ describe('doctor', () => {
     const check = report.checks.find((c) => c.name === 'instance administrators');
     expect(check?.severity).toBe('warning');
     expect(check?.summary).toContain('nobody can create a company');
+  });
+});
+
+/**
+ * The privileges, which are the half of access control that row level security
+ * does not cover and that nothing else in this file would notice.
+ *
+ * These four break a live database in the four ways an installation drifts: a
+ * grant the schema declared and the database lost, a table opened to the
+ * anonymous role, a verb given to a signed-in user that no policy will ever
+ * accept, and a default privilege put back by hand.
+ */
+describe('doctor: the privileges the schema declares', () => {
+  it('is content with an installation the migrations built', async () => {
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'grants');
+    expect(check?.severity, JSON.stringify(check, null, 2)).toBe('ok');
+    expect(check?.summary).toContain('public');
+  });
+
+  it('fails on a grant that is missing, and names the table and the role', async () => {
+    await db.exec('revoke insert on table documents from authenticated;');
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'grants');
+    expect(check?.severity).toBe('problem');
+    expect(check?.details?.join('\n')).toContain('public.table documents: authenticated is missing insert');
+    expect(report.problems).toBeGreaterThan(0);
+  });
+
+  it('fails on a table opened to the anonymous role', async () => {
+    await db.exec('grant select on table entries to anon;');
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'grants');
+    expect(check?.severity).toBe('problem');
+    expect(check?.details?.join('\n')).toContain('public.table entries: anon holds an extra select');
+  });
+
+  it('warns about a signed-in user who gained a verb no policy accepts', async () => {
+    await db.exec('grant delete on table currencies to authenticated;');
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'grants');
+    expect(check?.severity).toBe('warning');
+    expect(check?.details?.join('\n')).toContain('public.table currencies: authenticated holds an extra delete');
+    expect(report.problems).toBe(0);
+  });
+
+  it('warns about a default privilege somebody put back', async () => {
+    await db.exec('alter default privileges in schema public grant select on tables to anon;');
+    const report = await doctor(db, migrations);
+    const check = report.checks.find((c) => c.name === 'grants');
+    expect(check?.severity).toBe('warning');
+    expect(check?.details?.join('\n')).toContain('a default privilege still stands');
   });
 });
