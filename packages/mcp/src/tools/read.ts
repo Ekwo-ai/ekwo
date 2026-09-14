@@ -191,9 +191,45 @@ export const ListAccountsInput = z.object({
   code_prefix: z.string().min(1).optional().describe('Only accounts whose code starts with this, e.g. "70".'),
   account_type: z.string().min(1).optional().describe('One of the eighteen account types, e.g. asset_receivable.'),
   search: z.string().min(1).optional().describe('Case-insensitive match on the account name.'),
-  include_deprecated: z.boolean().optional(),
+  in_use_from: isoDate
+    .optional()
+    .describe('Narrows the movements to entries on or after this date. References and pinned accounts are not dated and stay in.'),
+  in_use_to: isoDate.optional().describe('The other end of that period.'),
+  include_all: z
+    .boolean()
+    .optional()
+    .describe('Return the whole chart instead of the accounts in use. Use it when a search over the working chart found nothing.'),
+  include_deprecated: z
+    .boolean()
+    .optional()
+    .describe('Include deprecated accounts. A deprecated account is never in use, so this returns the whole chart.'),
   limit: z.number().int().min(1).max(2000).optional(),
 });
+
+/**
+ * The account ids `accounts_in_use()` gives back.
+ *
+ * A function returning `setof uuid` arrives as a list of strings over
+ * PostgREST and as a list of one-column rows over Postgres, the same split
+ * `member_capabilities` has. Both are read here.
+ */
+async function accountsInUse(
+  backend: Backend,
+  args: { company_id: string; in_use_from?: string | undefined; in_use_to?: string | undefined },
+): Promise<string[]> {
+  const rows = await backend.rpc<unknown>('accounts_in_use', {
+    p_company_id: args.company_id,
+    p_from: args.in_use_from ?? null,
+    p_to: args.in_use_to ?? null,
+  });
+  return rows
+    .map((row) =>
+      typeof row === 'string'
+        ? row
+        : ((row as Record<string, unknown>)['accounts_in_use'] as string | undefined),
+    )
+    .filter((id): id is string => typeof id === 'string');
+}
 
 export async function listAccounts(
   backend: Backend,
@@ -205,6 +241,28 @@ export async function listAccounts(
   if (args.search !== undefined) where.push({ column: 'name', op: 'ilike', value: `%${args.search}%` });
   if (args.include_deprecated !== true) where.push({ column: 'deprecated', op: 'eq', value: false });
 
+  // A country pack is a transcription of the regulation — three hundred
+  // accounts in Belgium, a thousand in Luxembourg — and a company works with a
+  // few dozen of them. The default is therefore the working chart the schema
+  // computes, and the whole thing is one flag away. Asking for deprecated
+  // accounts is asking for the whole chart by definition: a deprecated account
+  // is never in use.
+  const wholeChart = args.include_all === true || args.include_deprecated === true;
+  let scope: 'in_use' | 'whole_chart' = 'whole_chart';
+  if (!wholeChart) {
+    scope = 'in_use';
+    const ids = await accountsInUse(backend, args);
+    if (ids.length === 0) {
+      return {
+        accounts: [],
+        count: 0,
+        scope,
+        note: 'No account of this company is in use yet. Pass include_all to see the whole chart.',
+      };
+    }
+    where.push({ column: 'id', op: 'in', value: ids });
+  }
+
   const accounts = await backend.select<Row>({
     table: 'accounts',
     columns: columns.ACCOUNT,
@@ -212,7 +270,15 @@ export async function listAccounts(
     order: [{ column: 'code' }],
     limit: args.limit ?? 200,
   });
-  return { accounts, count: accounts.length };
+  return {
+    accounts,
+    count: accounts.length,
+    scope,
+    note:
+      scope === 'in_use'
+        ? 'The accounts this company works with: moved, referenced by its settings, held by a module, or pinned. Pass include_all for the whole chart — any account of it may still be booked on.'
+        : 'The whole chart of the company.',
+  };
 }
 
 export const SearchContactsInput = z.object({

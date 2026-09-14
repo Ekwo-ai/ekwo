@@ -102,7 +102,7 @@ Every write names its company explicitly.
 |---|---|
 | `list_companies` | The companies you are a member of, with your role on each |
 | `get_company` | Financial years, lock dates, journals, default accounts |
-| `list_accounts` | The chart of accounts, by code prefix, type or name |
+| `list_accounts` | The accounts a company works with, by code prefix, type or name. `include_all` for the whole chart |
 | `search_contacts` | Customers and suppliers, by name, type or VAT number |
 | `search_products` | The catalogue: code, unit, price, account and tax of what is sold and bought |
 | `list_documents` | Invoices, credit notes and quotes, filtered |
@@ -123,6 +123,7 @@ Every write names its company explicitly.
 | `create_contact` | A customer, supplier or other third party |
 | `create_product` | A catalogue row: code, name, unit, price, account, tax |
 | `update_product` | Changes one, or retires it with `active: false` |
+| `pin_accounts` | Adds accounts to the working chart a company sees first, or takes one back out with `pinned: false` |
 | `create_document` | A draft invoice, credit note or quote, with its lines |
 | `update_document_lines` | Replaces the lines of a **draft** |
 | `post_document` | Books it. Cannot be undone. |
@@ -138,6 +139,19 @@ Every write names its company explicitly.
 | `set_preferences` | Your own language, timezone, formats and default company |
 | `invite_member` / `revoke_invitation` | Invites an address into a company, or withdraws the invitation. The token is shown once |
 | `create_api_key` / `revoke_api_key` | A key for a machine, scoped to one company and a list of capabilities |
+
+**`list_accounts` answers with the working chart, not the whole one.** A
+country pack transcribes the regulation — 353 accounts in Belgium, 1 026 in
+Luxembourg — and a company works with a few dozen of them, so the default is
+what `accounts_in_use()` returns: the accounts carrying posted entries, those
+the company's own settings or an enabled module point at, and those somebody
+pinned, minus the deprecated ones. Every answer carries a `scope` field saying
+which it used. `in_use_from` and `in_use_to` narrow the movements to a period;
+`include_all` returns the whole chart; `include_deprecated` returns it with the
+retired accounts too; and `ekwo://companies/{id}/chart` was already the
+resource that carries everything. None of this restricts anything: a document
+line may name any account of the chart that is not deprecated, and every write
+tool still accepts one.
 
 `post_document`, `record_payment`, `update_document_lines`, `unreconcile`,
 `lock_period`, `opening_balance`, `close_fiscal_year`, `reopen_fiscal_year`,

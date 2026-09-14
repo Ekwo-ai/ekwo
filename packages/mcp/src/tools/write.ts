@@ -115,6 +115,45 @@ export async function createContact(
 }
 
 // ---------------------------------------------------------------------------
+// The working chart
+// ---------------------------------------------------------------------------
+
+export const PinAccountsInput = z.object({
+  company_id: companyId,
+  account_codes: z
+    .array(z.string().min(1))
+    .min(1)
+    .describe('Codes in this company\'s chart. list_accounts with include_all says what exists.'),
+  pinned: z
+    .boolean()
+    .optional()
+    .describe('True pins, false unpins. Defaults to true.'),
+});
+
+export async function pinAccounts(
+  backend: Backend,
+  args: z.infer<typeof PinAccountsInput>,
+): Promise<unknown> {
+  const pinned = args.pinned ?? true;
+  const ids = await idsByCode(backend, 'accounts', args.company_id, args.account_codes);
+  const updated = await backend.update<Row>(
+    'accounts',
+    { pinned },
+    [
+      { column: 'company_id', op: 'eq', value: args.company_id },
+      { column: 'id', op: 'in', value: [...ids.values()] },
+    ],
+    ['code', 'name', 'pinned'],
+  );
+  if (updated.length === 0) {
+    throw new EkwoMcpError(
+      'not_found: none of those accounts could be changed. Either they are not in this company, or your role on it does not allow writing its chart.',
+    );
+  }
+  return { accounts: updated, pinned, count: updated.length };
+}
+
+// ---------------------------------------------------------------------------
 // Products
 // ---------------------------------------------------------------------------
 

@@ -2843,3 +2843,133 @@ down is exactly what `community` means: contributed, not reviewed. The status
 moves when an Estonian accountant puts their name in the manifest, and not
 before.
 
+## The chart stays whole and the list gets short (14 September 2026)
+
+A country pack transcribes the regulation: Estonia ships 120 accounts, Belgium
+353, France 394, Luxembourg 1 026. That was decided on purpose — an abridged
+chart would be this repository's opinion of which accounts matter, sitting in a
+file that claims to be the law — and nothing here takes it back. What it costs
+is a different thing: somebody looking for the account a purchase invoice goes
+on is handed three hundred rows, and an assistant reading the chart through the
+MCP server is handed the same three hundred rows before every question.
+
+Two production installations were measured on a full year of books. One used
+**60 accounts out of roughly 300**; the other **126 out of roughly 300**. Both
+are ordinary companies of the same country, and neither would have been served
+by a smaller pack — they use a different sixty.
+
+**So the chart is not narrowed; a second question is added beside it.**
+`accounts_in_use(company, from, to)` answers "which of these accounts is this
+company working with", and the answer is read from what the company already
+holds rather than kept in a list somebody has to maintain:
+
+- **moved** — the account carries a line of a posted entry. With a period, a
+  line dated inside it; without one, ever.
+- **referenced** — the configuration of the company names the account by
+  foreign key: a role default, a contact override, a journal, a tax posting,
+  the transition account of a cash-basis tax, a bank account, a product. A
+  configuration reference is not dated, and only the movement is. An account a
+  product posts to is in use before anything is booked on it, and stays in use
+  in a quarter nothing was booked in.
+- **a module** — a module the company has enabled holds it.
+- **pinned** — somebody said so.
+
+minus `deprecated`, which is already how a chart retires an account.
+
+**Two alternatives were considered and refused.** A *core plus creation on
+demand* — ship thirty accounts and add one when it is needed — would have made
+the pack a subset again, and the account somebody needs is exactly the one they
+cannot name. *Subsets by activity inside the pack* — a retail set, a services
+set — would have put a classification of businesses into a file that is
+supposed to hold a chart of accounts, and it would have to be maintained per
+country by whoever maintains the pack. Both replace a fact with an opinion. The
+fact is in the database already.
+
+**`accounts.pinned` is the column an operator edits**, and
+`install_country_template()` pins what it wires: the roles of the country
+model, the accounts its financial journals post to, the accounts its taxes book
+on, the transition account of a cash-basis tax. That is **eleven accounts on
+Belgium, eleven on Estonia, fifteen on France, eleven on Luxembourg** — fewer
+than the thirty the first sketch assumed, because the roles and the tax
+postings overlap heavily and a country model names about a dozen accounts, not
+thirty. It names about a dozen whatever the size of the chart: Estonia's
+hundred and twenty accounts and Luxembourg's thousand wire the same eleven.
+The union above would have found most of them anyway; what pinning adds is that
+the set is written down, so a company that later points a role at a different
+account keeps the first one in the list it has been reading for a year.
+
+**Pinning restricts nothing.** A document line takes any account of the chart
+that is not deprecated, exactly as before, and every write tool still accepts
+one. This is a reading, and the only thing it changes is what is offered first.
+A tool that narrowed what may be booked on would be a tool that makes a wrong
+entry by being helpful.
+
+**The socle still ignores its modules.** `accounts_in_use()` does not name
+`assets` or `budgets`. It asks each module the company has enabled for
+`<schema>.accounts_in_use(uuid)` — the convention `disable_module()` already
+reads for `<schema>.can_disable(uuid)` — and `to_regprocedure` answers null for
+a module that references no account. The dependency keeps pointing one way: a
+module reads the socle, the socle asks its modules a question they may decline
+to answer.
+
+**What the working chart does not include**, and the reason in each case. The
+accounts a pack names for opening and closing — the result of the year, the
+accumulated loss — are resolved by `close_fiscal_year()` from the pack at the
+moment it runs and are never written onto the company, so nothing points at
+them until the first year is closed, and then the movement does. The parent of
+a used account is left out: a heading is not an account anybody books on, and
+including headings would put the whole hierarchy back. A line of a *draft*
+document is left out too, because it would make the period argument useless —
+an account named on an undated draft would be in use in every quarter.
+
+`list_accounts` answers with this set, and says in its output which scope it
+used, so a model that finds nothing knows there is a wider question to ask.
+`include_all` gives the whole chart, `include_deprecated` gives it with the
+retired accounts, and `ekwo://companies/{id}/chart` was already the resource
+that carries everything.
+
+## A code is frozen by the first line booked on it (14 September 2026)
+
+Every reference to an account inside a company is a foreign key on
+`accounts(id)`: the roles of the company, the overrides of a contact, the
+journals, the tax postings, the lines of every document and of the ledger, and
+the tables of the modules. That was checked, and it held. So renaming an
+account breaks nothing, and renumbering one appears to break nothing either —
+the keys follow.
+
+**The rules do not follow the key.** A financial statement maps an account to a
+line by its code: `statement_line_rules` carries `account_code` rules, and on
+the Belgian chart a rubric code *is* a range of codes. A declaration box is
+reached through a tax posting whose account the pack named by code.
+`account_id_by_code()` is how half the schema finds an account at all. Moving
+`700000` to `701000` therefore moves the account to a different line of the
+balance sheet or the profit and loss account, and the year already booked on it
+moves with it — silently, and in a statement somebody has filed.
+
+`accounts_write` could not have stopped it: a policy judges which rows a caller
+may touch and has nothing to say about which column changes. So there is a
+trigger, and it raises by name.
+
+- `account_code_frozen` — the code may not change once the account carries a
+  line of the ledger, is named by a tax posting, or plays one of the company's
+  roles.
+- `account_type_frozen` — neither may the type, for the same reason. The
+  eighteen types are what put an account on one side of the balance sheet or in
+  the income statement, and `internal_group` and `carries_forward` are
+  generated from it.
+
+Everything else stays editable at any moment: the label, the translations, the
+notes, the parent, `reconcilable`, `deprecated`, `pinned`. Renaming an account
+is ordinary work — it is the first thing an operator does to a chart they have
+just installed — and `pack_upgrade` does it too when a pack changes a label.
+
+**Deprecating is the way out, and it always was.** An account that was given the
+wrong code is deprecated and a new one takes the entries from here on, which is
+the same rule that says nothing is ever deleted from a pack: the statements of a
+past period have to keep giving the same answer.
+
+One consequence is deliberate. `pack_upgrade(…, apply => true)` now fails by
+name rather than moving a used account between statements. That difference was
+already classified `review` — the rule that exists precisely because there is no
+way to be sure from here which of the two is right — and a refusal is the honest
+end of that sentence.

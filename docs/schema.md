@@ -230,6 +230,7 @@ Chart of accounts, one per company.
 | `updated_at` | `timestamp with time zone` | not null |
 | `name_i18n` | `jsonb` | not null — Label by language, copied from the template at install. `name` holds the language the company chose. |
 | `statement_hint` | `text` | Free note: the statement line this account is meant for. Read by nothing — the rules of a statement decide — and kept so a chart can carry the intent. |
+| `pinned` | `boolean` | not null — Whether this account belongs to the working chart of the company whatever the ledger says. Set by install_country_template() on everything it wires, and by an operator afterwards. Display only: pinning restricts nothing. |
 
 Constraints:
 
@@ -1503,6 +1504,8 @@ Constraints:
 |---|---|
 | `accept_invitation(p_token text)` | Turns an invitation into a membership for the signed-in user, whose address has to be the one invited. Single use, and refused once expired. |
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
+| `accounts_guard_frozen()` | Refuses a change of code or of account_type on an account that carries ledger lines, is named by a tax posting or plays a company role. The label, the translations, the parent, reconcilable, deprecated and pinned stay editable. |
+| `accounts_in_use(p_company_id uuid, p_from date, p_to date)` | The accounts of a company that are in use: moved by a posted entry in the period — ever, when no period is given — or referenced by the configuration of the company — a role default, a contact override, a journal, a tax posting, a cash-basis transition, a bank account, a product — or held by a module the company has enabled, or pinned. Deprecated accounts are left out. A configuration reference is not dated; only the movement is. This is a reading: nothing here restricts what may be booked. |
 | `aged_balance(p_company_id uuid, p_at date, p_group text)` | Ageing of what is still open, read from the ledger and from the matching, written at the decimals of the company's currency. Two groups, receivable and payable; anything else is refused by name. |
 | `amount_text_format(p_rounding money_rounding)` | The to_char mask an amount of this currency is written with. Two decimals for the euro, none for the yen, three for the dinar. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
@@ -1544,7 +1547,7 @@ Constraints:
 | `has_capability(p_company_id uuid, p_capability text)` | Whether the current caller may do one named thing in one company — a signed-in member by their preset and their adjustments, or a machine key by its own list. Revoked beats granted, and a non-member holding no key holds nothing. |
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
-| `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, and records the pack version and the chart in company_packs. |
+| `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, pins the accounts it wired, and records the pack version and the chart in company_packs. |
 | `invite_member(p_company_id uuid, p_email text, p_role member_role, p_capabilities jsonb, p_valid_for interval)` | Invites an address into a company and returns the token once. Only the hash is stored; re-inviting the same address revokes the pending invitation. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_company_owner(p_company_id uuid)` | Whether the current user is on the owner preset of a company. False, never NULL, for somebody who is not a member — a guard written as `if not is_company_owner(…)` has to fire for a stranger. |
@@ -1565,6 +1568,7 @@ Constraints:
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
 | `pack_upgrade(p_company_id uuid, p_country character, p_apply boolean)` | Moves a company to the country pack version this installation holds: additions copied in, closed validities applied, everything else listed and left alone unless the caller asks for it. Records what it did in the audit trail. The recorded version moves only when nothing is left waiting. Definer, because the line it records goes through audit_record(), which no client may call; the caller still needs company.write on the company. |
 | `pack_upgrade_diff(p_company_id uuid, p_country character)` | What separates a company from the country pack this installation now holds, by natural key, each difference carrying the rule that decides what an upgrade does with it. |
+| `pin_referenced_accounts(p_company_id uuid)` | Pins every account this company points at by a role, a journal, a tax posting or a cash-basis transition, and returns how many accounts are pinned afterwards. Called by install_country_template(); callable again after an upgrade added a tax. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. Where the country forbids a hole in the sequence it refuses a number chosen by hand, unless the caller holds entries.import — and then the counter catches up to it. |
 | `post_module_entry(p_company_id uuid, p_module_code text, p_ref text, p_date date, p_description text, p_lines jsonb, p_journal_id uuid)` | The only way a module reaches the ledger: it hands over lines as data and this builds the draft and calls post_entry(). The tag (module_code, ref) is unique per company, so posting the same thing twice is refused by the database. |
@@ -1770,6 +1774,7 @@ Constraints:
 
 | Function | Purpose |
 |---|---|
+| `accounts_in_use(p_company_id uuid)` | The accounts this module points at for one company: what its assets are booked, depreciated and charged on, and what a disposal was settled against. Read by public.accounts_in_use() through the module convention. |
 | `can_disable(p_company_id uuid)` | Why this company cannot disable the assets module, or null when it can. The convention disable_module() reads. |
 | `create_asset(p_company_id uuid, p_code text, p_name text, p_acquisition_date date, p_cost numeric, p_asset_account text, p_depreciation_account text, p_expense_account text, p_category_code text, p_duration_months integer, p_method assets.depreciation_method, p_coefficient numeric, p_residual_value numeric, p_in_service_date date, p_document_line_id uuid, p_contact_id uuid, p_description text)` | Creates an asset and its schedule in one call. A category of the country pack fills in the method, the duration and the coefficient; anything the caller passes wins over it. |
 | `days360(p_from date, p_to date)` | Days between two dates on a year of 360 days and months of 30, the day capped at the 30th. Half-open: days360(1 January, 1 January of the next year) is 360. |
@@ -1844,6 +1849,7 @@ Constraints:
 
 | Function | Purpose |
 |---|---|
+| `accounts_in_use(p_company_id uuid)` | The accounts this module points at for one company: every account a budget line plans an amount on. Read by public.accounts_in_use() through the module convention. |
 | `variance(p_company_id uuid, p_budget_id uuid, p_from date, p_to date)` | Budget against ledger, per account, over a period, at the decimals of the company's currency. Both figures are in the sign a business states them in — an income account's credit balance is flipped — and the variance is the actual less the plan. Reads posted entries of kind `normal` only: a closing or appropriation entry is not what a period earned. |
 
 ---

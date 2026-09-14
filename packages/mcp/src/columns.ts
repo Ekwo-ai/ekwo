@@ -58,6 +58,7 @@ export const ACCOUNT = [
   'reconcilable',
   'currency_code',
   'deprecated',
+  'pinned',
 ];
 
 export const JOURNAL = ['id', 'code', 'name', 'journal_type', 'active'];

@@ -46,6 +46,7 @@ const READ_TOOLS = [
 const WRITE_TOOLS = [
   'create_contact',
   'create_product',
+  'pin_accounts',
   'update_product',
   'create_document',
   'update_document_lines',

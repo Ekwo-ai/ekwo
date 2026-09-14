@@ -66,6 +66,40 @@ somewhere has already run it.
 
 ### Added
 
+- **A company opens on the part of its chart it actually works with.**
+  A country pack is a transcription of the regulation — 120 accounts in
+  Estonia, 353 in Belgium, 394 in France, 1 026 in Luxembourg — and a company
+  uses a fraction of it: two production installations measured on a full year
+  of books used 60 accounts out of roughly 300 and 126 out of roughly 300.
+  Nothing about the packs changes; a second question is added beside the chart.
+  **`accounts_in_use(company, from, to)`** (migration `20260914143915`) returns
+  the accounts a company is working with: those carrying a line of a posted
+  entry — in the period when one is given, ever when none is — those its
+  configuration points at by foreign key (the role defaults, a contact
+  override, a journal, a tax posting, the transition account of a cash-basis
+  tax, a bank account, a product), those a module it has enabled holds, and
+  those somebody pinned; minus the deprecated ones. A configuration reference
+  is not dated; only the movement is.
+  **`accounts.pinned`** is the column an operator edits to add an account the
+  rules cannot know about, or to keep one that has stopped being referenced.
+  `install_country_template()` now pins what it wires — eleven accounts on
+  Belgium, Estonia and Luxembourg, fifteen on France: the roles of the country
+  model, the accounts of its financial journals and the accounts its taxes
+  post to. A country model names about a dozen accounts whatever the size of
+  its chart. Pinning is display and never a restriction: any account of the
+  chart that is not deprecated may still be booked on.
+  **The socle still ignores its modules.** It does not name `assets` or
+  `budgets`: it asks each module the company has enabled for
+  `<schema>.accounts_in_use(uuid)`, the convention `disable_module()` already
+  reads for `can_disable`. A module that references no account writes no such
+  function.
+  **`list_accounts` starts from that set**, says which scope it answered with,
+  and takes `include_all` for the whole chart, `include_deprecated` for the
+  whole chart with the retired accounts, and `in_use_from` / `in_use_to` to
+  narrow the movements to a period. **`pin_accounts`** pins or unpins by code.
+  The `ekwo://companies/{id}/chart` resource is unchanged and still carries
+  everything.
+
 - **Luxembourg, as `packs/lu/`.** The third country pack, and the first
   contributed from published sources rather than from books somebody keeps.
   It carries the **plan comptable normalisé** of the *règlement grand-ducal du
@@ -275,6 +309,24 @@ somewhere has already run it.
   gained a second chart of accounts.
 
 ### Changed
+
+- **The code and the type of an account stop moving once it is in use.**
+  Every reference to an account inside a company is a foreign key on
+  `accounts(id)`, so renumbering one appeared to break nothing. The rules do
+  not follow the key: a financial statement maps an account to a line by its
+  code, and the eighteen account types are what put an account on one side of
+  the balance sheet or in the income statement. Moving `700000` to `701000`
+  moved a year of bookkeeping to another line of a statement somebody had
+  already filed, and the `accounts_write` policy had nothing to say about it.
+  A trigger (migration `20260914144731`) now refuses a change of `code`
+  (`account_code_frozen`) or of `account_type` (`account_type_frozen`) on an
+  account that carries a ledger line, is named by a tax posting, or plays one
+  of the company's roles. The label, the translations, the notes, the parent,
+  `reconcilable`, `deprecated` and `pinned` stay free, and deprecating remains
+  the way to retire an account that was wrong.
+  One consequence is deliberate: `pack_upgrade(…, apply => true)` now fails by
+  name rather than moving a used account between statements. That difference
+  was already a `review`, which is the rule that exists for a person to look.
 
 - **The real-project end-to-end run times every step.** `npm run e2e:supabase`
   printed a pass/fail table; it now prints how long each step took and the

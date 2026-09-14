@@ -108,7 +108,7 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
     {
       title: 'Chart of accounts',
       description:
-        'The chart of accounts of a company, filtered by code prefix, by account type, or by a search on the name. Use it to find the income or expense account a document line should carry. Deprecated accounts are left out unless you ask for them.',
+        'The accounts a company actually works with, filtered by code prefix, by account type, or by a search on the name. Use it to find the income or expense account a document line should carry. By default it returns the working chart — the accounts that carry entries, that the company\'s settings or an enabled module point at, or that somebody pinned — because a country pack transcribes the whole regulation and a company uses a few dozen of its several hundred accounts; `in_use_from` and `in_use_to` narrow the movements to a period, `include_all` returns the whole chart, and `include_deprecated` returns it with the retired accounts too. This is a reading and not a restriction: any account of the chart that is not deprecated may still be booked on.',
       inputSchema: read.ListAccountsInput.shape,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
@@ -547,6 +547,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async (args) => guard(() => write.revokeInvitation(backend, args)),
+  );
+
+  server.registerTool(
+    'pin_accounts',
+    {
+      title: 'Pin accounts to the working chart',
+      description:
+        'Adds accounts to the working chart of a company, so list_accounts offers them whether or not anything has been booked on them. Pass pinned: false to take one back out. Pinning is display and nothing else: an unpinned account may still be booked on, and a pinned one is still hidden once it is deprecated.',
+      inputSchema: write.PinAccountsInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.pinAccounts(backend, args)),
   );
 
   server.registerTool(

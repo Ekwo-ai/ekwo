@@ -109,6 +109,10 @@
             "type": "uuid"
           },
           {
+            "name": "pinned",
+            "type": "boolean"
+          },
+          {
             "name": "reconcilable",
             "type": "boolean"
           },
@@ -2883,6 +2887,14 @@
         "arguments": "p_company_id uuid, p_code text"
       },
       {
+        "name": "accounts_guard_frozen",
+        "arguments": ""
+      },
+      {
+        "name": "accounts_in_use",
+        "arguments": "p_company_id uuid, p_from date, p_to date"
+      },
+      {
         "name": "aged_balance",
         "arguments": "p_company_id uuid, p_at date, p_group text"
       },
@@ -3201,6 +3213,10 @@
       {
         "name": "pack_upgrade_diff",
         "arguments": "p_company_id uuid, p_country character"
+      },
+      {
+        "name": "pin_referenced_accounts",
+        "arguments": "p_company_id uuid"
       },
       {
         "name": "post_document",
@@ -3730,6 +3746,10 @@
       {
         "table": "accounts",
         "name": "accounts_audit"
+      },
+      {
+        "table": "accounts",
+        "name": "accounts_guard_frozen"
       },
       {
         "table": "accounts",
@@ -5059,6 +5079,25 @@
           ]
         },
         {
+          "name": "accounts_guard_frozen",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "accounts_in_use",
+          "arguments": "p_company_id uuid, p_from date, p_to date",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
           "name": "aged_balance",
           "arguments": "p_company_id uuid, p_at date, p_group text",
           "anon": [],
@@ -5876,6 +5915,17 @@
           ]
         },
         {
+          "name": "pin_referenced_accounts",
+          "arguments": "p_company_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
           "name": "post_document",
           "arguments": "p_document_id uuid",
           "anon": [],
@@ -6497,6 +6547,10 @@
       "views": [],
       "functions": [
         {
+          "name": "accounts_in_use",
+          "arguments": "p_company_id uuid"
+        },
+        {
           "name": "assert_may_post",
           "arguments": ""
         },
@@ -6745,6 +6799,17 @@
         "views": [],
         "sequences": [],
         "functions": [
+          {
+            "name": "accounts_in_use",
+            "arguments": "p_company_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
           {
             "name": "assert_may_post",
             "arguments": "",
@@ -7006,6 +7071,10 @@
       "views": [],
       "functions": [
         {
+          "name": "accounts_in_use",
+          "arguments": "p_company_id uuid"
+        },
+        {
           "name": "variance",
           "arguments": "p_company_id uuid, p_budget_id uuid, p_from date, p_to date"
         }
@@ -7103,6 +7172,17 @@
         "views": [],
         "sequences": [],
         "functions": [
+          {
+            "name": "accounts_in_use",
+            "arguments": "p_company_id uuid",
+            "anon": [],
+            "authenticated": [
+              "execute"
+            ],
+            "service_role": [
+              "execute"
+            ]
+          },
           {
             "name": "variance",
             "arguments": "p_company_id uuid, p_budget_id uuid, p_from date, p_to date",
