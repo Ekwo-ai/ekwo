@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { compilePack, packsDir, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { accountId, ledgerOf, newCompany, newContact, newDocument, taxId, type Fixture } from './helpers/factory.js';
+import { allPacks, somePack } from './helpers/packs.js';
 
 // The generalised tax engine. Two things are proved here:
 //
@@ -69,30 +70,42 @@ describe('the columns of the generalised engine', () => {
     );
     expect(odd).toEqual([]);
 
-    // Only the three Belgian and one French tax this release adds are not
-    // fully recoverable, and the flag says so in one word.
+    // A tax nobody gets back is a claim of its pack, and the flag says so in
+    // one word. Which packs carry one is read from the packs themselves.
     const notRecoverable = await rows<{ country: string; code: string }>(
       db,
       `select country, code from tax_templates where not recoverable order by country, code`,
     );
-    expect(notRecoverable).toEqual([
-      { country: 'BE', code: 'BE-P-21-ND' },
-      { country: 'EE', code: 'EE-P-ND-24' },
-    ]);
+    expect(notRecoverable).toEqual(
+      allPacks
+        .flatMap((pack) =>
+          pack.taxes
+            .filter((tax) => !tax.recoverable)
+            .map((tax) => ({ country: pack.manifest.country, code: tax.code })),
+        )
+        .sort((a, b) => (`${a.country}${a.code}` < `${b.country}${b.code}` ? -1 : 1)),
+    );
   });
 
-  it('carries the rounding rule of a country, which is half away from zero in both', async () => {
+  it('carries the rounding rule each pack declares, and the column decides for one that says nothing', async () => {
     const defaults = await rows<{ country: string; rounding_method: string; cash_rounding_unit: string }>(
       db,
       `select country, rounding_method::text, cash_rounding_unit::text
          from country_defaults order by country`,
     );
-    expect(defaults).toEqual([
-      { country: 'BE', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
-      { country: 'EE', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
-      { country: 'FR', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
-      { country: 'LU', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
-    ]);
+    // The column's own defaults, for a pack that declares neither. They live in
+    // the migration, which is the one place the mechanism is written down.
+    expect(defaults).toEqual(
+      allPacks
+        .map((pack) => ({
+          country: pack.manifest.country,
+          rounding_method: (pack.manifest.defaults['rounding_method'] as string | undefined) ?? 'half_up',
+          cash_rounding_unit: Number(
+            (pack.manifest.defaults['cash_rounding_unit'] as number | undefined) ?? 0,
+          ).toFixed(4),
+        }))
+        .sort((a, b) => (a.country < b.country ? -1 : 1)),
+    );
   });
 
   it('copies the new columns from the template into the company', async () => {
@@ -443,7 +456,7 @@ describe('no country decided anywhere but in a pack', () => {
   });
 
   it('compiles the rounding rule a pack declares, whatever it is', async () => {
-    const pack = await readPack('be', packsDir());
+    const pack = somePack;
     const swiss = {
       ...pack,
       manifest: {
@@ -460,7 +473,7 @@ describe('no country decided anywhere but in a pack', () => {
   });
 
   it('lets the column decide when a pack declares nothing, instead of picking a country', async () => {
-    const pack = await readPack('be', packsDir());
+    const pack = somePack;
     const defaults = { ...pack.manifest.defaults };
     delete (defaults as Record<string, unknown>)['rounding_method'];
     delete (defaults as Record<string, unknown>)['cash_rounding_unit'];
@@ -469,7 +482,7 @@ describe('no country decided anywhere but in a pack', () => {
     // `default, default`, never `'half_up', 0` written by the compiler: the
     // mechanism lives in the migration and in one place only.
     expect(sql).toContain('default, default,');
-    expect(sql).not.toContain("'half_up'");
+    expect(sql).not.toContain(`'${pack.manifest.defaults['rounding_method'] as string}'`);
   });
 
   it('reads the rounding rule of a company from its country model and nowhere else', async () => {
