@@ -76,6 +76,8 @@ Always number after the newest file on `main`, and check `git log` first.
 | `20260914111907_pack_upgrade` | `pack_change_rule`, `pack_upgrade_diff(company, country)` — the difference between a company and the pack the installation holds, by natural key, each row carrying its rule — and `pack_upgrade(company, country, apply)`, which applies an addition and a closed validity, lists the rest, never removes a row the company holds, records what it did in `audit_log`, and moves `company_packs.version` only when nothing is left waiting |
 | `20260914120500_rounding_reads_the_currency` | the `money_rounding` pair — the decimals of a currency and the method of a country — with `round_amount(amount, rounding)` (the arithmetic, and the only place a method is named), `rounding_of(company, currency)` (the lookup, and the only reader of `currencies.decimal_places` and `country_defaults.rounding_method`), `currency_unit()` and `amount_text_format()`. Nothing else changes yet |
 | `20260914121200_amounts_round_at_the_currency` | the fifty-one `round(x, 2)` of the socle rewritten onto `round_amount`: `post_document`, `post_payment`, `reconcile`, `settle_cash_basis_tax`, `opening_balance`, `post_module_entry`, `close_fiscal_year`, `aged_balance`, `statement_account_matches`, `financial_statement`, `vat_return`, `fec_lines`, `documents_refresh_totals`, `documents_refresh_amount_paid`, `evaluate_totals` (which takes the rounding as an argument, because it is immutable) and `document_tax_summary`. `document_lines.amount_untaxed` stops being a generated column and becomes one a trigger writes, because a generated column may not ask what currency the document is in. The tolerances `0.005` and `0.001` become fractions of `currency_unit()` |
+| `20260914151207_schema_grants_its_own_rights` | Every table, view and function names the roles that may reach it, by hand and by name. `authenticated` gets exactly the verbs the policies of a table are prepared to judge — the four on the twenty-six a policy `for all` governs, SELECT alone on the twenty-four a pack or a definer function writes, SELECT alone on `audit_log`; `anon` gets nothing on any table, view or sequence and keeps the ten policy helpers; `service_role` gets what a person gets. The project's default privileges on `public` are taken back and stopped, Ekwo's own EXECUTE default with them, and the twenty-nine trigger bodies stop being callable |
+| `20260914152840_pack_upgrade_records_its_own_line` | `pack_upgrade()` becomes `security definer`. It is the one function that writes its own audit line rather than leaving it to a trigger, and `audit_record()` has been closed to `authenticated` since `20260914103412` — so through PostgREST the upgrade committed and the trail did not. The capability test it already carried is unchanged |
 | `20260914134325_schema_version_0_2_0` | `ekwo_schema_version()` returns `0.2.0`. The number lives in one function, a migration is the only thing that moves it, and `ekwo migrate` writes the answer back onto `instance.schema_version`. This is the first tagged release of the repository |
 
 ## Rules for a new migration
@@ -124,13 +126,32 @@ Always number after the newest file on `main`, and check `git log` first.
    schema does without them.
 6. **A migration that adds a function ends with**
    `revoke execute on all functions in schema public from public;` — from
-   PUBLIC, and never from `anon`, which holds explicit grants on the eight
+   PUBLIC, and never from `anon`, which holds explicit grants on the ten
    policy helpers. `alter default privileges … revoke execute on functions
    from public` does *not* close a function created later: PostgreSQL merges
    the stored default with the built-in one, so the new function comes out
    with `=X` and Supabase publishes it as an anonymous RPC endpoint.
    `20260911210131` believed otherwise and `20260912074712` found out.
-7. **Regenerate the docs**: `npm run docs:schema` rewrites `docs/schema.md`
+7. **A migration that creates an object grants it**, in the same file, beside
+   that revoke. By name — `grant select, insert, update, delete on table
+   entries to authenticated, service_role;` — and never `on all tables`, and
+   never by `alter default privileges`, which is the mechanism
+   `20260914151207` removed and therefore cannot be the way back in.
+
+   The grant says what the policies say. `authenticated` gets exactly the
+   verbs a policy of that table is prepared to judge; a table whose only
+   policy is a SELECT gets SELECT. `anon` gets nothing on a table, a view or
+   a sequence, ever. `service_role` gets what a person gets: it bypasses row
+   level security, so its grants are its only limit. A function returning
+   `trigger` is granted to nobody — PostgreSQL checks EXECUTE when a trigger
+   is created, never when it fires.
+
+   Then `npm run inventory`, and commit
+   `packages/cli/assets/expected-objects.json` with the migration. The CI
+   regenerates it and refuses a diff; `tests/grants.test.ts` compares the
+   catalogue to it and checks the doctrine separately; `ekwo doctor` asks a
+   live database the same question.
+8. **Regenerate the docs**: `npm run docs:schema` rewrites `docs/schema.md`
    from the migrations. Commit it with the migration.
 
 Write the migration, then the test that proves it in `tests/`, then the

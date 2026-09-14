@@ -43,16 +43,27 @@ You do not have to write TypeScript to matter here:
 2. **Row level security at creation.** Every new table gets
    `alter table ... enable row level security` and at least a select policy in
    the same migration. A test fails otherwise.
-3. **`company_id` on every table, never `tenant_id`.** One instance is one
+3. **A migration that creates an object grants it.** A table, a view or a
+   function comes with its `grant` in the same file, by name — never
+   `grant … on all tables`, and never through `alter default privileges`,
+   which is the hidden mechanism this rule exists to replace. The grant says
+   the same thing as the policies: `authenticated` gets exactly the verbs a
+   policy of that table is prepared to judge, `anon` gets nothing on any
+   table, and a function keeps the `revoke execute … from public` that was
+   already compulsory. Run `npm run inventory` and commit
+   `packages/cli/assets/expected-objects.json` with the migration; the CI
+   regenerates it and refuses a diff, and `tests/grants.test.ts` refuses a
+   grant that does not match the policies.
+4. **`company_id` on every table, never `tenant_id`.** One instance is one
    customer; several companies inside it is the normal case.
-4. **snake_case, plural table names, English.** Foreign keys are
+5. **snake_case, plural table names, English.** Foreign keys are
    `<entity>_id`. Timestamps are `created_at` and `updated_at`.
-5. **Resolve accounts by role, never by code prefix.** `LIKE '411%'` means
+6. **Resolve accounts by role, never by code prefix.** `LIKE '411%'` means
    *customers* on one chart and *recoverable VAT* on another. Use the company
    defaults, the contact overrides, or `tax_postings.account_id`.
-6. **Raise, do not warn.** An exception handler that swallows an error and
+7. **Raise, do not warn.** An exception handler that swallows an error and
    returns is how an invoice ends up with no entry and nobody notices.
-7. **Derive totals, never key them in.** If a header and its lines can
+8. **Derive totals, never key them in.** If a header and its lines can
    disagree, one day they will.
 
 ## Country rules

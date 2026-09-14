@@ -39,6 +39,15 @@ The threat model is short, and it is in [`docs/decisions.md`](docs/decisions.md)
   companies they are a member of.** Reading, writing or listing a row of a
   company you are not a member of — through a table, a view, a function or
   the MCP server — is a vulnerability.
+- **The schema declares its own privileges, and the anonymous role holds
+  none on any table.** Every table, view and function names the roles that
+  may reach it, in the migration that creates it; nothing is taken from a
+  Supabase project's default privileges. A grant says which verbs a role may
+  attempt and a policy says on which rows they succeed, and both are
+  required. A privilege wider than the migration that created the object
+  declares — `anon` reaching a table at all, a verb no policy will ever
+  accept — is a vulnerability. `ekwo doctor` reports the gap and
+  `packages/cli/assets/expected-objects.json` is what it compares against.
 - **A function runs with the caller's rights, or checks membership itself.**
   A `security definer` function reachable by `anon` or by any authenticated
   user that does not verify the company is a vulnerability.

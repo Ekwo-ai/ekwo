@@ -60,8 +60,11 @@ that is not cut.
 
 5. **The generated documentation.** `npm run docs:schema`, because the version
    migration changes a function body and `docs/schema.md` is the output of the
-   migrations. CI compares the committed file with what the generator
-   produces.
+   migrations. `npm run inventory` is in the list below for the same reason:
+   `packages/cli/assets/expected-objects.json` carries the objects this
+   release defines and the privileges it grants on them, and it travels inside
+   the published package for `ekwo doctor` to read. CI compares both committed
+   files with what the generators produce.
 
 6. **The checks.**
 

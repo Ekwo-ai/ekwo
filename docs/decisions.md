@@ -2645,3 +2645,111 @@ as a promise; whether the migrations should be self-contained on that point is
 still a decision for another day. And the catalogue check now says what it does
 not cover, because a check whose boundaries are unwritten is read as covering
 everything.
+
+
+## The schema grants its own rights (14 September 2026)
+
+Answering the question the two entries above both leave open, in the same
+words: *whether the migrations should be self-contained on that point is still
+a decision for another day*. This is that day.
+
+**What was borrowed.** A Supabase project carries default privileges on
+`public` — `grant all on tables`, `on sequences`, `on functions`, to
+`postgres`, `anon`, `authenticated` and `service_role` — so every table a
+migration created came out readable and writable by the three API roles
+without a single `grant` in `supabase/migrations`. The arrangement worked and
+was wrong twice over.
+
+It was a hole. Those defaults give `anon` — the role behind the publishable
+key that any visitor holds — INSERT, UPDATE and DELETE on every table of the
+ledger, with row level security as the only thing in the way. That is one
+layer where the rest of this project has two, and it sat under a doctrine
+which says, in the entry above about the anonymous role, that a surface should
+be closed rather than merely empty.
+
+And it was a dependency nobody had written down. The defaults live in
+`pg_default_acl`, keyed by the schema; drop `public` and they go with it. The
+reinstall then succeeds, `ekwo doctor` reports a healthy database, and the
+first read through PostgREST answers `permission denied for table companies`.
+
+**Migration `20260914151207` declares them instead**, by name, table by table
+and view by view, with two module migrations doing the same for `assets` and
+`budgets`. The rule it writes down is that the grant and the policy are two
+halves of one sentence: `authenticated` may attempt exactly the verbs the
+policies of that table are prepared to judge. Twenty-six tables carry a policy
+`for all` and get the four; twenty-four have a select policy and get SELECT
+alone — the reference tables a pack installs, the five written only by a
+`security definer` function, and `audit_log`. `anon` holds nothing on any
+table, view or sequence anywhere, and keeps the ten policy helpers it already
+had. `service_role` gets what a person gets and no more: it bypasses row level
+security, so its grants are the only limit it has.
+
+**DELETE is granted where deleting is bookkeeping.** On `entries`,
+`entry_lines`, `documents` and `payments`, deleting a draft is an ordinary act
+and deleting a posted one is refused by the period lock and by
+`entries_guard_period`. Withholding the privilege would break the first and
+change nothing about the second. On `audit_log` it is withheld, and so is
+UPDATE and INSERT: the trigger already refuses them for every role including
+the owner, and the missing privilege is the statement of intent beside the
+guarantee.
+
+**No wildcard grant, and no `alter default privileges` as the mechanism.**
+`grant all on all tables` is how a table added next year becomes writable by a
+role nobody thought about, and a default privilege is the same thing one level
+down — which is the mechanism being removed, so it cannot also be the fix. The
+convention from here: **a migration that creates a table, a view or a function
+grants it in the same file**, beside the `revoke execute … from public` that
+was already compulsory. Ekwo's own default privilege that granted EXECUTE on
+future functions to `authenticated` is revoked too; functions created before
+keep what they hold, and a function created after is granted in its own
+migration or is reachable by nobody.
+
+**What enforces it, because a convention nobody checks is a comment.**
+The `grants` section of `packages/cli/assets/expected-objects.json` — the
+inventory that already carries the objects a release defines, because a
+privilege and the object it sits on ship in the same migration — is generated
+from a freshly migrated database by `scripts/generate-expected-objects.mjs`
+and committed; the
+CI regenerates it and refuses a diff, so a migration that forgets its grants
+moves a file and is caught before it is merged. `tests/grants.test.ts`
+compares the catalogue to it and asserts the doctrine separately — `anon`
+reaches no table, a grant says what the policies say, a trigger body is
+callable by nobody. `ekwo doctor` asks a live database the same question: a
+missing grant is a problem, an extra grant to `anon` is a problem, an extra
+grant to `authenticated` is a warning, and a default privilege still standing
+is a warning.
+
+**The test harness stopped helping.** `tests/helpers/supabase-shim.sql` ended
+with those default privileges and `freshDatabase` with a `grant … on all
+tables in schema public`, which between them made every test in the repository
+pass against privileges no installation was guaranteed to have. Both are gone.
+Every test file is now also a test of the grants, and `tests/grants.test.ts`
+goes further: it builds a database where the three roles begin with nothing at
+all and no default privilege exists, replays the migrations, and books a whole
+country pack's golden year through it as `authenticated`. The last test of
+that file takes one grant away and shows the year stops, because a scenario
+that would pass whatever the grants are proves nothing about them.
+
+**Two things it found, neither of which any test could have said before.**
+
+*`anon` could read every table of the `assets` and `budgets` modules.* Their
+opening migrations carried `grant select on all tables in schema … to anon` —
+the only place in the whole schema where the anonymous role held a privilege
+on a table. Row level security answered every such read with an empty set, so
+nothing leaked; the surface is closed now.
+
+*`ekwo pack upgrade` could not have worked through PostgREST.* `pack_upgrade()`
+records its own line in the audit trail rather than leaving it to a trigger,
+and it was `security invoker`, so the call to `audit_record()` was made as the
+caller — who has not been able to execute it since `20260914103412` closed it.
+Nothing noticed because the harness granted EXECUTE on every function back.
+On a real project the writes would have committed and the trail would not.
+`20260914152840` makes the function `security definer`, like `enable_module()`
+and `invite_member()` and for the same reason: it already refuses a caller
+without `company.write` on the company it was given, by name, before it
+touches anything.
+
+**What is deliberately not decided here.** Which companies a role may see —
+that is row level security, and not one policy of this schema changed. A grant
+says which verbs may be attempted; a policy says on which rows they succeed.
+This settles the half that was being borrowed.

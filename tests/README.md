@@ -16,7 +16,8 @@ npm test
 | `reconciliation.test.ts` | partial then full matching under one letter, refusals beyond the open amount, un-matching |
 | `locks.test.ts` | `lock_date`, `tax_lock_date`, closed years, and that matching stays possible after a lock |
 | `reporting.test.ts` | the trial balance balances and excludes drafts, twelve VAT boxes to the cent, the aged balance ties to the receivable account |
-| `rls.test.ts` | every table has row level security and a policy, a non-member sees nothing, a viewer cannot write, two companies cannot see each other, `anon` sees nothing |
+| `rls.test.ts` | every table has row level security and a policy, a non-member sees nothing, a viewer cannot write, two companies cannot see each other, `anon` is refused at the table |
+| `grants.test.ts` | the privileges the schema grants itself: the catalogue against the `grants` section of `packages/cli/assets/expected-objects.json`, `anon` holding nothing on any table, a grant on a table saying exactly what the policies of that table say, a trigger body callable by nobody — and a database whose three roles start with nothing at all, where a whole country pack's golden year is booked as `authenticated` and then stops the moment one grant is taken away |
 | `hardening.test.ts` | what someone who is not a member of anything can reach: `anon` executes the eight policy helpers and nothing else, no function of `public` is executable by PUBLIC (a migration that forgets its revoke fails here), and a signed-in stranger sees neither the administrators nor a company |
 | `instance.test.ts` | the instance row is a true singleton, only an instance administrator creates a company, registration is optional and reversible, no table carries a `tenant_id` |
 | `line_defaults.test.ts` | the account a line with none falls back to — the line, the company default, the country model — including under `set role authenticated`, and the refusal when nothing anywhere has an answer |
@@ -33,7 +34,7 @@ The installer and the MCP server have their own folders, `tests/cli/` and
 | `cli/bootstrap.test.ts` | the six steps of the installation sequence, twice over with nothing created the second time, the refusal of an unseeded country, and the refusal to hand the administrator seat to a second person |
 | `cli/init-sequence.test.ts` | the whole non-interactive install end to end, ending in a posted invoice; `ekwo.json` with no secret in it; the demo seed applied on behalf of a real administrator |
 | `cli/auth.test.ts` | the Supabase Auth admin call: created, already registered, invite link, refused |
-| `cli/status-doctor.test.ts` | what `status` reports, and each doctor check with exactly one thing broken |
+| `cli/status-doctor.test.ts` | what `status` reports, and each doctor check with exactly one thing broken — including the privileges: a grant the database lost, a table opened to `anon`, a verb no policy accepts, a default privilege put back by hand |
 | `cli/registry.test.ts` | registering writes the instance row and posts six fields, an unreachable endpoint is not a failure, unregistering puts it back, and a non-administrator is refused |
 | `cli/package.test.ts` | the SQL copied into the published package is byte for byte the repository's, and nothing from `ee/` ships |
 | `cli/cli.test.ts` | argument parsing and its refusals, the connection-string helpers, and what the help promises |
@@ -67,6 +68,14 @@ sequence that exercises the PostgREST route against a real project.
   `auth.jwt()`) and the roles `anon`, `authenticated`, `service_role`. It is
   applied **before** the migrations, because the security-definer functions
   will not create without it, and it never ships.
+
+  It grants those roles nothing on `public`. It used to end with the default
+  privileges a Supabase project carries, and `freshDatabase` with a `grant …
+  on all tables in schema public`, so every test here passed against
+  privileges no installation was guaranteed to have — which is how a
+  `pack_upgrade()` that could not work through PostgREST went unnoticed for a
+  release. Since `20260914151207` the schema grants its own rights by name, so
+  what a role can reach in these tests is exactly what a migration granted it.
 - `fixtures/demo-fec.txt` — the golden FEC of the demo company. If a change
   to the seeds moves it, regenerate it on purpose and say so in the commit.
 - `fixtures/seeds-before-packs/` — the four chart and tax seeds as they were
