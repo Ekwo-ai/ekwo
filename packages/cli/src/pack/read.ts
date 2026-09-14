@@ -206,6 +206,76 @@ export interface PackReport {
   boxes: PackReportBox[];
 }
 
+/**
+ * `packs/<cc>/golden/scenario.json` — one year of books, declared.
+ *
+ * A country pack says what its taxes are and where they post. Nothing in the
+ * pack says what comes *out* of all that on a real year, so nothing in the
+ * pack could be wrong in a way anyone would notice: a box that sums the wrong
+ * postings and a posting that writes the wrong box agree with each other and
+ * the pack still compiles. The golden scenario is the second opinion — a set
+ * of documents and payments, and beside them, in their own files, the
+ * declaration, the statements and the trial balance the engine makes of them,
+ * to the cent.
+ *
+ * It proves internal coherence and nothing else, which is why every tax and
+ * every box also cites its source and why the manifest carries a
+ * certification status. A golden test is not a reviewer.
+ */
+export interface PackGolden {
+  name: string;
+  /** Chart the scenario installs. Null takes the pack's default. */
+  chart: string | null;
+  language: string | null;
+  fiscalYear: { name: string; start: string; end: string };
+  /** The periods the declaration is filed for, in the order they are filed. */
+  periods: { code: string; from: string; to: string }[];
+  /** Statement codes to evaluate. Empty takes the statements of the chart. */
+  statements: string[];
+  contacts: PackGoldenContact[];
+  documents: PackGoldenDocument[];
+  payments: PackGoldenPayment[];
+}
+
+export interface PackGoldenContact {
+  ref: string;
+  name: string;
+  type: 'customer' | 'supplier';
+  country: string;
+  vat_number: string | null;
+  auxiliary_code: string | null;
+}
+
+export interface PackGoldenDocument {
+  ref: string;
+  type: 'sale_invoice' | 'sale_credit_note' | 'purchase_invoice' | 'purchase_credit_note';
+  contact: string;
+  date: string;
+  due_date: string | null;
+  /** What this document is in the scenario for. */
+  why: string;
+  lines: {
+    name: string;
+    quantity: number;
+    unit_price: number;
+    discount_percent: number;
+    tax: string | null;
+    account: string;
+  }[];
+}
+
+export interface PackGoldenPayment {
+  ref: string;
+  direction: 'inbound' | 'outbound';
+  date: string;
+  amount: number;
+  contact: string;
+  journal: string;
+  /** `ref` of the document this settles, or null for a payment on account. */
+  match: string | null;
+  why: string;
+}
+
 /** One line of `assets.json`: what a kind of asset is usually depreciated over. */
 export interface PackAssetCategory {
   code: string;
@@ -268,6 +338,10 @@ export interface Pack {
   reportCode: string | null;
   /** `assets.json`, or null where this country says nothing about fixed assets. */
   assets: PackAssets | null;
+  /** `golden/scenario.json`, or null where the manifest says why there is none. */
+  golden: PackGolden | null;
+  /** The reason the manifest gives for carrying no golden. Null where it carries one. */
+  goldenExemption: string | null;
   /** sha256 of every file of the pack, so a change is visible without a diff. */
   checksum: string;
   /** Sections the schema accepts and this release does not compile. */
@@ -312,6 +386,7 @@ export interface FrameworkManifest {
   released_at?: string;
   language?: string;
   certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+  golden?: { exempt: string };
 }
 
 /**
@@ -349,6 +424,8 @@ export interface FrameworkPack {
   dir: string;
   manifest: FrameworkManifest;
   statements: PackStatement[];
+  /** Why this pack carries no golden scenario. Never null: it can carry none. */
+  goldenExemption: string | null;
   checksum: string;
 }
 
@@ -478,6 +555,33 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     issues.push(...validate(raw, defs['module_assets'] ?? {}, schema, 'assets.json'));
     assets = normaliseAssets(raw as Record<string, unknown>);
     issues.push(...assetReferences(assets, manifest));
+  }
+
+  // The golden scenario. Read after the taxes, the charts and the form,
+  // because every reference it makes is checked against them.
+  const goldenExemption =
+    ((manifest['golden'] as { exempt?: string } | undefined)?.exempt ?? null) || null;
+  let golden: PackGolden | null = null;
+  const goldenPath = join(root, 'golden', 'scenario.json');
+  if (existsSync(goldenPath)) {
+    const raw = await readJson(goldenPath);
+    issues.push(...validate(raw, defs['golden'] ?? {}, schema, 'golden/scenario.json'));
+    golden = normaliseGolden(raw as Record<string, unknown>);
+    if (goldenExemption !== null) {
+      issues.push({
+        path: 'pack.json golden',
+        message: 'claims an exemption and the pack carries golden/scenario.json. Drop one of the two.',
+      });
+    }
+    issues.push(...goldenReferences(golden, charts, manifest, taxes, statements, accounts));
+  } else if (goldenExemption === null) {
+    issues.push({
+      path: `packs/${slug}`,
+      message:
+        'carries no golden/scenario.json. A country pack is replayed against one year of books ' +
+        'before anyone trusts its figures; see docs/packs.md, "Golden scenario". A pack that ' +
+        'cannot have one says why in pack.json, under "golden": { "exempt": "…" }.',
+    });
   }
 
   // The languages. Read last, because a label is checked against the section
@@ -624,6 +728,8 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     report,
     reportCode,
     assets,
+    golden,
+    goldenExemption,
     checksum: await checksum(root),
     deferred,
   };
@@ -764,13 +870,31 @@ export async function readFrameworkPack(slug = GENERIC_PACK, dir = packsDir()): 
   }
   issues.push(...statementReferences(statements, []));
 
+  // A framework has no chart, no tax and no journal, so no company can be
+  // installed on it and no scenario replayed through it. That is a reason and
+  // it is written down: the rule is that a pack without a golden says why.
+  if ((manifest.golden?.exempt ?? '') === '') {
+    issues.push({
+      path: `packs/${slug}`,
+      message:
+        'carries no golden scenario and gives no reason. Add "golden": { "exempt": "…" } to pack.json.',
+    });
+  }
+
   if (issues.length > 0) {
     const shown = issues.slice(0, 20).map((i) => `  ${i.path}: ${i.message}`);
     const more = issues.length > shown.length ? `\n  … and ${issues.length - shown.length} more` : '';
     throw new PackError(`pack_invalid: packs/${slug} — ${issues.length} problem(s)\n${shown.join('\n')}${more}`);
   }
 
-  return { slug, dir: root, manifest, statements, checksum: await checksum(root) };
+  return {
+    slug,
+    dir: root,
+    manifest,
+    statements,
+    goldenExemption: manifest.golden?.exempt ?? null,
+    checksum: await checksum(root),
+  };
 }
 
 function codesOfCharts(charts: PackChart[]): Set<string> {
@@ -861,9 +985,22 @@ function languageCoverage(
  * It lands in `country_packs.checksum`, so an instance can be compared to a
  * pack without shipping the pack.
  */
+/**
+ * A fingerprint of the pack as somebody wrote it.
+ *
+ * `golden/scenario.json` is in it — a scenario is a decision about what a
+ * country's books look like, and moving it moves the pack. The expectation
+ * files beside it are not: they are what the engine made of that scenario,
+ * regenerated by `UPDATE_GOLDEN=1`, and a build artefact does not belong in
+ * the fingerprint of its own source. A hash that moved because the statements
+ * function gained a line would tell every operator that Belgium had changed.
+ */
+const GOLDEN_EXPECTATIONS = /^golden\/(?!scenario\.json$)/;
+
 async function checksum(dir: string): Promise<string> {
   const hash = createHash('sha256');
   for (const file of await filesUnder(dir)) {
+    if (GOLDEN_EXPECTATIONS.test(file)) continue;
     hash.update(file);
     hash.update('\0');
     hash.update(await readFile(join(dir, file)));
@@ -944,6 +1081,203 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
     boxes,
   };
+}
+
+function normaliseGolden(raw: Record<string, unknown>): PackGolden {
+  const year = (raw['fiscal_year'] ?? {}) as Record<string, string>;
+  return {
+    name: String(raw['name'] ?? ''),
+    chart: (raw['chart'] as string | undefined) ?? null,
+    language: (raw['language'] as string | undefined) ?? null,
+    fiscalYear: {
+      name: String(year['name'] ?? ''),
+      start: String(year['start'] ?? ''),
+      end: String(year['end'] ?? ''),
+    },
+    periods: ((raw['periods'] ?? []) as Record<string, string>[]).map((p) => ({
+      code: String(p['code']),
+      from: String(p['from']),
+      to: String(p['to']),
+    })),
+    statements: (raw['statements'] as string[] | undefined) ?? [],
+    contacts: ((raw['contacts'] ?? []) as Record<string, unknown>[]).map((c) => ({
+      ref: String(c['ref']),
+      name: String(c['name']),
+      type: c['type'] as 'customer' | 'supplier',
+      country: String(c['country']),
+      vat_number: (c['vat_number'] as string | undefined) ?? null,
+      auxiliary_code: (c['auxiliary_code'] as string | undefined) ?? null,
+    })),
+    documents: ((raw['documents'] ?? []) as Record<string, unknown>[]).map((d) => ({
+      ref: String(d['ref']),
+      type: d['type'] as PackGoldenDocument['type'],
+      contact: String(d['contact']),
+      date: String(d['date']),
+      due_date: (d['due_date'] as string | undefined) ?? null,
+      why: String(d['why'] ?? ''),
+      lines: ((d['lines'] ?? []) as Record<string, unknown>[]).map((l) => ({
+        name: String(l['name']),
+        quantity: typeof l['quantity'] === 'number' ? l['quantity'] : 1,
+        unit_price: Number(l['unit_price']),
+        discount_percent: typeof l['discount_percent'] === 'number' ? l['discount_percent'] : 0,
+        tax: (l['tax'] as string | undefined) ?? null,
+        account: String(l['account']),
+      })),
+    })),
+    payments: ((raw['payments'] ?? []) as Record<string, unknown>[]).map((p) => ({
+      ref: String(p['ref']),
+      direction: p['direction'] as 'inbound' | 'outbound',
+      date: String(p['date']),
+      amount: Number(p['amount']),
+      contact: String(p['contact']),
+      journal: String(p['journal']),
+      match: (p['match'] as string | undefined) ?? null,
+      why: String(p['why'] ?? ''),
+    })),
+  };
+}
+
+/**
+ * What the scenario names has to exist, and when it happened has to be inside
+ * the year it is filed for.
+ *
+ * A golden whose references are loose fails later, in a test, with a message
+ * from Postgres about a null account. Here it fails with the name of the tax
+ * nobody declared, which is the same defect found a minute earlier by the
+ * person who can still fix it.
+ */
+function goldenReferences(
+  golden: PackGolden,
+  charts: PackChart[],
+  manifest: Manifest,
+  taxes: PackTax[],
+  statements: PackStatement[],
+  accounts: PackAccount[],
+): Issue[] {
+  const issues: Issue[] = [];
+  const where = 'golden/scenario.json';
+
+  const chart =
+    golden.chart === null
+      ? charts.find((c) => c.is_default)
+      : charts.find((c) => c.code === golden.chart);
+  if (chart === undefined) {
+    issues.push({
+      path: `${where} chart`,
+      message: `${String(golden.chart)} is not a chart of this pack (${charts.map((c) => c.code).join(', ')})`,
+    });
+  }
+  const codes = new Set((chart?.accounts ?? accounts).map((a) => a.code));
+  const taxCodes = new Map(taxes.map((t) => [t.code, t]));
+  const journals = new Set(manifest.journals.map((j) => j.code));
+
+  const { start, end } = golden.fiscalYear;
+  if (start >= end) {
+    issues.push({ path: `${where} fiscal_year`, message: `${start} is not before ${end}` });
+  }
+
+  const inYear = (path: string, date: string): void => {
+    if (date < start || date > end) {
+      issues.push({ path, message: `${date} falls outside the financial year ${start}..${end}` });
+    }
+  };
+
+  for (const period of golden.periods) {
+    if (period.from > period.to) {
+      issues.push({ path: `${where} periods.${period.code}`, message: `${period.from} is after ${period.to}` });
+    }
+    inYear(`${where} periods.${period.code}.from`, period.from);
+    inYear(`${where} periods.${period.code}.to`, period.to);
+  }
+
+  const known = new Set(statements.map((st) => st.code));
+  for (const code of golden.statements) {
+    if (!known.has(code)) {
+      issues.push({ path: `${where} statements`, message: `${code} is not a statement of this pack` });
+    }
+  }
+
+  const contacts = new Set<string>();
+  for (const contact of golden.contacts) {
+    if (contacts.has(contact.ref)) {
+      issues.push({ path: `${where} contacts.${contact.ref}`, message: 'duplicate ref' });
+    }
+    contacts.add(contact.ref);
+  }
+
+  const documents = new Map<string, PackGoldenDocument>();
+  for (const document of golden.documents) {
+    const at = `${where} documents.${document.ref}`;
+    if (documents.has(document.ref)) issues.push({ path: at, message: 'duplicate ref' });
+    documents.set(document.ref, document);
+    if (!contacts.has(document.contact)) {
+      issues.push({ path: at, message: `contact ${document.contact} is not declared by this scenario` });
+    }
+    inYear(`${at}.date`, document.date);
+    const sale = document.type.startsWith('sale');
+    for (const [index, line] of document.lines.entries()) {
+      if (!codes.has(line.account)) {
+        issues.push({
+          path: `${at}.lines[${index}]`,
+          message: `account ${line.account} is not in chart ${chart?.code ?? '?'}`,
+        });
+      }
+      if (line.tax === null) continue;
+      const tax = taxCodes.get(line.tax);
+      if (tax === undefined) {
+        issues.push({ path: `${at}.lines[${index}]`, message: `tax ${line.tax} is not a tax of this pack` });
+        continue;
+      }
+      // A purchase tax on a sale posts nothing and reports nothing: the
+      // scenario would run and its return would be quietly short.
+      if (tax.scope !== 'both' && tax.scope !== (sale ? 'sale' : 'purchase')) {
+        issues.push({
+          path: `${at}.lines[${index}]`,
+          message: `tax ${line.tax} is scoped ${tax.scope} and this document is a ${sale ? 'sale' : 'purchase'}`,
+        });
+      }
+      if (document.date < tax.valid_from || (tax.valid_to !== null && document.date > tax.valid_to)) {
+        issues.push({
+          path: `${at}.lines[${index}]`,
+          message: `tax ${line.tax} is not in force on ${document.date}`,
+        });
+      }
+    }
+  }
+
+  const seenPayments = new Set<string>();
+  for (const payment of golden.payments) {
+    const at = `${where} payments.${payment.ref}`;
+    if (seenPayments.has(payment.ref)) issues.push({ path: at, message: 'duplicate ref' });
+    seenPayments.add(payment.ref);
+    if (!contacts.has(payment.contact)) {
+      issues.push({ path: at, message: `contact ${payment.contact} is not declared by this scenario` });
+    }
+    if (!journals.has(payment.journal)) {
+      issues.push({ path: at, message: `journal ${payment.journal} is not a journal of this pack` });
+    }
+    inYear(`${at}.date`, payment.date);
+    if (payment.match === null) continue;
+    const settled = documents.get(payment.match);
+    if (settled === undefined) {
+      issues.push({ path: at, message: `matches ${payment.match}, which is not a document of this scenario` });
+      continue;
+    }
+    // A matching is between two sides of the same third-party account, so a
+    // customer receipt cannot settle a supplier bill however the amounts add up.
+    const expected = settled.type.startsWith('sale') ? 'inbound' : 'outbound';
+    if (payment.direction !== expected) {
+      issues.push({
+        path: at,
+        message: `is ${payment.direction} and settles ${settled.type} ${settled.ref}, which needs an ${expected} payment`,
+      });
+    }
+    if (payment.date < settled.date) {
+      issues.push({ path: at, message: `is dated before the document it settles (${settled.date})` });
+    }
+  }
+
+  return issues;
 }
 
 /**

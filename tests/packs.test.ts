@@ -1,5 +1,6 @@
 import type { PGlite } from '@electric-sql/pglite';
-import { readFile, readdir } from 'node:fs/promises';
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
@@ -367,6 +368,106 @@ describe('the pack format', () => {
     for (const forbidden of ['script', 'python', 'code_hook', 'eval', 'command', 'sql']) {
       expect(names.has(forbidden), forbidden).toBe(false);
     }
+  });
+
+  // -------------------------------------------------------------------
+  // The golden scenario, and the sources that go with it.
+  //
+  // A golden proves that a pack is coherent with itself. It cannot prove that
+  // a rate is the law or that a box is the right box: a posting written to the
+  // wrong grid and a grid that expects the wrong postings agree, and the test
+  // passes. So the two travel together — the scenario, and a source on every
+  // tax and every box that a human being can go and read.
+  // -------------------------------------------------------------------
+
+  it('gives every country pack a golden scenario of at least ten documents', async () => {
+    for (const slug of await listPacks(packs)) {
+      const pack = await readPack(slug, packs);
+      expect(pack.golden, `packs/${slug} has no golden scenario`).not.toBeNull();
+      expect(pack.golden!.documents.length, slug).toBeGreaterThanOrEqual(10);
+      expect(pack.golden!.payments.length, slug).toBeGreaterThan(0);
+      expect(pack.golden!.periods.length, slug).toBeGreaterThan(0);
+    }
+  });
+
+  it('refuses a pack that carries no golden and gives no reason', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
+    await rm(join(dir, 'be', 'golden'), { recursive: true });
+
+    await expect(readPack('be', dir)).rejects.toThrow(/carries no golden\/scenario\.json/);
+
+    // And the way out is a sentence somebody wrote, not a silence.
+    const manifestPath = join(dir, 'be', 'pack.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+    manifest['golden'] = { exempt: 'A fixture that exists for the length of one test.' };
+    await writeFile(manifestPath, JSON.stringify(manifest), 'utf8');
+    const exempt = await readPack('be', dir);
+    expect(exempt.golden).toBeNull();
+    expect(exempt.goldenExemption).toMatch(/length of one test/);
+  });
+
+  it('refuses a golden that names a tax, an account or a document it does not carry', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
+    const path = join(dir, 'be', 'golden', 'scenario.json');
+    const scenario = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
+
+    const documents = scenario['documents'] as Record<string, unknown>[];
+    const lines = documents[0]!['lines'] as Record<string, unknown>[];
+    lines[0]!['tax'] = 'BE-S-99';
+    lines[0]!['account'] = '999999';
+    (scenario['payments'] as Record<string, unknown>[])[0]!['match'] = 'nothing';
+    await writeFile(path, JSON.stringify(scenario), 'utf8');
+
+    const error = await readPack('be', dir).catch((e: Error) => e.message);
+    expect(error).toMatch(/tax BE-S-99 is not a tax of this pack/);
+    expect(error).toMatch(/account 999999 is not in chart default/);
+    expect(error).toMatch(/is not a document of this scenario/);
+  });
+
+  it('refuses a golden of fewer than ten documents', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
+    const path = join(dir, 'be', 'golden', 'scenario.json');
+    const scenario = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
+    scenario['documents'] = (scenario['documents'] as unknown[]).slice(0, 4);
+    await writeFile(path, JSON.stringify(scenario), 'utf8');
+
+    await expect(readPack('be', dir)).rejects.toThrow(/needs at least 10 item\(s\)/);
+  });
+
+  it('asks every tax and every declaration box where it comes from', async () => {
+    for (const slug of await listPacks(packs)) {
+      const pack = await readPack(slug, packs);
+      for (const tax of pack.taxes) {
+        expect(tax.legal_reference, `${slug} tax ${tax.code}`).toBeTruthy();
+      }
+      for (const box of pack.report?.boxes ?? []) {
+        expect(box.legal_reference, `${slug} box ${box.box} (${box.kind})`).toBeTruthy();
+      }
+    }
+  });
+
+  it('refuses a tax and a box that cite nothing', async () => {
+    const schema = await readSchema(packs);
+    const defs = schema['$defs'] as Record<string, Record<string, unknown>>;
+
+    const taxes = JSON.parse(await readFile(join(packs, 'be', 'taxes.json'), 'utf8')) as Record<string, unknown>[];
+    const { legal_reference: _dropped, ...silent } = taxes[0]!;
+    expect(validate([silent], defs['taxes']!, schema)).toEqual([
+      { path: '[0]', message: 'missing "legal_reference"' },
+    ]);
+
+    const report = JSON.parse(await readFile(join(packs, 'be', 'tax_report.json'), 'utf8')) as Record<string, unknown>;
+    const boxes = report['boxes'] as Record<string, unknown>[];
+    const { legal_reference: _also, ...quiet } = boxes[0]!;
+    expect(validate({ ...report, boxes: [quiet] }, defs['tax_report']!, schema)).toEqual([
+      { path: 'boxes[0]', message: 'missing "legal_reference"' },
+    ]);
   });
 
   it('reserves the group of taxes phase 1 will need, and refuses it until then', async () => {

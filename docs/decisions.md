@@ -573,8 +573,8 @@ settled before any code was written.
 
 **The truth of a country lives in `packs/<cc>/`**: JSON with a published JSON
 schema for everything structured, one `accounts.csv` for the chart, an
-`i18n/` folder of labels, and — *planned, not built* — a `golden/` folder of
-expected results. No YAML, no
+`i18n/` folder of labels, and a `golden/` folder of expected results —
+**built on 14 September 2026**; see the section at the end of this file. No YAML, no
 TOML, no package per country: the CLI has one dependency and Node reads JSON.
 `ekwo pack build` compiles a pack into a seed SQL file that is committed, and
 the CI refuses a seed that is not the exact output of its pack — the SQL is
@@ -621,7 +621,9 @@ already covered by `fiscal_years`.
 **A golden test is the contract of a pack, not proof of legal truth.** Each
 box and each tax cites its legal source, the manifest carries a certification
 status that `ekwo init` prints, and a pack moves to *reviewed* only after a
-named professional has read it. Ekwo certifies Belgium and France.
+named professional has read it. Ekwo **maintains** Belgium and France — the
+line above said "certifies" until the scale was settled on 12 September, and
+there is deliberately no status that means certified by Ekwo.
 
 
 ## The pack format, built: `packs/`, a compiler, and two tables (12 September 2026)
@@ -2286,3 +2288,84 @@ so `npx ekwo init` is what the CLI will be called and not what it is reachable
 as today. The order is deliberate when there is one: tag first, publish after,
 so a version on npm is always a version whose source someone can read.
 `docs/releasing.md` is the procedure.
+
+
+## A golden year per country, and what it immediately found (14 September 2026)
+
+The pack format has been able to describe a country since 12 September: a
+chart, taxes and where they post, the boxes of a return, financial statements.
+What it has never had is a way of being *wrong in a way anyone would notice*.
+A tax that posts to the wrong grid and a grid that expects the wrong postings
+agree with each other. The seed compiles, `ekwo pack check` is silent, every
+unit test passes, and the return is wrong.
+
+**So a pack now carries a year of books and the figures they produce.**
+`packs/<cc>/golden/scenario.json` is ten documents at least and the payments
+that settle some of them, declarative like the rest of the pack; beside it,
+generated and never hand-written, `vat_return.json`, `statements.json` and
+`trial_balance.json` — every box, every statement line and every account that
+moved, to the cent, in the pack's currency. `UPDATE_GOLDEN=1 npm test --
+tests/golden.test.ts` rewrites the three and never the scenario: a runner that
+can rewrite its own inputs proves nothing.
+
+**One runner, no country in it.** `tests/golden.test.ts` reads `packs/`,
+installs a company on each pack from what that pack's own scenario declares,
+and replays it through `post_document`, `post_payment` and `reconcile` before
+comparing `vat_return`, `financial_statement` and `trial_balance`. What it
+demands of a scenario, it demands of the *pack*: a tax due on collection is
+required of a scenario whose pack has one, and of no other. The alternative —
+a list of Belgian and French things a scenario must contain — is the country
+code in the test file that the whole pack format exists to remove.
+
+**A pack with no golden is refused**, by `readPack` and therefore by `ekwo pack
+check` and the CI. A pack that cannot have one says so in its manifest, in a
+sentence the commands print: `packs/generic` is the only one here, and the
+reason is structural — a framework has no chart, no journal, no tax and no
+currency, so no company can be installed on it. An exemption is a claim
+somebody made and it is printed, never a silence.
+
+**The expectations are outside the pack's checksum, the scenario is inside
+it.** A scenario is a decision about what a country's books look like and
+moving it moves the pack. The three expectation files are what the engine made
+of that scenario — a build artefact, like the seed and like `docs/schema.md` —
+and a checksum that moved because the statements function gained a line would
+tell every operator that Belgium had changed.
+
+### What it proves, and what carries the rest
+
+Internal coherence, and nothing else. A box expected wrongly and a posting
+written wrongly pass together, and no test reaches past that. Two things
+carry the rest and both are now enforced rather than encouraged:
+`legal_reference` is **required** on every tax and on every box of a
+declaration — `ekwo pack check` refuses a pack that leaves one out, and a
+`"TODO"` is not a source — and `certification.status` says out loud how much
+anyone has read, which `ekwo init` prints before a company is created.
+`.github/CODEOWNERS` names an owner per pack, for the same reason: a rate is
+right or wrong against a law, and the person who knows is the person who
+applies it.
+
+### Two things the first run found, both in the French pack
+
+Reported and not quietly corrected. A golden that is adjusted until it passes
+is a golden that records a bug.
+
+**Line 01 of the CA3 can come out negative.** It is computed as the sum of the
+taxable bases — `plus: ["08:base", "09:base", "9B:base", "13:base"]` — so a
+quarter whose credit notes exceed its sales reports a negative turnover, which
+is not a figure the form accepts. The second quarter of the French golden
+shows −1 200,00.
+
+**Line 08 does not tie to itself on an intra-Union acquisition.** The
+acquisition posts its base to line 03 and its tax to line 08, so `08:tax` is
+not 20 % of `08:base` in any period that carries one: the golden's second
+quarter reports 460,00 of tax against −1 200,00 of base. On the paper form,
+cadre B line 08 carries every operation taxed at 20 %, acquisitions included,
+and cadre A line 01 is only the sales — they are two totals, not one derived
+from the other. The pack derives line 01 from line 08, which is right only
+while line 08 carries nothing but sales.
+
+The two are the same defect seen from either end, and fixing them is one
+decision about what cadre A owes cadre B on the CA3 — a decision for the
+French pack and for an accountant reading it, not for the change that made
+them visible. They are the argument for the golden, made on the day it
+shipped.

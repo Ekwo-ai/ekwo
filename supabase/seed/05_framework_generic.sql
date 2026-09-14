@@ -1,6 +1,6 @@
 -- Ekwo OS — Generic framework: financial statements by account type, for any chart of any country.
 --
--- Generated from packs/generic at version 1.1.0, do not edit.
+-- Generated from packs/generic at version 1.1.1, do not edit.
 -- Change the pack and run `ekwo pack build generic`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --

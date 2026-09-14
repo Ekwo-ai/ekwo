@@ -6,51 +6,55 @@
   "valid_from": "2024-01-01",
   "legal_reference": "AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI",
   "boxes": [
-    { "box": "00", "kind": "base", "name": "Opérations soumises à un régime particulier", "sequence": 10 },
-    { "box": "01", "kind": "base", "name": "Opérations à 6 %", "sequence": 20 },
-    { "box": "02", "kind": "base", "name": "Opérations à 12 %", "sequence": 30 },
-    { "box": "03", "kind": "base", "name": "Opérations à 21 %", "sequence": 40 },
-    { "box": "44", "kind": "base", "name": "Services intracommunautaires pour lesquels la TVA est due par le preneur", "sequence": 50 },
-    { "box": "45", "kind": "base", "name": "Opérations pour lesquelles la TVA est due par le cocontractant", "sequence": 60 },
-    { "box": "46", "kind": "base", "name": "Livraisons intracommunautaires exemptées", "sequence": 70 },
-    { "box": "47", "kind": "base", "name": "Autres opérations exemptées", "sequence": 80 },
-    { "box": "48", "kind": "base", "name": "Notes de crédit relatives aux opérations des grilles 44 et 46", "sequence": 90 },
-    { "box": "49", "kind": "base", "name": "Notes de crédit relatives aux autres opérations du cadre II", "sequence": 100 },
+    { "box": "00", "kind": "base", "name": "Opérations soumises à un régime particulier", "sequence": 10, "legal_reference": "Code de la TVA, art. 58, § 1er, et arrêté royal n° 20 du 20 juillet 1970, tableau C — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 00" },
+    { "box": "01", "kind": "base", "name": "Opérations à 6 %", "sequence": 20, "legal_reference": "Arrêté royal n° 20 du 20 juillet 1970, art. 1er et tableau A — taux de 6 % — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 01" },
+    { "box": "02", "kind": "base", "name": "Opérations à 12 %", "sequence": 30, "legal_reference": "Arrêté royal n° 20 du 20 juillet 1970, art. 1er et tableau B — taux de 12 % — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 02" },
+    { "box": "03", "kind": "base", "name": "Opérations à 21 %", "sequence": 40, "legal_reference": "Arrêté royal n° 20 du 20 juillet 1970, art. 1er, § 1er — taux normal de 21 % — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 03" },
+    { "box": "44", "kind": "base", "name": "Services intracommunautaires pour lesquels la TVA est due par le preneur", "sequence": 50, "legal_reference": "Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196 — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 44" },
+    { "box": "45", "kind": "base", "name": "Opérations pour lesquelles la TVA est due par le cocontractant", "sequence": 60, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20 — report de perception au cocontractant — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 45" },
+    { "box": "46", "kind": "base", "name": "Livraisons intracommunautaires exemptées", "sequence": 70, "legal_reference": "Code de la TVA, art. 39bis — livraisons intracommunautaires exemptées — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 46" },
+    { "box": "47", "kind": "base", "name": "Autres opérations exemptées", "sequence": 80, "legal_reference": "Code de la TVA, art. 39 et 42 — exportations et autres exemptions — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 47" },
+    { "box": "48", "kind": "base", "name": "Notes de crédit relatives aux opérations des grilles 44 et 46", "sequence": 90, "legal_reference": "Code de la TVA, art. 77, § 1er — notes de crédit sur les opérations des grilles 44 et 46 — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 48" },
+    { "box": "49", "kind": "base", "name": "Notes de crédit relatives aux autres opérations du cadre II", "sequence": 100, "legal_reference": "Code de la TVA, art. 77, § 1er — notes de crédit sur les autres opérations du cadre II — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 49" },
 
-    { "box": "81", "kind": "base", "name": "Marchandises, matières premières et auxiliaires", "sequence": 110 },
-    { "box": "82", "kind": "base", "name": "Services et biens divers", "sequence": 120 },
-    { "box": "83", "kind": "base", "name": "Biens d'investissement", "sequence": 130 },
-    { "box": "84", "kind": "base", "name": "Notes de crédit reçues relatives aux grilles 86 et 88", "sequence": 140 },
-    { "box": "85", "kind": "base", "name": "Notes de crédit reçues relatives aux autres opérations du cadre III", "sequence": 150 },
-    { "box": "86", "kind": "base", "name": "Acquisitions intracommunautaires de biens", "sequence": 160 },
-    { "box": "87", "kind": "base", "name": "Autres opérations à l'entrée pour lesquelles la TVA est due par le déclarant", "sequence": 170 },
-    { "box": "88", "kind": "base", "name": "Services intracommunautaires reçus", "sequence": 180 },
+    { "box": "81", "kind": "base", "name": "Marchandises, matières premières et auxiliaires", "sequence": 110, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 18 — ventilation des opérations à l'entrée — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 81" },
+    { "box": "82", "kind": "base", "name": "Services et biens divers", "sequence": 120, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 18 — ventilation des opérations à l'entrée — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 82" },
+    { "box": "83", "kind": "base", "name": "Biens d'investissement", "sequence": 130, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 18 — biens d'investissement, TVA déductible non comprise — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 83" },
+    { "box": "84", "kind": "base", "name": "Notes de crédit reçues relatives aux grilles 86 et 88", "sequence": 140, "legal_reference": "Code de la TVA, art. 79, § 1er — notes de crédit reçues sur les opérations des grilles 86 et 88 — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 84" },
+    { "box": "85", "kind": "base", "name": "Notes de crédit reçues relatives aux autres opérations du cadre III", "sequence": 150, "legal_reference": "Code de la TVA, art. 79, § 1er — notes de crédit reçues sur les autres opérations du cadre III — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 85" },
+    { "box": "86", "kind": "base", "name": "Acquisitions intracommunautaires de biens", "sequence": 160, "legal_reference": "Code de la TVA, art. 25ter — acquisitions intracommunautaires de biens — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 86" },
+    { "box": "87", "kind": "base", "name": "Autres opérations à l'entrée pour lesquelles la TVA est due par le déclarant", "sequence": 170, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20 — opérations à l'entrée dont la taxe est due par le déclarant — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 87" },
+    { "box": "88", "kind": "base", "name": "Services intracommunautaires reçus", "sequence": 180, "legal_reference": "Code de la TVA, art. 21, § 2 — services intracommunautaires reçus — formulaire 625 (déclaration périodique à la TVA), cadre III, grille 88" },
 
-    { "box": "54", "kind": "tax", "name": "TVA due sur les opérations des grilles 01, 02 et 03", "sequence": 200 },
-    { "box": "55", "kind": "tax", "name": "TVA due sur les opérations des grilles 86 et 88", "sequence": 210 },
-    { "box": "56", "kind": "tax", "name": "TVA due sur les opérations de la grille 87, importations exclues", "sequence": 220 },
-    { "box": "57", "kind": "tax", "name": "TVA due sur les importations avec report de perception", "sequence": 230 },
-    { "box": "61", "kind": "tax", "name": "Diverses régularisations en faveur de l'État", "sequence": 240 },
-    { "box": "63", "kind": "tax", "name": "TVA à reverser mentionnée sur les notes de crédit reçues", "sequence": 250 },
-    { "box": "59", "kind": "tax", "name": "TVA déductible", "sequence": 260 },
-    { "box": "62", "kind": "tax", "name": "Diverses régularisations en faveur du déclarant", "sequence": 270 },
-    { "box": "64", "kind": "tax", "name": "TVA à récupérer mentionnée sur les notes de crédit délivrées", "sequence": 280 },
+    { "box": "54", "kind": "tax", "name": "TVA due sur les opérations des grilles 01, 02 et 03", "sequence": 200, "legal_reference": "Code de la TVA, art. 51, § 1er, 1° — taxe due sur les opérations des grilles 01, 02 et 03 — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 54" },
+    { "box": "55", "kind": "tax", "name": "TVA due sur les opérations des grilles 86 et 88", "sequence": 210, "legal_reference": "Code de la TVA, art. 51, § 1er, 2° — taxe due sur les acquisitions des grilles 86 et 88 — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 55" },
+    { "box": "56", "kind": "tax", "name": "TVA due sur les opérations de la grille 87, importations exclues", "sequence": 220, "legal_reference": "Code de la TVA, art. 51, § 2 — taxe due par le cocontractant — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 56" },
+    { "box": "57", "kind": "tax", "name": "TVA due sur les importations avec report de perception", "sequence": 230, "legal_reference": "Arrêté royal n° 7 du 29 décembre 1992, art. 5 — report de perception à l'importation — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 57" },
+    { "box": "61", "kind": "tax", "name": "Diverses régularisations en faveur de l'État", "sequence": 240, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 18 — régularisations en faveur de l'État — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 61" },
+    { "box": "63", "kind": "tax", "name": "TVA à reverser mentionnée sur les notes de crédit reçues", "sequence": 250, "legal_reference": "Code de la TVA, art. 79, § 1er — taxe à reverser sur les notes de crédit reçues — formulaire 625 (déclaration périodique à la TVA), cadre IV, grille 63" },
+    { "box": "59", "kind": "tax", "name": "TVA déductible", "sequence": 260, "legal_reference": "Code de la TVA, art. 45 à 49 — droit à déduction — formulaire 625 (déclaration périodique à la TVA), cadre V, grille 59" },
+    { "box": "62", "kind": "tax", "name": "Diverses régularisations en faveur du déclarant", "sequence": 270, "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 18 — régularisations en faveur du déclarant — formulaire 625 (déclaration périodique à la TVA), cadre V, grille 62" },
+    { "box": "64", "kind": "tax", "name": "TVA à récupérer mentionnée sur les notes de crédit délivrées", "sequence": 280, "legal_reference": "Code de la TVA, art. 77, § 1er — taxe à récupérer sur les notes de crédit délivrées — formulaire 625 (déclaration périodique à la TVA), cadre V, grille 64" },
 
     {
       "box": "XX", "kind": "total", "name": "Total de la TVA due", "sequence": 300,
-      "plus": ["54", "55", "56", "57", "61", "63"], "hidden": true
+      "plus": ["54", "55", "56", "57", "61", "63"], "hidden": true,
+      "legal_reference": "Formulaire 625 (déclaration périodique à la TVA), cadre VI — total des taxes dues, somme des grilles 54, 55, 56, 57, 61 et 63. Sous-total du calcul de la grille 71, que le formulaire n'imprime pas."
     },
     {
       "box": "YY", "kind": "total", "name": "Total de la TVA déductible", "sequence": 310,
-      "plus": ["59", "62", "64"], "hidden": true
+      "plus": ["59", "62", "64"], "hidden": true,
+      "legal_reference": "Formulaire 625 (déclaration périodique à la TVA), cadre VI — total des taxes déductibles, somme des grilles 59, 62 et 64. Sous-total du calcul de la grille 72, que le formulaire n'imprime pas."
     },
     {
       "box": "71", "kind": "total", "name": "TVA à payer à l'État", "sequence": 320,
-      "plus": ["XX"], "minus": ["YY"], "floor_zero": true
+      "plus": ["XX"], "minus": ["YY"], "floor_zero": true,
+      "legal_reference": "Code de la TVA, art. 53, § 1er, 2°, et arrêté royal n° 1 du 29 décembre 1992, art. 18 — formulaire 625 (déclaration périodique à la TVA), cadre VI, grille 71"
     },
     {
       "box": "72", "kind": "total", "name": "Sommes dues par l'État", "sequence": 330,
-      "plus": ["YY"], "minus": ["XX"], "floor_zero": true
+      "plus": ["YY"], "minus": ["XX"], "floor_zero": true,
+      "legal_reference": "Code de la TVA, art. 76, § 1er — formulaire 625 (déclaration périodique à la TVA), cadre VI, grille 72"
     }
   ]
 }

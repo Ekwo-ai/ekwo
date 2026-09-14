@@ -20,6 +20,11 @@ packs/be/
 ├── tax_report.json    the boxes of the periodic return and their totals
 ├── statements.json    the balance sheet, the income statement and their rules
 ├── assets.json        the section of the fixed assets module, where the country has one
+├── golden/
+│   ├── scenario.json  one year of books: documents, payments, the periods filed
+│   ├── vat_return.json    what the declaration comes to, period by period
+│   ├── statements.json    what every line of every statement comes to
+│   └── trial_balance.json every account that moved, to the cent
 └── i18n/
     ├── README.md      where each language's wording comes from
     ├── nl.json        every label of the pack, in one more language
@@ -539,13 +544,113 @@ Dutch can be read in English later without importing anything again.
 [`languages.md`](languages.md) is the whole mechanism, including how a reader's
 own preference comes before the company's.
 
+## Golden scenario
+
+A pack that compiles says nothing about whether it adds up. A tax that posts
+to the wrong grid and a grid that expects the wrong postings agree with each
+other: the seed builds, every unit test passes, and the return is wrong.
+`packs/<cc>/golden/` is the second opinion — one year of books somebody wrote
+down, and beside it the declaration, the statements and the trial balance the
+engine makes of them, to the cent, in the pack's own currency.
+
+`scenario.json` is the input, and it is declarative like everything else in a
+pack. Nothing in it executes and nothing in it is an amount that was computed:
+
+```json
+{
+  "name": "Une année d'un commerce belge assujetti, déclarant par trimestre",
+  "chart": "default",
+  "fiscal_year": { "name": "Exercice 2026", "start": "2026-01-01", "end": "2026-12-31" },
+  "periods": [{ "code": "2026-T1", "from": "2026-01-01", "to": "2026-03-31" }],
+  "statements": ["BE-BNB-ABBR-BS", "BE-BNB-ABBR-IS"],
+  "contacts": [{ "ref": "client-be", "name": "Atelier Lumen SRL", "type": "customer", "country": "BE" }],
+  "documents": [
+    { "ref": "V1", "type": "sale_invoice", "contact": "client-be", "date": "2026-01-20",
+      "why": "Une vente au taux normal : la grille 03 et la TVA due de la grille 54.",
+      "lines": [{ "name": "Marchandises", "quantity": 10, "unit_price": 1000,
+                  "tax": "BE-S-21", "account": "700000" }] }
+  ],
+  "payments": [
+    { "ref": "E1", "direction": "inbound", "date": "2026-02-20", "amount": 12100,
+      "contact": "client-be", "journal": "BNK", "match": "V1",
+      "why": "Un encaissement qui solde exactement sa facture." }
+  ]
+}
+```
+
+`why` is required on every document and every payment. A golden grows by
+accident otherwise: somebody adds a line to make a figure move, and two years
+later nobody can say what the document was for or whether dropping it would
+lose anything.
+
+**Three expectation files** sit beside the scenario and are generated, never
+written by hand:
+
+| File | Holds |
+|---|---|
+| `vat_return.json` | every box of the return that came to something, per period, keyed `<box>:<kind>` |
+| `statements.json` | every line of every statement named, over the financial year |
+| `trial_balance.json` | every account that moved or ended with a balance: debit, credit, closing |
+
+```sh
+UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts
+```
+
+rewrites those three and **never the scenario** — a runner that could rewrite
+its own inputs proves nothing. The diff is then the thing to review.
+
+**`ekwo pack check` validates the scenario**, against the schema and against
+the pack: the chart, every account code, every tax code and its scope and its
+validity, every journal, every statement, and every `match` that has to name a
+document of the scenario and a payment going the right way. It refuses fewer
+than ten documents.
+
+**`tests/golden.test.ts` is one runner for every pack.** It reads `packs/`,
+installs a company on each from what that pack's scenario declares, replays the
+documents and the payments through `post_document`, `post_payment` and
+`reconcile`, and compares. Nothing in it knows a country — what it asks of a
+scenario, it asks of the *pack*: both directions, more than one positive rate,
+a credit note, a matched payment and an unmatched one; an intra-Union reverse
+charge on each side the pack offers one; a tax due on collection and a partly
+recoverable tax **where the pack has them**. A country with no cash-basis tax
+is not asked for one.
+
+One assertion is not read from a file: the posted ledger balances. A golden
+regenerated from a broken engine would agree with itself; double entry would
+not.
+
+**A pack with no golden is refused** — by `readPack`, so by `ekwo pack check`
+and by the CI — unless the manifest says why:
+
+```json
+"golden": { "exempt": "A framework is not a country: this pack carries statements and nothing else …" }
+```
+
+which `ekwo pack check` and `ekwo pack list` print. `packs/generic/` is the
+one exemption in this repository, and the reason is structural: a framework
+has no chart, no journal, no tax and no currency, so no company can be
+installed on it and there is no year of books to replay. Its lines are proved
+where they are reachable — through a chart that names no statement of its own
+and falls back to it.
+
+**What a golden does not prove.** That the figures are the law. A box expected
+wrongly and a posting written wrongly pass together, which is the whole reason
+the two things below exist: a source on every tax and every box, and a
+certification status that says out loud how much anyone has read. It is also
+worth knowing what the balance sheet of an open year looks like — the result
+is not on it until `close_fiscal_year()` puts it there, so assets exceed
+liabilities by exactly the result of the income statement, in every country.
+
 ## Certification
 
 A golden test proves that a pack is internally coherent. It does not prove
 that it is legally right, and no test can. So:
 
-- every tax names the article it comes from (`legal_reference`), and the
-  manifest lists its sources;
+- **every tax and every declaration box names where it comes from**
+  (`legal_reference`), and the manifest lists the texts the pack was built
+  from. Both are required and `ekwo pack check` refuses a pack that leaves one
+  out — a box nobody can trace to a source is a box nobody can review, and
+  "TODO" is not a source;
 - the manifest carries `certification.status`, and `ekwo init` prints it in as
   many words before anyone books anything:
 
@@ -587,9 +692,16 @@ that it is legally right, and no test can. So:
    default — a pack that stays silent leaves the columns null rather than
    inheriting somebody else's law — and every mention cites the article that
    requires it.
-6. `ekwo pack build <cc>`, then add the generated file to
+6. Write `golden/scenario.json`: ten documents at least, and a year of them.
+   Then `UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts` and **read what it
+   wrote**. That reading is the step: a figure you cannot explain is a defect
+   in your pack, found before anybody files anything with it.
+7. `ekwo pack build <cc>`, then add the generated file to
    `supabase/config.toml` under `[db.seed].sql_paths`.
-7. Set `certification.status` honestly. `community` is the right answer until
+8. Add a line for `packs/<cc>/` to `.github/CODEOWNERS`, pointing at yourself.
+   A pack is right or wrong against a law, and the person who knows is the
+   person who applies it.
+9. Set `certification.status` honestly. `community` is the right answer until
    an accountant has read it.
 
 ### Which closing style a chart needs

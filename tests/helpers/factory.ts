@@ -35,10 +35,27 @@ export interface Fixture {
   ownerId: string;
 }
 
-/** A fresh company with the Belgian template and an open 2026 financial year. */
+/**
+ * A fresh company with a country's template and an open financial year.
+ *
+ * Belgium and calendar 2026 are what a test gets when it says nothing, because
+ * that is what most of them want. Neither is baked in: the country is any the
+ * seeds carry, the chart is any the pack offers, and the year is any pair of
+ * dates — the golden runner installs a company per pack from what the pack's
+ * own scenario declares, and cannot be the one place a country is assumed.
+ */
 export async function newCompany(
   db: PGlite,
-  options: { country?: 'BE' | 'FR'; name?: string; ownerId?: string } = {},
+  options: {
+    country?: string;
+    name?: string;
+    ownerId?: string;
+    /** Chart code of the pack. Its default chart when left out. */
+    chart?: string | null;
+    /** Language the books are installed in. The pack's own when left out. */
+    language?: string | null;
+    fiscalYear?: { name: string; start: string; end: string };
+  } = {},
 ): Promise<Fixture> {
   const country = options.country ?? 'BE';
   const ownerId = options.ownerId ?? crypto.randomUUID();
@@ -57,11 +74,21 @@ export async function newCompany(
     company.id,
     ownerId,
   ]);
-  await db.query(`select install_country_template($1, $2)`, [company.id, country]);
+  await db.query(`select install_country_template($1, $2, $3, $4)`, [
+    company.id,
+    country,
+    options.language ?? null,
+    options.chart ?? null,
+  ]);
+  const year = options.fiscalYear ?? {
+    name: 'Exercice 2026',
+    start: '2026-01-01',
+    end: '2026-12-31',
+  };
   await db.query(
     `insert into fiscal_years (company_id, name, start_date, end_date)
-     values ($1, 'Exercice 2026', date '2026-01-01', date '2026-12-31')`,
-    [company.id],
+     values ($1, $2, $3::date, $4::date)`,
+    [company.id, year.name, year.start, year.end],
   );
   return { companyId: company.id, ownerId };
 }

@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "schema_min": "20260913075903",
-  "released_at": "2026-09-13",
+  "released_at": "2026-09-14",
   "certification": {
     "status": "maintained",
     "sources": [

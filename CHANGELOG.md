@@ -9,6 +9,43 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Added
+
+- **A golden year of books per country pack, and a legal source on every tax
+  and every box.**
+  A pack could describe a country but could not be wrong in a way anyone would
+  notice: a tax that posts to the wrong grid and a grid that expects the wrong
+  postings agree with each other, the seed compiles and the return is wrong.
+  **`packs/<cc>/golden/`** is the second opinion — `scenario.json`, ten
+  documents at least of one financial year with the payments that settle some
+  of them, and beside it three generated files holding what the engine makes of
+  them to the cent: `vat_return.json` period by period, `statements.json` line
+  by line, `trial_balance.json` account by account.
+  **One runner, and no country inside it.** `tests/golden.test.ts` reads
+  `packs/`, installs a company on each pack from what that pack's own scenario
+  declares, replays it through `post_document`, `post_payment` and `reconcile`,
+  and compares. What it demands of a scenario it demands of the pack: a tax due
+  on collection is required of a scenario whose pack has one, and of no other.
+  `UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts` rewrites the three
+  expectation files and never the scenario.
+  **A pack without a golden is refused** — by `readPack`, so by `ekwo pack
+  check` and by the CI. A pack that cannot have one says why in its manifest,
+  under `"golden": { "exempt": "…" }`, and the commands print the sentence.
+  `packs/generic` is the only exemption here: a framework has no chart, no
+  journal, no tax and no currency, so no company can be installed on it.
+  **`legal_reference` is now required on every tax and on every box of a
+  declaration**, and the thirty-one Belgian grids and twenty-two French lines
+  carry theirs. A golden proves internal coherence and never legal truth, which
+  is exactly why the source and `certification.status` have to carry the rest.
+  **`.github/CODEOWNERS`** names an owner per pack.
+  The first run found two things in the French pack, reported rather than
+  patched away: line 01 of the CA3 can come out negative when a quarter's
+  credit notes exceed its sales, and line 08 does not tie to itself on an
+  intra-Union acquisition, whose base goes to line 03 and whose tax goes to
+  line 08. Both are in [`docs/decisions.md`](docs/decisions.md).
+  Belgium moves to 1.5.1, France to 1.6.1 and the generic framework to 1.1.1:
+  a legal source is a patch.
+
 ## [0.2.0] — 2026-09-14
 
 The first published release. `0.1.0` below was the first schema and was never

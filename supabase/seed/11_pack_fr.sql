@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.6.0, do not edit.
+-- Generated from packs/fr at version 1.6.1, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -28,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.6.0', date '2026-09-13', '20260913114535', 'maintained', null, null, '5d850586e4028e36dbde3c36ed2b14cf0215e4a05858c80064e731ff8939f9fe')
+  ('FR', 'France', '1.6.1', date '2026-09-14', '20260913114535', 'maintained', null, null, 'b9626fe1e81b4195dc6185460bcf92e3f1f5436d9be7c90cb454e1135c740fb1')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -640,28 +640,28 @@ insert into tax_report_box_templates
   (country, report_code, box, kind, name, name_i18n, sequence,
    plus_boxes, minus_boxes, floor_zero, hidden, xml_element, legal_reference)
 values
-  ('FR', 'FR-CA3', '01', 'total', 'Ventes, prestations de services', '{"en":"Sales and services"}'::jsonb, 10, array['08:base', '09:base', '9B:base', '13:base']::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '03', 'base', 'Acquisitions intracommunautaires', '{"en":"Intra-Community acquisitions"}'::jsonb, 20, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '2A', 'base', 'Achats de prestations de services intracommunautaires', '{"en":"Purchases of intra-Community services"}'::jsonb, 30, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '3A', 'base', 'Importations autoliquidées', '{"en":"Imports under reverse charge"}'::jsonb, 40, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '3C', 'base', 'Achats de biens ou de prestations auprès d''un assujetti non établi en France', '{"en":"Purchases of goods or services from a taxable person not established in France"}'::jsonb, 50, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '04', 'base', 'Exportations hors Union européenne', '{"en":"Exports outside the European Union"}'::jsonb, 60, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '05', 'base', 'Autres opérations non imposables', '{"en":"Other non-taxable transactions"}'::jsonb, 70, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '06', 'base', 'Livraisons intracommunautaires', '{"en":"Intra-Community supplies"}'::jsonb, 80, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '08', 'base', 'Taux normal 20 % — base hors taxe', '{"en":"Standard rate 20% — net base"}'::jsonb, 100, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '09', 'base', 'Taux réduit 5,5 % — base hors taxe', '{"en":"Reduced rate 5.5% — net base"}'::jsonb, 110, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '9B', 'base', 'Taux réduit 10 % — base hors taxe', '{"en":"Reduced rate 10% — net base"}'::jsonb, 120, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '13', 'base', 'Taux particulier 2,1 % — base hors taxe', '{"en":"Special rate 2.1% — net base"}'::jsonb, 130, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '08', 'tax', 'Taux normal 20 % — TVA due', '{"en":"Standard rate 20% — VAT due"}'::jsonb, 140, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '09', 'tax', 'Taux réduit 5,5 % — TVA due', '{"en":"Reduced rate 5.5% — VAT due"}'::jsonb, 150, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '9B', 'tax', 'Taux réduit 10 % — TVA due', '{"en":"Reduced rate 10% — VAT due"}'::jsonb, 160, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '13', 'tax', 'Taux particulier 2,1 % — TVA due', '{"en":"Special rate 2.1% — VAT due"}'::jsonb, 170, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '16', 'total', 'Total de la TVA brute due', '{"en":"Total gross VAT due"}'::jsonb, 200, array['08:tax', '09:tax', '9B:tax', '13:tax']::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '19', 'tax', 'TVA déductible sur immobilisations', '{"en":"Deductible VAT on fixed assets"}'::jsonb, 210, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '20', 'tax', 'TVA déductible sur autres biens et services', '{"en":"Deductible VAT on other goods and services"}'::jsonb, 220, '{}'::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '23', 'total', 'Total de la TVA déductible', '{"en":"Total deductible VAT"}'::jsonb, 230, array['19', '20']::text[], '{}'::text[], false, false, null, null),
-  ('FR', 'FR-CA3', '28', 'total', 'TVA nette due', '{"en":"Net VAT payable"}'::jsonb, 240, array['16']::text[], array['23']::text[], true, false, null, null),
-  ('FR', 'FR-CA3', '25', 'total', 'Crédit de TVA', '{"en":"VAT credit"}'::jsonb, 250, array['23']::text[], array['16']::text[], true, false, null, null)
+  ('FR', 'FR-CA3', '01', 'total', 'Ventes, prestations de services', '{"en":"Sales and services"}'::jsonb, 10, array['08:base', '09:base', '9B:base', '13:base']::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 287, 2 — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 01'),
+  ('FR', 'FR-CA3', '03', 'base', 'Acquisitions intracommunautaires', '{"en":"Intra-Community acquisitions"}'::jsonb, 20, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 256 bis — acquisitions intracommunautaires — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 03'),
+  ('FR', 'FR-CA3', '2A', 'base', 'Achats de prestations de services intracommunautaires', '{"en":"Purchases of intra-Community services"}'::jsonb, 30, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 259, 1°, et art. 283, 2 — preneur redevable — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 2A'),
+  ('FR', 'FR-CA3', '3A', 'base', 'Importations autoliquidées', '{"en":"Imports under reverse charge"}'::jsonb, 40, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 293 A, et art. 1695, II — autoliquidation de la TVA à l''importation — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 3A'),
+  ('FR', 'FR-CA3', '3C', 'base', 'Achats de biens ou de prestations auprès d''un assujetti non établi en France', '{"en":"Purchases of goods or services from a taxable person not established in France"}'::jsonb, 50, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 283, 1, deuxième alinéa — achats auprès d''un assujetti non établi en France — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 3C'),
+  ('FR', 'FR-CA3', '04', 'base', 'Exportations hors Union européenne', '{"en":"Exports outside the European Union"}'::jsonb, 60, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 262, I — exportations hors Union européenne — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 04'),
+  ('FR', 'FR-CA3', '05', 'base', 'Autres opérations non imposables', '{"en":"Other non-taxable transactions"}'::jsonb, 70, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 261 — opérations exonérées — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 05'),
+  ('FR', 'FR-CA3', '06', 'base', 'Livraisons intracommunautaires', '{"en":"Intra-Community supplies"}'::jsonb, 80, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 262 ter, I — livraisons intracommunautaires — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 06'),
+  ('FR', 'FR-CA3', '08', 'base', 'Taux normal 20 % — base hors taxe', '{"en":"Standard rate 20% — net base"}'::jsonb, 100, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278 — taux normal de 20 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 08, colonne « base hors taxe »'),
+  ('FR', 'FR-CA3', '09', 'base', 'Taux réduit 5,5 % — base hors taxe', '{"en":"Reduced rate 5.5% — net base"}'::jsonb, 110, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278-0 bis — taux réduit de 5,5 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 09, colonne « base hors taxe »'),
+  ('FR', 'FR-CA3', '9B', 'base', 'Taux réduit 10 % — base hors taxe', '{"en":"Reduced rate 10% — net base"}'::jsonb, 120, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278 bis et 279 — taux réduit de 10 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 9B, colonne « base hors taxe »'),
+  ('FR', 'FR-CA3', '13', 'base', 'Taux particulier 2,1 % — base hors taxe', '{"en":"Special rate 2.1% — net base"}'::jsonb, 130, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 281 quater — taux particulier de 2,1 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 13, colonne « base hors taxe »'),
+  ('FR', 'FR-CA3', '08', 'tax', 'Taux normal 20 % — TVA due', '{"en":"Standard rate 20% — VAT due"}'::jsonb, 140, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278 — taux normal de 20 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 08, colonne « TVA due »'),
+  ('FR', 'FR-CA3', '09', 'tax', 'Taux réduit 5,5 % — TVA due', '{"en":"Reduced rate 5.5% — VAT due"}'::jsonb, 150, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278-0 bis — taux réduit de 5,5 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 09, colonne « TVA due »'),
+  ('FR', 'FR-CA3', '9B', 'tax', 'Taux réduit 10 % — TVA due', '{"en":"Reduced rate 10% — VAT due"}'::jsonb, 160, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 278 bis et 279 — taux réduit de 10 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 9B, colonne « TVA due »'),
+  ('FR', 'FR-CA3', '13', 'tax', 'Taux particulier 2,1 % — TVA due', '{"en":"Special rate 2.1% — VAT due"}'::jsonb, 170, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 281 quater — taux particulier de 2,1 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 13, colonne « TVA due »'),
+  ('FR', 'FR-CA3', '16', 'total', 'Total de la TVA brute due', '{"en":"Total gross VAT due"}'::jsonb, 200, array['08:tax', '09:tax', '9B:tax', '13:tax']::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 287, 2 — total de la TVA brute due — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 16'),
+  ('FR', 'FR-CA3', '19', 'tax', 'TVA déductible sur immobilisations', '{"en":"Deductible VAT on fixed assets"}'::jsonb, 210, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 271, et ann. II, art. 205 et 206 — déduction sur immobilisations — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 19'),
+  ('FR', 'FR-CA3', '20', 'tax', 'TVA déductible sur autres biens et services', '{"en":"Deductible VAT on other goods and services"}'::jsonb, 220, '{}'::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 271, et ann. II, art. 205 et 206 — déduction sur autres biens et services — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 20'),
+  ('FR', 'FR-CA3', '23', 'total', 'Total de la TVA déductible', '{"en":"Total deductible VAT"}'::jsonb, 230, array['19', '20']::text[], '{}'::text[], false, false, null, 'Code général des impôts, art. 271 — total de la TVA déductible — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 23'),
+  ('FR', 'FR-CA3', '28', 'total', 'TVA nette due', '{"en":"Net VAT payable"}'::jsonb, 240, array['16']::text[], array['23']::text[], true, false, null, 'Code général des impôts, art. 287, 2 — TVA nette due — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 28'),
+  ('FR', 'FR-CA3', '25', 'total', 'Crédit de TVA', '{"en":"VAT credit"}'::jsonb, 250, array['23']::text[], array['16']::text[], true, false, null, 'Code général des impôts, art. 271, IV, et ann. II, art. 242-0 A — crédit de TVA — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 25')
 on conflict (country, report_code, box, kind) do update set
   name            = excluded.name,
   name_i18n       = excluded.name_i18n,

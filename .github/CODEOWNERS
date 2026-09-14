@@ -1,0 +1,39 @@
+# Who is asked to look at a change, by the part of the repository it touches.
+#
+# A country pack is the one thing here that nobody can review from the code:
+# a rate, a box or a chart is right or wrong against a law, and the person who
+# knows is the person who applies it. So every pack has an owner, and a pull
+# request that moves one asks them before it moves.
+#
+# Ownership is not certification. `@Ekwo-ai/maintainers` maintains Belgium and
+# France — `certification.status` says `maintained`, not `reviewed`, and it
+# will keep saying that until a named professional has read the pack and put
+# their name in the manifest. A pack a contributor owns is listed below with
+# their handle, and its status is `community` until the same thing happens.
+
+# `@Ekwo-ai/maintainers` is a team of the organisation. Until it exists and has
+# write access, GitHub requests no review from these lines and reports them as
+# unknown owners; the file is valid either way, and the day the team is created
+# every line below starts working without an edit.
+
+# Everything, unless a line below is more specific.
+*                       @Ekwo-ai/maintainers
+
+# The schema every pack is validated against. A change here changes what every
+# country may say, so it is deliberately not owned by one pack's owner.
+/packs/schema/          @Ekwo-ai/maintainers
+
+# One line per pack.
+/packs/be/              @Ekwo-ai/maintainers
+/packs/fr/              @Ekwo-ai/maintainers
+/packs/generic/         @Ekwo-ai/maintainers
+
+# The compiled seeds are a build artefact of the packs above; they move with
+# them and are read by the same people.
+/supabase/seed/         @Ekwo-ai/maintainers
+
+# The ledger and what the law does to it: migrations, the pack reader and the
+# compiler, the golden runner.
+/supabase/migrations/   @Ekwo-ai/maintainers
+/packages/cli/src/pack/ @Ekwo-ai/maintainers
+/tests/golden.test.ts   @Ekwo-ai/maintainers

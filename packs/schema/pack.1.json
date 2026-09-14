@@ -44,7 +44,8 @@
     },
     "documents": { "$ref": "#/$defs/documents" },
     "einvoicing": { "$ref": "#/$defs/einvoicing" },
-    "bank": { "$ref": "#/$defs/bank" }
+    "bank": { "$ref": "#/$defs/bank" },
+    "golden": { "$ref": "#/$defs/golden_exemption" }
   },
 
   "$defs": {
@@ -310,7 +311,7 @@
 
     "tax": {
       "type": "object",
-      "required": ["code", "name", "rate", "scope", "treatment", "valid_from"],
+      "required": ["code", "name", "rate", "scope", "treatment", "valid_from", "legal_reference"],
       "additionalProperties": false,
       "properties": {
         "code": { "$ref": "#/$defs/code", "description": "Immutable once published, and so is its meaning. A new rate is a new code plus a valid_to on the old one, never an edit." },
@@ -332,7 +333,7 @@
         },
         "valid_from": { "$ref": "#/$defs/date" },
         "valid_to": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
-        "legal_reference": { "type": ["string", "null"], "description": "The article this rate comes from. A pack without sources cannot be reviewed." },
+        "legal_reference": { "type": "string", "minLength": 1, "description": "The article this rate comes from. Required: a golden test proves a tax is booked consistently, never that its rate or its boxes are the law, so a tax nobody can trace to a source is a tax nobody can review." },
         "vat_category": { "type": ["string", "null"], "maxLength": 2, "description": "EN 16931 / UNCL5305 category code." },
         "exemption_code": { "type": ["string", "null"], "description": "VATEX-* reason, when the category asks for one." },
         "price_include": { "type": "boolean", "description": "The unit price already holds the tax (UK and Australian retail). Compiled to a column; the gross-to-net computation arrives with the country that needs it." },
@@ -399,7 +400,7 @@
 
     "tax_report_box": {
       "type": "object",
-      "required": ["box", "kind", "name"],
+      "required": ["box", "kind", "name", "legal_reference"],
       "additionalProperties": false,
       "properties": {
         "box": { "$ref": "#/$defs/box" },
@@ -411,7 +412,132 @@
         "floor_zero": { "type": "boolean", "description": "A negative total is reported as zero, the other side of the pair carrying it." },
         "hidden": { "type": "boolean", "description": "An intermediate total the form does not print." },
         "xml_element": { "type": ["string", "null"] },
-        "legal_reference": { "type": ["string", "null"] }
+        "legal_reference": { "type": ["string", "null"], "minLength": 1, "description": "The text of the form, or the article, this box comes from. Required: a golden test proves a form is internally coherent, never that a box is the right one, so a box nobody can trace to a source is a box nobody can review." }
+      }
+    },
+
+    "golden_exemption": {
+      "type": "object",
+      "title": "manifest: golden",
+      "description": "Why this pack carries no golden scenario. A pack without one and without this section is refused: a country whose figures nobody replays is a country nobody can review. The exemption is therefore a sentence somebody wrote, printed by `ekwo pack check`, and never a silence.",
+      "required": ["exempt"],
+      "additionalProperties": false,
+      "properties": {
+        "exempt": { "type": "string", "minLength": 20, "description": "The reason, in one sentence a reader can weigh." }
+      }
+    },
+
+    "golden": {
+      "type": "object",
+      "title": "packs/<cc>/golden/scenario.json",
+      "description": "One year of books, declared. The runner installs a company on this pack, replays these documents and payments through post_document, post_payment and reconcile, and compares the declaration, the statements and the trial balance against the expectation files beside this one. Nothing here is executable and nothing here is an amount that was computed: the scenario is what a business did, the expectations are what the engine made of it.",
+      "required": ["name", "fiscal_year", "periods", "contacts", "documents"],
+      "additionalProperties": false,
+      "properties": {
+        "$schema": { "type": "string" },
+        "name": { "type": "string", "minLength": 1, "description": "What this scenario is, in the pack's own language." },
+        "chart": { "$ref": "#/$defs/code", "description": "Chart the company is installed on. The pack's default when left out." },
+        "language": { "$ref": "#/$defs/language", "description": "Language the company is installed in. The pack's own when left out." },
+        "fiscal_year": {
+          "type": "object",
+          "required": ["name", "start", "end"],
+          "additionalProperties": false,
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "start": { "$ref": "#/$defs/date" },
+            "end": { "$ref": "#/$defs/date" }
+          }
+        },
+        "periods": {
+          "type": "array",
+          "minItems": 1,
+          "description": "The periods the declaration is filed for. Several of them is the point: a tax due on collection falls in the period of the payment and not of the invoice, and one annual figure hides that.",
+          "items": {
+            "type": "object",
+            "required": ["code", "from", "to"],
+            "additionalProperties": false,
+            "properties": {
+              "code": { "$ref": "#/$defs/code" },
+              "from": { "$ref": "#/$defs/date" },
+              "to": { "$ref": "#/$defs/date" }
+            }
+          }
+        },
+        "statements": {
+          "type": "array",
+          "description": "Statement codes to evaluate over the year. The statements of the company's chart when left out.",
+          "items": { "$ref": "#/$defs/code" }
+        },
+        "contacts": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/golden_contact" } },
+        "documents": {
+          "type": "array",
+          "minItems": 10,
+          "description": "At least ten, and they earn their place: sales and purchases, the standard rate and a reduced one, an intra-Union reverse charge, a credit note, and — where the country has one — a tax due on collection and a tax that is only partly recoverable. Fewer than ten and a return has boxes nobody ever filled.",
+          "items": { "$ref": "#/$defs/golden_document" }
+        },
+        "payments": { "type": "array", "items": { "$ref": "#/$defs/golden_payment" } }
+      }
+    },
+
+    "golden_contact": {
+      "type": "object",
+      "description": "A counterparty of the scenario. Fictional, always: this repository carries no real company and no real VAT number.",
+      "required": ["ref", "name", "type", "country"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "#/$defs/code", "description": "How the documents below name it. Local to this file." },
+        "name": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["customer", "supplier"] },
+        "country": { "$ref": "#/$defs/country" },
+        "vat_number": { "type": ["string", "null"] },
+        "auxiliary_code": { "type": ["string", "null"], "description": "Sub-ledger code, which a French FEC carries." }
+      }
+    },
+
+    "golden_document": {
+      "type": "object",
+      "required": ["ref", "type", "contact", "date", "why", "lines"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "#/$defs/code" },
+        "type": { "enum": ["sale_invoice", "sale_credit_note", "purchase_invoice", "purchase_credit_note"] },
+        "contact": { "$ref": "#/$defs/code", "description": "`ref` of a contact declared above." },
+        "date": { "$ref": "#/$defs/date" },
+        "due_date": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "why": { "type": "string", "minLength": 1, "description": "What this document is in the scenario for. A golden with a document nobody can justify is a golden that grew by accident." },
+        "lines": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["name", "unit_price", "account"],
+            "additionalProperties": false,
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "quantity": { "type": "number" },
+              "unit_price": { "type": "number" },
+              "discount_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+              "tax": { "type": ["string", "null"], "description": "Code of a tax of this pack, or null for a line outside the scope of the tax." },
+              "account": { "$ref": "#/$defs/code", "description": "Code of an account of the chart this scenario installs." }
+            }
+          }
+        }
+      }
+    },
+
+    "golden_payment": {
+      "type": "object",
+      "required": ["ref", "direction", "date", "amount", "contact", "journal", "why"],
+      "additionalProperties": false,
+      "properties": {
+        "ref": { "$ref": "#/$defs/code" },
+        "direction": { "enum": ["inbound", "outbound"] },
+        "date": { "$ref": "#/$defs/date" },
+        "amount": { "type": "number", "minimum": 0 },
+        "contact": { "$ref": "#/$defs/code" },
+        "journal": { "$ref": "#/$defs/code", "description": "Code of a journal of this pack." },
+        "match": { "type": ["string", "null"], "description": "`ref` of the document this payment settles, matched through reconcile(). Null is a payment on account: it leaves an open item, which is what a real ledger holds and what a return computed from matchings has to survive." },
+        "why": { "type": "string", "minLength": 1 }
       }
     },
 
@@ -429,7 +555,8 @@
         "schema_min": { "type": "string", "pattern": "^[0-9]{14}$" },
         "released_at": { "$ref": "#/$defs/date" },
         "language": { "$ref": "#/$defs/language", "description": "Language the labels below are written in. A translation goes in i18n/, like any pack." },
-        "certification": { "$ref": "#/$defs/certification" }
+        "certification": { "$ref": "#/$defs/certification" },
+        "golden": { "$ref": "#/$defs/golden_exemption" }
       }
     },
 

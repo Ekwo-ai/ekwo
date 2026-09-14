@@ -57,6 +57,9 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
         `${framework.statements.length} statements · no country · ` +
         `certification ${framework.manifest.certification?.status ?? 'none'}`,
     );
+    if (framework.goldenExemption !== null) {
+      note(dim(`        no golden — ${framework.goldenExemption}`));
+    }
     for (const slug of available) {
       const pack = await readPack(slug, dir);
       note(
@@ -64,8 +67,17 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
           `${pack.charts.length} chart(s), ${pack.charts.reduce((n, c) => n + c.accounts.length, 0)} accounts · ` +
           `${pack.taxes.length} taxes · ${pack.statements.length} statements · ` +
           `${pack.languages.join(', ')} · ` +
-          `certification ${pack.manifest.certification?.status ?? 'none'}`,
+          `certification ${pack.manifest.certification?.status ?? 'none'} · ` +
+          (pack.golden === null
+            ? 'no golden'
+            : `golden: ${pack.golden.documents.length} documents, ` +
+              `${pack.golden.payments.length} payments, ${pack.golden.periods.length} period(s)`),
       );
+      // An exemption is a claim somebody made, so it is printed rather than
+      // inferred from the absence of a folder.
+      if (pack.goldenExemption !== null) {
+        note(dim(`        no golden — ${pack.goldenExemption}`));
+      }
       for (const chart of pack.charts) {
         note(
           dim(
@@ -130,6 +142,21 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
       fail(`${file} is not the output of packs/${slug}${current === undefined ? ' (it does not exist)' : ''}`);
     } else {
       step(`${file}`);
+    }
+
+    // What the figures of this pack are replayed against. A seed that
+    // compiles says nothing about whether the country's boxes add up; the
+    // golden is what does, and a pack exempt from one says so out loud.
+    if (pack.golden === null) {
+      note(dim(`        no golden — ${pack.goldenExemption ?? 'and no reason given'}`));
+    } else {
+      note(
+        dim(
+          `        golden: ${pack.golden.documents.length} documents, ` +
+            `${pack.golden.payments.length} payments, ` +
+            `${pack.golden.periods.length} period(s) of ${pack.golden.fiscalYear.name}`,
+        ),
+      );
     }
 
     // The sections of a module compile beside the pack seed, under the module's

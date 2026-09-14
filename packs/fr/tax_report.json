@@ -6,42 +6,46 @@
   "valid_from": "2022-01-01",
   "legal_reference": "CGI, art. 287 — formulaire 3310-CA3",
   "boxes": [
-    { "box": "01", "kind": "total", "name": "Ventes, prestations de services", "sequence": 10, "plus": ["08:base", "09:base", "9B:base", "13:base"] },
-    { "box": "03", "kind": "base", "name": "Acquisitions intracommunautaires", "sequence": 20 },
-    { "box": "2A", "kind": "base", "name": "Achats de prestations de services intracommunautaires", "sequence": 30 },
-    { "box": "3A", "kind": "base", "name": "Importations autoliquidées", "sequence": 40 },
-    { "box": "3C", "kind": "base", "name": "Achats de biens ou de prestations auprès d'un assujetti non établi en France", "sequence": 50 },
-    { "box": "04", "kind": "base", "name": "Exportations hors Union européenne", "sequence": 60 },
-    { "box": "05", "kind": "base", "name": "Autres opérations non imposables", "sequence": 70 },
-    { "box": "06", "kind": "base", "name": "Livraisons intracommunautaires", "sequence": 80 },
+    { "box": "01", "kind": "total", "name": "Ventes, prestations de services", "sequence": 10, "plus": ["08:base", "09:base", "9B:base", "13:base"], "legal_reference": "Code général des impôts, art. 287, 2 — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 01" },
+    { "box": "03", "kind": "base", "name": "Acquisitions intracommunautaires", "sequence": 20, "legal_reference": "Code général des impôts, art. 256 bis — acquisitions intracommunautaires — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 03" },
+    { "box": "2A", "kind": "base", "name": "Achats de prestations de services intracommunautaires", "sequence": 30, "legal_reference": "Code général des impôts, art. 259, 1°, et art. 283, 2 — preneur redevable — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 2A" },
+    { "box": "3A", "kind": "base", "name": "Importations autoliquidées", "sequence": 40, "legal_reference": "Code général des impôts, art. 293 A, et art. 1695, II — autoliquidation de la TVA à l'importation — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 3A" },
+    { "box": "3C", "kind": "base", "name": "Achats de biens ou de prestations auprès d'un assujetti non établi en France", "sequence": 50, "legal_reference": "Code général des impôts, art. 283, 1, deuxième alinéa — achats auprès d'un assujetti non établi en France — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 3C" },
+    { "box": "04", "kind": "base", "name": "Exportations hors Union européenne", "sequence": 60, "legal_reference": "Code général des impôts, art. 262, I — exportations hors Union européenne — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 04" },
+    { "box": "05", "kind": "base", "name": "Autres opérations non imposables", "sequence": 70, "legal_reference": "Code général des impôts, art. 261 — opérations exonérées — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 05" },
+    { "box": "06", "kind": "base", "name": "Livraisons intracommunautaires", "sequence": 80, "legal_reference": "Code général des impôts, art. 262 ter, I — livraisons intracommunautaires — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 06" },
 
-    { "box": "08", "kind": "base", "name": "Taux normal 20 % — base hors taxe", "sequence": 100 },
-    { "box": "09", "kind": "base", "name": "Taux réduit 5,5 % — base hors taxe", "sequence": 110 },
-    { "box": "9B", "kind": "base", "name": "Taux réduit 10 % — base hors taxe", "sequence": 120 },
-    { "box": "13", "kind": "base", "name": "Taux particulier 2,1 % — base hors taxe", "sequence": 130 },
+    { "box": "08", "kind": "base", "name": "Taux normal 20 % — base hors taxe", "sequence": 100, "legal_reference": "Code général des impôts, art. 278 — taux normal de 20 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 08, colonne « base hors taxe »" },
+    { "box": "09", "kind": "base", "name": "Taux réduit 5,5 % — base hors taxe", "sequence": 110, "legal_reference": "Code général des impôts, art. 278-0 bis — taux réduit de 5,5 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 09, colonne « base hors taxe »" },
+    { "box": "9B", "kind": "base", "name": "Taux réduit 10 % — base hors taxe", "sequence": 120, "legal_reference": "Code général des impôts, art. 278 bis et 279 — taux réduit de 10 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 9B, colonne « base hors taxe »" },
+    { "box": "13", "kind": "base", "name": "Taux particulier 2,1 % — base hors taxe", "sequence": 130, "legal_reference": "Code général des impôts, art. 281 quater — taux particulier de 2,1 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 13, colonne « base hors taxe »" },
 
-    { "box": "08", "kind": "tax", "name": "Taux normal 20 % — TVA due", "sequence": 140 },
-    { "box": "09", "kind": "tax", "name": "Taux réduit 5,5 % — TVA due", "sequence": 150 },
-    { "box": "9B", "kind": "tax", "name": "Taux réduit 10 % — TVA due", "sequence": 160 },
-    { "box": "13", "kind": "tax", "name": "Taux particulier 2,1 % — TVA due", "sequence": 170 },
+    { "box": "08", "kind": "tax", "name": "Taux normal 20 % — TVA due", "sequence": 140, "legal_reference": "Code général des impôts, art. 278 — taux normal de 20 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 08, colonne « TVA due »" },
+    { "box": "09", "kind": "tax", "name": "Taux réduit 5,5 % — TVA due", "sequence": 150, "legal_reference": "Code général des impôts, art. 278-0 bis — taux réduit de 5,5 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 09, colonne « TVA due »" },
+    { "box": "9B", "kind": "tax", "name": "Taux réduit 10 % — TVA due", "sequence": 160, "legal_reference": "Code général des impôts, art. 278 bis et 279 — taux réduit de 10 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 9B, colonne « TVA due »" },
+    { "box": "13", "kind": "tax", "name": "Taux particulier 2,1 % — TVA due", "sequence": 170, "legal_reference": "Code général des impôts, art. 281 quater — taux particulier de 2,1 % — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 13, colonne « TVA due »" },
 
     {
       "box": "16", "kind": "total", "name": "Total de la TVA brute due", "sequence": 200,
-      "plus": ["08:tax", "09:tax", "9B:tax", "13:tax"]
+      "plus": ["08:tax", "09:tax", "9B:tax", "13:tax"],
+      "legal_reference": "Code général des impôts, art. 287, 2 — total de la TVA brute due — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 16"
     },
-    { "box": "19", "kind": "tax", "name": "TVA déductible sur immobilisations", "sequence": 210 },
-    { "box": "20", "kind": "tax", "name": "TVA déductible sur autres biens et services", "sequence": 220 },
+    { "box": "19", "kind": "tax", "name": "TVA déductible sur immobilisations", "sequence": 210, "legal_reference": "Code général des impôts, art. 271, et ann. II, art. 205 et 206 — déduction sur immobilisations — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 19" },
+    { "box": "20", "kind": "tax", "name": "TVA déductible sur autres biens et services", "sequence": 220, "legal_reference": "Code général des impôts, art. 271, et ann. II, art. 205 et 206 — déduction sur autres biens et services — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 20" },
     {
       "box": "23", "kind": "total", "name": "Total de la TVA déductible", "sequence": 230,
-      "plus": ["19", "20"]
+      "plus": ["19", "20"],
+      "legal_reference": "Code général des impôts, art. 271 — total de la TVA déductible — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 23"
     },
     {
       "box": "28", "kind": "total", "name": "TVA nette due", "sequence": 240,
-      "plus": ["16"], "minus": ["23"], "floor_zero": true
+      "plus": ["16"], "minus": ["23"], "floor_zero": true,
+      "legal_reference": "Code général des impôts, art. 287, 2 — TVA nette due — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 28"
     },
     {
       "box": "25", "kind": "total", "name": "Crédit de TVA", "sequence": 250,
-      "plus": ["23"], "minus": ["16"], "floor_zero": true
+      "plus": ["23"], "minus": ["16"], "floor_zero": true,
+      "legal_reference": "Code général des impôts, art. 271, IV, et ann. II, art. 242-0 A — crédit de TVA — formulaire 3310-CA3 (cerfa 10963), cadre B, ligne 25"
     }
   ]
 }

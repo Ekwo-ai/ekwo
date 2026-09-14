@@ -15,7 +15,10 @@ import {
   availableCountries,
   bootstrap,
   countryCharts,
+  countryPack,
+  describeCertification,
   installedPacks,
+  needsWarning,
   listMigrations,
   schemaIsInstalled,
   type SqlClient,
@@ -358,6 +361,21 @@ describe('bootstrap', () => {
     ]);
     expect(charts[1]?.certificationStatus).toBe('community');
     expect(charts[0]?.accounts).toBe(353);
+  });
+
+  it('says, before anything is booked, how much anyone has read the pack', async () => {
+    // `ekwo init` prints this sentence between choosing a country and
+    // creating the company. It is the only thing standing between an operator
+    // and the belief that an accountant checked these boxes, so what it says
+    // is asserted here rather than trusted to a code path nobody reads.
+    const pack = await countryPack(db, 'BE');
+    expect(pack?.certificationStatus).toBe('maintained');
+    expect(pack?.certifiedBy).toBeNull();
+    expect(describeCertification({ status: pack!.certificationStatus, by: pack!.certifiedBy, on: pack!.certifiedAt })).toBe(
+      'maintained by Ekwo — not yet reviewed by an accountant',
+    );
+    // Maintained is not reviewed, so the operator is warned and not merely told.
+    expect(needsWarning(pack!.certificationStatus)).toBe(true);
   });
 
   it('refuses a chart the country does not have', async () => {

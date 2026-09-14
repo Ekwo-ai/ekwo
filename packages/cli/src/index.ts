@@ -69,6 +69,10 @@ export {
   type PackTax,
   type PackAssets,
   type PackAssetCategory,
+  type PackGolden,
+  type PackGoldenContact,
+  type PackGoldenDocument,
+  type PackGoldenPayment,
 } from './pack/read.js';
 export { validate, type Issue } from './pack/schema.js';
 export {

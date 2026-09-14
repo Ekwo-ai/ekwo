@@ -1,0 +1,93 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/golden",
+  "name": "Une année d'un commerce belge assujetti, déclarant par trimestre",
+  "chart": "default",
+  "fiscal_year": { "name": "Exercice 2026", "start": "2026-01-01", "end": "2026-12-31" },
+  "periods": [
+    { "code": "2026-T1", "from": "2026-01-01", "to": "2026-03-31" },
+    { "code": "2026-T2", "from": "2026-04-01", "to": "2026-06-30" },
+    { "code": "2026-T3", "from": "2026-07-01", "to": "2026-09-30" },
+    { "code": "2026-T4", "from": "2026-10-01", "to": "2026-12-31" }
+  ],
+  "statements": ["BE-BNB-ABBR-BS", "BE-BNB-ABBR-IS"],
+  "contacts": [
+    { "ref": "client-be", "name": "Atelier Lumen SRL", "type": "customer", "country": "BE", "vat_number": null, "auxiliary_code": "C0001" },
+    { "ref": "client-nl", "name": "Studio Cobalt BV", "type": "customer", "country": "NL", "vat_number": "NL999999999B01", "auxiliary_code": "C0002" },
+    { "ref": "fourn-be", "name": "Fournitures Alcyon SRL", "type": "supplier", "country": "BE", "vat_number": null, "auxiliary_code": "F0001" },
+    { "ref": "fourn-de", "name": "Papeterie Nordwind GmbH", "type": "supplier", "country": "DE", "vat_number": "DE999999999", "auxiliary_code": "F0002" }
+  ],
+  "documents": [
+    {
+      "ref": "V1", "type": "sale_invoice", "contact": "client-be", "date": "2026-01-20", "due_date": "2026-02-19",
+      "why": "Une vente au taux normal : la grille 03 et la TVA due de la grille 54, le cas ordinaire dont tout le reste est un écart.",
+      "lines": [{ "name": "Marchandises", "quantity": 10, "unit_price": 1000, "tax": "BE-S-21", "account": "700000" }]
+    },
+    {
+      "ref": "V2", "type": "sale_invoice", "contact": "client-be", "date": "2026-02-10", "due_date": "2026-03-12",
+      "why": "Un taux réduit de 6 % : la grille 01 se remplit et la TVA due de la même grille 54 s'additionne à celle du taux normal.",
+      "lines": [{ "name": "Travaux de rénovation", "quantity": 1, "unit_price": 4000, "tax": "BE-S-06", "account": "700000" }]
+    },
+    {
+      "ref": "V3", "type": "sale_invoice", "contact": "client-be", "date": "2026-03-05", "due_date": "2026-04-04",
+      "why": "Le troisième taux, 12 %, pour que la grille 02 ne soit pas la seule du cadre II qui ne soit jamais exercée.",
+      "lines": [{ "name": "Prestation de restauration", "quantity": 1, "unit_price": 2500, "tax": "BE-S-12", "account": "704000" }]
+    },
+    {
+      "ref": "V4", "type": "sale_invoice", "contact": "client-nl", "date": "2026-04-14", "due_date": "2026-05-14",
+      "why": "Une livraison intracommunautaire exemptée : une base en grille 46 et aucune taxe, ce qu'aucune vente interne ne produit.",
+      "lines": [{ "name": "Marchandises livrées aux Pays-Bas", "quantity": 4, "unit_price": 2000, "tax": "BE-S-ICG", "account": "700000" }]
+    },
+    {
+      "ref": "V5", "type": "sale_credit_note", "contact": "client-be", "date": "2026-05-08", "due_date": null,
+      "why": "Une note de crédit sur une vente à 21 % : les côtés s'inversent dans le grand livre et la déclaration passe des grilles 03 et 54 aux grilles 49 et 64.",
+      "lines": [{ "name": "Retour de marchandises", "quantity": 1, "unit_price": 1500, "tax": "BE-S-21", "account": "700000" }]
+    },
+    {
+      "ref": "A1", "type": "purchase_invoice", "contact": "fourn-be", "date": "2026-01-31", "due_date": "2026-03-02",
+      "why": "Un achat de marchandises au taux normal : la grille 81 et la TVA déductible de la grille 59.",
+      "lines": [{ "name": "Marchandises", "quantity": 1, "unit_price": 6000, "tax": "BE-P-21-G", "account": "604000" }]
+    },
+    {
+      "ref": "A2", "type": "purchase_invoice", "contact": "fourn-be", "date": "2026-02-28", "due_date": "2026-03-30",
+      "why": "Un service à 6 % : la grille 82 plutôt que la 81, parce que la déclaration belge ventile les achats par nature et non par taux.",
+      "lines": [{ "name": "Honoraires", "quantity": 1, "unit_price": 1200, "tax": "BE-P-06-S", "account": "613000" }]
+    },
+    {
+      "ref": "A3", "type": "purchase_invoice", "contact": "fourn-de", "date": "2026-04-02", "due_date": "2026-05-02",
+      "why": "Une acquisition intracommunautaire de biens : autoliquidation, donc la même taxe est due en grille 55 et déduite en grille 59, et le solde du trimestre n'en bouge pas.",
+      "lines": [{ "name": "Marchandises acquises en Allemagne", "quantity": 1, "unit_price": 3000, "tax": "BE-P-ICG-21", "account": "604000" }]
+    },
+    {
+      "ref": "A4", "type": "purchase_invoice", "contact": "fourn-be", "date": "2026-06-30", "due_date": "2026-07-30",
+      "why": "Des frais de véhicule à déduction limitée à 50 % : la moitié de la taxe part en grille 59, l'autre moitié retourne sur le compte de charge, et la grille 82 rapporte la base TVA déductible non comprise.",
+      "lines": [{ "name": "Frais de véhicule", "quantity": 1, "unit_price": 900, "tax": "BE-P-21-50-S", "account": "615000" }]
+    },
+    {
+      "ref": "A5", "type": "purchase_invoice", "contact": "fourn-be", "date": "2026-07-15", "due_date": "2026-08-14",
+      "why": "Un bien d'investissement : la grille 83, et un actif immobilisé au bilan, que les quatre autres achats ne produisent pas.",
+      "lines": [{ "name": "Matériel informatique", "quantity": 1, "unit_price": 12000, "tax": "BE-P-21-I", "account": "241000" }]
+    }
+  ],
+  "payments": [
+    {
+      "ref": "E1", "direction": "inbound", "date": "2026-02-20", "amount": 12100, "contact": "client-be",
+      "journal": "BNK", "match": "V1",
+      "why": "Un encaissement qui solde exactement sa facture : le poste client se ferme et la facture passe payée."
+    },
+    {
+      "ref": "E2", "direction": "inbound", "date": "2026-03-27", "amount": 1000, "contact": "client-be",
+      "journal": "BNK", "match": "V2",
+      "why": "Un acompte : le lettrage n'apure qu'une partie de la facture, qui reste ouverte pour le solde."
+    },
+    {
+      "ref": "E3", "direction": "inbound", "date": "2026-06-18", "amount": 2000, "contact": "client-be",
+      "journal": "BNK", "match": null,
+      "why": "Un versement sans facture en face : il reste au crédit du compte client, non lettré, ce qu'un vrai grand livre porte toujours et ce qu'une balance doit savoir présenter."
+    },
+    {
+      "ref": "E4", "direction": "outbound", "date": "2026-03-10", "amount": 7260, "contact": "fourn-be",
+      "journal": "BNK", "match": "A1",
+      "why": "Le côté fournisseur du même mécanisme : un décaissement lettré, pour que le lettrage ne soit pas prouvé d'un seul côté du bilan."
+    }
+  ]
+}

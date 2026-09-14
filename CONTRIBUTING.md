@@ -15,7 +15,9 @@ You do not have to write TypeScript to matter here:
   "Review: <country>".
 - **You know your country's rules.** Propose a pack: `packs/<cc>/` is JSON
   and CSV, and `docs/packs.md` walks you through it. Start from Belgium or
-  France and change what differs.
+  France and change what differs. A pack comes with a golden scenario — ten
+  documents of a year and the figures they produce — and a legal source on
+  every tax and every box of the declaration.
 - **You speak a language we do not.** Translate a chart of accounts or the
   labels of a declaration in `packs/<cc>/i18n/`.
 - **You write software.** A bank-statement parser, an exchange export
@@ -96,11 +98,18 @@ a test for any behaviour you change. Accounting scenarios belong in
 `tests/posting.test.ts`; schema-level invariants in `tests/schema.test.ts`;
 anything the installer does in `tests/cli/`.
 
-To refresh the golden FEC file after a deliberate change:
+To refresh a golden file after a deliberate change:
 
 ```sh
-UPDATE_GOLDEN=1 npm test -- tests/fec.test.ts
+UPDATE_GOLDEN=1 npm test -- tests/fec.test.ts      # the FEC export
+UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts   # every country pack
 ```
+
+The second rewrites the declaration, the statements and the trial balance each
+pack's scenario produces, and never the scenario itself. Read the diff: that is
+the review. A country pack without a golden scenario is refused by
+`ekwo pack check` and by the CI — see [`docs/packs.md`](docs/packs.md), "Golden
+scenario".
 
 ## No private data
 

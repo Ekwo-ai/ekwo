@@ -2,10 +2,13 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/framework",
   "code": "IFRS-SME",
   "name": "Generic framework",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "schema_min": "20260912100412",
-  "released_at": "2026-09-12",
+  "released_at": "2026-09-14",
   "language": "en",
+  "golden": {
+    "exempt": "A framework is not a country: this pack carries statements and nothing else — no chart of accounts, no journal, no tax and no currency — so no company can be installed on it and there is no year of books to replay. Its statement lines are proved where they are reachable, through a chart that names no statement of its own and falls back here."
+  },
   "certification": {
     "status": "maintained",
     "sources": [
