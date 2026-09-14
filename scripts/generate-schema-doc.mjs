@@ -103,7 +103,11 @@ async function describe(schema, { anchor = (name) => name, heading = '##' } = {}
            obj_description(p.oid, 'pg_proc') as comment
       from pg_proc p join pg_namespace n on n.oid = p.pronamespace
      where n.nspname = $1 and obj_description(p.oid, 'pg_proc') is not null
-     order by p.proname
+     -- The name alone is not a key: an overload shares it, and the tie was
+     -- being broken by whatever order the rows came off the heap. A create or
+     -- replace rewrites a tuple and moves it, so two overloads could swap
+     -- places in the document with no schema change behind it.
+     order by p.proname, p.oid
   `,
     [schema],
   );
