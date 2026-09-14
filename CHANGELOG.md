@@ -136,6 +136,21 @@ somewhere has already run it.
   no connection string reaches them and `ekwo doctor` does not pretend to check
   them. The installation guide carries the same four in the same words, and a
   test reads both.
+  The installation guide also gains what a script hits before it hits anything
+  else: **`ekwo init` refuses to pick a country, a chart of accounts or a
+  language for you** outside a terminal, and names the flag; the four reference
+  seeds are named, in the order they are applied; and the catalogue check of
+  `ekwo doctor` says what it does **not** cover — constraints, indexes,
+  function bodies and grants. **Where table access comes from is written down
+  as a known gap**: nothing in `supabase/migrations` grants it to `anon` or
+  `authenticated`, it comes from the project's own default privileges on
+  `public`, and dropping that schema without restoring them leaves an
+  installation the doctor calls healthy and PostgREST answers `permission
+  denied for table companies` on.
+  Two examples in that guide were broken and are corrected: the non-interactive
+  `ekwo init` one-liner and the scratch-project procedure both omitted
+  `--chart` and `--language`, which the Belgian pack has made mandatory since it
+  gained a second chart of accounts.
 
 ### Changed
 

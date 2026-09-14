@@ -46,10 +46,13 @@ either.
    npx ekwo init
    ```
 
-   It asks for the connection string, the country, your organisation, the
+   It asks for the connection string, the country, the chart of accounts and
+   the language where the pack offers a choice, your organisation, the
    currency, the first company, the address of the first administrator and —
    optionally — the IBAN of your main bank account, then does the rest. Five
-   to ten seconds on a free project.
+   to ten seconds on a free project. Nothing is preselected for you on the
+   three questions whose wrong answer is expensive: the country, the chart and
+   the language.
 
 4. **Sign in** to your project as that administrator and start booking. Until
    the Community web application lands, the interface is the REST API Supabase
@@ -68,6 +71,8 @@ npx ekwo init \
   --supabase-url "https://YOURREF.supabase.co" \
   --service-role-key "$SUPABASE_SERVICE_ROLE_KEY" \
   --country BE \
+  --chart default \
+  --language fr \
   --org "My Organisation" \
   --company "My Company" \
   --admin-email "you@example.com" \
@@ -76,6 +81,54 @@ npx ekwo init \
   --iban "BE71096123456769" \
   --yes
 ```
+
+`--chart` and `--language` are in that line because the Belgian pack offers a
+choice on both, and `--yes` means there is nobody to ask. See "Installing
+without a terminal" below.
+
+## Installing without a terminal
+
+`--yes` turns off every question, and then every answer has to arrive as a flag
+or an environment variable. Two of them are worth knowing about before you
+write the script, because `ekwo init` **refuses rather than picking one for
+you**:
+
+- **the chart of accounts**, where the country publishes more than one. Belgium
+  publishes two, a company chart and an association chart. Pass `--chart`; the
+  refusal lists the codes the pack carries.
+- **the language of the books**, where the pack publishes more than one. Pass
+  `--language`; the refusal lists them. The choice decides which label of the
+  pack lands in `accounts.name`, and the others stay beside it in `name_i18n`,
+  so it is not irreversible — but it is not a question a script should answer
+  by accident either.
+
+`--country` behaves the same way and has no default at all: the refusal names
+the packs the database holds. A preselected country is a chart of accounts
+nobody chose.
+
+The same is true of the financial year: a pack that declares no usual opening
+month makes `--fiscal-year-start` required. Both packs shipped here open on the
+calendar year, so it rarely comes up.
+
+## A limitation worth knowing: where table access comes from
+
+**Nothing in `supabase/migrations` grants table access to `anon` or
+`authenticated`.** Row level security is written in the migrations, in full, and
+the underlying `GRANT` is not: on a Supabase project it comes from that
+project's own default privileges on the `public` schema, which are there before
+Ekwo is.
+
+It matters in exactly one situation, and it is worth naming because the symptom
+points elsewhere. Drop and recreate the `public` schema without restoring those
+default privileges, and the reinstall succeeds, `ekwo doctor` reports a healthy
+installation, and the first read through PostgREST answers `permission denied
+for table companies`. Nothing is wrong with the schema; the grant that was never
+in it is missing.
+
+So: do not drop `public` on a project you intend to keep, and if you do, put the
+default privileges back. This is a known gap and not a promise of a change —
+whether the migrations should be self-contained on this point is an open
+question, recorded in [`docs/decisions.md`](../../docs/decisions.md).
 
 ## Before you go live: four things on your project
 
@@ -134,7 +187,7 @@ and read by a person.
 | Step | What happens | Why it is done this way |
 |---|---|---|
 | 1 | Applies `supabase/migrations/*.sql` in order | Recorded in `supabase_migrations.schema_migrations`, the Supabase CLI's own history table, so `supabase db push` and `ekwo migrate` stay interchangeable |
-| 2 | Applies the reference seeds | Currencies, the Belgian PCMN and the French PCG, their VAT codes. `90_demo_company.sql` is sample data and is never applied here |
+| 2 | Applies the four reference seeds, in file-name order: `00_currencies.sql`, `05_framework_generic.sql`, `10_pack_be.sql`, `11_pack_fr.sql` | The currencies, the country-less financial statements every chart falls back on, and the two country packs. They are exactly the four `supabase/config.toml` lists, so `supabase db push` installs the same set; a test compares both paths row by row. `90_demo_company.sql` is sample data and is never applied here |
 | 3 | Creates the first administrator through the Supabase Auth admin API | See below: a database connection cannot be a signed-in user |
 | 4 | `init_instance()`, `claim_instance_admin()`, the company, `company_members` as owner, `install_country_template()`, the first financial year, and the bank account when an IBAN was given | The six steps of the root README, in the same order, plus the one thing nobody can derive |
 | 5 | Writes `ekwo.json` | Project URL, country, schema version. Nothing else, ever |
@@ -219,19 +272,20 @@ ekwo doctor --db-url "$URL"          # readable
 ekwo doctor --db-url "$URL" --json   # the whole report, findings included
 ```
 
-**The catalogue check compares your database to an inventory of everything
+**The `catalogue` check compares your database to an inventory of everything
 this release defines** — tables and their columns, views, functions with their
-signature, policies, triggers and types. That inventory is
-`expected-objects.json`, generated from the migrations themselves and shipped
-inside this package, so it cannot be a list somebody forgot to update. Three
-outcomes, and they are not the same thing:
+identity arguments, policies, triggers and types. That inventory is
+[`assets/expected-objects.json`](assets/expected-objects.json), generated from
+the migrations themselves and shipped inside this package, so it cannot be a
+list somebody forgot to update. In `--json` output it is the check named
+`catalogue`. Four outcomes, and they are not the same thing:
 
 | Finding | What it means | Severity |
 |---|---|---|
 | Missing | The installation is behind or has been damaged. | Problem |
 | Extra | Your own table, function or trigger. Reported so you know it is there. | Information |
 | Extra or missing **policy** on a table of this schema | Row level security is the security model. A policy that is gone closes everything; one that was added is a grant nobody reviewed. | Problem |
-| A column whose type has moved | The schema was patched by hand. | Problem |
+| A column whose type has moved | The schema was patched by hand. Reported as **changed**, not as missing: "missing" would send you looking for a migration that did land. | Problem |
 
 A module's objects are required only of a database that carries the module.
 One you never installed is named and skipped.
@@ -246,9 +300,20 @@ included; `1` when there is at least one problem, or when the schema is not
 installed at all. Nothing else. So `ekwo doctor` is usable as a deployment
 gate, and an operator's own extra table never turns a pipeline red.
 
+**What the catalogue does not cover.** Constraints, indexes and the bodies of
+functions. A dropped unique index is real damage and this check will not see
+it: the question it answers is "is the object there, and is it still that
+shape". `docs/schema.md` lists the constraints for a human reader, and the
+argument against putting them in the inventory is that each is an order of
+magnitude more text for a diff that would move on every Postgres upgrade — and
+an inventory whose diff nobody reads is worth nothing. Grants are not covered
+either; see "A limitation worth knowing" above for why the migrations do not
+carry them.
+
 In a checkout, `npm run inventory` regenerates the inventory from the
 migrations; the CI regenerates it and fails on any difference, the way it does
-for `docs/schema.md`.
+for `docs/schema.md`, and a second job checks that the copy shipped in `dist`
+is the one in the repository.
 
 ## `ekwo pack`, in a checkout
 
@@ -407,20 +472,55 @@ only holds the local row.
 
 ## Testing it against a real project
 
-The test suite runs against Postgres compiled to WebAssembly, so it proves
-the migration runner, the installation sequence and the checks without a
-Supabase project. Two things it cannot prove: the network driver, and GoTrue.
-To exercise those, on a scratch project:
+The test suite runs against Postgres compiled to WebAssembly, so it proves the
+migration runner, the installation sequence and the checks without a Supabase
+project. Four things it cannot prove: the network driver, PostgREST, GoTrue,
+and the extensions a hosted project has.
+
+**The automated way.** From a checkout of the repository, against an empty
+project you can throw away:
+
+```sh
+npm run e2e:supabase
+```
+
+It installs, migrates, upgrades the pack, signs in, books, files the
+declaration and closes the year, and prints a pass/fail table with **how long
+each step took** — which is the number worth reading, because what matters
+about a release is which step holds it rather than the total. Everything comes
+from the environment and no secret reaches the output; it refuses a database
+that already holds an `instance` row, and `--reset` empties a throwaway project
+so a failed run can be replayed.
+
+Point `EKWO_E2E_PREVIOUS` at the last tag to make the run upgrade an
+installation instead of creating one. The packages are not on npm yet, so it
+takes **a path to a built binary of an older checkout** rather than a version:
+
+```sh
+git worktree add /tmp/prev v0.2.0
+(cd /tmp/prev && npm ci && npm run build)
+EKWO_E2E_PREVIOUS=/tmp/prev/packages/cli/dist/bin.js npm run e2e:supabase
+```
+
+[`docs/releasing.md`](../../docs/releasing.md) lists every variable it reads and
+every refusal it makes. It is run by hand before a release is tagged, never by
+the CI.
+
+**By hand**, if you want to watch each step:
 
 ```sh
 npm install && npm run build
 
 # 1. A project you can throw away. Note its ref, password, URL and key.
+#    --chart and --language are required here and not optional: the Belgian
+#    pack publishes two charts of accounts and four languages, and `ekwo init`
+#    refuses to pick either for you when there is nobody to ask.
 node packages/cli/dist/bin.js init \
   --db-url "postgresql://postgres.SCRATCHREF:PASSWORD@aws-1-REGION.pooler.supabase.com:5432/postgres" \
   --supabase-url "https://SCRATCHREF.supabase.co" \
   --service-role-key "$KEY" \
-  --country BE --org "Scratch" --company "Scratch BV" \
+  --country BE --chart default --language fr \
+  --org "Scratch" --company "Scratch BV" \
   --admin-email "you@example.com" --admin-password "a-long-password" \
   --fiscal-year 2026 --iban "BE71096123456769" --yes
 
@@ -437,6 +537,7 @@ supabase db push
 
 # 5. Run init again. Every step should say it was already there.
 node packages/cli/dist/bin.js init --db-url "$URL" --country BE \
+  --chart default --language fr \
   --org "Scratch" --company "Scratch BV" --admin-email "you@example.com" \
   --admin-user-id "<the uuid from step 1>" --fiscal-year 2026 --yes
 

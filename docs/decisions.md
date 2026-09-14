@@ -2631,3 +2631,17 @@ them automatically would mean handing the CLI a Supabase management token, and
 a token that can read a project's settings can change them; that is a phase 1
 trade and it is not obviously worth making. None of it is ever an action Ekwo
 takes on somebody else's project.
+
+**Three things the installation guide was not saying**, all of which a script
+meets before it meets anything else. `ekwo init` refuses to pick a country, a
+chart of accounts or a language when there is nobody to ask, and names the flag
+— which is the right behaviour and was written down as a finding rather than as
+documentation. Table access for `anon` and `authenticated` is not in
+`supabase/migrations`: it comes from a Supabase project's own default
+privileges on `public`, so dropping and recreating that schema without putting
+them back leaves an installation the doctor calls healthy and PostgREST answers
+`permission denied for table companies` on. It is recorded as a known gap, not
+as a promise; whether the migrations should be self-contained on that point is
+still a decision for another day. And the catalogue check now says what it does
+not cover, because a check whose boundaries are unwritten is read as covering
+everything.

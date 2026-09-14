@@ -137,8 +137,9 @@ thing you need locally: no Supabase CLI, no Docker, no clone.
 npx ekwo init
 ```
 
-It asks for the connection string, the country, your organisation, the first
-company and the address of the first administrator, then applies the
+It asks for the connection string, the country, the chart of accounts and the
+language where the pack offers a choice, your organisation, the first company
+and the address of the first administrator, then applies the
 migrations, seeds the chart of accounts and the VAT codes, creates that
 administrator in *your* Supabase Auth and runs the six steps below. Every step
 checks before it acts, so running it twice creates nothing twice.
@@ -230,7 +231,7 @@ interchangeable: `ekwo migrate` and `supabase db push` read and write the same
 ```sh
 npx ekwo status    # schema version installed against available, instance, companies
 npx ekwo migrate   # apply what a new release adds
-npx ekwo doctor    # row level security everywhere, orphaned memberships, statements
+npx ekwo doctor    # every object this release defines, row level security, orphaned memberships, statements
 npx ekwo demo      # the sample company, on explicit request only
 ```
 
