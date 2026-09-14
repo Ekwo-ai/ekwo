@@ -30,6 +30,7 @@ import {
   countryPack,
   installedPacks,
 } from '../bootstrap.js';
+import { printOperatorChecklist } from '../checklist.js';
 import { describeCertification, needsWarning } from '../pack/certification.js';
 import { DEMO_SEED, migrationsDir, seedDir } from '../bundle.js';
 import { writeConfig } from '../config.js';
@@ -343,6 +344,12 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
     line();
     line(`  ${bold('Next:')} sign in to your Supabase project as the administrator you just created,`);
     line(`  then ${cyan('ekwo status')} to see what is there and ${cyan('ekwo doctor')} to check it.`);
+
+    // The last thing on the screen, because it is the part nobody can do for
+    // the operator: three settings of their own project and one piece of
+    // reading. `packages/cli/README.md` carries the same four, and a test
+    // reads both so the two cannot drift.
+    printOperatorChecklist();
     line();
     return 0;
   } finally {

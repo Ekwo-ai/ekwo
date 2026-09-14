@@ -31,6 +31,11 @@ export {
   type Step,
 } from './bootstrap.js';
 export { DEMO_SEED, migrationsDir, resolveBundleDir, seedDir } from './bundle.js';
+export {
+  OPERATOR_CHECKLIST,
+  printOperatorChecklist,
+  type OperatorInstruction,
+} from './checklist.js';
 export { describeCertification, needsWarning, type Certification, type CertificationFacts } from './pack/certification.js';
 export {
   compileAssetsSeed,

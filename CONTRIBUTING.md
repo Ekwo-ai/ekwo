@@ -57,16 +57,69 @@ You do not have to write TypeScript to matter here:
 
 ## Country rules
 
-A tax régime is data, not code, and the data lives in `packs/<cc>/` — a
-manifest, the chart of accounts as CSV, the taxes and their postings as JSON.
-Change the pack, run `ekwo pack build <cc>`, and commit the generated seed
-alongside it; never edit the seed, the CI recompiles it and compares. The
-format, and what a pack may not do, is in [`docs/packs.md`](docs/packs.md).
+A tax régime is data, not code. Everything a country adds — a chart of
+accounts, its journals, its taxes and where each one posts, the boxes of the
+periodic return, the financial statements, the sentences the law puts on an
+invoice, the translations — is a set of files under `packs/<cc>/`, compiled
+into one SQL seed that is committed. [`docs/packs.md`](docs/packs.md) is the
+format, file by file, with every rule `ekwo pack check` applies and a
+walkthrough for adding a country in a day. Read it before you open anything
+else.
+
+Seven invariants hold there, and a pull request that breaks one is a pull
+request that will be sent back.
+
+1. **Data, never code.** There is no field in the format through which a pack
+   can run anything: no expression language, no hook, no module per country.
+   `applies_when` is a closed vocabulary, a total is a list to add and a list
+   to subtract, and a rule names accounts. A pack that could execute would be a
+   localisation that breaks on every major version, which is exactly what this
+   format exists not to be.
+2. **No country literal in the core.** Not in a function, not in a column
+   default, not in a migration, not in the CLI. `'BE'`, `'EUR'`, `'fr'` and a
+   legal account code all belong to a pack, and a test enforces it. There is no
+   fallback country either: a reader that needs a value a pack did not give
+   says which value is missing, by name, rather than borrowing another
+   country's law.
+3. **Resolve an account by its role, never by its code prefix.** `411` is
+   *customers* on the French chart and *recoverable VAT* on the Belgian one. Use
+   `defaults.roles`, the company defaults or `tax_postings.account_id`.
+4. **A legal reference on every tax and every box.** It is a required field,
+   not a convention: `ekwo pack check` refuses a pack that leaves one out, and
+   `"TODO"` is not a source. A rule nobody can trace to a text is a rule nobody
+   can review.
+5. **A golden scenario, or a written reason there is none.** A year of at least
+   ten documents with the payments that settle some of them, and beside it the
+   declaration, the statements and the trial balance the engine makes of them,
+   to the cent. `UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts` writes the
+   three expectation files and never the scenario; **read the diff** — that is
+   the review, and a figure you cannot explain is a defect in the pack.
+6. **A review is a named professional, and nothing else.** `certification.status`
+   is `community` until an accountant has read the pack against the law they
+   apply, at which point it becomes `reviewed`, with their name and the date in
+   the manifest. `maintained` means the maintainers keep it current and nobody
+   has reviewed it. There is no status that means "certified by Ekwo", and
+   writing a pack is not reviewing it.
+7. **Nothing is ever deleted from a pack, and the seed is never edited by
+   hand.** An account is deprecated, a tax gets a `valid_to`, a form version
+   gets a new `valid_from` — because the return of a past period has to keep
+   giving the same answer. And the SQL under `supabase/seed/` is a build
+   artefact: change the pack, run `ekwo pack build <cc>`, commit the generated
+   file alongside it. The CI recompiles and compares.
+
+```sh
+npm run build
+node packages/cli/dist/bin.js pack check --all   # what the CI runs
+node packages/cli/dist/bin.js pack build be      # after changing packs/be
+```
+
+Every pack has an owner in [`.github/CODEOWNERS`](.github/CODEOWNERS), who is
+asked to look at a pull request that moves it. Ownership is not certification:
+it is who knows the law, not who has signed anything.
 
 If a régime cannot be expressed as rows, that is a design discussion worth
 having in an issue before any SQL is written. It is a gap in the core, not a
-reason to add a field that executes something: a pack has none, and adding one
-is how a localisation becomes a plugin that breaks on every major version.
+reason to add a field that executes something.
 
 ## Working on the installer
 

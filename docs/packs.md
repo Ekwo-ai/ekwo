@@ -145,7 +145,27 @@ inside a quoted field. The parser is forty lines and refuses anything else.
 ekwo pack list           # the packs this checkout carries, and their certification
 ekwo pack build be       # writes supabase/seed/10_pack_be.sql
 ekwo pack build --all
+ekwo pack check be       # validate one pack and compare its seed
 ekwo pack check --all    # exit 1 if a committed seed is not the output of its pack
+```
+
+All four run in a checkout of the repository and touch no database: they walk
+up from the command's own file looking for a directory holding both `packs/`
+and `supabase/seed/`, and say so plainly when there is none — a published
+installation carries the compiled seeds and no `packs/` folder, and there is
+nothing there to build.
+
+`ekwo pack list` on this repository:
+
+```
+Packs (3)
+  generic  Generic framework 1.1.1 · 2 statements · no country · certification maintained
+          no golden — A framework is not a country: this pack carries statements and nothing else …
+  be  Belgium 1.5.1 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
+          default (default) — PCMN — plan comptable minimum normalisé, 353 accounts, BE-BNB-ABBR-BS, BE-BNB-ABBR-IS, BE-BNB-ABBR-AF
+          asbl — PCMN — associations et fondations, 349 accounts, generic statements only
+  fr  France 1.6.1 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
+          default (default) — PCG — plan comptable général, 394 accounts, FR-2050, FR-2052
 ```
 
 The SQL is a **build artefact**, like `docs/schema.md`. The source is the
@@ -154,13 +174,23 @@ a country without the CLI ever running; the CI's *hygiene* job runs
 `ekwo pack check --all` so the two cannot drift. Never edit a generated seed:
 the next `pack build` overwrites it and the CI refuses it in the meantime.
 
+**Three kinds of file are generated, and `check` compares all three.**
+
+| Source | Output |
+|---|---|
+| `packs/generic/` | `supabase/seed/05_framework_generic.sql` |
+| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is 10 plus the position of the country in the sorted list of packs — `10` for `be`, `11` for `fr` |
+| `packs/<cc>/assets.json`, where the pack has one | `supabase/seed/modules/assets/<n>_pack_<cc>.sql`, applied by the module migration runner and by nothing else |
+
 The compiler writes `chart_templates`, `account_templates`,
 `journal_templates`, `tax_templates`, `tax_posting_templates`,
 `tax_report_templates`, `tax_report_box_templates`, `statement_templates`,
-`statement_line_templates`, `statement_line_rules`, `country_defaults` and
-`country_packs`, and **nothing that belongs to a company**. Every insert
-upserts on the natural key — `(country, chart_code, code)` for an account,
-`(country, code)` for the rest — which matters more than it sounds: the seeds used to say
+`statement_line_templates`, `statement_line_rules`, `legal_mention_templates`,
+`country_defaults`, `country_packs` and — for a module section —
+`assets.country_rules` and `assets.category_templates`, and **nothing that
+belongs to a company**. Every insert upserts on the natural key —
+`(country, chart_code, code)` for an account, `(country, code)` for the rest —
+which matters more than it sounds: the seeds used to say
 `on conflict do nothing`, so an instance installed last month received no
 correction at all — not even for a company created afterwards, since a company
 copies the templates when it is installed.
@@ -169,6 +199,54 @@ What an upsert cannot do is remove. A template deleted from a pack stays in
 the database, which is the rule anyway: **nothing is ever deleted from a
 pack**. An account is deprecated, a tax gets a `valid_to`, a form version gets
 a new `valid_from`.
+
+### The seed carries a checksum of the pack
+
+`country_packs.checksum` is a sha256 over every file of `packs/<cc>/`, its path
+and its bytes. It is what lets an installation say which pack it is holding
+rather than which version number somebody typed, and it has one consequence
+worth knowing while you work: **changing any file of a pack makes the committed
+seed stale**, including a file the compiler never reads, such as
+`i18n/README.md`. `ekwo pack build` again and commit the result.
+
+The three generated files under `golden/` are the deliberate exception —
+`vat_return.json`, `statements.json` and `trial_balance.json` are outside the
+checksum, and `golden/scenario.json` is inside it. A scenario is a decision
+about what a country's books look like, and moving it moves the pack; the
+expectations are what the engine made of that scenario, so a checksum that
+moved because the statements function gained a line would tell every operator
+that Belgium had changed.
+
+### What a stale seed looks like
+
+```
+Checking
+  · 05_framework_generic.sql
+✗ 10_pack_be.sql is not the output of packs/be
+          golden: 10 documents, 4 payments, 4 period(s) of Exercice 2026
+  · modules/assets/10_pack_be.sql
+  · 11_pack_fr.sql
+          golden: 10 documents, 4 payments, 4 period(s) of Exercice 2026
+  · modules/assets/11_pack_fr.sql
+
+  Run `ekwo pack build --all` and commit the result.
+```
+
+Exit 1. A pack that fails **validation** rather than drifting exits 1 as well,
+and stops there: the packs after it are not checked.
+
+```
+Checking
+✗ pack_invalid: packs/be — 2 problem(s)
+  taxes.json[0]: missing "legal_reference"
+  taxes.json BE-S-12.invoice: box ZZ:base is not a base box of this form
+```
+
+Problems are collected and reported together rather than one per run, in
+`<file> <where>: <what>` form, structure first and the translations last, with
+the first twenty printed and the rest counted. A usage fault — an unknown pack,
+no country and no `--all` — exits 2 instead, and names what the checkout
+carries.
 
 ## What a tax says, and where its postings land
 
@@ -603,7 +681,7 @@ its own inputs proves nothing. The diff is then the thing to review.
 the pack: the chart, every account code, every tax code and its scope and its
 validity, every journal, every statement, and every `match` that has to name a
 document of the scenario and a payment going the right way. It refuses fewer
-than ten documents.
+than ten documents. The full list is under "What `ekwo pack check` refuses".
 
 **`tests/golden.test.ts` is one runner for every pack.** It reads `packs/`,
 installs a company on each from what that pack's scenario declares, replays the
@@ -635,76 +713,293 @@ and falls back to it.
 
 **What a golden does not prove.** That the figures are the law. A box expected
 wrongly and a posting written wrongly pass together, which is the whole reason
-the two things below exist: a source on every tax and every box, and a
-certification status that says out loud how much anyone has read. It is also
+the two things under "Certification, and who may say what" exist: a source on
+every tax and every box, and a status that says out loud how much anyone has
+read. It is also
 worth knowing what the balance sheet of an open year looks like — the result
 is not on it until `close_fiscal_year()` puts it there, so assets exceed
 liabilities by exactly the result of the income statement, in every country.
 
-## Certification
+## What `ekwo pack check` refuses
+
+Two passes, and the first one is where nearly everything is caught. Every file
+is validated against [`packs/schema/pack.1.json`](../packs/schema/pack.1.json)
+— its shape, its required fields, its closed vocabularies — and then against
+the rest of the pack, which is what a schema cannot do: a tax may not post to a
+box the form does not carry, and only the pack knows which boxes the form
+carries. The second pass compiles and compares the committed seeds. A pack that
+fails the first never reaches the second.
+
+The list below is the whole of it. It is long because a pack is data somebody
+will file a return with, and every line of it exists because the alternative
+was a figure that is wrong and looks right.
+
+**The manifest, and the charts.** A chart whose `accounts` file does not
+exist. No chart marked `"default": true`, or more than one — `ekwo init` would
+have nothing to install when nobody names one. Two charts with the same code.
+A chart naming a statement the pack does not carry.
+
+**The chart of accounts.** The same account code twice in one chart. A
+`parent` that is not in the same chart. A row missing `code`, `type` or
+`name`, or carrying an `account_type` that is not one of the eighteen. The CSV
+itself: an empty file, a row with a different number of fields from the header,
+a quote that opens mid-field, a quoted field that never closes, a
+`reconcilable` that is not `true` or `false`, a `sequence` that is not a whole
+number.
+
+**The roles and the journals.** A code in `defaults.roles` that is missing
+from **any one** chart of the pack, named with the chart it is missing from —
+a second chart is exactly where this goes wrong. A `defaults.journal_roles`
+entry naming something that is not a journal. A role name the schema does not
+know, which is how a typo in a role is caught rather than silently ignored.
+
+**The closing style.** A pack that declares `closing_style` and does not name
+the accounts that style needs: `retained_earnings` for the first,
+`current_year_result_profit` and `current_year_result_loss` for the other two.
+No `journal_roles.opening`. An opening journal that exists but is not of
+journal type `opening` — which is the mistake worth naming, because the code
+resolves and the year-end entries would land on a journal that carries ordinary
+traffic.
+
+**The taxes and their postings.** Two taxes with the same code. A `group`,
+which is reserved for the country that stacks two taxes on one line and which
+the core does not carry yet. More than one `base` posting on a document kind. A
+`tax` posting with no account, or a `base` or `tax_on_base` posting carrying
+one — those two land on the account of the line they tax, so an account on them
+is a misunderstanding worth stopping. An account, or a
+`cash_basis_transition_account`, that is missing from a chart. A posting whose
+`box` the declaration form does not carry.
+
+A cash-basis tax has four of its own: it has to name its transition account; it
+takes exactly one `tax` posting per document kind; it takes no `tax_on_base`
+posting, because a share nobody gets back is a cost and a cost is not deferred
+to a payment; and its `tax` posting has to name a box, or the amount waits on
+the transition account for ever.
+
+**The declaration form.** The same box declared twice with the same kind. A
+formula on a `base` or a `tax` box, which is summed from the ledger. A
+reference to a box the form does not carry, or to a kind it does not carry. A
+bare reference that matches two kinds — `08` where the form carries `08:base`
+and `08:tax` — which is refused with both spellings offered rather than
+resolved to one of them. A total that names itself. A total that names a total
+computed at the same `sequence` or later.
+
+**The statements.** Two statements with the same code; two lines of one
+statement with the same code. A `parent` that is not a line of the same
+statement. A formula naming a line of another statement, or its own line. A
+line that is both summed from the ledger and computed from other lines, in
+either direction. Totals that depend only on each other. One account reaching
+two lines other than as a debit side and a credit side. **An account of a chart
+that reaches no line of any statement covering that chart** — the check that
+makes a balance sheet balance.
+
+The fact keys have five of their own. A statement carrying any `xbrl` key must
+name its `taxonomy`; a key is at least a metric and one domain member, each
+part a qualified name such as `bas:m9`, with no empty or padded part and no
+dimension twice; and two lines of one statement may not carry the same key,
+which is how a key missing a member shows up.
+
+**The legal mentions and the document rules.** Two mentions with the same
+code. A `valid_to` before its `valid_from`. A mention with no
+`legal_reference` — a sentence the law requires cites the article that requires
+it. A `number_format` carrying a token nobody defined, or no counter, or two.
+An `einvoicing.mandatory_from` with no `profile`: a day an obligation starts
+and nothing that says what becomes obligatory.
+
+**The languages.** A label under a code the pack does not carry — an account,
+a journal, a tax, a chart, a mention, an asset category, a box, a statement
+line — in any i18n file, declared or not. And for a language the manifest
+**declares**: the file has to exist, it has to carry `pack_name`, and it has to
+cover every key of every section, with the missing ones named and counted. A
+declared language that is the pack's own `defaults.language` is refused too:
+the pack is already written in it.
+
+The language of a translation file is read from its `language` field and not
+from its name, so `i18n/nl.json` declaring `"language": "fr"` registers as
+French. A file that is not declared may be partial, which is how a language is
+contributed one section at a time.
+
+**The golden scenario.** No `golden/scenario.json` and no `golden.exempt` in
+the manifest; or both at once. Fewer than ten documents. A `chart` that is not
+a chart of the pack. A financial year that does not start before it ends, a
+period running backwards, and any date — a period bound, a document, a payment
+— falling outside the financial year. A duplicate `ref` among the contacts, the
+documents or the payments. A document naming a contact the scenario does not
+declare. A line naming an account that is not in the installed chart, a tax
+that is not a tax of the pack, a tax whose `scope` contradicts the side of the
+document, or a tax not in force on the document's own date. A payment on a
+journal the pack does not carry, a `match` naming no document of the scenario,
+a payment going the wrong way for what it settles, or a payment dated before
+the document it settles.
+
+`check` validates the scenario and does not replay it. The replay is
+`tests/golden.test.ts`, and the two are different questions: whether the
+scenario is sayable, and whether the engine still makes the same figures of it.
+
+**The framework pack**, `packs/generic/`, has two of its own: every rule has to
+be an `account_type` rule, because the other three kinds name a chart and a
+framework has none; and the exemption from a golden is required, in at least a
+sentence.
+
+**The module sections.** For `assets`: a disposal style that does not name the
+accounts it needs — `net_result` the gain, `gross` both the proceeds and the
+value — two categories with the same code, a declining balance with no
+coefficient, a coefficient on a method that is not declining, and a category
+with no `legal_reference`, because a usual duration comes from somewhere.
+
+**What it does not refuse, and why that is worth knowing.** An extra column in
+the CSV is ignored rather than rejected. A posting whose `report` names a form
+other than the one in `tax_report.json` is not cross-checked, because the pack
+carries one form; the day a country files two, it will be. A pack with no
+`certification` block compiles as `community` without a word, and `by` and `on`
+are not refused on a pack that is not `reviewed` — the status is a claim a
+person makes, and `.github/CODEOWNERS` is what puts a name next to it.
+
+## Certification, and who may say what
 
 A golden test proves that a pack is internally coherent. It does not prove
-that it is legally right, and no test can. So:
+that it is legally right, and no test can. Three things carry the rest, and all
+three are enforced rather than encouraged.
 
-- **every tax and every declaration box names where it comes from**
-  (`legal_reference`), and the manifest lists the texts the pack was built
-  from. Both are required and `ekwo pack check` refuses a pack that leaves one
-  out — a box nobody can trace to a source is a box nobody can review, and
-  "TODO" is not a source;
-- the manifest carries `certification.status`, and `ekwo init` prints it in as
-  many words before anyone books anything:
+**Every tax and every declaration box names where it comes from.**
+`legal_reference` is a required field, not a convention: `ekwo pack check`
+refuses a pack that leaves one out, on a tax or on a box, and `"TODO"` is not a
+source. A box nobody can trace to a source is a box nobody can review. The
+manifest lists the texts the pack as a whole was built from, in
+`certification.sources`.
 
-  | Status | What it means |
-  |---|---|
-  | `community` | contributed, not read by an accountant |
-  | `maintained` | maintained by Ekwo, not yet reviewed by an accountant |
-  | `reviewed` | read by a named professional — `by`, `on` and the sources they worked from |
+**The manifest says out loud how much anyone has read it**, and `ekwo init`
+prints it in as many words before anyone books anything:
 
-- **Belgium and France are `maintained`.** Writing a pack and testing that it
-  holds together is not reviewing it: *certified* describes a professional
-  reading it against the law, and nothing else. There is deliberately no
-  status that means "certified by Ekwo"; the value `ekwo` that used to exist
-  is deprecated, refused by the schema, and moved to `maintained` by migration
-  `20260912081015`.
+| Status | What it means | Who sets it |
+|---|---|---|
+| `community` | contributed, not read by an accountant | whoever proposes the pack. It is the honest answer for a new pack, and the right one until the row below happens |
+| `maintained` | maintained by Ekwo, not yet reviewed by an accountant | the maintainers, on a pack they keep up to date themselves. Nobody else, because nobody else is committing to keep it current |
+| `reviewed` | read by a named professional, on the date shown | the reviewer, in the pull request that carries their name. Not the pack's author, unless the author is the professional and says so under their own name |
 
-## Adding a country
+A pack with no `certification` block at all compiles as `community`, which is
+the safe reading of silence.
 
-1. Copy `packs/be/` to `packs/<cc>/` and replace its contents. Keep the
-   structure: a manifest, a chart, taxes.
-2. Give every account one of the eighteen `account_type` values. Nothing is
-   guessed from a code prefix anywhere in Ekwo — `411` is *customers* on the
-   French chart and *recoverable VAT* on the Belgian one.
-3. Name the roles in `defaults.roles`: receivable and payable are required,
-   and suspense, rounding, retained earnings, sales, purchase, bank and cash
-   are what the installer wires. Add `fx_gain` and `fx_loss` if any company of
-   your country ever invoices in another currency: a matching that realises a
-   difference is refused by name when they are missing, and only then. Every
-   code must exist in your chart; the compiler refuses the pack before writing
-   any SQL if one does not.
-4. Say how the year is closed. `defaults.closing_style` is one of
-   `retained_earnings`, `result_accounts` or `appropriation_accounts`, and
-   with it come `current_year_result_profit`, `current_year_result_loss` and
-   `retained_earnings_loss` in `defaults.roles`, plus
-   `defaults.journal_roles.opening`. The table below says which style a chart
-   needs; `close_fiscal_year()` asserts the answer rather than trusting it.
-5. Say what the country puts on an invoice: `documents`, `einvoicing` and
-   `bank`, described above. All three are optional and none of them has a
-   default — a pack that stays silent leaves the columns null rather than
-   inheriting somebody else's law — and every mention cites the article that
-   requires it.
-6. Write `golden/scenario.json`: ten documents at least, and a year of them.
-   Then `UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts` and **read what it
-   wrote**. That reading is the step: a figure you cannot explain is a defect
-   in your pack, found before anybody files anything with it.
-7. `ekwo pack build <cc>`, then add the generated file to
-   `supabase/config.toml` under `[db.seed].sql_paths`.
-8. Add a line for `packs/<cc>/` to `.github/CODEOWNERS`, pointing at yourself.
-   A pack is right or wrong against a law, and the person who knows is the
-   person who applies it.
-9. Set `certification.status` honestly. `community` is the right answer until
-   an accountant has read it.
+**There is deliberately no status that means "certified by Ekwo".** Writing a
+pack and testing that it holds together is not reviewing it. *Certified*
+describes a professional reading a pack against the law, and nothing else. The
+value `ekwo` that used to exist is deprecated, refused by the schema, and moved
+to `maintained` by migration `20260912081015`. **Belgium and France are
+`maintained`.**
 
-### Which closing style a chart needs
+### What a reviewer signs
+
+`reviewed` carries two more fields, and they are the whole substance of it:
+
+```json
+"certification": {
+  "status": "reviewed",
+  "by": "A. Example, chartered accountant, IEC/IAB 00000",
+  "on": "2027-03-14",
+  "sources": ["…the texts they worked from…"]
+}
+```
+
+`by` is a person, named, with whatever qualification makes the name mean
+something in their country. Not a firm, not a team, not a handle: the point of
+the field is that somebody can be asked. `on` is the date they read it, and it
+is there because a pack that was right in March may not be right in October —
+a reviewed pack whose date is three years old tells an operator exactly as much
+as it should.
+
+What a review is: a good-faith reading of the chart, the taxes, the boxes of
+the declaration and the statement mappings against the rules the reviewer
+applies in practice, given to the community for free. What it is not: an
+engagement letter, an audit, or a guarantee, for the reviewer or for anyone
+else. [`DISCLAIMER.md`](../DISCLAIMER.md) says so in the same words, and an
+operator reads that one.
+
+A review is recorded in the pack it reviewed, in the pull request that makes
+the change, alongside a version bump — a status is part of what a version says.
+It is never edited afterwards to a later date without a later reading.
+
+### CODEOWNERS: the name next to the pack
+
+`.github/CODEOWNERS` carries one line per pack. It is not certification and it
+does not claim to be: it is who gets asked when a pull request moves that pack.
+A rate, a box or a chart is right or wrong against a law, and the person who
+knows is the person who applies it.
+
+```
+/packs/be/              @Ekwo-ai/maintainers
+/packs/fr/              @Ekwo-ai/maintainers
+/packs/schema/          @Ekwo-ai/maintainers
+```
+
+The schema is deliberately not owned by any one pack's owner: a change there
+changes what every country is allowed to say. A pack a contributor owns is
+listed with their handle, and its status stays `community` until a professional
+has read it — the two are different questions and the file says so at the top.
+
+## Adding a country in a day
+
+A country is data, so adding one is a day of reading the law and half an hour
+of tooling. What follows is the whole path, in order, with the command that
+tells you whether you are still on it. Copy Belgium or France — whichever
+resembles your country's accounting more — and change what differs.
+
+Nothing here needs a database. Every command runs in a checkout, and the pull
+request you open at the end contains the pack and the seed compiled from it.
+
+### 1. Copy a pack and give it its identity
+
+```sh
+cp -r packs/be packs/xx        # `xx` being your ISO 3166-1 alpha-2 code, lower case
+rm -rf packs/xx/golden packs/xx/i18n
+```
+
+Open `packs/xx/pack.json` and set `country` (upper case), `name`, `version` to
+`0.1.0`, `released_at`, and `certification` to `{ "status": "community" }`.
+Leave `schema_min` where it is: it is the migration your pack needs, not a
+number you choose. Empty the `languages` array for now — a declared language is
+a promise that `ekwo pack check` holds you to, and you will make it in step 8.
+
+Set `defaults.currency`, and `defaults.language` to the language you are going
+to write the pack's own labels in.
+
+### 2. The chart of accounts
+
+`accounts.csv`, one line per account: `code, parent, type, reconcilable, name,
+sequence`. Two things decide whether the rest of the day goes well.
+
+**Give every account one of the eighteen `account_type` values.** Nothing is
+guessed from a code prefix anywhere in Ekwo, in any country, ever — `411` is
+*customers* on the French chart and *recoverable VAT* on the Belgian one. The
+type is what the generic financial statements read, what the ageing reads and
+what a close reads.
+
+**Make the headings headings.** An account with children is a heading: nothing
+is posted to it, and the statement check below expects it to reach no line.
+
+If your country has a second chart — associations, sole traders, a small-company
+variant — add it as a second file and declare both under `charts`, exactly one
+of them `"default": true`. The journals, the taxes and the declaration form are
+common to the charts of a country; only the accounts differ, and the statements
+that present them.
+
+### 3. The roles, the journals and the close
+
+In `defaults.roles`, name the accounts the installer wires: `receivable` and
+`payable` are required, and `suspense`, `rounding`, `retained_earnings`,
+`sales`, `purchase`, `bank` and `cash` are what a company needs to be installed
+and to book. Add `fx_gain` and `fx_loss` if any company of your country will
+ever invoice in another currency: a matching that realises a difference is
+refused by name when they are missing, and only then.
+
+Every code has to exist in **every** chart your pack ships. `readPack` refuses
+the pack before the compiler writes any SQL, and it names the chart the code is
+missing from.
+
+Then say how the year is closed: `defaults.closing_style`, its result accounts,
+and `defaults.journal_roles.opening`, which must name a journal of type
+`opening`. The table below says which style a chart needs.
+
+#### Which closing style a chart needs
 
 | Style | The result goes | Chosen when |
 |---|---|---|
@@ -723,8 +1018,131 @@ refuses with `no_closing_defaults`; leave `journal_roles.opening` out and it
 refuses with `no_opening_journal`. Nothing falls back on a Belgian or a French
 value, because a default closing style would be one country's mechanism given
 to every country that has not spoken. `ekwo pack check` refuses a pack that
-declares a style without the accounts and the journal that style needs, so the
-gap is found when the pack is written and not on somebody's year end.
+declares a style without the accounts it needs, and an opening journal that is
+not of journal type `opening`, so the gap is found when the pack is written and
+not on somebody's year end.
+
+### 4. The taxes, and where each one posts
+
+`taxes.json`. One entry per code, and a code is a rate at a date: a new rate is
+a new code plus a `valid_to` on the old one, never an edit, which is how the
+return of a past period keeps giving the same answer.
+
+Each tax carries a `legal_reference`, and it is required — the article, not the
+word "TODO". Its `postings` say where the money goes, per kind of document, out
+of the three posting types described above. Start with the plain cases in both
+directions, then the ones that are actually specific to your country: a partly
+deductible tax, a reverse charge, a tax due on collection.
+
+### 5. The declaration form
+
+`tax_report.json` is one form and its boxes. A `base` or a `tax` box is summed
+from what the postings wrote on the ledger; a `total` is a list to add, a list
+to subtract and a floor at zero, evaluated in `sequence` order. There is no
+expression language, in any country. Every box carries its own
+`legal_reference`.
+
+Then go back to `taxes.json` and put a `box` on each posting. The two files are
+checked against each other, which is the first place a country pack usually
+turns out to be wrong.
+
+### 6. The financial statements
+
+`statements.json`, one entry per scheme your country prescribes, with the
+`rules` that sum each line from the ledger. If your country prescribes none —
+or you are not ready to map them — leave the file out and let your chart fall
+back to `packs/generic/`, the country-less pack whose rules are all
+`account_type`. That is what the eighteen account types buy, and it gives a
+chart with no legal codes a balance sheet that ties out.
+
+Add `xbrl` fact keys only for a taxonomy you can verify, and leave them null
+otherwise. A wrong key is worse than no key.
+
+### 7. Check what you have so far
+
+```sh
+npm run build
+node packages/cli/dist/bin.js pack check xx
+```
+
+Read every line it gives you. The common first run:
+
+```
+Checking
+✗ pack_invalid: packs/be — 2 problem(s)
+  taxes.json[0]: missing "legal_reference"
+  taxes.json BE-S-12.invoice: box ZZ:base is not a base box of this form
+```
+
+The rules are listed one by one above, under "What `ekwo pack check`
+refuses". The one that catches the most is the last: **every postable account
+of a chart has to reach a line of one of that chart's statements**. An account
+that reaches none is an account that would vanish off a balance sheet, and the
+error names it.
+
+### 8. The other languages
+
+One file per language, `i18n/<lang>.json`, and that file is the only place a
+translation lives. Add the languages your country's books are actually kept in
+to `manifest.languages` **once they are complete**: a declared language has to
+cover the accounts of every chart, the journals, the taxes, the boxes, the
+statement lines, the legal mentions and the asset categories, and `pack.json`
+declaring one it does not cover is a pack that does not build. A file that is
+not declared may be partial, which is how a language is contributed one section
+at a time.
+
+### 9. A year of books, and the figures it produces
+
+This is the step. Everything above can be internally consistent and wrong.
+
+Write `golden/scenario.json`: a financial year, its periods, the contacts, at
+least ten documents and the payments that settle some of them. Every document
+and every payment carries a `why` — one sentence saying what it is there to
+prove. A golden grows by accident otherwise: somebody adds a line to make a
+figure move, and two years later nobody can say whether dropping it would lose
+anything.
+
+Then:
+
+```sh
+UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts
+```
+
+which writes `golden/vat_return.json`, `golden/statements.json` and
+`golden/trial_balance.json`, and never the scenario. **Read what it wrote.**
+That reading is the step: a figure you cannot explain is a defect in your pack,
+found before anybody files anything with it. The runner knows no country — what
+it asks of your scenario, it asks of your pack: both directions, more than one
+positive rate, a credit note, a matched payment and an unmatched one, and an
+intra-Union reverse charge, a tax due on collection or a partly recoverable tax
+**only where your pack has one**.
+
+One assertion is not read from a file: the posted ledger balances. A golden
+regenerated from a broken engine would agree with itself; double entry would
+not.
+
+### 10. Compile, register the seed, open the pull request
+
+```sh
+node packages/cli/dist/bin.js pack build xx
+node packages/cli/dist/bin.js pack check --all
+```
+
+`build` writes `supabase/seed/<n>_pack_xx.sql` — and
+`supabase/seed/modules/assets/<n>_pack_xx.sql` if your pack carries an `assets`
+section. Add the first to `supabase/config.toml` under `[db.seed].sql_paths`;
+the module seed stays out of that list deliberately, because it is applied by
+the module migration runner, on installations that carry the module.
+
+Commit the generated SQL with the pack. It is a build artefact that is
+committed on purpose, so that `supabase db push` and `psql -f` install your
+country without the CLI ever running.
+
+Then add a line for `packs/xx/` to `.github/CODEOWNERS` pointing at yourself,
+add a line to `CHANGELOG.md` under `[Unreleased]`, and open the pull request.
+Set `certification.status` honestly: `community` is the right answer until an
+accountant has read it, and an issue titled "Review: <country>" is how one is
+asked to.
 
 ## What is not in a pack
 

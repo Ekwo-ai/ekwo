@@ -104,6 +104,39 @@ somewhere has already run it.
   run by hand before a release is tagged, never by the CI, and it refuses a
   database that already holds an `instance` row.
 
+- **The country pack is documented end to end, and an installation says what it
+  leaves for its operator to do.**
+  [`docs/packs.md`](docs/packs.md) now describes the format file by file, the
+  compiler and the three kinds of seed it writes, the checksum that makes a seed
+  stale when any file of its pack moves, **every rule `ekwo pack check`
+  applies** grouped by what it guards — manifest, chart, roles, closing style,
+  taxes, declaration form, statements and their fact keys, legal mentions,
+  languages, golden scenario, module sections — and what it deliberately does
+  not refuse. The certification policy says who may set `community`,
+  `maintained` and `reviewed`, what a reviewer puts their name to, and what
+  `.github/CODEOWNERS` is and is not. "Adding a country in a day" is a ten-step
+  walkthrough a contributor can follow from `cp -r packs/be packs/xx` to the
+  pull request.
+  [`CONTRIBUTING.md`](CONTRIBUTING.md) states the seven invariants of a country
+  pack: data never code, no country literal in the core, an account resolved by
+  its role, a legal reference on every tax and every box, a golden scenario or a
+  written reason there is none, a review that is a named professional, and
+  nothing ever deleted from a pack.
+  [`supabase/seed/README.md`](supabase/seed/README.md) says what each seed file
+  holds, which five are generated and must not be edited, the order they are
+  applied in and who applies each, with the counts corrected against the packs
+  as they stand.
+  [`docs/international.md`](docs/international.md) records phase 0 as delivered,
+  item by item, without moving the roadmap.
+  **And `ekwo init` prints, at the end of a successful installation, the four
+  things it cannot do for you**: turn off self sign-up on your Supabase project,
+  keep two administrators, keep the `service_role` key off machines that do not
+  need it, and read [`DISCLAIMER.md`](DISCLAIMER.md) before filing anything.
+  Three of the four are settings of a project rather than rows in a database, so
+  no connection string reaches them and `ekwo doctor` does not pretend to check
+  them. The installation guide carries the same four in the same words, and a
+  test reads both.
+
 ### Changed
 
 - **The real-project end-to-end run times every step.** `npm run e2e:supabase`

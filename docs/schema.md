@@ -1616,6 +1616,8 @@ Fixed assets, their depreciation schedule and their disposal. Durations, declini
 | [`depreciation_lines`](#assets-depreciation_lines) | One planned period of depreciation. `entry_id` is the entry that booked it, and is what makes running the depreciation of a period twice a no-op. |
 | [`disposals`](#assets-disposals) | What leaving the books cost or earned: one row per asset, written by assets.dispose_asset(). There is no undo, for the reason there is no unpost. |
 
+<a id="assets-assets"></a>
+
 #### `assets`
 
 One fixed asset: what it cost, how it is depreciated, and the three accounts that carry it. The schedule is assets.depreciation_lines.
@@ -1657,6 +1659,8 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, code)`
 
+<a id="assets-category_templates"></a>
+
 #### `category_templates`
 
 The usual duration and method of a kind of asset in one country, with the source it comes from. A suggestion an asset may depart from, which is why it is never copied into a company.
@@ -1681,6 +1685,8 @@ Constraints:
 - `CHECK ((duration_months > 0))`
 - `PRIMARY KEY (country, code)`
 
+<a id="assets-country_rules"></a>
+
 #### `country_rules`
 
 How one country depreciates and derecognises. Filled by `ekwo pack build` from packs/<cc>/assets.json, read where it stands, never copied into a company.
@@ -1701,6 +1707,8 @@ Constraints:
 - `CHECK (((declining_cap_percent IS NULL) OR ((declining_cap_percent > (0)::numeric) AND (declining_cap_percent <= (100)::numeric))))`
 - `CHECK ((country ~ '^[A-Z]{2}$'::text))`
 - `PRIMARY KEY (country)`
+
+<a id="assets-depreciation_lines"></a>
 
 #### `depreciation_lines`
 
@@ -1729,6 +1737,8 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (asset_id, period_end)`
 - `UNIQUE (asset_id, sequence)`
+
+<a id="assets-disposals"></a>
 
 #### `disposals`
 
@@ -1782,6 +1792,8 @@ A budget per financial year, its lines per account and period, and the variance 
 | [`budgets`](#budgets-budgets) | One budget of one company, usually for one financial year. A company may hold several — a plan and a revision are two budgets and not two columns. |
 | [`lines`](#budgets-lines) | What one account is expected to carry over one period, in the sign a business says it: an income and a cost are both positive. |
 
+<a id="budgets-budgets"></a>
+
 #### `budgets`
 
 One budget of one company, usually for one financial year. A company may hold several — a plan and a revision are two budgets and not two columns.
@@ -1802,6 +1814,8 @@ Constraints:
 
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, code)`
+
+<a id="budgets-lines"></a>
 
 #### `lines`
 

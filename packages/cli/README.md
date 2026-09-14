@@ -55,6 +55,11 @@ either.
    the Community web application lands, the interface is the REST API Supabase
    generates from the schema, or `psql`, or `@ekwo-ai/core`.
 
+5. **Do the four things below**, while the dashboard is still open. The
+   installer prints them at the end of a successful run, because three of them
+   are settings of your project rather than rows in your database, and nothing
+   holding a connection string can reach them.
+
 Everything above in one non-interactive line:
 
 ```sh
@@ -71,6 +76,58 @@ npx ekwo init \
   --iban "BE71096123456769" \
   --yes
 ```
+
+## Before you go live: four things on your project
+
+An installation leaves four things undone, and they are undone on purpose:
+they are yours to decide, on a project Ekwo does not have access to. `ekwo
+init` prints this list at the end of a successful run. `ekwo doctor` does not
+check it and does not mention it — a database connection cannot see the
+settings of the project it is connected to.
+
+**1. Turn off self sign-up on your project.**
+Supabase dashboard → **Authentication → Sign In / Providers → "Allow new users
+to sign up"**, and switch it off. A fresh Supabase project accepts anyone who
+posts an e-mail address and a password to its authentication endpoint, which is
+the right default for a public application and the wrong one for a set of
+books. An Ekwo installation is closed: the people who keep the books are
+invited to it. Row level security means a stranger who signs up sees nothing —
+they are a member of no company — but they are a row in `auth.users` that
+nobody asked for, on a project whose sign-up endpoint is open to the internet.
+
+**2. Keep two administrators.**
+An instance administrator is what claims the instance and invites everybody
+else. With one, a lost password, a closed mailbox or a person on holiday is a
+set of books that nobody can let anyone into. Create the second account in your
+Supabase Auth and add it with `claim_instance_admin()`, or invite it from the
+application once it is signed in.
+
+**3. Keep the service_role key off every machine that does not need it.**
+It is not a powerful user: it is the absence of a door. A request carrying it
+bypasses row level security entirely and reads every company in the instance.
+This CLI reads it from a flag, an environment variable or a masked prompt, uses
+it once to create the first account, and writes it nowhere — see
+[Secrets](#secrets). Anywhere else it sits, it sits as a copy of your whole
+ledger. `--admin-user-id` installs against an account that already exists and
+needs no key at all.
+
+**4. Read DISCLAIMER.md before you file anything.**
+[`DISCLAIMER.md`](../../DISCLAIMER.md), at the root of the repository. A
+country pack is a reading of a country's rules at the date of its version, and
+its golden test proves that the pack agrees with itself — not that it agrees
+with the law. `ekwo init` prints the certification status of the pack it
+installs for the same reason. The books are yours, in every country where you
+file.
+
+None of these is an action Ekwo performs on your project, now or later. The
+project is yours from the first row: the settings are yours to change, the key
+is yours to hold, and what you file is yours to answer for.
+
+Automatic verification of the first three is a phase 1 question, and it is not
+free: they are answered by the Supabase management API, so checking them means
+handing `ekwo doctor` a management token, and a token that can read a project's
+settings can change them. Until that trade is worth making, the list is printed
+and read by a person.
 
 ## What `init` does, step by step
 
@@ -196,10 +253,11 @@ for `docs/schema.md`.
 ## `ekwo pack`, in a checkout
 
 A country is data: `packs/<cc>/` holds a manifest, the chart of accounts as
-CSV, the taxes as JSON, and — accepted today, compiled by later sub-tasks —
-the declaration boxes, the financial statements and the translations. The
-compiler turns one into `supabase/seed/<n>_pack_<cc>.sql`, which is committed —
-and, where a pack carries a section for a module, into
+CSV, the taxes and where they post, the boxes of the declaration, the financial
+statements, the sentences the country requires on an invoice, the translations,
+and a year of books with the figures it produces. The compiler turns one into
+`supabase/seed/<n>_pack_<cc>.sql`, which is committed — and, where a pack
+carries a section for a module, into
 `supabase/seed/modules/<code>/<n>_pack_<cc>.sql`, applied by the module
 migration runner and by nothing else.
 
@@ -207,13 +265,34 @@ migration runner and by nothing else.
 ekwo pack list           # the packs this checkout carries, and their certification
 ekwo pack build be       # write supabase/seed/10_pack_be.sql from packs/be
 ekwo pack build --all
+ekwo pack check be       # validate one pack and compare its seed
 ekwo pack check --all    # exit 1 if a committed seed is not the output of its pack
 ```
 
-`check` is what the CI runs, so the SQL cannot drift from the pack. Neither
-touches a database: the seed is applied by `ekwo init`, `supabase db push` or
-`psql -f`, like every other seed. A published installation has the compiled
-seeds and no `packs/` folder, and the command says so rather than guessing.
+`check` validates every file of the pack against
+[`packs/schema/pack.1.json`](../../packs/schema/pack.1.json) and against the
+rest of the pack, then compares the committed seed with what the compiler makes
+of it now. It is what the CI runs, so the SQL cannot drift from the pack. Every
+rule it applies is listed in [`docs/packs.md`](../../docs/packs.md), under
+"What `ekwo pack check` refuses".
+
+Neither command touches a database: the seed is applied by `ekwo init`,
+`supabase db push` or `psql -f`, like every other seed. A published
+installation has the compiled seeds and no `packs/` folder, and the command
+says so rather than guessing.
+
+Two commands under `ekwo pack` do the opposite and read an installation rather
+than a checkout, so they take a connection and work without `packs/`:
+
+```sh
+ekwo pack status --db-url "$EKWO_DB_URL"          # which pack version each company copied
+ekwo pack upgrade "My Company" --db-url "…"       # move it to the version this installation holds
+```
+
+`status` changes nothing and exits 1 while a company is behind, so a scheduled
+job can ask. `upgrade` applies an addition and a closed validity by itself,
+lists everything else for a person to read, and never removes anything from a
+company's books; `--apply` is what accepts the differences it listed.
 
 ## Flags
 
@@ -243,13 +322,15 @@ dashboard under Connect → Session pooler, is the form that is never derived.
 
 | Flag | Meaning |
 |---|---|
-| `--country BE\|FR` | Which chart of accounts and VAT rules. |
+| `--country <cc>` | Which country pack: its chart of accounts, its journals, its taxes and its declaration. One of the packs the database holds — `ekwo pack list` names them, and there is no default. |
+| `--chart <code>` | Which chart of accounts, where the country publishes several. Required outside a terminal when it does. |
 | `--org <name>` | Your organisation, written on the instance row. |
 | `--company <name>` | The first company. Defaults to `--org`. |
 | `--admin-email <address>` | The first administrator, created in your Supabase Auth. |
 | `--admin-password <pw>` | Their password. Omitted, an invite link is generated and printed. |
 | `--admin-user-id <uuid>` | Use an account that already exists, instead of creating one. |
 | `--fiscal-year <year>` | Calendar year of the first financial year. Defaults to this year. |
+| `--fiscal-year-start <date>` | The day that year opens, as `YYYY-MM-DD`. Needed only where the pack names no usual opening month; the two packs shipped both open on the calendar year. |
 | `--currency <code>` | Currency of the company. Defaults to what the country model says: `EUR` for both countries shipped. |
 | `--language <xx>` | Language of the books, two letters. Defaults to `country_defaults.language_default`, which the pack fills. It decides which label of the pack lands on each account; the others are kept in `name_i18n`. |
 | `--iban <iban>` | Creates the main bank account, wired to the bank journal and its ledger account. Omitted, no bank account is created and `ekwo doctor` says so. |

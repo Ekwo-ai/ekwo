@@ -2555,3 +2555,79 @@ answers "is it there and is it still that shape", and the three of them are
 each an order of magnitude more text for a diff that would move on every
 Postgres upgrade. `docs/schema.md` carries the constraints for a human reader
 today, and an inventory that nobody reads the diff of is worth nothing.
+
+
+## The country pack is finished as a taxonomy, and is written down (14 September 2026)
+
+Phase 0 set out to make a country describable in data rather than in code, and
+it is done. This entry closes the chapter: what the format ended up carrying,
+what was deliberately left out of it, and what the documentation now promises.
+
+**What a pack turned out to need.** The first sketch was a chart of accounts,
+taxes and their postings. It shipped as eleven things, and the six that were
+not in the sketch are the six that would each have become a country-shaped hole
+in the core: the boxes of a declaration and their totals; financial statements
+and a country-less framework behind any chart that prescribes none; several
+charts per country, because an association and a company file the same return
+on different accounts; what the country puts on a document — numbering, the
+payment term, the tax point, the e-invoicing profile, the bank formats, and the
+sentences the law requires with a closed vocabulary of conditions; the labels of
+all of it in every language the pack declares; and a year of books with the
+figures it produces. Each was found the same way: by trying to write the second
+country and noticing what still lived in a function.
+
+**The taxonomy is the part that will not be redone**, and it is three rules, all
+of which held. A pack is data and cannot execute: no expression language, no
+hook, no field through which a country could run anything, so a formula is a
+list to add and a list to subtract and a condition is a value out of a closed
+list. Nothing in the core carries a country, a currency or a language of its
+own, and nothing falls back on one: a reader that needs a value a pack did not
+give names the value, and a default closing style would have been one country's
+mechanism handed to every country that had not spoken. And nothing is ever
+deleted from a pack — an account is deprecated, a tax gets a `valid_to`, a form
+version gets a new `valid_from` — because the return of a past period has to
+keep giving the same answer for as long as anyone can be asked about it.
+
+**What was deliberately left out, and why it is not a gap.** The rates of
+American sales tax: tens of thousands of jurisdictions changing monthly is a
+feed, not data somebody reviews, and the form belongs in a pack while the rates
+do not. Canadian rates *are* in a pack, because fifteen stable combinations
+published by one administration is data. Revaluation of open items, cash
+accounting as a ledger, several taxes stacked on one line, the gross-to-net
+computation of a tax-inclusive price, and the cash-flow statement: each is
+declared or accepted by the format and implemented by nobody, waiting for the
+country that needs it rather than being guessed at from Belgium. Analytics,
+fixed-asset regimes beyond what a module carries, payroll, inventory, and the
+translation of the application itself, which is a different problem from the
+translation of a chart of accounts.
+
+**Certification stayed honest, which cost a status.** There is no value meaning
+"certified by Ekwo", and the one that existed was deprecated and migrated away.
+Writing a pack and testing that it holds together is not reviewing it. So the
+scale is `community`, `maintained`, `reviewed`; `reviewed` names a person and a
+date and nothing else counts; `legal_reference` is a required field on every tax
+and every box so that a reviewer has something to read against; and
+`.github/CODEOWNERS` puts a name next to each pack, which is who is asked and
+not who has signed.
+
+**The documentation is a deliverable of the phase and not a write-up of it.**
+[`packs.md`](packs.md) is the format file by file, the compiler and what it
+writes, every rule `ekwo pack check` applies grouped by what it guards, the
+certification policy, and a ten-step walkthrough for adding a country in a day.
+The reason for the list of refusals is narrow: a contributor meets those rules
+one error message at a time, and a rule they cannot find written down reads as
+the tool being arbitrary.
+
+**And four things an installation cannot do for its operator are now printed
+rather than assumed.** Disabling self sign-up, keeping a second administrator,
+keeping the `service_role` key off machines that do not need it, and reading
+[`DISCLAIMER.md`](../DISCLAIMER.md) before filing anything. Three of the four
+are settings of a Supabase project rather than rows in a database, so no
+connection string reaches them and `ekwo doctor` cannot check them. They are
+printed at the end of a successful `ekwo init`, where the person still has the
+dashboard open, and written in the installation guide in the same words — with
+a test reading both, because a checklist kept in two places drifts. Checking
+them automatically would mean handing the CLI a Supabase management token, and
+a token that can read a project's settings can change them; that is a phase 1
+trade and it is not obviously worth making. None of it is ever an action Ekwo
+takes on somebody else's project.

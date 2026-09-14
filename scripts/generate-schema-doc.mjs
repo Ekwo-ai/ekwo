@@ -44,6 +44,11 @@ async function describe(schema, { anchor = (name) => name, heading = '##' } = {}
   out.push('');
 
   for (const t of tables) {
+    // A module's table is linked as `#<schema>-<table>`, so that two modules
+    // may both carry a `lines`. GitHub derives an anchor from the heading text,
+    // which here is the bare table name, so the qualified one is written out.
+    // The socle needs none: its anchor is the heading GitHub already makes.
+    if (anchor(t.name) !== t.name) out.push(`<a id="${anchor(t.name)}"></a>\n`);
     out.push(`${heading}# \`${t.name}\`\n`);
     if (t.comment) out.push(`${t.comment}\n`);
 
