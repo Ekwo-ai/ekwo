@@ -697,6 +697,33 @@ UPDATE_GOLDEN=1 npm test -- tests/golden.test.ts
 rewrites those three and **never the scenario** — a runner that could rewrite
 its own inputs proves nothing. The diff is then the thing to review.
 
+### What only this pack can claim
+
+A fourth file may sit beside the three, and it is the only one under `golden/`
+written by hand: `expectations.json`. It holds what a pack states that neither
+its own files nor a generic test can check — a fact key of a national filing
+taxonomy, an arithmetic a law writes into a declaration form. The rest of a
+pack checks itself: a test that compared `statements.json` to a copy of
+`statements.json` would prove nothing.
+
+```json
+{
+  "note": "Claims about this pack that no other pack can make.",
+  "statement_facts": {
+    "BE-BNB-ABBR-BS": { "20/58": "met:am1|bas:m25|part:m1" }
+  }
+}
+```
+
+Every block is optional, and a pack that carries no file at all is read as an
+empty one. One runner in `tests/` loads whichever blocks a pack states and
+checks them against the pack and against the seed, so a contributor adds a
+claim by editing their own pack and never a test.
+
+Like the other files under `golden/` beside `scenario.json`, it is **outside
+the pack checksum**: it is evidence about the pack, not part of it, so adding
+one does not change `country_packs.checksum` and does not make a seed stale.
+
 **`ekwo pack check` validates the scenario**, against the schema and against
 the pack: the chart, every account code, every tax code and its scope and its
 validity, every journal, every statement, and every `match` that has to name a
@@ -1145,6 +1172,12 @@ One assertion is not read from a file: the posted ledger balances. A golden
 regenerated from a broken engine would agree with itself; double entry would
 not.
 
+If your country's filing taxonomy names facts your statements carry, or its
+form owes an arithmetic to a text, write them into `golden/expectations.json`
+— see "What only this pack can claim". That file and the pack folder are the
+only two places you write: no test of this repository has to change for your
+pack to be checked.
+
 ### 10. Compile, register the seed, open the pull request
 
 ```sh
@@ -1167,6 +1200,42 @@ add a line to `CHANGELOG.md` under `[Unreleased]`, and open the pull request.
 Set `certification.status` honestly: `community` is the right answer until an
 accountant has read it, and an issue titled "Review: <country>" is how one is
 asked to.
+
+## The two places a pack is written
+
+Adding a country touches **two** places, and nothing else:
+
+1. **`packs/<cc>/`** — the manifest, the charts, the taxes, the declaration
+   form, the statements, the document rules, the translations, and the seed
+   compiled from them.
+2. **`packs/<cc>/golden/`** — the scenario, the three generated expectation
+   files, and `expectations.json` where the pack states what only it can state.
+
+**Nothing under `tests/` or `modules/*/tests/`.** A test about the core walks
+`listPacks()` and reads its expectation from the pack — a role from the
+manifest, an account from a chart, a box from the form — so a pack that lands
+is checked the day it lands rather than the day somebody remembers to add it to
+a list. `tests/helpers/packs.ts` is where that starts: `allPacks` to loop over
+everything, `packWhere('taxes on collection', …)` to pick the pack that carries
+the property under test rather than the country that happens to have it, and
+`somePack` for a test that needs a pack and does not care which.
+
+A guard keeps it that way:
+
+```sh
+node scripts/check-no-country-literals-in-tests.mjs
+```
+
+It runs in CI and fails on three things: a country code inside an `expect(…)`
+next to the word `country`, a list of two or more country codes or pack slugs
+anywhere, and a pack named by hand where `listPacks()` would have found it.
+Setting up may still name a country — a scenario books invoices somewhere, and
+saying where is how it stays readable. Expecting one may not. Where a literal
+is genuinely right, one comment says so and why:
+
+```ts
+// country-literal: the demo company is Belgian, and this reads its books
+```
 
 ## What is not in a pack
 

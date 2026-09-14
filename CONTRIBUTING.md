@@ -175,6 +175,30 @@ the review. A country pack without a golden scenario is refused by
 `ekwo pack check` and by the CI — see [`docs/packs.md`](docs/packs.md), "Golden
 scenario".
 
+### A test may book in a country. It may not expect one.
+
+A test about the core walks `listPacks()` and takes its expectation from the
+pack — a role of the manifest, an account of a chart, a box of the declaration
+form. `tests/helpers/packs.ts` is where that starts: `allPacks` to loop over
+everything, `packWhere('taxes on collection', …)` to pick the pack that carries
+the property under test rather than the country that happens to have it, and
+`somePack` where a test needs a pack and does not care which.
+
+Setting up may still name a country: a scenario books invoices somewhere, and
+saying where is how it stays readable. Adding a pack then touches the pack
+folder and its `golden/`, and nothing under `tests/`.
+
+```sh
+npm run check:no-country-literals
+```
+
+runs in the CI and says where a country was expected by hand. Where a literal
+is genuinely right, one comment says so and why:
+
+```ts
+// country-literal: the demo company is Belgian, and this reads its books
+```
+
 ### End to end
 
 `tests/e2e/` runs with the rest of `npm test`. It installs the same release

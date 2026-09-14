@@ -2802,46 +2802,52 @@ declaration periodicity, a form's `period` cannot name three cadences, the
 and a computed statement line may carry a sign that is applied twice. None of
 the four was patched into the core for Luxembourg's sake. That is the whole
 point of a pack being data.
-## Estonia was written to test the format, not to open a market (14 September 2026)
 
-The plan put the United Kingdom and Canada first. Estonia went ahead of both,
-alongside Luxembourg, and the reason is what the pack format was for.
+## A test may book in a country. It may not expect one.
 
-**A country nobody designed the format for is the only thing that proves a
-format is a format.** Belgium and France were extracted from a core that had
-been built around them, so everything they needed was there by construction. A
-pack written from the outside in — by somebody reading a foreign statute, with
-no permission to change the core — is the honest test of the claim that a
-country is data. Estonia was picked because it is small enough to finish and
-awkward enough to be interesting: a standard rate that moved twice in eighteen
-months, a return whose boxes nest three deep, a reduced rate that went 9 %, 5 %
-and 9 % again, and **no legal chart of accounts at all**, which is the case the
-format had never met.
+*14 September 2026*
 
-**The rule held, and the pack is entirely data.** No migration, no function, no
-column, and no change to `tests/golden.test.ts`, which installed a company on
-the new pack and replayed fourteen documents without knowing that Estonia
-exists. Six things the core cannot say turned up, and all six are written in
-[`international.md`](international.md) with a fix and with the workaround the
-pack uses instead — because a gap fixed quietly during a pack is a gap the next
-contributor meets again.
+The suite named `BE`, `FR` and `LU` by hand in eleven files: six loops over a
+literal pair of slugs, and tables of rows keyed by country — the statements and
+their line counts, the declaration forms and their box counts, the exchange
+accounts, the charts, the closing parameters, the fixed-asset rules. Luxembourg
+landed a week earlier and most of those tables had to be edited for it to be
+seen at all. Which is the argument: **until a test walks the packs, a new pack
+proves nothing, because nothing looks at it.**
 
-**The one place where the format bent is worth naming.** A tax carries one
-`base` posting per kind of document, so it reports to one box; form KMD asks
-for the same amount in a box, in the memo box inside it, and sometimes in a
-third. The pack posts to the innermost box and rebuilds the printed parents as
-totals, which needs six boxes the form does not print. That is exact and it is
-not obvious, so it is documented in the pack's own README rather than left for
-somebody to find in a diff. The alternative — filling the parent and leaving
-the memo boxes empty — would have produced a return the tax authority
-cross-checks and rejects, and would have looked fine in every test.
+The line drawn is between the two halves of a test. **Setting up may name a
+country** — a scenario books invoices somewhere, with some chart and some tax
+code, and saying which is how it stays readable; a new pack never has to touch
+that line. **Expecting may not** — what a test asserts about the core comes
+from the pack, or it is an assertion about the countries somebody remembered.
 
-**Estonia is `community`, and stays there.** Nobody has read it against the law
-they apply. Writing a pack carefully, citing an article on every rate and every
-box, and proving that fourteen documents produce the figures somebody wrote
-down is exactly what `community` means: contributed, not reviewed. The status
-moves when an Estonian accountant puts their name in the manifest, and not
-before.
+Three things follow.
+
+**`tests/helpers/packs.ts` reads every pack once.** `allPacks` to loop,
+`packWhere('taxes on collection', …)` to pick by the property under test rather
+than by the country that happens to have it, `somePack` where any pack will do.
+`packWhere` throws when no pack carries the property, naming it: a loop that
+silently checked nothing is the failure being prevented, not a lesser one.
+
+**A claim only one pack can make lives with that pack.** A fact key of a
+national filing taxonomy is written in `statements.json`, so a test comparing
+the two would compare a file to itself — and a generic test cannot check it
+either. It goes to `packs/<cc>/golden/expectations.json`, beside the golden and
+outside the pack checksum, loaded by one runner. A contributor states a claim by
+editing their own pack. The alternative, a `tests/packs/<cc>.ts` per country,
+was refused for exactly the reason the whole change exists: it would have put a
+file under `tests/` back on the path of adding a pack.
+
+**A grep guard in the CI**, because the pull request that reintroduces one
+literal is the one nobody notices. It fails on a country code inside an
+`expect(…)`, on a list of two or more country codes, and on a pack named by hand
+where `listPacks()` would have found it. One comment, with a reason, is the way
+out.
+
+What is deliberately left: `tests/closing.test.ts` still books its scenarios in
+a named country, because the amounts it asserts carry that country's VAT rate.
+Deriving those from the pack's own taxes is a change to the fixtures, not to an
+enumeration, and it is worth doing separately.
 
 ## The chart stays whole and the list gets short (14 September 2026)
 

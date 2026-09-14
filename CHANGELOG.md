@@ -9,6 +9,28 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Changed
+
+- **A test may book in a country. It may not expect one.**
+  Eleven test files named `BE`, `FR` and `LU` by hand: six loops over a literal
+  pair of pack slugs, and tables keyed by country for the statements, the
+  declaration forms, the charts, the exchange accounts, the closing parameters
+  and the fixed-asset rules. Adding Luxembourg meant editing most of them, and
+  until they were edited the pack was checked by nothing.
+  Every one of those now walks `listPacks()` through the new
+  `tests/helpers/packs.ts` and takes its expectation from the pack itself — a
+  role of the manifest, an account of a chart, a box of the form. A test that
+  needs the pack with a particular property asks for that property
+  (`packWhere('taxes on collection', …)`) instead of naming the country that
+  has it. The set of certification statuses comes from the published schema
+  rather than a literal pair.
+  A claim only one pack can make — a fact key of a national filing taxonomy —
+  moves to **`packs/<cc>/golden/expectations.json`**, beside the golden and
+  outside the pack checksum, read by one generic runner. Adding a country now
+  touches the pack folder and its `golden/`, and nothing under `tests/`.
+  `scripts/check-no-country-literals-in-tests.mjs` runs in the CI and keeps it
+  that way; `docs/packs.md` describes the two places a pack is written.
+
 ### Security
 
 - **The schema grants its own rights, and the anonymous role holds none on any

@@ -75,6 +75,11 @@ jobs:
           node packages/cli/dist/bin.js pack check --all
       - name: No private data in the repository
         run: node scripts/check-no-private-data.mjs
+      # A test that names BE and FR by hand is a test of the two countries
+      # somebody remembered. The next pack is then a diff across a dozen test
+      # files, and until that diff is written the pack proves nothing.
+      - name: No country is enumerated in what the tests expect
+        run: node scripts/check-no-country-literals-in-tests.mjs
       # An amount is rounded at the decimals of its currency, through one
       # function. A `round(x, 2)` in a new migration is the assumption that
       # every currency has cents, and it is wrong for about a quarter of them.
