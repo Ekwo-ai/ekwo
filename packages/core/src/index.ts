@@ -6,3 +6,4 @@
 
 export * from './types.js';
 export * from './client.js';
+export { SCHEMA_MIN, compareSchemaVersions, schemaIsAtLeast } from './schema.js';

@@ -14,6 +14,7 @@
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { openBackend, readConfig } from './config.js';
+import { assertSchemaSupported } from './schema.js';
 import { buildServer } from './server.js';
 import { installedModules } from './tools/modules.js';
 
@@ -30,6 +31,9 @@ async function main(): Promise<void> {
 
   const config = readConfig(process.env);
   const backend = await openBackend(config);
+  // Before anything else: a database older than this server is refused by
+  // name rather than answered from wrong assumptions.
+  const schemaVersion = await assertSchemaSupported(backend);
   // What this installation carries, from the registry table. A database that
   // predates the module framework answers with nothing, and the socle's own
   // tools are all a client then sees.
@@ -47,6 +51,7 @@ async function main(): Promise<void> {
   await server.connect(new StdioServerTransport());
   process.stderr.write(
     `ekwo-mcp: connected over ${config.mode === 'sql' ? 'a direct Postgres connection' : 'PostgREST as the signed-in user'}` +
+      `, schema ${schemaVersion}` +
       `${modules.length > 0 ? `, modules: ${modules.join(', ')}` : ''}\n`,
   );
 }

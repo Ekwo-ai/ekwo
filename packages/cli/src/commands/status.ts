@@ -8,6 +8,7 @@ import { describeCertification } from '../pack/certification.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { listMigrations } from '../migrations.js';
 import { isInteractive } from '../prompt.js';
+import { SCHEMA_MIN } from '../schema.js';
 import { status } from '../status.js';
 import { dim, heading, line, note, pairs, warn, yellow } from '../ui.js';
 
@@ -38,6 +39,7 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
       ['project', connection.supabaseUrl ?? connection.projectRef ?? '(from --db-url)'],
       ['installed version', report.installedVersion ?? 'unknown'],
       ['available version', report.availableVersion ?? 'unknown'],
+      ['this CLI needs', `${SCHEMA_MIN} or newer`],
       ['migrations', `${report.appliedCount} applied, ${report.pending.length} pending`],
     ]);
     if (report.pending.length > 0) {

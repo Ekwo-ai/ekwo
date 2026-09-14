@@ -11,6 +11,7 @@
   "type": "module",
   "sideEffects": false,
   "engines": { "node": ">=20" },
+  "ekwo": { "schemaMin": "0.1.0" },
   "files": ["dist", "README.md", "CHANGELOG.md"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

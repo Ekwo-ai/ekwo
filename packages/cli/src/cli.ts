@@ -55,8 +55,9 @@ ${bold('Commands')}
               at a deleted user, statements that tie to their lines.
   ${cyan('module')}      The modules beside the socle: what is installed, apply their
               migrations, and turn one on or off for a company.
-  ${cyan('pack')}        Compile a country pack into its seed, and check that the
-              committed seed is still the exact output of the pack.
+  ${cyan('pack')}        Compile a country pack into its seed, check that the committed
+              seed is still the exact output of the pack, and move a company
+              onto the version an installation holds.
   ${cyan('register')}    Opt in to security advisories and release notes. Never required.
   ${cyan('unregister')}  Opt back out. Clears the address and the date.
   ${cyan('demo')}        Load the sample company. Fictional data; ask for it explicitly.
@@ -99,10 +100,15 @@ ${bold('ekwo module')}
                             migration can do.
   disable <code> --company  Turn it off. Nothing the module wrote is deleted.
 
-${bold('ekwo pack')} ${dim('(in a checkout of the repository)')}
+${bold('ekwo pack')} ${dim('(build, check and list need a checkout of the repository)')}
   build <cc> | --all        Compile packs/<cc> into supabase/seed/.
   check <cc> | --all        Refuse a seed that is not the output of its pack.
   list                      The packs this checkout carries.
+  status                    What each company copied, against what is loaded on
+                            the installation this connects to. Read-only.
+  upgrade <company>         Move it to the version loaded there. An addition and
+                            a closed validity are applied; everything else is
+                            listed and left alone until --apply.
 
 ${bold('Environment')}
   EKWO_DB_URL               Same as --db-url. SUPABASE_DB_URL also works.

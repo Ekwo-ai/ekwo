@@ -25,9 +25,28 @@ import { isInteractive } from '../prompt.js';
 import { applySeeds } from '../seeds.js';
 import { schemaIsInstalled } from '../bootstrap.js';
 import { syncSchemaVersion } from '../status.js';
-import { dim, heading, line, note, skipped, step, warn } from '../ui.js';
+import { bold, dim, heading, line, note, skipped, step, warn } from '../ui.js';
 
 export const MIGRATE_FLAGS = [...CONNECTION_FLAGS, 'skip-seeds', 'no-modules', 'yes'] as const;
+
+/**
+ * The line to print before a migration runs.
+ *
+ * There is no "down" migration in this repository and there never will be:
+ * undoing a schema change on a database holding a year of entries is a
+ * restore, not a script. Which makes the snapshot the only way back, and an
+ * operator who reads this after the fact has already not taken one.
+ */
+export function snapshotRecommendation(): void {
+  line();
+  warn(
+    `Take a snapshot first. Migrations move forward only — there is no ${bold('down')} — so a ` +
+      'restore is the way back.',
+  );
+  note(dim('  Supabase: Database → Backups, or `supabase db dump -f before-upgrade.sql`.'));
+  note(dim('  Self-hosted: `pg_dump` the database this connection points at.'));
+  line();
+}
 
 export async function migrateCommand(args: ParsedArgs): Promise<number> {
   rejectUnknownFlags(args, MIGRATE_FLAGS);
@@ -56,6 +75,8 @@ export async function migrateCommand(args: ParsedArgs): Promise<number> {
     if (gap.pending.length === 0) {
       skipped('nothing to apply');
     } else {
+      for (const migration of gap.pending) note(dim(`pending  ${migration.file}`));
+      snapshotRecommendation();
       await applyMigrations(db, migrations, (migration) => {
         step(migration.file);
       });

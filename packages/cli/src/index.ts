@@ -72,6 +72,17 @@ export {
 } from './pack/read.js';
 export { validate, type Issue } from './pack/schema.js';
 export {
+  packDiff,
+  packStatus,
+  packUpgrade,
+  resolveCompany,
+  type CompanyPackStatus,
+  type PackChange,
+  type PackStatusReport,
+  type PackUpgradeResult,
+  type UpgradeOptions,
+} from './pack/upgrade.js';
+export {
   allModuleMigrations,
   exposeSchemaNote,
   listModules,
@@ -85,6 +96,8 @@ export {
   type ModuleManifest,
 } from './module/read.js';
 export { applyModuleMigrations, moduleCommand, MODULE_FLAGS } from './commands/module.js';
+export { snapshotRecommendation } from './commands/migrate.js';
+export { SCHEMA_MIN } from './schema.js';
 export { COMMANDS, help, run, version } from './cli.js';
 export { CONFIG_FILE, readConfig, writeConfig, type EkwoConfig } from './config.js';
 export {
