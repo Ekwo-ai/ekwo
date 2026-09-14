@@ -556,6 +556,14 @@ describe('an account the pack never heard of', () => {
   });
 });
 
+/**
+ * A currency with two decimals and a country that rounds half up, written out
+ * as the pair `evaluate_totals` now takes. The evaluator looks nothing up —
+ * it is immutable and is called from a view — so the rounding reaches it as an
+ * argument, and a test that exercises it says which one it means.
+ */
+const EUR_ROUNDING = "row(2, 'half_up')::money_rounding";
+
 describe('one evaluator, called by both reports', () => {
   // The rule this repository is built against: one path per calculation. A
   // declaration form and a financial statement derive their totals the same
@@ -598,14 +606,14 @@ describe('one evaluator, called by both reports', () => {
     ];
     const dropped = await one<{ result: Record<string, number> }>(
       db,
-      'select evaluate_totals($1, $2, false) as result',
+      `select evaluate_totals($1, $2, ${EUR_ROUNDING}, false) as result`,
       [JSON.stringify(values), JSON.stringify(formulas)],
     );
     expect(dropped.result).toEqual({ 'T2|total': 5 });
 
     const kept = await one<{ result: Record<string, number> }>(
       db,
-      'select evaluate_totals($1, $2, true) as result',
+      `select evaluate_totals($1, $2, ${EUR_ROUNDING}, true) as result`,
       [JSON.stringify(values), JSON.stringify(formulas)],
     );
     expect(kept.result).toEqual({ 'T1|total': 0, 'T2|total': 5 });
@@ -614,7 +622,7 @@ describe('one evaluator, called by both reports', () => {
   it('takes a qualified reference and a bare one, which is what a CA3 needs', async () => {
     const result = await one<{ result: Record<string, number> }>(
       db,
-      'select evaluate_totals($1, $2, true) as result',
+      `select evaluate_totals($1, $2, ${EUR_ROUNDING}, true) as result`,
       [
         JSON.stringify({ '08|base': 1000, '08|tax': 200 }),
         JSON.stringify([
@@ -629,7 +637,7 @@ describe('one evaluator, called by both reports', () => {
   it('floors before it signs, so a pair that splits a balance still splits it', async () => {
     const result = await one<{ result: Record<string, number> }>(
       db,
-      'select evaluate_totals($1, $2, true) as result',
+      `select evaluate_totals($1, $2, ${EUR_ROUNDING}, true) as result`,
       [
         JSON.stringify({ due: 100, deductible: 250 }),
         JSON.stringify([
@@ -645,7 +653,7 @@ describe('one evaluator, called by both reports', () => {
   it('refuses two totals that depend only on each other', async () => {
     const message = await expectError(
       db,
-      `select evaluate_totals('{}'::jsonb, $1::jsonb, true)`,
+      `select evaluate_totals('{}'::jsonb, $1::jsonb, ${EUR_ROUNDING}, true)`,
       [
         JSON.stringify([
           { key: 'X', plus: ['Y'], sequence: 10 },

@@ -227,6 +227,16 @@ column's own default. The compiler writes `default` rather than a value of its
 own, so there is exactly one place where the mechanism is decided and no
 country is anybody's fallback.
 
+`rounding_method` is read. It is half of the pair `round_amount()` applies to
+every amount the schema writes; the other half is `decimal_places` on the
+currency the pack names in `defaults.currency`, which says that the yen has
+none and the dinar has three. A pack that declares `half_even` therefore
+changes what its country's ledger holds, and the four methods — half up, half
+even, down, up — are all applied to the absolute value, so a credit note is
+always its invoice with the sign flipped. `cash_rounding_unit` is still
+declared and read by nothing: the socle has no cash-payment path to round a
+total on.
+
 ## Which declaration a box belongs to
 
 A box number is unique inside one form and nowhere else. Belgium and France

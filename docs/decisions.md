@@ -165,7 +165,8 @@ is what is wrong; patching a ledger line to make the header true is how a
 wrong invoice becomes a wrong ledger.
 
 **One discount rule in the whole system: a percentage off the line.**
-`quantity x unit_price x (1 - discount / 100)`, rounded to two decimals, once.
+`quantity x unit_price x (1 - discount / 100)`, rounded once, at the decimals
+of the document's currency.
 Three coexisting discount semantics is a real failure mode, and an absolute
 discount amount can be expressed as a percentage or as its own line.
 
@@ -2152,3 +2153,97 @@ expected-object comparison the card also scoped: an inventory of every table,
 column and function this release defines is a generated artefact like
 `docs/schema.md`, not a list kept by hand in the CLI, and it is worth its own
 change.
+
+## An amount is rounded at the decimals of its currency (14 September 2026)
+
+The audit of 13 September left one sentence to be made true: *"`decimal_places`
+is what 'at the currency's decimals' means"*, and until then every rounding in
+the schema was `round(x, 2)`. There were fifty-one of them, in eighteen
+functions, a view and a generated column, and two columns that every pack
+filled and nothing read — `currencies.decimal_places` and
+`country_defaults.rounding_method`.
+
+Two decimals is right for the euro and for every currency the packs carry. It
+is wrong for the yen, which has none, and for the dinar, which has three; and
+"half up" was never a decision anywhere, it was what Postgres `round()` happens
+to do. A yen invoice of 1 234,5 would have been booked at 1 234,50 and settled
+at 1 235, and the half unit that does not exist in that currency would have sat
+on a suspense account until somebody went looking for it.
+
+**One pair, one arithmetic, one lookup.** `money_rounding` is the pair that
+answers "how is this amount written": the decimals of a currency and the method
+of a country. `round_amount(amount, rounding)` is the arithmetic, and the only
+place in the schema where a rounding method is named — it switches on all four
+the pack format allows, looks nothing up, and is therefore immutable and usable
+from a view. `rounding_of(company, currency)` is the lookup, and the only
+reader of the two columns; the currency defaults to the company's own, which is
+what a ledger line is stated in. A test asks the catalogue for both lists and
+fails on a third name in either.
+
+**Nothing is guessed.** A currency the installation does not carry, a company
+that does not exist, a country with no model: each is refused by name —
+`unknown_currency`, `unknown_company`, `no_country_model`. There is no fallback
+currency and no fallback country. What a pack that says nothing about rounding
+gets is the column's own default, decided once in the schema by
+`20260912091918` and written into the row when the pack was compiled; that was
+settled on 13 September and nothing here reopens it.
+
+**A function rounds in as many currencies as it handles.** `post_document`
+writes the base and the tax of a document in the document's currency and the
+ledger lines in the company's, and it resolves both. So do `post_payment` and
+`reconcile`. A document in a currency with three decimals settled from an
+account in one with two rounds each side at the decimals that side has, instead
+of assuming both have two.
+
+**A local that carries a scale is a second rounding rule.** `v_amount
+numeric(16, 2)` rounds on every assignment, silently, at two decimals, whatever
+the currency — so the declarations of every rewritten function are plain
+`numeric` and the only thing that rounds is `round_amount`. For the same
+reason a cast to `numeric(n, 2)` in the body of a reporting function is a
+rounding wearing the clothes of a type, and the ones in `assets.register`,
+`assets.movements`, `budgets.variance` and `fec_lines` are gone.
+
+**A tolerance is a fraction of a unit, not of a cent.** `0.005` meant "half a
+cent" and `0.001` "a tenth of one". In a currency with no decimals they are a
+two-hundredth and a thousandth of the smallest coin there is, which is to say
+nothing at all. They are written against `currency_unit()` now, which answers
+1 for the yen and 0,01 for the euro.
+
+**`document_lines.amount_untaxed` stops being a generated column.** Its
+expression was `round(quantity * unit_price * (1 - discount / 100), 2)`, and a
+generated column may not look anything up — so it could not ask what currency
+the document is in. It becomes a column a `before` trigger writes on every
+insert and update. The guarantee that mattered is intact: the total is derived
+and can never be keyed in.
+
+**The rule is the same one in four places, and a test proves it.** A format
+brick may not import the core, so `roundCurrency` lives in three copies of
+`rounding.ts` that are compared byte for byte. `round_amount` is the fourth,
+and `tests/currency_rounding.test.ts` runs the same vector — zero, halves,
+negatives, three decimals, a currency with none — through the SQL function and
+through the TypeScript one and asserts they agree. The vector itself is one
+file, so neither test can quietly stop covering a case the other still does.
+
+**The proof is a whole ledger, not a unit test.** A fixture pack — the Belgian
+chart, taxes and declaration form, moved to a country code that exists nowhere
+and given a currency with no decimals — carries a document through its entry,
+a payment, the matching, the VAT return, the trial balance and the close of the
+year. Every figure is a whole unit. It is a fixture and not a pack of
+`packs/`, because `packs/` is the law of real places and no real place uses it.
+
+**What is not done: the columns still hold two decimals.** Every monetary
+column of the schema is `numeric(16, 2)`, so an amount in a currency with three
+decimals is rounded correctly by the engine and then rounded again, to two, by
+the column it is stored in. Widening them is its own migration and its own
+decision: the scale of a `numeric` column is what makes an amount print as
+`100.00` rather than `100`, so widening rewrites the text of every amount this
+schema returns, and dropping the scale instead leaves the normalisation to
+whatever wrote the row. Neither belongs in the same change as the engine. A
+test pins the present behaviour so that the gap is visible rather than
+discovered, and `currencies.decimal_places` says it in its own comment.
+
+**And the format bricks still round half up only.** `roundCurrency` takes
+decimals and not a method, because every pack in this repository declares
+`half_up` and a Factur-X or CBSO file is written from amounts the ledger has
+already rounded. The first pack to declare `half_even` will have to hand the
+method to the bricks as well; the vector test is where that will be noticed.

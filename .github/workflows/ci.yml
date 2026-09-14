@@ -70,6 +70,11 @@ jobs:
           node packages/cli/dist/bin.js pack check --all
       - name: No private data in the repository
         run: node scripts/check-no-private-data.mjs
+      # An amount is rounded at the decimals of its currency, through one
+      # function. A `round(x, 2)` in a new migration is the assumption that
+      # every currency has cents, and it is wrong for about a quarter of them.
+      - name: No hard-coded rounding in a new migration
+        run: node scripts/check-rounding.mjs
       - name: No secret committed in .env.example
         run: |
           # The example file documents the variables; a real value in it would

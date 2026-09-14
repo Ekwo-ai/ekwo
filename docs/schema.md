@@ -668,7 +668,7 @@ Which template account plays which role, per country.
 | `misc_journal_code` | `text` | not null |
 | `cash_account_code` | `text` | Ledger account behind the cash journal of this country, from the pack of that country. |
 | `language_default` | `character(2)` | Language `ekwo init` offers for a company of this country, before the company row exists — like currency_code, and for the same reason. |
-| `rounding_method` | `rounding_method` | not null — How a country rounds a tax amount, from the pack. **Declared, no reader yet**: every rounding in the schema is round(x, 2), which is half_up, which is what both packs declare — so the column is recorded and not consulted. It becomes behaviour with the sub-task that makes rounding read the currency's decimals. |
+| `rounding_method` | `rounding_method` | not null — How a country rounds an amount, from the pack. Read by rounding_of() and applied by round_amount(), which is the only function of the schema that names a method. A pack that says nothing about rounding gets this column's own default, not a country's. |
 | `cash_rounding_unit` | `numeric(8,4)` | not null — The smallest coin a cash total is rounded to when it is not the cent — 0.05 in Switzerland, 0.05 in the Netherlands for cash. **Declared, no reader yet**: no cash-payment path exists in the socle, so nothing rounds a total to it. Zero means the cent, which is what both packs declare. |
 | `closing_style` | `closing_style` | Which of the three mechanisms close_fiscal_year() follows for a company of this country. Null until the pack says; there is no default, because a default would be one country's answer given to every other. |
 | `current_year_result_profit_code` | `text` | Account the result of the year lands on when the year is profitable. Belgium 693, France 120. Null where the result goes straight to retained earnings. |
@@ -739,7 +739,7 @@ ISO 4217 currencies known to this instance.
 | `code` | `character(3)` | not null |
 | `name` | `text` | not null |
 | `symbol` | `text` |  |
-| `decimal_places` | `smallint` | not null — Decimals this currency is written with: 2 for the euro, 0 for the yen, 3 for the dinar. **Declared, no reader yet**: every rounding in the schema and in the format packages is at two decimals, which is right for every currency the packs carry. Making the rounding rule read this column is a sub-task of its own; until it lands, a zero-decimal currency is held correctly and rounded as if it had two. |
+| `decimal_places` | `smallint` | not null — Decimals this currency is written with: 2 for the euro, 0 for the yen, 3 for the dinar. Read by rounding_of(), which is what every amount in the schema is rounded at. The columns that hold an amount are still numeric(16, 2), so a currency with more than two decimals is rounded right and stored short until they are widened. |
 | `active` | `boolean` | not null |
 
 Constraints:
@@ -787,7 +787,7 @@ Document lines in a table, not JSON: EN 16931 needs a VAT category per line and 
 | `account_id` | `uuid` |  |
 | `vat_category` | `character(2)` |  |
 | `vat_rate` | `numeric(7,4)` |  |
-| `amount_untaxed` | `numeric(16,2)` | generated — quantity x unit_price less the discount, rounded to two decimals once. |
+| `amount_untaxed` | `numeric(16,2)` | quantity x unit_price less the discount, rounded once at the decimals of the document's currency. Written by a trigger on every insert and update, so it is derived and never keyed in. |
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
 | `product_id` | `uuid` | The catalogue row this line was filled in from, when there was one. Nullable for ever: free text is how most invoices are written. |
@@ -1503,7 +1503,8 @@ Constraints:
 |---|---|
 | `accept_invitation(p_token text)` | Turns an invitation into a membership for the signed-in user, whose address has to be the one invited. Single use, and refused once expired. |
 | `account_id_by_code(p_company_id uuid, p_code text)` | Account of a company by its code, or NULL. |
-| `aged_balance(p_company_id uuid, p_at date, p_group text)` | Ageing of what is still open, read from the ledger and from the matching. Two groups, receivable and payable; anything else is refused by name rather than reported as receivable. |
+| `aged_balance(p_company_id uuid, p_at date, p_group text)` | Ageing of what is still open, read from the ledger and from the matching, written at the decimals of the company's currency. Two groups, receivable and payable; anything else is refused by name. |
+| `amount_text_format(p_rounding money_rounding)` | The to_char mask an amount of this currency is written with. Two decimals for the euro, none for the yen, three for the dinar. |
 | `assert_period_open(p_company_id uuid, p_date date, p_is_tax boolean)` | Raises when a date is protected by a lock date or a closed fiscal year. |
 | `audit_changes()` | The generic audit trigger. One jsonb argument names the company column, the natural key, the columns to redact and the acts an insert or a delete stands for. |
 | `audit_entry_posting()` | Records that an entry was posted, cancelled, or posted as the reversal of another. The lines themselves are not audited: a posted entry is immutable and is corrected by a reversal. |
@@ -1522,15 +1523,17 @@ Constraints:
 | `create_company(p_name text, p_country character, p_currency_code character, p_language character, p_chart_code text, p_fiscal_year integer, p_fiscal_year_start date, p_owner_user_id uuid)` | Creates a company, makes the caller its first member, copies the country pack into it and opens its first financial year on the month that pack declares. An instance-level act, like the policy on companies. |
 | `currency_of_bank_account()` | Fills a statement line's currency_code from its bank account, and from the company as a last resort. |
 | `currency_of_company()` | Fills currency_code from the company when the caller named none. The one place the question is answered for a table that belongs to a company. |
+| `currency_unit(p_rounding money_rounding)` | The smallest amount a currency has: a cent in the euro, a yen in the yen. A tolerance is written as a fraction of this rather than as a fraction of a cent. |
 | `current_api_key()` | The key presented in this transaction, or nothing. What a client reads back to know what it may do. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. Needs company.write. |
+| `document_lines_amount_untaxed()` | Derives a line's amount from its quantity, price and discount, rounded once at the decimals of the document's currency. What the generated column used to do, minus the assumption that every currency has cents. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `enable_module(p_company_id uuid, p_code text, p_settings jsonb)` | Enables a module on a company, and updates its settings when it is already enabled. Needs company.write, checked here because the table has no write policy. |
 | `entries_guard_kind()` | Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on. |
 | `entries_guard_module()` | Keeps the module tag of an entry honest: a module the company holds, never posted on insert, never moved afterwards. |
-| `evaluate_totals(p_values jsonb, p_formulas jsonb, p_keep_zero boolean)` | Works out the plus/minus totals of a declaration form or of a financial statement, in the order they depend on each other. The one place that calculation lives: vat_return() and financial_statement() both call it. |
+| `evaluate_totals(p_values jsonb, p_formulas jsonb, p_rounding money_rounding, p_keep_zero boolean)` | Works out the totals of a declaration form or a statement from the figures below them, rounding each at the decimals of the currency it is stated in. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period: the opening balances of the financial year first, computed and never posted, then its movements in chronological order. The entries the close wrote are left out — the file carries the income statement in its ordinary lines, and the result reaches the balance sheet in the opening lines of the year that follows. |
 | `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
 | `fiscal_year_at(p_company_id uuid, p_date date)` | Fiscal year covering a date, or NULL. |
@@ -1572,10 +1575,12 @@ Constraints:
 | `register_instance(p_contact_email text)` | Opt-in: records an address and a date so Ekwo can reach the operator. Never required, and reversible with unregister_instance(). |
 | `reopen_fiscal_year(p_fiscal_year_id uuid)` | Undoes a close: reverses the appropriation and closing entries it wrote and clears is_closed. Refused once a later year is closed or holds entries of its own. |
 | `resolve_counterpart_account(p_company_id uuid, p_contact_id uuid, p_is_sale boolean)` | Third-party account by role: contact override first, company default second. Never by code prefix. |
-| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
+| `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_account_id uuid)` | Account of a document line: the line, then the company default, then the country model. Never a code prefix. |
 | `revoke_api_key(p_api_key_id uuid)` | Withdraws a key. There is no un-withdraw: a secret that has been out of the building is issued again, not brought back. |
 | `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
+| `round_amount(p_amount numeric, p_rounding money_rounding)` | Rounds an amount at the decimals of its currency, by the method of its country. The only function of the schema that names a rounding method; every other one asks rounding_of() and passes the answer here. |
+| `rounding_of(p_company_id uuid, p_currency_code text)` | How this company writes an amount in this currency, or in its own when none is named. The only place currencies.decimal_places and country_defaults.rounding_method are read. |
 | `set_preferences(p_patch jsonb)` | Writes the signed-in user's preferences. A key that is present is written, null included; a key that is absent is left alone; a key nobody declared is refused. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
@@ -1759,7 +1764,7 @@ Constraints:
 | `create_asset(p_company_id uuid, p_code text, p_name text, p_acquisition_date date, p_cost numeric, p_asset_account text, p_depreciation_account text, p_expense_account text, p_category_code text, p_duration_months integer, p_method assets.depreciation_method, p_coefficient numeric, p_residual_value numeric, p_in_service_date date, p_document_line_id uuid, p_contact_id uuid, p_description text)` | Creates an asset and its schedule in one call. A category of the country pack fills in the method, the duration and the coefficient; anything the caller passes wins over it. |
 | `days360(p_from date, p_to date)` | Days between two dates on a year of 360 days and months of 30, the day capped at the 30th. Half-open: days360(1 January, 1 January of the next year) is 360. |
 | `dispose_asset(p_asset_id uuid, p_date date, p_proceeds numeric, p_counterpart_account text, p_contact_id uuid)` | Takes an asset off the books on a date: clears its cost and its accumulated depreciation, books the proceeds, and presents the result the way the country's pack says — one gain or loss line, or the value and the proceeds in full. |
-| `generate_schedule(p_asset_id uuid)` | Writes the depreciation schedule of an asset, period by period, rounded to the cent with the last line taking the remainder. Refuses to rewrite a schedule whose lines are already booked. |
+| `generate_schedule(p_asset_id uuid)` | Writes the depreciation schedule of an asset, period by period, rounded at the decimals of the company's currency with the last line taking the remainder. Refuses to rewrite a schedule whose lines are already booked. |
 | `movements(p_company_id uuid, p_from date, p_to date)` | What came in, what was written off and what went out between two dates, per asset — the movement table an annual account asks for beside the register. |
 | `prorata_fraction(p_rule assets.prorata_rule, p_day_count assets.day_count, p_start date, p_period_start date, p_period_end date)` | The share of a period that runs from the day an asset entered service. A prorata in days counts the day of entry into service itself, which is the convention that makes a full year come to exactly one. |
 | `register(p_company_id uuid, p_at date)` | The table of fixed assets at a date: what each one cost, what has been written off it, and what is left. Reads what has been booked, so it ties to the ledger. |
@@ -1825,7 +1830,7 @@ Constraints:
 
 | Function | Purpose |
 |---|---|
-| `variance(p_company_id uuid, p_budget_id uuid, p_from date, p_to date)` | Budget against ledger, per account, over a period. Both figures are in the sign a business states them in — an income account's credit balance is flipped — and the variance is the actual less the plan. Reads posted entries of kind `normal` only: a closing or appropriation entry is not what a period earned. |
+| `variance(p_company_id uuid, p_budget_id uuid, p_from date, p_to date)` | Budget against ledger, per account, over a period, at the decimals of the company's currency. Both figures are in the sign a business states them in — an income account's credit balance is flipped — and the variance is the actual less the plan. Reads posted entries of kind `normal` only: a closing or appropriation entry is not what a period earned. |
 
 ---
 

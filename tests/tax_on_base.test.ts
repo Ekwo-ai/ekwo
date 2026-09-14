@@ -469,14 +469,23 @@ describe('no country decided anywhere but in a pack', () => {
 
   it('reads the rounding rule of a company from its country model and nowhere else', async () => {
     // Nothing in the core may answer "how does this company round" without
-    // going through `country_defaults`. Proving the negative: no function of
-    // the schema mentions a rounding method at all yet — cash-basis VAT and the first
-    // country that rounds differently will be the ones to read the column.
-    const guilty = await rows<{ proname: string }>(
+    // going through `country_defaults`. Since the rounding reads the currency,
+    // exactly one function names a method — the arithmetic that switches on
+    // it — and exactly one reads the column. A third name in either list is a
+    // second answer to a question that has one.
+    const naming = await rows<{ proname: string }>(
       db,
       `select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
         where n.nspname = 'public' and p.prosrc ~ 'half_up|half_even' order by 1`,
     );
-    expect(guilty.map((r) => r.proname)).toEqual([]);
+    expect(naming.map((r) => r.proname)).toEqual(['round_amount']);
+
+    const reading = await rows<{ proname: string }>(
+      db,
+      `select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+        where n.nspname in ('public', 'assets', 'budgets')
+          and p.prosrc ~ 'decimal_places|\\.rounding_method' order by 1`,
+    );
+    expect(reading.map((r) => r.proname)).toEqual(['rounding_of']);
   });
 });

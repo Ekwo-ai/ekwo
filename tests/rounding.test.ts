@@ -12,7 +12,9 @@
  * A format brick may not import the core or another brick, so the rule cannot
  * be shared as code. It is duplicated, and this file is what keeps the copies
  * honest: the same vector is run through all three, and the three source
- * files are compared byte for byte.
+ * files are compared byte for byte. The vector itself lives in
+ * `helpers/rounding-vector.ts`, because `currency_rounding.test.ts` runs the
+ * same one through the SQL function and compares the two answers.
  */
 
 import { readFile } from 'node:fs/promises';
@@ -24,42 +26,12 @@ import { roundCurrency as mcp } from '../packages/mcp/src/rounding.js';
 import { money } from '../packages/mcp/src/format.js';
 import { round2 } from '../packages/formats/factur-x/src/totals.js';
 import { repoRoot } from './helpers/db.js';
+import { ROUNDING_VECTOR } from './helpers/rounding-vector.js';
 
 const COPIES = [
   'packages/formats/factur-x/src/rounding.ts',
   'packages/formats/xbrl-cbso/src/rounding.ts',
   'packages/mcp/src/rounding.ts',
-];
-
-/**
- * The vector. Half up, on the absolute value, at the named decimals — so the
- * rounding of -x is the rounding of x with the sign put back, always.
- */
-const VECTOR: [number, number, number][] = [
-  [0, 2, 0],
-  [1.005, 2, 1.01],
-  [-1.005, 2, -1.01],
-  [2.675, 2, 2.68],
-  [-2.675, 2, -2.68],
-  [0.125, 2, 0.13],
-  [-0.125, 2, -0.13],
-  [1.0049, 2, 1.0],
-  [-1.0049, 2, -1.0],
-  [1234.567, 2, 1234.57],
-  [-1234.567, 2, -1234.57],
-  [1000000.005, 2, 1000000.01],
-  [0.005, 2, 0.01],
-  [-0.005, 2, -0.01],
-  [0.004, 2, 0],
-  [-0.004, 2, 0],
-  [1.5, 0, 2],
-  [-1.5, 0, -2],
-  [2.5, 0, 3],
-  [-2.5, 0, -3],
-  [1.23456, 4, 1.2346],
-  [-1.23456, 4, -1.2346],
-  [19.99, 2, 19.99],
-  [-19.99, 2, -19.99],
 ];
 
 describe('the one rounding rule', () => {
@@ -69,14 +41,14 @@ describe('the one rounding rule', () => {
     ['mcp', mcp],
   ] as const) {
     it(`is the same in ${name}`, () => {
-      for (const [value, decimals, expected] of VECTOR) {
-        expect(round(value, decimals), `${value} at ${decimals}`).toBe(expected);
+      for (const { value, decimals, expected, text } of ROUNDING_VECTOR) {
+        expect(round(value, decimals), `${text} at ${decimals}`).toBe(expected);
       }
     });
   }
 
   it('is symmetric: the rounding of -x is the rounding of x, signed back', () => {
-    for (const [value, decimals] of VECTOR) {
+    for (const { value, decimals } of ROUNDING_VECTOR) {
       expect(facturx(-value, decimals)).toBe(-facturx(value, decimals) + 0);
     }
   });

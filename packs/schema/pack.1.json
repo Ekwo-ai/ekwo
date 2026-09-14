@@ -91,7 +91,7 @@
       "properties": {
         "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
         "language": { "$ref": "#/$defs/language", "description": "Language a company of this country is installed in unless it asks for another." },
-        "rounding_method": { "enum": ["half_up", "half_even", "down", "up"], "description": "How this country rounds a tax amount. half_up is half away from zero, which is what every posting does today. Defaults to half_up." },
+        "rounding_method": { "enum": ["half_up", "half_even", "down", "up"], "description": "How this country rounds an amount, at the decimals of its currency. half_up is half away from zero, applied to the absolute value. Read by rounding_of() and applied by round_amount(). Defaults to half_up." },
         "cash_rounding_unit": { "type": ["number", "null"], "minimum": 0, "description": "Smallest coin when it is not the cent: 0.05 in Switzerland. Null, like 0, means the cent is the unit." },
         "opening_entry_label": {
           "type": ["string", "null"],

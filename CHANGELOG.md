@@ -56,6 +56,38 @@ somewhere has already run it.
   forward only and there is no `down`.
   **`read_audit_log`** is the MCP tool for it — filters on table, natural key,
   user, act, operation and date range — and there is no tool that writes it.
+- **An amount is rounded at the decimals of its currency, by the method of its
+  country.** `currencies.decimal_places` and `country_defaults.rounding_method`
+  were filled by every pack and read by nothing: every rounding in the schema
+  was `round(x, 2)`, fifty-one times, in eighteen functions, a view and a
+  generated column. Two decimals is right for the euro and wrong for the yen,
+  which has none, and for the dinar, which has three.
+  **`round_amount(amount, rounding_of(company, currency))` is the one path.**
+  `money_rounding` is the pair the two columns answer, `round_amount` the
+  arithmetic and the only function that names a rounding method — half up, half
+  even, down, up, all on the absolute value, so a credit note is its invoice
+  with the sign flipped — and `rounding_of` the only reader of the two columns.
+  A currency, a company or a country it cannot resolve is refused by name.
+  Every ledger-affecting rounding of the socle and of the `assets` and
+  `budgets` modules goes through it, including `post_document`, `post_payment`,
+  `reconcile`, `settle_cash_basis_tax`, `close_fiscal_year`, `vat_return`,
+  `financial_statement`, `fec_lines` and the depreciation schedule.
+  A function that handles two currencies resolves two: a document is stated in
+  its own and the ledger keeps the company's.
+  **`document_lines.amount_untaxed` is now written by a trigger** rather than
+  generated, because a generated column may not look up the currency of its
+  document. It is still derived and still cannot be keyed in.
+  **The tolerances are fractions of a unit**, through `currency_unit()`, where
+  they used to be fractions of a cent.
+  **`evaluate_totals` takes the rounding as an argument** and its three-argument
+  form is gone; it is immutable and looks nothing up.
+  **CI refuses a new one.** `npm run check:rounding` reads every migration
+  written since, and a test asks the catalogue whether any live function, view
+  or generated column still rounds to a number written down.
+  What is not done, and is named in `docs/decisions.md`: the monetary columns
+  are still `numeric(16, 2)`, so a currency with more than two decimals is
+  rounded right and stored short.
+
 - **Every label a user reads, in every language the country pack publishes.**
   The schema was bilingual in shape and monolingual in fact: `name_i18n` sat on
   the chart of accounts, the declaration boxes and the statement lines, and all
