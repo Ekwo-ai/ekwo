@@ -427,3 +427,18 @@ export const RECONCILIATION = [
   'fx_entry_id',
   'tax_transfer_entry_id',
 ];
+
+export const AUDIT_LOG = [
+  'id',
+  'occurred_at::text',
+  'actor_id',
+  'api_key_id',
+  'company_id',
+  'table_name',
+  'record_id',
+  'record_key',
+  'operation',
+  'action',
+  'old_values',
+  'new_values',
+];

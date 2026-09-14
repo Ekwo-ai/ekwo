@@ -44,6 +44,7 @@ export async function doctor(db: SqlClient, migrations: Migration[]): Promise<Do
   checks.push(await checkBankAccounts(db));
   checks.push(await checkStatements(db));
   checks.push(await checkPostedEntriesBalance(db));
+  checks.push(await checkAuditTrail(db));
 
   return {
     checks,
@@ -266,5 +267,91 @@ async function checkPostedEntriesBalance(db: SqlClient): Promise<Check> {
     severity: 'problem',
     summary: `${rows.length} posted entry/entries do not balance`,
     details: rows.map((r) => `${r.number ?? '(no number)'} on ${r.entry_date}`),
+  };
+}
+
+/**
+ * The audit trail still being what it claims to be.
+ *
+ * Everything here is read from the catalogue rather than from a list kept by
+ * hand: the trail is append-only, so the guard trigger has to be on the table
+ * and no policy may let a client write, update or delete a row. A migration
+ * added later that put an insert policy on `audit_log` "so the application can
+ * log too" would break the one property the table exists for, and nothing else
+ * would notice.
+ */
+async function checkAuditTrail(db: SqlClient): Promise<Check> {
+  const installed =
+    (await scalar<boolean>(
+      db,
+      `select exists (
+         select 1 from information_schema.tables
+          where table_schema = 'public' and table_name = 'audit_log'
+       )`,
+    )) === true;
+  if (!installed) {
+    return {
+      name: 'audit trail',
+      severity: 'problem',
+      summary: 'audit_log is not there',
+      details: ['The migration that creates it has not been applied. Run `ekwo migrate`.'],
+    };
+  }
+
+  const faults: string[] = [];
+
+  const guarded = await db.query<{ tgname: string }>(
+    `select t.tgname from pg_trigger t
+       join pg_class c on c.oid = t.tgrelid
+      where c.relname = 'audit_log' and not t.tgisinternal`,
+  );
+  if (guarded.length === 0) {
+    faults.push('no trigger on audit_log: nothing refuses an update or a delete on it any more');
+  }
+
+  const rls =
+    (await scalar<boolean>(
+      db,
+      `select relrowsecurity from pg_class where relname = 'audit_log' and relnamespace = 'public'::regnamespace`,
+    )) === true;
+  if (!rls) faults.push('row level security is off on audit_log: every signed-in user reads every company');
+
+  const writable = await db.query<{ polname: string; cmd: string }>(
+    `select p.polname, case p.polcmd
+              when 'a' then 'insert' when 'w' then 'update'
+              when 'd' then 'delete' when '*' then 'all' else 'select' end as cmd
+       from pg_policy p
+       join pg_class c on c.oid = p.polrelid
+      where c.relname = 'audit_log' and p.polcmd <> 'r'`,
+  );
+  for (const policy of writable) {
+    faults.push(`policy ${policy.polname} allows ${policy.cmd} on audit_log, which is append-only`);
+  }
+
+  const purgers = await db.query<{ grantee: string }>(
+    `select a.grantee from (
+       select (aclexplode(p.proacl)).grantee as grantee
+         from pg_proc p
+        where p.proname = 'purge_audit_log'
+     ) a
+     where a.grantee <> 0 and pg_get_userbyid(a.grantee) not in ('service_role', current_user)`,
+  );
+  for (const grant of purgers) {
+    faults.push(`purge_audit_log is executable by a role other than service_role (${grant.grantee})`);
+  }
+
+  if (faults.length === 0) {
+    const rows = await scalar<string>(db, 'select count(*)::text from audit_log');
+    return {
+      name: 'audit trail',
+      severity: 'ok',
+      summary: `append-only, ${rows ?? '0'} row(s) recorded`,
+    };
+  }
+  return {
+    name: 'audit trail',
+    severity: 'problem',
+    summary: `${faults.length} thing(s) the audit trail no longer guarantees`,
+    details: faults,
   };
 }

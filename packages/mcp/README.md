@@ -115,6 +115,7 @@ Every write names its company explicitly.
 | `vat_return` | The boxes for a period, summed from the ledger |
 | `list_statements` / `financial_statement` | The schemes a company can be presented on, and one statement |
 | `generate_fec` | The French FEC as text, with its checks and its filename |
+| `read_audit_log` | Who changed what and when: the configuration of a company, and the acts that change a state. Append-only; nothing writes it |
 | `get_preferences` | What you prefer, and the language chain to read labels with |
 | `list_invitations` | Who has been invited into a company and not yet joined |
 | `list_api_keys` | The machine keys of a company, and what each may do |

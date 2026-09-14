@@ -104,6 +104,7 @@ describe('doctor', () => {
       'bank accounts',
       'bank statements',
       'posted entries',
+      'audit trail',
     ]);
   });
 

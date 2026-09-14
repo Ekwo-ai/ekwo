@@ -917,3 +917,71 @@ export async function status(backend: Backend): Promise<unknown> {
 
 /** Re-exported so the write tools can format the same way. */
 export { money };
+
+// ---------------------------------------------------------------------------
+// The audit trail
+// ---------------------------------------------------------------------------
+
+export const ReadAuditLogInput = z.object({
+  company_id: companyId,
+  table: z
+    .string()
+    .optional()
+    .describe(
+      'One table of the schema: accounts, journals, taxes, tax_postings, contacts, products, bank_accounts, companies, fiscal_years, company_members, company_packs, api_keys, documents, payments, entries, reconciliations.',
+    ),
+  record_key: z
+    .string()
+    .optional()
+    .describe('The natural key of one row — an account code, a tax code, an invoice number.'),
+  actor_id: uuid.optional().describe('Only what this user changed. Their auth.users id.'),
+  action: z
+    .string()
+    .optional()
+    .describe(
+      'One act: document_posted, document_cancelled, entry_posted, entry_reversed, payment_posted, payment_reconciled, payment_unreconciled, fiscal_year_closed, fiscal_year_reopened, pack_upgraded.',
+    ),
+  operation: z.enum(['insert', 'update', 'delete']).optional(),
+  from: isoDate.optional().describe('Earliest date, inclusive.'),
+  to: isoDate.optional().describe('Latest date, inclusive — the whole of that day.'),
+  limit: z.number().int().min(1).max(200).optional(),
+});
+
+export async function readAuditLog(
+  backend: Backend,
+  args: z.infer<typeof ReadAuditLogInput>,
+): Promise<unknown> {
+  const where: Filter[] = [{ column: 'company_id', op: 'eq', value: args.company_id }];
+  if (args.table !== undefined) where.push({ column: 'table_name', op: 'eq', value: args.table });
+  if (args.record_key !== undefined) where.push({ column: 'record_key', op: 'eq', value: args.record_key });
+  if (args.actor_id !== undefined) where.push({ column: 'actor_id', op: 'eq', value: args.actor_id });
+  if (args.action !== undefined) where.push({ column: 'action', op: 'eq', value: args.action });
+  if (args.operation !== undefined) where.push({ column: 'operation', op: 'eq', value: args.operation });
+  if (args.from !== undefined) where.push({ column: 'occurred_at', op: 'gte', value: args.from });
+  // A date names a day, not the instant it begins: `to: 2026-06-15` has to
+  // include everything that happened that afternoon.
+  if (args.to !== undefined) {
+    where.push({ column: 'occurred_at', op: 'lt', value: nextDay(args.to) });
+  }
+
+  const entries = await backend.select<Row>({
+    table: 'audit_log',
+    columns: columns.AUDIT_LOG,
+    where,
+    order: [{ column: 'occurred_at', ascending: false }, { column: 'id', ascending: false }],
+    limit: args.limit ?? 50,
+  });
+
+  return {
+    changes: entries,
+    count: entries.length,
+    note: 'Append-only. Nothing writes this trail but the database itself, and nothing removes a row from it.',
+  };
+}
+
+/** The day after an ISO date, so a range on a timestamp can end on a day. */
+function nextDay(date: string): string {
+  const day = new Date(`${date}T00:00:00Z`);
+  day.setUTCDate(day.getUTCDate() + 1);
+  return day.toISOString().slice(0, 10);
+}

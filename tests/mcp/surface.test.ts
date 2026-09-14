@@ -37,6 +37,7 @@ const READ_TOOLS = [
   'list_statements',
   'financial_statement',
   'generate_fec',
+  'read_audit_log',
   'status',
 ];
 

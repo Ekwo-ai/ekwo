@@ -287,6 +287,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
     async () => guard(() => read.status(backend)),
   );
 
+  server.registerTool(
+    'read_audit_log',
+    {
+      title: 'Audit trail',
+      description:
+        "Who changed what, and when. Every change to the configuration and reference data of a company — the chart of accounts, the journals, the taxes and the accounts they post to, the bank accounts, the contacts, the products, the financial years, the members and their roles, the country pack version — and every act that changes a state: a document posted or cancelled, an entry posted or reversed, a payment booked, matched or unmatched, a financial year closed or reopened. Filter by table, by natural key, by user, by act, or by date range. The ledger itself is not in here: a posted entry is immutable and is corrected by a reversal, so what is recorded is the act of posting and never the lines. Read-only, and there is no tool that writes it: the trail is append-only and even the operator cannot edit a row.",
+      inputSchema: read.ReadAuditLogInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.readAuditLog(backend, args)),
+  );
+
   // ------------------------------------------------------------------- write
 
   server.registerTool(
