@@ -111,7 +111,7 @@ instead if the account already exists, and no key is needed.
 | `ekwo init` | The whole installation, interactive or not. |
 | `ekwo migrate` | Applies the migrations this release adds, after showing the gap — the socle's, then the modules'. Re-applies the reference seeds, which are idempotent. `--no-modules` leaves the modules alone. |
 | `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, the country packs it holds and, per company, the pack version it copied. Exits 1 when something is pending. |
-| `ekwo doctor` | Row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
+| `ekwo doctor` | Every object this release defines, against what the database holds; row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
 | `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
@@ -149,6 +149,49 @@ or `[api] schemas` in `supabase/config.toml`.
 **Before `supabase db push`**, run `ekwo migrate --no-modules`. The Supabase
 CLI knows the socle's migration files and not a module's, so it would report
 them as history it has no file for.
+
+## `ekwo doctor`
+
+What a healthy installation is true of, and nothing in the schema can enforce
+on its own. It reads and reports; it never repairs, because the fix for a
+missing policy is a migration and the fix for an orphaned membership is a
+decision about who should have access.
+
+```sh
+ekwo doctor --db-url "$URL"          # readable
+ekwo doctor --db-url "$URL" --json   # the whole report, findings included
+```
+
+**The catalogue check compares your database to an inventory of everything
+this release defines** — tables and their columns, views, functions with their
+signature, policies, triggers and types. That inventory is
+`expected-objects.json`, generated from the migrations themselves and shipped
+inside this package, so it cannot be a list somebody forgot to update. Three
+outcomes, and they are not the same thing:
+
+| Finding | What it means | Severity |
+|---|---|---|
+| Missing | The installation is behind or has been damaged. | Problem |
+| Extra | Your own table, function or trigger. Reported so you know it is there. | Information |
+| Extra or missing **policy** on a table of this schema | Row level security is the security model. A policy that is gone closes everything; one that was added is a grant nobody reviewed. | Problem |
+| A column whose type has moved | The schema was patched by hand. | Problem |
+
+A module's objects are required only of a database that carries the module.
+One you never installed is named and skipped.
+
+**A database older than this CLI is still compared.** The report says which
+schema version the inventory describes and which one the database reports, and
+goes on to list what differs — refusing to look would be refusing the case the
+check exists for.
+
+**Exit codes.** `0` when there is no problem, warnings and information
+included; `1` when there is at least one problem, or when the schema is not
+installed at all. Nothing else. So `ekwo doctor` is usable as a deployment
+gate, and an operator's own extra table never turns a pipeline red.
+
+In a checkout, `npm run inventory` regenerates the inventory from the
+migrations; the CI regenerates it and fails on any difference, the way it does
+for `docs/schema.md`.
 
 ## `ekwo pack`, in a checkout
 

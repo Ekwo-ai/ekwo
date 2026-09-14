@@ -2488,3 +2488,70 @@ same history; `status` and `doctor` computed their gap against the socle alone
 and read the eight module versions as history they had no file for. One command
 after another, on the same database, the two disagreed. All three build the
 same set now.
+
+## `ekwo doctor` knows what a release defines (14 September 2026)
+
+The change of 13 September gave the doctor one catalogue check — whether the
+audit trail is still append-only — and left the rest for its own change, with
+the reason written down: *"an inventory of every table, column and function
+this release defines is a generated artefact like `docs/schema.md`, not a list
+kept by hand in the CLI"*. This is that change.
+
+**The inventory is generated, committed and shipped.**
+`scripts/generate-expected-objects.mjs` applies the migrations under PGlite —
+the same way `scripts/generate-schema-doc.mjs` does — and writes
+`packages/cli/assets/expected-objects.json`: per schema, the tables and their
+columns, the views, the functions with their identity arguments, the policies,
+the triggers and the types. `copy-assets.mjs` puts it in `dist/assets` so it
+travels with `npx ekwo`, and two CI jobs hold it in place: one regenerates it
+and fails on any difference, one diffs the shipped copy against the repository's.
+A list typed out by a human is wrong the first time somebody adds a table and
+forgets the list, and then it lies in both directions at once.
+
+**Everything sorts on a key, and `oid` is never one.** A name, or a name and a
+signature; columns by name rather than by `attnum`. `oid` is an allocation
+order, not an order anybody chose, so it belongs nowhere except as a tiebreaker
+between two objects that a human would call the same name — which is exactly
+what `docs/schema.md` needed and did not have: its function table was ordered
+by `proname` alone, and the two `resolve_line_account` overloads sat in
+whatever order the rows came off the heap. It now orders by `proname, oid` and
+the two overloads swapped places once, for good. The inventory does not use
+that tiebreaker at all: it keys a function on its name **and** its identity
+arguments, which is what makes an overload a different function in the first
+place, so it needs no tiebreaker and cannot be moved by one.
+
+**Missing, extra and a policy are three different answers.** Something missing
+means the installation is behind or has been damaged, and that is a problem.
+Something extra means an operator added their own table or their own function,
+which is their business and is reported as information — a doctor that failed
+on it would be a doctor telling people not to use their own database. A
+**policy** is the exception in both directions: row level security is the whole
+security model here, so a policy that is gone closes a table to everyone and a
+policy that was added is a grant nobody reviewed. Both are problems. A column
+whose type has moved is a problem too, and is reported as changed rather than
+as missing, because "missing" would send the operator looking for a migration
+that did land.
+
+**The exit code says one thing.** `0` when nothing is a problem, information and
+warnings included; `1` on the first problem. That is what makes `ekwo doctor`
+usable as a deployment gate, and what keeps an operator's extra table from
+turning a pipeline red.
+
+**A module is required of a database that carries it, and of no other.** The
+inventory holds a section per module, and the comparison asks `public.modules`
+what this installation actually holds. A module whose migrations never ran is
+named and skipped rather than reported as two hundred missing objects. Whether
+a *company* has enabled the module is a different question with a different
+table, and it changes nothing about what the schema must contain.
+
+**A database older than the CLI is compared anyway.** The report names the
+version the inventory describes and the version the database reports, and then
+lists what differs. Gating on the version would refuse precisely the
+installation somebody runs the doctor on.
+
+**What is left out.** Constraints, indexes, grants and function bodies. A
+dropped unique index is real damage and this will not see it; the inventory
+answers "is it there and is it still that shape", and the three of them are
+each an order of magnitude more text for a diff that would move on every
+Postgres upgrade. `docs/schema.md` carries the constraints for a human reader
+today, and an inventory that nobody reads the diff of is worth nothing.

@@ -7,6 +7,10 @@
  * has to travel inside the tarball. This runs at build time and is the only
  * thing that puts files under `dist/assets`.
  *
+ * `packages/cli/assets/` travels too: it holds `expected-objects.json`, the
+ * inventory of everything a release defines, which `ekwo doctor` compares a
+ * live database against.
+ *
  * `supabase/seed` is copied whole, subdirectories included: `seed/modules/<code>/`
  * holds the country data a module's pack section compiles to, and it is applied
  * by the module migration runner rather than by the socle's seed step, which
@@ -27,6 +31,9 @@ const repoRoot = dirname(dirname(packageRoot));
 
 /** The folders that ship, and where they come from. */
 export const ASSET_FOLDERS = ['migrations', 'seed'];
+
+/** Files of `packages/cli/assets/` that ship as they are. */
+export const INVENTORY_FILES = ['expected-objects.json'];
 
 /** Every `.sql` under `from`, recursively, written under `to`. */
 async function copySql(from, to, prefix, copied) {
@@ -75,6 +82,14 @@ export async function copyAssets(destination) {
   await mkdir(join(target, 'modules', 'schema'), { recursive: true });
   await cp(join(modulesFrom, 'schema', 'module.1.json'), join(target, 'modules', 'schema', 'module.1.json'));
   copied.push('modules/schema/module.1.json');
+
+  // The inventory `ekwo doctor` compares against. Generated from the
+  // migrations by `scripts/generate-expected-objects.mjs` and committed, so
+  // what ships is the same file the repository holds and the CI says so.
+  for (const name of INVENTORY_FILES) {
+    await cp(join(packageRoot, 'assets', name), join(target, name));
+    copied.push(name);
+  }
 
   return copied;
 }

@@ -65,6 +65,15 @@ describe('the assets copied into the package', () => {
     expect(await sqlFiles(join(temp, 'seed'))).toContain(DEMO_SEED);
   });
 
+  it('carry the inventory the doctor compares a database against, byte for byte', async () => {
+    temp = await mkdtemp(join(tmpdir(), 'ekwo-assets-'));
+    const copied = await copyAssets(temp);
+
+    expect(copied).toContain('expected-objects.json');
+    const source = join(repoRoot, 'packages', 'cli', 'assets', 'expected-objects.json');
+    expect(await digest(join(temp, 'expected-objects.json'))).toBe(await digest(source));
+  });
+
   it('contain nothing from ee/', async () => {
     temp = await mkdtemp(join(tmpdir(), 'ekwo-assets-'));
     const copied = await copyAssets(temp);

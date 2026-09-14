@@ -35,6 +35,11 @@ jobs:
         run: |
           diff -r --exclude='*.md' supabase/migrations packages/cli/dist/assets/migrations
           diff -r --exclude='*.md' supabase/seed packages/cli/dist/assets/seed
+          # And the inventory `ekwo doctor` compares a database against. A
+          # stale copy inside the package would report objects as missing that
+          # the release never defined.
+          diff packages/cli/assets/expected-objects.json \
+               packages/cli/dist/assets/expected-objects.json
       # The modules travel with the CLI too: `ekwo migrate` applies them, and a
       # user running `npx ekwo` has no clone to read them from.
       - name: The CLI ships the modules
@@ -147,5 +152,19 @@ jobs:
             echo
             echo "docs/schema.md is not what the migrations say."
             echo "Run 'npm run docs:schema' and commit the result with your migration."
+            exit 1
+          fi
+
+      # The inventory `ekwo doctor` compares against, generated the same way
+      # and for the same reason. Everything in it sorts on a stable key, so
+      # regenerating an unchanged schema rewrites the same bytes and the diff
+      # being empty is the whole test.
+      - name: The expected objects are the output of the migrations
+        run: |
+          node scripts/generate-expected-objects.mjs
+          if ! git diff --exit-code packages/cli/assets/expected-objects.json; then
+            echo
+            echo "The inventory is not what the migrations define."
+            echo "Run 'npm run inventory' and commit the result with your migration."
             exit 1
           fi

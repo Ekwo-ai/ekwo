@@ -12,6 +12,13 @@
  * about who should have access, not a delete the installer guesses at.
  */
 
+import {
+  compareCatalogue,
+  describeDifferences,
+  readExpectedObjects,
+  type CatalogueComparison,
+  type ExpectedObjects,
+} from './inventory.js';
 import type { Migration } from './migrations.js';
 import { migrationGap } from './migrations.js';
 import type { SqlClient } from './sql.js';
@@ -25,6 +32,12 @@ export interface Check {
   summary: string;
   /** Lines of evidence, printed under the summary. */
   details?: string[];
+  /**
+   * The check's own findings, whole, for `--json`. The printed form is a
+   * summary of this and a machine reading the report should not have to parse
+   * English back into a list.
+   */
+  data?: Record<string, unknown>;
 }
 
 export interface DoctorReport {
@@ -33,10 +46,24 @@ export interface DoctorReport {
   warnings: number;
 }
 
-export async function doctor(db: SqlClient, migrations: Migration[]): Promise<DoctorReport> {
+export interface DoctorOptions {
+  /**
+   * The inventory to compare the catalogue against. Defaults to the one this
+   * CLI ships; a test passes its own to describe a schema that is not this
+   * release's.
+   */
+  expected?: ExpectedObjects;
+}
+
+export async function doctor(
+  db: SqlClient,
+  migrations: Migration[],
+  options: DoctorOptions = {},
+): Promise<DoctorReport> {
   const checks: Check[] = [];
 
   checks.push(await checkMigrations(db, migrations));
+  checks.push(await checkCatalogue(db, options.expected ?? (await readExpectedObjects())));
   checks.push(await checkRowLevelSecurity(db));
   checks.push(await checkPolicies(db));
   checks.push(await checkOrphanMembers(db));
@@ -76,6 +103,82 @@ async function checkMigrations(db: SqlClient, migrations: Migration[]): Promise<
     severity: 'ok',
     summary: `${gap.applied.length} applied, none pending`,
   };
+}
+
+/**
+ * Every object this release defines, against what the database holds.
+ *
+ * The list is generated from the migrations and ships with the CLI, so the
+ * check cannot drift: see `inventory.ts` for why missing, extra and a policy
+ * are three different severities.
+ *
+ * The two schema versions are reported and never gate the comparison. A
+ * database older than the CLI is precisely when an operator runs this, and
+ * refusing to look would be refusing the case: what it says then is which
+ * version the inventory describes, which one the database reports, and what
+ * differs between them.
+ */
+async function checkCatalogue(db: SqlClient, expected: ExpectedObjects | undefined): Promise<Check> {
+  if (expected === undefined) {
+    return {
+      name: 'catalogue',
+      severity: 'warning',
+      summary: 'this build ships no inventory, so there is nothing to compare against',
+      details: ['Run `npm run build` in a checkout, or reinstall the package.'],
+    };
+  }
+
+  const comparison = await compareCatalogue(db, expected);
+  const faults: string[] = [];
+  const information: string[] = [];
+  for (const section of comparison.sections) {
+    const lines = describeDifferences(section);
+    faults.push(...lines.faults);
+    information.push(...lines.information);
+  }
+
+  const versions =
+    comparison.databaseVersion === comparison.expectedVersion
+      ? []
+      : [
+          `the inventory describes schema ${comparison.expectedVersion ?? 'unknown'}, ` +
+            `the database reports ${comparison.databaseVersion ?? 'none'} — compared anyway`,
+        ];
+
+  const skipped = comparison.sections
+    .filter((s) => !s.installed)
+    .map((s) => `${s.code} is not installed here, so none of its objects are required`);
+
+  const data: Record<string, unknown> = { ...comparison } as unknown as Record<string, unknown>;
+
+  if (faults.length === 0) {
+    return {
+      name: 'catalogue',
+      severity: comparison.extra > 0 ? 'warning' : 'ok',
+      summary:
+        comparison.extra > 0
+          ? `everything this release defines is there, and ${comparison.extra} object(s) it does not`
+          : 'every object this release defines is there, and nothing else',
+      details: [...versions, ...skipped, ...cap(information)],
+      data,
+    };
+  }
+
+  return {
+    name: 'catalogue',
+    severity: 'problem',
+    summary:
+      `${comparison.missing} object(s) missing, ${comparison.changed} changed, ` +
+      `${comparison.extra} added`,
+    details: [...versions, ...skipped, ...cap(faults), ...cap(information)],
+    data,
+  };
+}
+
+/** Twenty lines of evidence, then a count. A doctor nobody reads is no doctor. */
+function cap(lines: string[], limit = 20): string[] {
+  if (lines.length <= limit) return lines;
+  return [...lines.slice(0, limit), `… and ${lines.length - limit} more (see --json)`];
 }
 
 async function checkRowLevelSecurity(db: SqlClient): Promise<Check> {

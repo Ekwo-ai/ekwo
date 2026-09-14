@@ -11,6 +11,30 @@ somewhere has already run it.
 
 ### Added
 
+- **`ekwo doctor` compares the database to an inventory of what the release
+  defines.**
+  The check knew how to say that a table had no policy; it could not say that a
+  table was gone. **`packages/cli/assets/expected-objects.json`** is now the
+  list of everything a release defines — tables and their columns, views,
+  functions with their signature, policies, triggers and types, per schema —
+  and it is **generated from the migrations** by
+  `scripts/generate-expected-objects.mjs`, exactly as `docs/schema.md` is, never
+  kept by hand. It ships inside the package, so `npx ekwo doctor` carries it,
+  and two CI jobs hold it there: one regenerates it and fails on a difference,
+  one diffs the shipped copy against the repository's.
+  **Missing, extra and a policy are three different answers.** Missing means the
+  installation is behind or damaged, and fails. Extra means the operator added
+  their own object, and is reported as information. A policy missing *or* added
+  on a table of this schema fails either way round, because row level security
+  is the security model. A column whose type has moved is reported as changed.
+  `ekwo doctor` still exits `1` on a problem and `0` on everything else, so it
+  stays usable as a deployment gate.
+  **A module is required of a database that carries it**, and a module whose
+  migrations never ran is named and skipped. **A database older than the CLI is
+  compared anyway**, and the report says which version each side is at.
+  `--json` carries the whole comparison, section by section. `npm run inventory`
+  regenerates the file in a checkout.
+
 - **A golden year of books per country pack, and a legal source on every tax
   and every box.**
   A pack could describe a country but could not be wrong in a way anyone would
@@ -112,6 +136,13 @@ somewhere has already run it.
   computed their gap against the socle alone, read those versions as history
   they had no file for, and told the operator to upgrade a CLI that was already
   current. All three now build the same set.
+
+- **`docs/schema.md` no longer reorders its overloads on its own.** The
+  function table was ordered by name alone, and two functions of the same name
+  were left in whatever order the rows came off `pg_proc` — so rewriting one of
+  them could move the pair in a document nobody had edited. It now orders by
+  name and `oid`, and the two `resolve_line_account` entries swapped places
+  once, for good.
 
 ## [0.2.0] — 2026-09-14
 

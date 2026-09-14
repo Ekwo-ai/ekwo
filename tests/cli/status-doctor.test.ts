@@ -123,6 +123,7 @@ describe('doctor', () => {
     expect(report.warnings, JSON.stringify(report.checks, null, 2)).toBe(0);
     expect(report.checks.map((c) => c.name)).toEqual([
       'migrations',
+      'catalogue',
       'row level security',
       'policies',
       'company members',

@@ -117,7 +117,20 @@ export {
   type Connection,
   type Probe,
 } from './connection.js';
-export { doctor, type Check, type DoctorReport, type Severity } from './doctor.js';
+export { doctor, type Check, type DoctorOptions, type DoctorReport, type Severity } from './doctor.js';
+export {
+  compareCatalogue,
+  describeDifferences,
+  readExpectedObjects,
+  resolveInventoryPath,
+  InventoryError,
+  type CatalogueComparison,
+  type CategoryDiff,
+  type ExpectedObjects,
+  type ExpectedSchema,
+  type ExpectedModule,
+  type SectionComparison,
+} from './inventory.js';
 export {
   applyMigration,
   applyMigrations,
