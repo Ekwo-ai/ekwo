@@ -40,7 +40,7 @@ afterEach(async () => {
 describe('before anything is installed', () => {
   it('knows the schema is there and which countries it ships', async () => {
     expect(await schemaIsInstalled(db)).toBe(true);
-    expect(await availableCountries(db)).toEqual(['BE', 'FR']);
+    expect(await availableCountries(db)).toEqual(['BE', 'FR', 'LU']);
   });
 
   it('offers the packs it holds, named as the pack names itself', async () => {
@@ -49,6 +49,7 @@ describe('before anything is installed', () => {
     expect(await installedPacks(db)).toEqual([
       { country: 'BE', name: 'Belgium' },
       { country: 'FR', name: 'France' },
+      { country: 'LU', name: 'Luxembourg' },
     ]);
   });
 

@@ -130,10 +130,19 @@ describe('the compiled packs against the seeds they replace', () => {
   it('add the four taxes the tax engine brought, and not a row more', async () => {
     const left = await templateRows(before);
     const right = await templateRows(after);
+    // The question is what a change to an existing country added. A country
+    // the released seeds never carried is a new pack, and every one of its
+    // rows is new: it would drown the answer rather than inform it, so the
+    // diff is taken over the countries both sides hold.
+    const known = new Set(
+      Object.values(left).flatMap((table) => (table ?? []).map((row) => row['country'] as string)),
+    );
     const added = (table: string): TemplateRow[] => {
       const key = KEYS[table]!;
       const held = new Set((left[table] ?? []).map(key));
-      return (right[table] ?? []).filter((row) => !held.has(key(row)));
+      return (right[table] ?? []).filter(
+        (row) => known.has(row['country'] as string) && !held.has(key(row)),
+      );
     };
 
     expect(added('journal_templates')).toEqual([]);
@@ -166,10 +175,11 @@ describe('the compiled packs against the seeds they replace', () => {
     const accounts = right['account_templates'] ?? [];
     expect(accounts.filter((a) => a['country'] === 'BE')).toHaveLength(353);
     expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(394);
-    expect(right['tax_templates']).toHaveLength(46);
-    expect(right['tax_posting_templates']).toHaveLength(166);
-    expect(right['journal_templates']).toHaveLength(12);
-    expect(right['country_defaults']).toHaveLength(2);
+    expect(accounts.filter((a) => a['country'] === 'LU')).toHaveLength(1026);
+    expect(right['tax_templates']).toHaveLength(81);
+    expect(right['tax_posting_templates']).toHaveLength(290);
+    expect(right['journal_templates']).toHaveLength(18);
+    expect(right['country_defaults']).toHaveLength(3);
   });
 });
 
@@ -307,9 +317,11 @@ describe('the pack format', () => {
     for (const slug of await listPacks(packs)) {
       const pack = await readPack(slug, packs);
       expect(pack.manifest.version).toMatch(/^\d+\.\d+\.\d+$/);
-      // Maintained, not certified: writing a pack and testing that it holds
-      // together is not an accountant reading it against the law.
-      expect(pack.manifest.certification?.status).toBe('maintained');
+      // Never certified: writing a pack and testing that it holds together is
+      // not an accountant reading it against the law. `maintained` is what the
+      // maintainers keep current, `community` what was contributed and nobody
+      // has read; neither names a person.
+      expect(['maintained', 'community']).toContain(pack.manifest.certification?.status);
       expect(pack.manifest.certification?.by, 'only a review names someone').toBeUndefined();
       expect((pack.manifest.certification?.sources ?? []).length).toBeGreaterThan(0);
       expect(pack.accounts.length).toBeGreaterThan(300);

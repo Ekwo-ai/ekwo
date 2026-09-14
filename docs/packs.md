@@ -158,7 +158,7 @@ nothing there to build.
 `ekwo pack list` on this repository:
 
 ```
-Packs (3)
+Packs (4)
   generic  Generic framework 1.1.1 · 2 statements · no country · certification maintained
           no golden — A framework is not a country: this pack carries statements and nothing else …
   be  Belgium 1.5.1 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
@@ -166,6 +166,8 @@ Packs (3)
           asbl — PCMN — associations et fondations, 349 accounts, generic statements only
   fr  France 1.6.1 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCG — plan comptable général, 394 accounts, FR-2050, FR-2052
+  lu  Luxembourg 1.0.0 · 1 chart(s), 1026 accounts · 35 taxes · 2 statements · fr, de, en · certification community · golden: 10 documents, 3 payments, 4 period(s)
+          default (default) — PCN — plan comptable normalisé, 1026 accounts, LU-ECDF-BS-ABR, LU-ECDF-PL-ABR
 ```
 
 The SQL is a **build artefact**, like `docs/schema.md`. The source is the
@@ -179,7 +181,7 @@ the next `pack build` overwrites it and the CI refuses it in the meantime.
 | Source | Output |
 |---|---|
 | `packs/generic/` | `supabase/seed/05_framework_generic.sql` |
-| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is 10 plus the position of the country in the sorted list of packs — `10` for `be`, `11` for `fr` |
+| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is 10 plus the position of the country in the sorted list of packs — `10` for `be`, `11` for `fr`, `12` for `lu` |
 | `packs/<cc>/assets.json`, where the pack has one | `supabase/seed/modules/assets/<n>_pack_<cc>.sql`, applied by the module migration runner and by nothing else |
 
 The compiler writes `chart_templates`, `account_templates`,

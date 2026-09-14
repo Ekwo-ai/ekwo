@@ -1,0 +1,89 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/golden",
+  "name": "Une année d'une société luxembourgeoise assujettie, déclarant par trimestre",
+  "chart": "default",
+  "fiscal_year": { "name": "Exercice 2026", "start": "2026-01-01", "end": "2026-12-31" },
+  "periods": [
+    { "code": "2026-T1", "from": "2026-01-01", "to": "2026-03-31" },
+    { "code": "2026-T2", "from": "2026-04-01", "to": "2026-06-30" },
+    { "code": "2026-T3", "from": "2026-07-01", "to": "2026-09-30" },
+    { "code": "2026-T4", "from": "2026-10-01", "to": "2026-12-31" }
+  ],
+  "statements": ["LU-ECDF-BS-ABR", "LU-ECDF-PL-ABR"],
+  "contacts": [
+    { "ref": "client-lu", "name": "Ardoisière du Mullerthal SARL", "type": "customer", "country": "LU", "vat_number": null },
+    { "ref": "client-de", "name": "Werkstatt Nordlicht GmbH", "type": "customer", "country": "DE", "vat_number": "DE999999999" },
+    { "ref": "client-ch", "name": "Atelier Léman SA", "type": "customer", "country": "CH", "vat_number": null },
+    { "ref": "fourn-lu", "name": "Papeterie Gutland SARL", "type": "supplier", "country": "LU", "vat_number": null },
+    { "ref": "fourn-nl", "name": "Kantoor Zeewind BV", "type": "supplier", "country": "NL", "vat_number": "NL999999999B01" }
+  ],
+  "documents": [
+    {
+      "ref": "V1", "type": "sale_invoice", "contact": "client-lu", "date": "2026-01-20", "due_date": "2026-02-19",
+      "why": "Une vente au taux normal. La base va en case 701 et la taxe en case 702, et la même base ressort en case 472 : le formulaire luxembourgeois compte le chiffre d'affaires une fois dans la section I et une fois dans la ventilation par taux de la section II, et le pack calcule la première à partir de la seconde.",
+      "lines": [{ "name": "Marchandises", "quantity": 10, "unit_price": 1000, "tax": "LU-S-17", "account": "7061" }]
+    },
+    {
+      "ref": "V2", "type": "sale_invoice", "contact": "client-lu", "date": "2026-02-10", "due_date": "2026-03-12",
+      "why": "Le taux intermédiaire de 14 %, cases 703 et 704. Le Luxembourg est le seul État membre à porter quatre taux positifs, et ce taux-là n'a pas d'équivalent belge ou français.",
+      "lines": [{ "name": "Vins et boissons alcooliques", "quantity": 4, "unit_price": 1000, "tax": "LU-S-14", "account": "7061" }]
+    },
+    {
+      "ref": "V3", "type": "sale_invoice", "contact": "client-lu", "date": "2026-03-16", "due_date": "2026-04-15",
+      "why": "Le taux réduit de 8 %, cases 705 et 706, sur une prestation de services : un compte de produits de la classe 70 autre que les ventes de marchandises, pour que le résultat brut ne soit pas nourri par un seul compte.",
+      "lines": [{ "name": "Travaux d'entretien", "quantity": 1, "unit_price": 2500, "tax": "LU-S-08", "account": "7033" }]
+    },
+    {
+      "ref": "V4", "type": "sale_invoice", "contact": "client-lu", "date": "2026-04-14", "due_date": "2026-05-14",
+      "why": "Le taux super-réduit de 3 %, cases 031 et 040 : deux identifiants de case qui ne suivent pas la numérotation des autres taux, et que rien dans le moteur ne doit traiter autrement.",
+      "lines": [{ "name": "Livres", "quantity": 3, "unit_price": 500, "tax": "LU-S-03", "account": "7061" }]
+    },
+    {
+      "ref": "V5", "type": "sale_credit_note", "contact": "client-lu", "date": "2026-05-18", "due_date": null,
+      "why": "Un avoir sur une vente au taux normal. La déclaration luxembourgeoise n'a pas de case pour les avoirs : elle les porte en négatif sur la case de la vente, ce que le pack écrit avec box_factor.",
+      "lines": [{ "name": "Retour de marchandises", "quantity": 1, "unit_price": 1200, "tax": "LU-S-17", "account": "7061" }]
+    },
+    {
+      "ref": "V6", "type": "sale_invoice", "contact": "client-de", "date": "2026-06-09", "due_date": "2026-07-09",
+      "why": "Une livraison intracommunautaire exonérée : une base en case 457, aucune taxe, et une ligne de plus dans le total des exonérations de la case 021.",
+      "lines": [{ "name": "Marchandises livrées en Allemagne", "quantity": 7, "unit_price": 1000, "tax": "LU-S-ICG", "account": "7061" }]
+    },
+    {
+      "ref": "V7", "type": "sale_invoice", "contact": "client-ch", "date": "2026-07-07", "due_date": "2026-08-06",
+      "why": "Une exportation hors de l'Union : case 014, pour que la case 022 — le chiffre d'affaires imposable — se distingue bien du chiffre d'affaires global de la case 012.",
+      "lines": [{ "name": "Marchandises exportées en Suisse", "quantity": 1, "unit_price": 3000, "tax": "LU-S-EXP", "account": "7061" }]
+    },
+    {
+      "ref": "A1", "type": "purchase_invoice", "contact": "fourn-lu", "date": "2026-01-28", "due_date": "2026-02-27",
+      "why": "Un achat à l'intérieur du pays : la déclaration luxembourgeoise ne demande aucune base à l'entrée, seulement la taxe déductible de la case 458.",
+      "lines": [{ "name": "Marchandises", "quantity": 1, "unit_price": 5000, "tax": "LU-P-17", "account": "6061" }]
+    },
+    {
+      "ref": "A2", "type": "purchase_invoice", "contact": "fourn-nl", "date": "2026-04-15", "due_date": "2026-05-15",
+      "why": "Une acquisition intracommunautaire de biens : la base en case 711, la taxe due en case 712 et la même taxe déduite en case 459. Les deux écritures se compensent au compte de résultat et laissent la déclaration équilibrée.",
+      "lines": [{ "name": "Marchandises acquises aux Pays-Bas", "quantity": 1, "unit_price": 3500, "tax": "LU-P-ICG-17", "account": "6061" }]
+    },
+    {
+      "ref": "A3", "type": "purchase_invoice", "contact": "fourn-nl", "date": "2026-08-11", "due_date": "2026-09-10",
+      "why": "Une prestation de services reçue d'un assujetti d'un autre État membre : le preneur est le redevable, donc la base va en case 741, la taxe due en case 742 et la déduction en case 461 — une autre section de la déclaration que les biens, et un autre article de la loi.",
+      "lines": [{ "name": "Honoraires d'audit", "quantity": 1, "unit_price": 2000, "tax": "LU-P-ICS-17", "account": "61342" }]
+    }
+  ],
+  "payments": [
+    {
+      "ref": "E1", "direction": "inbound", "date": "2026-02-25", "amount": 11700, "contact": "client-lu",
+      "journal": "BNK", "match": "V1",
+      "why": "Un encaissement qui solde exactement sa facture, taxe comprise."
+    },
+    {
+      "ref": "E2", "direction": "outbound", "date": "2026-02-20", "amount": 5850, "contact": "fourn-lu",
+      "journal": "BNK", "match": "A1",
+      "why": "Le côté fournisseur du lettrage, pour qu'il ne soit pas prouvé d'un seul côté du bilan."
+    },
+    {
+      "ref": "E3", "direction": "inbound", "date": "2026-06-30", "amount": 900, "contact": "client-lu",
+      "journal": "BNK", "match": null,
+      "why": "Un versement sans facture en face : il reste au crédit du compte client, non lettré, et c'est ce qu'un grand livre réel porte."
+    }
+  ]
+}

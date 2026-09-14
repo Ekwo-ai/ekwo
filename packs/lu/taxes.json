@@ -1,0 +1,1312 @@
+[
+  {
+    "code": "LU-S-17",
+    "name": "Vente 17 % — taux normal",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3",
+    "vat_category": "S",
+    "sequence": 10,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "701"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "702"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "701",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "702",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-17-2015",
+    "name": "Vente 17 % — taux normal",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3",
+    "vat_category": "S",
+    "sequence": 20,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "701"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "702"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "701",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "702",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-16-2023",
+    "name": "Vente 16 % — taux normal",
+    "kind": "vat",
+    "rate": 16,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023",
+    "vat_category": "S",
+    "sequence": 30,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "901"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "902"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "901",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "902",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-14",
+    "name": "Vente 14 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 14,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C",
+    "vat_category": "S",
+    "sequence": 40,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "703"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "704"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "703",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "704",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-14-2015",
+    "name": "Vente 14 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 14,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C",
+    "vat_category": "S",
+    "sequence": 50,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "703"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "704"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "703",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "704",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-13-2023",
+    "name": "Vente 13 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 13,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023",
+    "vat_category": "S",
+    "sequence": 60,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "903"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "904"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "903",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "904",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-08",
+    "name": "Vente 8 % — taux réduit",
+    "kind": "vat",
+    "rate": 8,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A",
+    "vat_category": "S",
+    "sequence": 70,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "705"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "706"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "705",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "706",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-08-2015",
+    "name": "Vente 8 % — taux réduit",
+    "kind": "vat",
+    "rate": 8,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A",
+    "vat_category": "S",
+    "sequence": 80,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "705"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "706"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "705",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "706",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-07-2023",
+    "name": "Vente 7 % — taux réduit",
+    "kind": "vat",
+    "rate": 7,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023",
+    "vat_category": "S",
+    "sequence": 90,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "905"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "906"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "905",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "906",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-03",
+    "name": "Vente 3 % — taux super-réduit",
+    "kind": "vat",
+    "rate": 3,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 2°, et annexe B",
+    "vat_category": "S",
+    "sequence": 100,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "031"
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "040"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "031",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "461411",
+          "box": "040",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-ICG",
+    "name": "Livraison intracommunautaire de biens",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_goods",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 43, par. 1er, points d), e) et f)",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
+    "sequence": 110,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "457"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "457",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-ICS",
+    "name": "Prestation de services intracommunautaire",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "intracom_services",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — le preneur est le redevable ; directive 2006/112/CE, art. 44 et 196",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 120,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "423"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "423",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-EXP",
+    "name": "Exportation hors de l’Union européenne",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "export",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 43, par. 1er, points a) et b)",
+    "vat_category": "G",
+    "exemption_code": "VATEX-EU-G",
+    "sequence": 130,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "014"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "014",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-AL",
+    "name": "Vente en autoliquidation à l’intérieur du pays",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 61, par. 2 et 3",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 140,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "419"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "419",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-S-EX44",
+    "name": "Vente exonérée (art. 44)",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "exempt",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 44",
+    "vat_category": "E",
+    "exemption_code": "VATEX-EU-132",
+    "sequence": 150,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "016"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "016",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-17",
+    "name": "Achat 17 % — taux normal",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 160,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-17-2015",
+    "name": "Achat 17 % — taux normal",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 170,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-16-2023",
+    "name": "Achat 16 % — taux normal",
+    "kind": "vat",
+    "rate": 16,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 180,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-14",
+    "name": "Achat 14 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 14,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 190,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-14-2015",
+    "name": "Achat 14 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 14,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 200,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-13-2023",
+    "name": "Achat 13 % — taux intermédiaire",
+    "kind": "vat",
+    "rate": 13,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 3°, et annexe C ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 210,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-08",
+    "name": "Achat 8 % — taux réduit",
+    "kind": "vat",
+    "rate": 8,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 220,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-08-2015",
+    "name": "Achat 8 % — taux réduit",
+    "kind": "vat",
+    "rate": 8,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 230,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-07-2023",
+    "name": "Achat 7 % — taux réduit",
+    "kind": "vat",
+    "rate": 7,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 1° a), et annexe A ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a) — droit à déduction",
+    "vat_category": "S",
+    "sequence": 240,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-03",
+    "name": "Achat 3 % — taux super-réduit",
+    "kind": "vat",
+    "rate": 3,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 40, par. 1er, 2°, et annexe B ; Loi TVA modifiée du 12 février 1979, art. 48, par. 1er, point a)",
+    "vat_category": "S",
+    "sequence": 250,
+    "postings": {
+      "invoice": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "458",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-00",
+    "name": "Achat exonéré",
+    "kind": "vat",
+    "rate": 0,
+    "scope": "purchase",
+    "treatment": "exempt",
+    "valid_from": "2015-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 44",
+    "vat_category": "E",
+    "exemption_code": "VATEX-EU-132",
+    "sequence": 260,
+    "postings": {}
+  },
+  {
+    "code": "LU-P-ICG-17",
+    "name": "Acquisition intracommunautaire de biens 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_goods",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 270,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "711"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "712"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "711",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "712",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-ICG-17-2015",
+    "name": "Acquisition intracommunautaire de biens 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_goods",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 280,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "711"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "712"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "711",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "712",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-ICG-16-2023",
+    "name": "Acquisition intracommunautaire de biens 16 %",
+    "kind": "vat",
+    "rate": 16,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_goods",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 290,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "911"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "912"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "911",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "459",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "912",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-ICS-17",
+    "name": "Acquisition intracommunautaire de services 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_services",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 300,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "741"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "742"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "741",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "742",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-ICS-17-2015",
+    "name": "Acquisition intracommunautaire de services 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_services",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 310,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "741"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "742"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "741",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "742",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-ICS-16-2023",
+    "name": "Acquisition intracommunautaire de services 16 %",
+    "kind": "vat",
+    "rate": 16,
+    "scope": "purchase",
+    "treatment": "intracom_acquisition_services",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 320,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "941"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "942"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "941",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "942",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-AL-17",
+    "name": "Achat en autoliquidation à l’intérieur du pays 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2024-01-01",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 61, par. 3 — redevable ; art. 48, par. 1er, point a)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 330,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "761"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "762"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "761",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "762",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-AL-17-2015",
+    "name": "Achat en autoliquidation à l’intérieur du pays 17 %",
+    "kind": "vat",
+    "rate": 17,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2015-01-01",
+    "valid_to": "2022-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 61, par. 3 — redevable ; art. 48, par. 1er, point a)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 340,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "761"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "762"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "761",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "762",
+          "box_factor": -100
+        }
+      ]
+    }
+  },
+  {
+    "code": "LU-P-AL-16-2023",
+    "name": "Achat en autoliquidation à l’intérieur du pays 16 %",
+    "kind": "vat",
+    "rate": 16,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2023-01-01",
+    "valid_to": "2023-12-31",
+    "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 61, par. 3 — redevable ; art. 48, par. 1er, point a)",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "sequence": 350,
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "961"
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "962"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "961",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "421611",
+          "box": "461",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "461411",
+          "box": "962",
+          "box_factor": -100
+        }
+      ]
+    }
+  }
+]

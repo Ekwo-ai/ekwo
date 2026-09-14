@@ -86,6 +86,8 @@ describe('the statements the packs carry', () => {
       { code: 'FR-2052', country: 'FR', chart_code: 'default', kind: 'income_statement', lines: 49, rules: 51 },
       { code: 'IFRS-SME-BS', country: null, chart_code: null, kind: 'balance_sheet', lines: 18, rules: 17 },
       { code: 'IFRS-SME-IS', country: null, chart_code: null, kind: 'income_statement', lines: 7, rules: 5 },
+      { code: 'LU-ECDF-BS-ABR', country: 'LU', chart_code: 'default', kind: 'balance_sheet', lines: 32, rules: 329 },
+      { code: 'LU-ECDF-PL-ABR', country: 'LU', chart_code: 'default', kind: 'income_statement', lines: 29, rules: 418 },
     ]);
   });
 

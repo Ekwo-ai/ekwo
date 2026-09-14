@@ -61,6 +61,7 @@ describe('the forms the packs carry', () => {
     expect(forms).toEqual([
       { country: 'BE', code: 'BE-VAT-PERIODIC', period: 'month_or_quarter', boxes: 31 },
       { country: 'FR', code: 'FR-CA3', period: 'month_or_quarter', boxes: 22 },
+      { country: 'LU', code: 'LU-VAT-PERIODIC', period: 'month_or_quarter', boxes: 156 },
     ]);
   });
 

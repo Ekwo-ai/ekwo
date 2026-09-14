@@ -703,6 +703,13 @@ describe('the country data', () => {
         asset_disposal_proceeds_code: '775000',
         asset_disposal_value_code: '675000',
       },
+      {
+        country: 'LU',
+        asset_disposal_gain_code: null,
+        asset_disposal_loss_code: null,
+        asset_disposal_proceeds_code: null,
+        asset_disposal_value_code: null,
+      },
     ]);
   });
 });

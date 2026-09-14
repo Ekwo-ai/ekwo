@@ -715,6 +715,7 @@ describe('the packs', () => {
     expect(defaults).toEqual([
       { country: 'BE', fx_gain_code: '754000', fx_loss_code: '654000' },
       { country: 'FR', fx_gain_code: '766000', fx_loss_code: '666000' },
+      { country: 'LU', fx_gain_code: '7562', fx_loss_code: '6562' },
     ]);
   });
 

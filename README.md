@@ -212,10 +212,10 @@ supabase link --project-ref <your-project-ref>
 supabase db push                       # applies supabase/migrations in order
 psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
 psql "$DATABASE_URL" -f supabase/seed/05_framework_generic.sql
-psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql
+psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql, 12_pack_lu.sql
 ```
 
-Those four files are the ones `config.toml` lists under `[db.seed]`, which is
+Those five files are the ones `config.toml` lists under `[db.seed]`, which is
 what `supabase db reset` applies on a local project — and the same set
 `ekwo init` loads. Leave `05_framework_generic.sql` out and the installation
 has a chart of accounts but no financial statements for a chart that declares

@@ -2760,3 +2760,45 @@ touches anything.
 that is row level security, and not one policy of this schema changed. A grant
 says which verbs may be attempted; a policy says on which rows they succeed.
 This settles the half that was being borrowed.
+
+## Luxembourg is a pack, and it is `community` (14 September 2026)
+
+The third country, and the first written from published sources alone rather
+than from books somebody was already keeping. Three decisions in it are worth
+recording, because each of them is the kind a later pack will meet again.
+
+**The whole chart, at the depth the law prescribes.** The *plan comptable
+normalisé* runs to 1 026 accounts, 747 of them postable, where Belgium ships 353
+and France 394. The temptation was to ship a working subset, and it was refused:
+Luxembourg publishes no abridged chart — what it abridges for a small company is
+the *presentation*, not the chart — so a subset would have been this
+repository's opinion of which accounts matter, sitting in a file that claims to
+be the regulation. What the pack ships is a transcription, and a company that
+needs an account it does not use simply has it.
+
+**The mapping to the financial statements is the State's own, account by
+account.** The same annex carries the chart and the *tableau de passage* — which
+line of the abridged balance sheet or profit and loss account each account
+reports in — so all 747 postable accounts reach exactly one line by an
+`account_code` rule naming the code. Compressing that into ranges would have
+been about a third as many rules and would have been an inference: a range says
+"everything between these two codes", which is true of the chart as it stands
+today and is not what the regulation says. A reviewer checking one account finds
+one line.
+
+**`community`, and the pack says what a reviewer should read first.** Belgium
+and France are `maintained` because the maintainers keep them current and use
+them. Nobody here files a Luxembourg return, so the honest status is the one
+that means *contributed, not read by an accountant* — and the pack's README ends
+on ten points where the text allows more than one answer, from whether article
+63 requires a gapless number to whether the domestic reverse charge is worth
+offering at all. A list of known soft spots is worth more to a reviewer than a
+status that overstates the work.
+
+What the pack could not say, and what would fix it, is in
+[`international.md`](international.md) under the countries: a company records no
+declaration periodicity, a form's `period` cannot name three cadences, the
+`sequence` of a declaration box means print order and evaluation order at once,
+and a computed statement line may carry a sign that is applied twice. None of
+the four was patched into the core for Luxembourg's sake. That is the whole
+point of a pack being data.

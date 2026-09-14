@@ -40,7 +40,7 @@ describe('country_packs', () => {
       `select country, version, certification_status::text, certified_by, checksum
          from country_packs order by country`,
     );
-    expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR']);
+    expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR', 'LU']);
     for (const pack of loaded) {
       // Both packs have moved in minor steps since they were extracted —
       // taxes, a second chart, financial statements, document rules — and
@@ -48,9 +48,10 @@ describe('country_packs', () => {
       // upgrade` diffs on this number, so a pack that grows without
       // announcing it is a pack nobody can upgrade to.
       expect(pack.version).toBe(await versionOf(pack.country));
-      // `maintained`, never `ekwo`: Ekwo maintains these two packs and no
-      // accountant has read them. Certified describes a review, or nothing.
-      expect(pack.certification_status).toBe('maintained');
+      // `maintained` or `community`, never `ekwo`: Ekwo keeps Belgium and
+      // France current, Luxembourg was contributed, and no accountant has read
+      // any of them. Certified describes a review, or nothing.
+      expect(['maintained', 'community']).toContain(pack.certification_status);
       expect(pack.certified_by).toBeNull();
       expect(pack.checksum).toMatch(/^[0-9a-f]{64}$/);
     }
@@ -323,6 +324,7 @@ describe('report_code, and the province a party sits in', () => {
       { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 88 },
       { country: 'FR', report_code: 'FR-CA3', n: 76 },
       { country: 'FR', report_code: null, n: 2 },
+      { country: 'LU', report_code: 'LU-VAT-PERIODIC', n: 124 },
     ]);
   });
 
@@ -408,7 +410,7 @@ describe('row level security on the two new tables', () => {
     const strangerId = await newUser(db);
 
     const seen = await asUser(db, ownerId, () => rows(db, 'select country from country_packs'));
-    expect(seen.map((r) => (r as { country: string }).country)).toEqual(['BE', 'FR']);
+    expect(seen.map((r) => (r as { country: string }).country)).toEqual(['BE', 'FR', 'LU']);
 
     const nothing = await asUser(db, strangerId, () => rows(db, 'select country from country_packs'));
     expect(nothing).toEqual([]);

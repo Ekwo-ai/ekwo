@@ -1,0 +1,4411 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/statements",
+  "statements": [
+    {
+      "code": "LU-ECDF-BS-ABR",
+      "kind": "balance_sheet",
+      "framework": "LU-GAAP",
+      "name": "Bilan abrégé (eCDF)",
+      "valid_from": "2016-01-01",
+      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe II — bilan abrégé ; formulaire eCDF CA_BILANABR",
+      "lines": [
+        {
+          "code": "201",
+          "parent": null,
+          "name": "TOTAL DU BILAN (ACTIF)",
+          "sequence": 10,
+          "is_total": true,
+          "plus": [
+            "101",
+            "107",
+            "109",
+            "151",
+            "199"
+          ]
+        },
+        {
+          "code": "101",
+          "parent": "201",
+          "name": "A. Capital souscrit non versé",
+          "sequence": 20,
+          "is_total": true,
+          "plus": [
+            "103",
+            "105"
+          ]
+        },
+        {
+          "code": "103",
+          "parent": "101",
+          "name": "A.I. Capital souscrit non appelé",
+          "sequence": 30,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "102",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.I."
+        },
+        {
+          "code": "105",
+          "parent": "101",
+          "name": "A.II. Capital souscrit appelé et non versé",
+          "sequence": 40,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "103",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.II."
+        },
+        {
+          "code": "107",
+          "parent": "201",
+          "name": "B. Frais d’établissement",
+          "sequence": 50,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "201",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "203",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "204",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "208",
+              "sequence": 40
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif B."
+        },
+        {
+          "code": "109",
+          "parent": "201",
+          "name": "C. Actif immobilisé",
+          "sequence": 60,
+          "is_total": true,
+          "plus": [
+            "111",
+            "125",
+            "135"
+          ]
+        },
+        {
+          "code": "111",
+          "parent": "109",
+          "name": "C.I. Immobilisations incorporelles",
+          "sequence": 70,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "211",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21211",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21212",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21213",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21214",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "212151",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "212152",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "212158",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21221",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21222",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21223",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "21224",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "212251",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "212258",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "213",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "214",
+              "sequence": 160
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.I."
+        },
+        {
+          "code": "125",
+          "parent": "109",
+          "name": "C.II. Immobilisations corporelles",
+          "sequence": 80,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "221111",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221112",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221118",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22112",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22121",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22122",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221311",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221312",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221313",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "221318",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22132",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22141",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22142",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22151",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22152",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2221",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2222",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2231",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2232",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2233",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2234",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2235",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2236",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2237",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2238",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22411",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "22412",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2242",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2243",
+              "sequence": 290
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.II."
+        },
+        {
+          "code": "135",
+          "parent": "109",
+          "name": "C.III. Immobilisations financières",
+          "sequence": 90,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "231",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "232",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "233",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "234",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "235111",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "235112",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "23518",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "23521",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "23528",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2353",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2358",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2361",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2362",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2363",
+              "sequence": 140
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.III."
+        },
+        {
+          "code": "151",
+          "parent": "201",
+          "name": "D. Actif circulant",
+          "sequence": 100,
+          "is_total": true,
+          "plus": [
+            "153",
+            "163",
+            "189",
+            "197"
+          ]
+        },
+        {
+          "code": "153",
+          "parent": "151",
+          "name": "D.I. Stocks",
+          "sequence": 110,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "301",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "303",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "304",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "311",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "312",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "313",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "314",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "315",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "321",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "322",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "323",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "361",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "3621",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "3622",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "3631",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "3632",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "37",
+              "sequence": 170
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.I."
+        },
+        {
+          "code": "163",
+          "parent": "151",
+          "name": "D.II. Créances",
+          "sequence": 120,
+          "is_total": true,
+          "plus": [
+            "203",
+            "205"
+          ]
+        },
+        {
+          "code": "203",
+          "parent": "163",
+          "name": "D.II.a) Créances dont la durée résiduelle est inférieure ou égale à un an",
+          "sequence": 130,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "4011",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4012",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4013",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4014",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4019",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41111",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41112",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41118",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41119",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41211",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41212",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41218",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41219",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42111",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42119",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4212",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42131",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42132",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42138",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42141",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42142",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42143",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42144",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42145",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42146",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42148",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4215",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421611",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421612",
+              "sequence": 290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421613",
+              "sequence": 300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421618",
+              "sequence": 310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421621",
+              "sequence": 320
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421622",
+              "sequence": 330
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421628",
+              "sequence": 340
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42168",
+              "sequence": 350
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42171",
+              "sequence": 360
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42172",
+              "sequence": 370
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42178",
+              "sequence": 380
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421811",
+              "sequence": 390
+            },
+            {
+              "kind": "account_code",
+              "code_from": "421818",
+              "sequence": 400
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42187",
+              "sequence": 410
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42188",
+              "sequence": 420
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42189",
+              "sequence": 430
+            },
+            {
+              "kind": "account_code",
+              "code_from": "44113",
+              "sequence": 440
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.a)"
+        },
+        {
+          "code": "205",
+          "parent": "163",
+          "name": "D.II.b) Créances dont la durée résiduelle est supérieure à un an",
+          "sequence": 140,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "4021",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4029",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41121",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41122",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41128",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41129",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41221",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41222",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41228",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "41229",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4221",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4222",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42231",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42232",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42238",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42287",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42288",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "42289",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "44123",
+              "sequence": 190
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.b)"
+        },
+        {
+          "code": "189",
+          "parent": "151",
+          "name": "D.III. Valeurs mobilières",
+          "sequence": 150,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "501",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "502",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "503",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5081",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5082",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5083",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5084",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5085",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5088",
+              "sequence": 90
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.III."
+        },
+        {
+          "code": "197",
+          "parent": "151",
+          "name": "D.IV. Avoirs en banques, avoirs en compte de chèques postaux, chèques et encaisse",
+          "sequence": 160,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "5131",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "516",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5171",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "518",
+              "sequence": 40
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.IV."
+        },
+        {
+          "code": "199",
+          "parent": "201",
+          "name": "E. Comptes de régularisation",
+          "sequence": 170,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "481",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "484",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "486",
+              "sequence": 30
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif E."
+        },
+        {
+          "code": "405",
+          "parent": null,
+          "name": "TOTAL DU BILAN (CAPITAUX PROPRES ET PASSIF)",
+          "sequence": 180,
+          "is_total": true,
+          "plus": [
+            "301",
+            "331",
+            "403",
+            "435"
+          ]
+        },
+        {
+          "code": "301",
+          "parent": "405",
+          "name": "A. Capitaux propres",
+          "sequence": 190,
+          "is_total": true,
+          "plus": [
+            "303",
+            "305",
+            "307",
+            "309",
+            "319",
+            "321",
+            "323",
+            "325"
+          ]
+        },
+        {
+          "code": "303",
+          "parent": "301",
+          "name": "A.I. Capital souscrit",
+          "sequence": 200,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "101",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "104",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "105",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10611",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10612",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10613",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106141",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106142",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106143",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106144",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106145",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106148",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106151",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106152",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106153",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106154",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106158",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106161",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106162",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106163",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106164",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106165",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106166",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106168",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106171",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106172",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106173",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106174",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106178",
+              "sequence": 290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106181",
+              "sequence": 300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106183",
+              "sequence": 310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106188",
+              "sequence": 320
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106191",
+              "sequence": 330
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106192",
+              "sequence": 340
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106193",
+              "sequence": 350
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106194",
+              "sequence": 360
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106195",
+              "sequence": 370
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106198",
+              "sequence": 380
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10621",
+              "sequence": 390
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10622",
+              "sequence": 400
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10623",
+              "sequence": 410
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106241",
+              "sequence": 420
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106242",
+              "sequence": 430
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106243",
+              "sequence": 440
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106244",
+              "sequence": 450
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106248",
+              "sequence": 460
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10625",
+              "sequence": 470
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10626",
+              "sequence": 480
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10627",
+              "sequence": 490
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106281",
+              "sequence": 500
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106284",
+              "sequence": 510
+            },
+            {
+              "kind": "account_code",
+              "code_from": "106288",
+              "sequence": 520
+            },
+            {
+              "kind": "account_code",
+              "code_from": "10629",
+              "sequence": 530
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.I."
+        },
+        {
+          "code": "305",
+          "parent": "301",
+          "name": "A.II. Primes d’émission",
+          "sequence": 210,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "111",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "112",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "113",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "114",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "115",
+              "sequence": 50
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.II."
+        },
+        {
+          "code": "307",
+          "parent": "301",
+          "name": "A.III. Réserve de réévaluation",
+          "sequence": 220,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "122",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "123",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "128",
+              "sequence": 30
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.III."
+        },
+        {
+          "code": "309",
+          "parent": "301",
+          "name": "A.IV. Réserves",
+          "sequence": 230,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "131",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "132",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "133",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1381",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "13821",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "13822",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "138231",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "138232",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "13828",
+              "sequence": 90
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.IV.1., Passif A.IV.2., Passif A.IV.3., Passif A.IV.4.a), Passif A.IV.4.b)"
+        },
+        {
+          "code": "319",
+          "parent": "301",
+          "name": "A.V. Résultats reportés",
+          "sequence": 240,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "1411",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1412",
+              "sequence": 20
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.V."
+        },
+        {
+          "code": "321",
+          "parent": "301",
+          "name": "A.VI. Résultat de l’exercice",
+          "sequence": 250,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "142",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VI."
+        },
+        {
+          "code": "323",
+          "parent": "301",
+          "name": "A.VII. Acomptes sur dividendes",
+          "sequence": 260,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "15",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VII."
+        },
+        {
+          "code": "325",
+          "parent": "301",
+          "name": "A.VIII. Subventions d’investissement en capital",
+          "sequence": 270,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "1611",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "16121",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "16122",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1613",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1621",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1622",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1623",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "168",
+              "sequence": 80
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VIII."
+        },
+        {
+          "code": "331",
+          "parent": "405",
+          "name": "B. Provisions",
+          "sequence": 280,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "181",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "182",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "183",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1881",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1882",
+              "sequence": 50
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif B."
+        },
+        {
+          "code": "435",
+          "parent": "405",
+          "name": "C. Dettes",
+          "sequence": 290,
+          "is_total": true,
+          "plus": [
+            "453",
+            "455"
+          ]
+        },
+        {
+          "code": "453",
+          "parent": "435",
+          "name": "C.a) Dettes dont la durée résiduelle est inférieure ou égale à un an",
+          "sequence": 300,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "1921",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1931",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1941",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4015",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4311",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4312",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "44111",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "44112",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4421",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45111",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45112",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45118",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45211",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45212",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45218",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4611",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461211",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461212",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461221",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461222",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461231",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461232",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46124",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46125",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46126",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46128",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4613",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461411",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461412",
+              "sequence": 290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461413",
+              "sequence": 300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461418",
+              "sequence": 310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461421",
+              "sequence": 320
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461422",
+              "sequence": 330
+            },
+            {
+              "kind": "account_code",
+              "code_from": "461428",
+              "sequence": 340
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46148",
+              "sequence": 350
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46151",
+              "sequence": 360
+            },
+            {
+              "kind": "account_code",
+              "code_from": "46158",
+              "sequence": 370
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4711",
+              "sequence": 380
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4712",
+              "sequence": 390
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4713",
+              "sequence": 400
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4714",
+              "sequence": 410
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4715",
+              "sequence": 420
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47161",
+              "sequence": 430
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47162",
+              "sequence": 440
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47163",
+              "sequence": 450
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47168",
+              "sequence": 460
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4717",
+              "sequence": 470
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4718",
+              "sequence": 480
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5132",
+              "sequence": 490
+            },
+            {
+              "kind": "account_code",
+              "code_from": "5172",
+              "sequence": 500
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.a)"
+        },
+        {
+          "code": "455",
+          "parent": "435",
+          "name": "C.b) Dettes dont la durée résiduelle est supérieure à un an",
+          "sequence": 310,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "1922",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1932",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "1942",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4025",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4321",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4322",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "44121",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4422",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45121",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45122",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45128",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45221",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45222",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "45228",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4621",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4622",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4628",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4721",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4722",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4723",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4724",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47261",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47262",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47263",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "47268",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4727",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "4728",
+              "sequence": 270
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.b)"
+        },
+        {
+          "code": "403",
+          "parent": "405",
+          "name": "D. Comptes de régularisation",
+          "sequence": 320,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "482",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "483",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "485",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "487",
+              "sequence": 40
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif D."
+        }
+      ]
+    },
+    {
+      "code": "LU-ECDF-PL-ABR",
+      "kind": "income_statement",
+      "framework": "LU-GAAP",
+      "name": "Compte de profits et pertes abrégé (eCDF)",
+      "valid_from": "2016-01-01",
+      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe IV — compte de profits et pertes abrégé ; formulaire eCDF CA_COMPPABR",
+      "lines": [
+        {
+          "code": "669",
+          "parent": null,
+          "name": "18. Résultat de l’exercice",
+          "sequence": 10,
+          "is_total": true,
+          "plus": [
+            "667",
+            "637"
+          ]
+        },
+        {
+          "code": "651",
+          "parent": "667",
+          "name": "1. à 5. Résultat brut",
+          "sequence": 20,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "601",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60311",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60312",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60313",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60314",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60315",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6032",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6033",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6034",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6035",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6036",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6037",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6038",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "604",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6061",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6062",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6063",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6071",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6073",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6074",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60761",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60762",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60763",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60811",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60812",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60813",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "60814",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6082",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6083",
+              "sequence": 290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6088",
+              "sequence": 300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6091",
+              "sequence": 310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6093",
+              "sequence": 320
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6094",
+              "sequence": 330
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6096",
+              "sequence": 340
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6098",
+              "sequence": 350
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6099",
+              "sequence": 360
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61111",
+              "sequence": 370
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61112",
+              "sequence": 380
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61123",
+              "sequence": 390
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61128",
+              "sequence": 400
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6113",
+              "sequence": 410
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6114",
+              "sequence": 420
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61153",
+              "sequence": 430
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61158",
+              "sequence": 440
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6121",
+              "sequence": 450
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61221",
+              "sequence": 460
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61223",
+              "sequence": 470
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61228",
+              "sequence": 480
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6131",
+              "sequence": 490
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6132",
+              "sequence": 500
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61332",
+              "sequence": 510
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61333",
+              "sequence": 520
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61334",
+              "sequence": 530
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61336",
+              "sequence": 540
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61338",
+              "sequence": 550
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61341",
+              "sequence": 560
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61342",
+              "sequence": 570
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61348",
+              "sequence": 580
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6135",
+              "sequence": 590
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6138",
+              "sequence": 600
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61411",
+              "sequence": 610
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61412",
+              "sequence": 620
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61418",
+              "sequence": 630
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6142",
+              "sequence": 640
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6143",
+              "sequence": 650
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6144",
+              "sequence": 660
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6145",
+              "sequence": 670
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6146",
+              "sequence": 680
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6148",
+              "sequence": 690
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61511",
+              "sequence": 700
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61512",
+              "sequence": 710
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61513",
+              "sequence": 720
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61514",
+              "sequence": 730
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61515",
+              "sequence": 740
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61516",
+              "sequence": 750
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61517",
+              "sequence": 760
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61518",
+              "sequence": 770
+            },
+            {
+              "kind": "account_code",
+              "code_from": "615211",
+              "sequence": 780
+            },
+            {
+              "kind": "account_code",
+              "code_from": "615212",
+              "sequence": 790
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61522",
+              "sequence": 800
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61523",
+              "sequence": 810
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61524",
+              "sequence": 820
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61531",
+              "sequence": 830
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61532",
+              "sequence": 840
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6161",
+              "sequence": 850
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6162",
+              "sequence": 860
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6165",
+              "sequence": 870
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6168",
+              "sequence": 880
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6171",
+              "sequence": 890
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6172",
+              "sequence": 900
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6181",
+              "sequence": 910
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6182",
+              "sequence": 920
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6183",
+              "sequence": 930
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61841",
+              "sequence": 940
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61842",
+              "sequence": 950
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61843",
+              "sequence": 960
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61844",
+              "sequence": 970
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61845",
+              "sequence": 980
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61851",
+              "sequence": 990
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61852",
+              "sequence": 1000
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61853",
+              "sequence": 1010
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61854",
+              "sequence": 1020
+            },
+            {
+              "kind": "account_code",
+              "code_from": "61858",
+              "sequence": 1030
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6186",
+              "sequence": 1040
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6187",
+              "sequence": 1050
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6188",
+              "sequence": 1060
+            },
+            {
+              "kind": "account_code",
+              "code_from": "619",
+              "sequence": 1070
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7021",
+              "sequence": 1080
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7022",
+              "sequence": 1090
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7023",
+              "sequence": 1100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7029",
+              "sequence": 1110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70311",
+              "sequence": 1120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70312",
+              "sequence": 1130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70313",
+              "sequence": 1140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70314",
+              "sequence": 1150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "703151",
+              "sequence": 1160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "703158",
+              "sequence": 1170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70321",
+              "sequence": 1180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "70322",
+              "sequence": 1190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7033",
+              "sequence": 1200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7039",
+              "sequence": 1210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "704",
+              "sequence": 1220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "705",
+              "sequence": 1230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7061",
+              "sequence": 1240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7062",
+              "sequence": 1250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7063",
+              "sequence": 1260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "708",
+              "sequence": 1270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7092",
+              "sequence": 1280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7093",
+              "sequence": 1290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7094",
+              "sequence": 1300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7095",
+              "sequence": 1310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7096",
+              "sequence": 1320
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7098",
+              "sequence": 1330
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7099",
+              "sequence": 1340
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7111",
+              "sequence": 1350
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7112",
+              "sequence": 1360
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7113",
+              "sequence": 1370
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7114",
+              "sequence": 1380
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7121",
+              "sequence": 1390
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7122",
+              "sequence": 1400
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7123",
+              "sequence": 1410
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7211",
+              "sequence": 1420
+            },
+            {
+              "kind": "account_code",
+              "code_from": "72121",
+              "sequence": 1430
+            },
+            {
+              "kind": "account_code",
+              "code_from": "72122",
+              "sequence": 1440
+            },
+            {
+              "kind": "account_code",
+              "code_from": "72123",
+              "sequence": 1450
+            },
+            {
+              "kind": "account_code",
+              "code_from": "72124",
+              "sequence": 1460
+            },
+            {
+              "kind": "account_code",
+              "code_from": "721251",
+              "sequence": 1470
+            },
+            {
+              "kind": "account_code",
+              "code_from": "721258",
+              "sequence": 1480
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7221",
+              "sequence": 1490
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7222",
+              "sequence": 1500
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7223",
+              "sequence": 1510
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7411",
+              "sequence": 1520
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7412",
+              "sequence": 1530
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7413",
+              "sequence": 1540
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7414",
+              "sequence": 1550
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74151",
+              "sequence": 1560
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74158",
+              "sequence": 1570
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7421",
+              "sequence": 1580
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7422",
+              "sequence": 1590
+            },
+            {
+              "kind": "account_code",
+              "code_from": "743",
+              "sequence": 1600
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74411",
+              "sequence": 1610
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74412",
+              "sequence": 1620
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74421",
+              "sequence": 1630
+            },
+            {
+              "kind": "account_code",
+              "code_from": "74422",
+              "sequence": 1640
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7451",
+              "sequence": 1650
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7452",
+              "sequence": 1660
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7453",
+              "sequence": 1670
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7454",
+              "sequence": 1680
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7458",
+              "sequence": 1690
+            },
+            {
+              "kind": "account_code",
+              "code_from": "746",
+              "sequence": 1700
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7471",
+              "sequence": 1710
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7472",
+              "sequence": 1720
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7473",
+              "sequence": 1730
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7481",
+              "sequence": 1740
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7488",
+              "sequence": 1750
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7491",
+              "sequence": 1760
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7492",
+              "sequence": 1770
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 1. à 5."
+        },
+        {
+          "code": "605",
+          "parent": "667",
+          "name": "6. Frais de personnel",
+          "sequence": 30,
+          "is_total": true,
+          "plus": [
+            "607",
+            "609",
+            "613"
+          ]
+        },
+        {
+          "code": "607",
+          "parent": "605",
+          "name": "6.a) Salaires et traitements",
+          "sequence": 40,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "62111",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "621121",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "621122",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "621123",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "621128",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62114",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62115",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62116",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62117",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6218",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6219",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6221",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6222",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6228",
+              "sequence": 140
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.a)"
+        },
+        {
+          "code": "609",
+          "parent": "605",
+          "name": "6.b) Charges sociales",
+          "sequence": 50,
+          "is_total": true,
+          "plus": [
+            "653",
+            "655"
+          ]
+        },
+        {
+          "code": "653",
+          "parent": "609",
+          "name": "6.b)i) Charges sociales couvrant les pensions",
+          "sequence": 60,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6231",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)i)"
+        },
+        {
+          "code": "655",
+          "parent": "609",
+          "name": "6.b)ii) Autres charges sociales",
+          "sequence": 70,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6232",
+              "sequence": 10
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)ii)"
+        },
+        {
+          "code": "613",
+          "parent": "605",
+          "name": "6.c) Autres frais de personnel",
+          "sequence": 80,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "62411",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62412",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62413",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62414",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "62415",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6248",
+              "sequence": 60
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.c)"
+        },
+        {
+          "code": "657",
+          "parent": "667",
+          "name": "7. Corrections de valeur",
+          "sequence": 90,
+          "is_total": true,
+          "plus": [
+            "659",
+            "661"
+          ]
+        },
+        {
+          "code": "659",
+          "parent": "657",
+          "name": "7.a) Corrections de valeur sur frais d’établissement et sur immobilisations corporelles et incorporelles",
+          "sequence": 100,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6311",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6313",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6314",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6318",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6321",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6322",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6323",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6324",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "63311",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "63312",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "63313",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "63314",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "63315",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6332",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6333",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6334",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7321",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7322",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7324",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "73311",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "73312",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "73313",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "73314",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "73315",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7332",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7333",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7334",
+              "sequence": 270
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.a)"
+        },
+        {
+          "code": "661",
+          "parent": "657",
+          "name": "7.b) Corrections de valeur sur éléments de l’actif circulant",
+          "sequence": 110,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6341",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6342",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6343",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6344",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6345",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6351",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6352",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6353",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6354",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7341",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7342",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7343",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7344",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7345",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7351",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7352",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7353",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7354",
+              "sequence": 180
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.b)"
+        },
+        {
+          "code": "621",
+          "parent": "667",
+          "name": "8. Autres charges d’exploitation",
+          "sequence": 120,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6411",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6412",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6413",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6414",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64151",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64158",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "642",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6431",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6432",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6438",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64411",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64412",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64421",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64422",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6451",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6452",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6453",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6454",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6461",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6462",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6463",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6464",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64651",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "64658",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6466",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6467",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6468",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "647",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6481",
+              "sequence": 290
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6488",
+              "sequence": 300
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6491",
+              "sequence": 310
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6492",
+              "sequence": 320
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 8."
+        },
+        {
+          "code": "715",
+          "parent": "667",
+          "name": "9. Produits provenant de participations",
+          "sequence": 130,
+          "is_total": true,
+          "plus": [
+            "717",
+            "719"
+          ]
+        },
+        {
+          "code": "717",
+          "parent": "715",
+          "name": "9.a) Produits provenant d’entreprises liées",
+          "sequence": 140,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75211",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752211",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752212",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75421",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75481",
+              "sequence": 50
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.a)"
+        },
+        {
+          "code": "719",
+          "parent": "715",
+          "name": "9.b) Produits provenant d’autres participations",
+          "sequence": 150,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75213",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752231",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752232",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75423",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75483",
+              "sequence": 50
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.b)"
+        },
+        {
+          "code": "721",
+          "parent": "667",
+          "name": "10. Produits provenant d’autres valeurs mobilières, d’autres titres et de créances de l’actif immobilisé",
+          "sequence": 160,
+          "is_total": true,
+          "plus": [
+            "723",
+            "725"
+          ]
+        },
+        {
+          "code": "723",
+          "parent": "721",
+          "name": "10.a) Produits provenant d’entreprises liées",
+          "sequence": 170,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75212",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752221",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752222",
+              "sequence": 30
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.a)"
+        },
+        {
+          "code": "725",
+          "parent": "721",
+          "name": "10.b) Autres produits ne figurant pas sous a)",
+          "sequence": 180,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75214",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75215",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75216",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752241",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752242",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752251",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752252",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752261",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "752262",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75422",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75428",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75482",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75488",
+              "sequence": 130
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.b)"
+        },
+        {
+          "code": "727",
+          "parent": "667",
+          "name": "11. Autres intérêts et autres produits financiers",
+          "sequence": 190,
+          "is_total": true,
+          "plus": [
+            "729",
+            "731"
+          ]
+        },
+        {
+          "code": "729",
+          "parent": "727",
+          "name": "11.a) Intérêts et produits financiers provenant d’entreprises liées",
+          "sequence": 200,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75411",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "755231",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75541",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75551",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75561",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75581",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7561",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7581",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7591",
+              "sequence": 90
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.a)"
+        },
+        {
+          "code": "731",
+          "parent": "727",
+          "name": "11.b) Autres intérêts et produits financiers",
+          "sequence": 210,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "75412",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75413",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75521",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "755232",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7553",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75542",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75552",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75562",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75582",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7562",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7582",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7592",
+              "sequence": 120
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.b)"
+        },
+        {
+          "code": "663",
+          "parent": "667",
+          "name": "12. Quote-part dans le résultat des entreprises mises en équivalence",
+          "sequence": 220,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "657",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "757",
+              "sequence": 20
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 12."
+        },
+        {
+          "code": "665",
+          "parent": "667",
+          "name": "13. Corrections de valeur sur immobilisations financières et sur valeurs mobilières faisant partie de l’actif circulant",
+          "sequence": 230,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "65111",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65112",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65113",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65114",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65115",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65116",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6512",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65311",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65312",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65313",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65318",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6532",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75111",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75112",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75113",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75114",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75115",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75116",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7512",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75311",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75312",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75313",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "75318",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "7532",
+              "sequence": 240
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 13."
+        },
+        {
+          "code": "627",
+          "parent": "667",
+          "name": "14. Intérêts et autres charges financières",
+          "sequence": 240,
+          "is_total": true,
+          "plus": [
+            "629",
+            "631"
+          ]
+        },
+        {
+          "code": "629",
+          "parent": "627",
+          "name": "14.a) Intérêts et charges financières concernant des entreprises liées",
+          "sequence": 250,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "65211",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65212",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652211",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652212",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652221",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652222",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65411",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65421",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65511",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "655231",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65541",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65551",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65561",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65581",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6561",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6581",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6591",
+              "sequence": 170
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.a)"
+        },
+        {
+          "code": "631",
+          "parent": "627",
+          "name": "14.b) Autres intérêts et charges financières",
+          "sequence": 260,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "65213",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65214",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65215",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65216",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652231",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652232",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652241",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652242",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652251",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652252",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652261",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "652262",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65412",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65413",
+              "sequence": 140
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65422",
+              "sequence": 150
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65423",
+              "sequence": 160
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65428",
+              "sequence": 170
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65512",
+              "sequence": 180
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65521",
+              "sequence": 190
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65522",
+              "sequence": 200
+            },
+            {
+              "kind": "account_code",
+              "code_from": "655232",
+              "sequence": 210
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6553",
+              "sequence": 220
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65542",
+              "sequence": 230
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65552",
+              "sequence": 240
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65562",
+              "sequence": 250
+            },
+            {
+              "kind": "account_code",
+              "code_from": "65582",
+              "sequence": 260
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6562",
+              "sequence": 270
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6582",
+              "sequence": 280
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6592",
+              "sequence": 290
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.b)"
+        },
+        {
+          "code": "635",
+          "parent": "667",
+          "name": "15. Impôts sur le résultat",
+          "sequence": 270,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6711",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6712",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6721",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6722",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6731",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "67321",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "67322",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6733",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6738",
+              "sequence": 90
+            },
+            {
+              "kind": "account_code",
+              "code_from": "679",
+              "sequence": 100
+            },
+            {
+              "kind": "account_code",
+              "code_from": "771",
+              "sequence": 110
+            },
+            {
+              "kind": "account_code",
+              "code_from": "772",
+              "sequence": 120
+            },
+            {
+              "kind": "account_code",
+              "code_from": "773",
+              "sequence": 130
+            },
+            {
+              "kind": "account_code",
+              "code_from": "779",
+              "sequence": 140
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 15."
+        },
+        {
+          "code": "667",
+          "parent": "669",
+          "name": "16. Résultat après impôts sur le résultat",
+          "sequence": 280,
+          "is_total": true,
+          "plus": [
+            "651",
+            "715",
+            "721",
+            "727",
+            "605",
+            "621",
+            "627",
+            "635",
+            "657",
+            "663",
+            "665"
+          ]
+        },
+        {
+          "code": "637",
+          "parent": "669",
+          "name": "17. Autres impôts ne figurant pas sous les postes 1. à 16.",
+          "sequence": 290,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "account_code",
+              "code_from": "6811",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "6812",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "682",
+              "sequence": 30
+            },
+            {
+              "kind": "account_code",
+              "code_from": "683",
+              "sequence": 40
+            },
+            {
+              "kind": "account_code",
+              "code_from": "688",
+              "sequence": 50
+            },
+            {
+              "kind": "account_code",
+              "code_from": "781",
+              "sequence": 60
+            },
+            {
+              "kind": "account_code",
+              "code_from": "782",
+              "sequence": 70
+            },
+            {
+              "kind": "account_code",
+              "code_from": "783",
+              "sequence": 80
+            },
+            {
+              "kind": "account_code",
+              "code_from": "788",
+              "sequence": 90
+            }
+          ],
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 17."
+        }
+      ]
+    }
+  ]
+}

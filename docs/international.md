@@ -194,6 +194,7 @@ The original six-item list, for the record:
   `report_code` on the postings and `region` on companies and contacts were
   built in phase 0 so that this pack migrates nothing twice.
 - **Netherlands, Germany, Luxembourg** — RGS, SKR03/04 with XRechnung, PCN.
+  **Luxembourg is done**, as `packs/lu/`, and is described below.
 - **United States** — a QuickBooks-style chart, the *shape* of sales tax in
   the core with rates and jurisdictions from a provider in the commercial
   layer, cash-basis reports, 1099 fields.
@@ -220,6 +221,81 @@ terms, the three certification statuses exist and `ekwo init` prints the one it
 is installing, and [`packs.md`](packs.md) walks through adding a country. What
 is missing is the outside of it — a page that shows the state of every pack,
 and enough contributed packs for the question to be interesting.
+
+## The packs, country by country
+
+| Country | Pack | Status | Out of scope, and why |
+|---|---|---|---|
+| Belgium | `packs/be/` | `maintained` | — |
+| France | `packs/fr/` | `maintained` | — |
+| Luxembourg | `packs/lu/` | `community` | the eCDF XML of a filing, the FAIA audit file, the annual VAT return, the special regimes, and corporate income tax |
+
+### Luxembourg
+
+The third pack, and the first written from published sources alone rather than
+from a running installation. It carries the **plan comptable normalisé** of the
+*règlement grand-ducal du 12 septembre 2019* whole — 1 026 accounts, 747 of them
+postable — the four VAT rates of article 39 with the temporary 2023 rates beside
+them, the 156 numbered fields of the eCDF periodic return, and the two abridged
+schemes of annual accounts keyed by their own eCDF field identifiers.
+
+Three things about it are worth knowing beyond the pack's own
+[`README`](../packs/lu/README.md):
+
+- **The State publishes the mapping.** The annex that carries the chart carries
+  the *tableau de passage* as well: which line of the abridged balance sheet or
+  of the abridged profit and loss account each account reports in. The pack
+  transcribes it account by account, so every postable account reaches exactly
+  one line without anybody inferring a range.
+- **It is `community`.** Nothing here was read by a Luxembourg accountant, and
+  the pack's README ends on the ten points a reviewer should look at first.
+- **Out of scope, on purpose.** Depositing the XML of an eCDF form, the FAIA
+  audit file, the annual VAT return (a different form with fields of its own),
+  the franchise and VAT-group regimes, the full unabridged schemes and their
+  notes, and the `tax` module. The first of those is a format library and not a
+  pack; the rest wait for somebody who files them.
+
+## What Luxembourg showed the core could not say
+
+A country pack is a test of the format as much as of the country. Four things
+the Luxembourg pack had to work around, with what would fix each. **None is
+implemented**: a gap the core has is a core issue, and patching the core for one
+country is what this format exists not to do.
+
+- **A company does not record which period it files on.** Luxembourg sets the
+  cadence by turnover — annual up to 112 000 euros, quarterly to 620 000,
+  monthly above — and nothing in the schema holds that answer. `vat_return()`
+  takes two dates, which is right, but `ekwo status`, a reminder and any client
+  that offers "file the current period" have to ask the user every time. *Fix: a
+  `vat_period` column on `companies`, wired at install from a new default on
+  `country_defaults` and changeable afterwards. The return itself would not read
+  it; everything around the return would.*
+- **A form's `period` cannot say "month, quarter or year".** The enum offers
+  `month`, `quarter`, `month_or_quarter` and `year`, so a country filing one
+  set of boxes on three cadences cannot declare it. Luxembourg escapes because
+  its annual return really is a different form, and the pack declares
+  `month_or_quarter` truthfully. *Fix: make `period` an array of the cadences
+  the form accepts, defaulting to the one value a pack writes today.*
+- **`sequence` on a declaration box means print order and evaluation order at
+  once.** `ekwo pack check` refuses a total that names a total at the same
+  sequence or later, from before `evaluate_totals()` learned to order by
+  dependency. Every subtotal of the Luxembourg form prints *above* the boxes it
+  adds, so the two meanings cannot both hold and the pack orders by dependency.
+  *Fix: drop that rule from `pack check` — a cycle is already reported by name —
+  or add a `print_sequence` and let the two be different questions.*
+- **A statement line may be computed and carry a sign, and the sign is applied
+  to the total.** A line with `plus` already adds figures that read the way the
+  scheme prints them, so a sign there flips them a second time, silently. It
+  cost a wrong set of golden figures here, caught by reading them. *Fix: refuse
+  `sign` together with `plus` or `minus` in `ekwo pack check`, the way it
+  already refuses a line that is both summed and computed.*
+
+One restriction turned out to be worth keeping. **A tax takes one `base`
+posting per kind of document**, and the Luxembourg return reports the taxable
+amount of a sale twice — as turnover in section I, and in the rate breakdown of
+section II. The pack expresses the second as a total computed from the first,
+which is one definition instead of two and is the better shape. The walkthrough
+in [`packs.md`](packs.md) should say so where a country meets it.
 
 ## Decisions taken with the plan
 

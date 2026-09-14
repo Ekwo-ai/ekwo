@@ -66,6 +66,36 @@ somewhere has already run it.
 
 ### Added
 
+- **Luxembourg, as `packs/lu/`.** The third country pack, and the first
+  contributed from published sources rather than from books somebody keeps.
+  It carries the **plan comptable normalisé** of the *règlement grand-ducal du
+  12 septembre 2019* whole — **1 026 accounts, 747 of them postable**, the
+  depth the regulation prescribes, because Luxembourg publishes no abridged
+  chart: what it abridges for a small company is the presentation.
+  **35 taxes**: the four rates of article 39 — 17 %, 14 %, 8 %, 3 % — with the
+  **temporary 2023 rates beside them**, 16 %, 13 % and 7 %, each with its own
+  validity, so a document dated in 2023 books at the rate of its own year and
+  lands in the boxes the form keeps for it. Intra-Union supplies and
+  acquisitions of goods and of services, export, exemption under article 44 and
+  the domestic reverse charge on both sides.
+  **The eCDF periodic VAT return**, `LU-VAT-PERIODIC`, with the **156 numbered
+  fields** of its four sections and the totals its own validation rules state.
+  The monthly form and the quarterly form carry the same numbering, so one
+  definition covers both.
+  **The two abridged schemes of annual accounts**, `LU-ECDF-BS-ABR` and
+  `LU-ECDF-PL-ABR`, whose **line codes are the eCDF field identifiers** — `203`,
+  `651` — so a future filing brick maps a line to a field without a table in
+  between. All 747 postable accounts reach exactly one line, by the State's own
+  *tableau de passage*, transcribed account by account.
+  **French, German and English**, all three complete, and the German and the
+  English are the versions the State itself publishes on the eCDF forms rather
+  than a translation made here.
+  A golden year of ten documents and three payments, `certification.status`
+  **`community`**, and a pack README that ends on the ten points a Luxembourg
+  reviewer should look at first. Out of scope in v1 and said so: the XML of an
+  eCDF deposit, the FAIA audit file, the annual VAT return, the franchise and
+  group regimes, and corporate income tax.
+
 - **`ekwo doctor` compares the database to an inventory of what the release
   defines.**
   The check knew how to say that a table had no policy; it could not say that a

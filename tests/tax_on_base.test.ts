@@ -87,6 +87,7 @@ describe('the columns of the generalised engine', () => {
     expect(defaults).toEqual([
       { country: 'BE', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
       { country: 'FR', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
+      { country: 'LU', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
     ]);
   });
 

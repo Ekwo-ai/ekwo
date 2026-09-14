@@ -63,6 +63,14 @@ describe('the charts the packs carry', () => {
         audience: 'companies',
         accounts: 394,
       },
+      {
+        country: 'LU',
+        code: 'default',
+        name: 'PCN — plan comptable normalisé',
+        is_default: true,
+        audience: 'companies',
+        accounts: 1026,
+      },
     ]);
   });
 
@@ -210,7 +218,7 @@ describe('chart_templates under row level security', () => {
     const { ownerId } = await newCompany(db, { country: 'BE', name: 'Lectrice de plans SRL' });
     await asUser(db, ownerId, async () => {
       const seen = await one<{ n: number }>(db, 'select count(*)::int as n from chart_templates');
-      expect(seen.n).toBe(3);
+      expect(seen.n).toBe(4);
 
       const message = await expectError(
         db,

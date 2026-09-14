@@ -1,0 +1,148 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "country": "LU",
+  "name": "Luxembourg",
+  "version": "1.0.0",
+  "schema_min": "20260913114535",
+  "released_at": "2026-09-14",
+  "certification": {
+    "status": "community",
+    "sources": [
+      "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce (Mém. A n° 631 du 23 septembre 2019), et son annexe — plan comptable normalisé et tableau de passage",
+      "Loi modifiée du 12 février 1979 concernant la taxe sur la valeur ajoutée, texte coordonné publié par l'Administration de l'enregistrement, des domaines et de la TVA",
+      "Loi modifiée du 12 février 1979, art. 39, par. 3, et art. 40, par. 1er, avec ses annexes A, B et C — taux de la taxe",
+      "Loi du 26 octobre 2022 (Mém. A n° 534) — réduction temporaire des taux pour la seule année 2023",
+      "Formulaire eCDF de déclaration périodique de TVA, TVA_DECM (mensuelle) et TVA_DECT (trimestrielle), et sa liste de champs publiée en français, en allemand et en anglais",
+      "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexes II et IV — bilan abrégé et compte de profits et pertes abrégé",
+      "Formulaires eCDF CA_BILANABR et CA_COMPPABR, et leurs règles de validation, qui fixent les identifiants de champ et les totaux des deux schémas abrégés",
+      "Loi modifiée du 19 décembre 2002 concernant le registre de commerce et des sociétés ainsi que la comptabilité et les comptes annuels des entreprises, art. 34, 35, 46, 47 et 75",
+      "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession, modifiée par la loi du 13 décembre 2021",
+      "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard"
+    ]
+  },
+  "defaults": {
+    "currency": "EUR",
+    "language": "fr",
+    "rounding_method": "half_up",
+    "opening_entry_label": "Report à nouveau",
+    "closing_style": "result_accounts",
+    "roles": {
+      "receivable": "4011",
+      "payable": "44111",
+      "suspense": "484",
+      "rounding": "6488",
+      "retained_earnings": "1412",
+      "current_year_result_profit": "142",
+      "current_year_result_loss": "142",
+      "sales": "7061",
+      "purchase": "6061",
+      "bank": "5131",
+      "cash": "516",
+      "fx_gain": "7562",
+      "fx_loss": "6562"
+    },
+    "journal_roles": {
+      "sales": "SAL",
+      "purchase": "PUR",
+      "miscellaneous": "MISC",
+      "opening": "OPN"
+    },
+    "fiscal_year_default": "calendar"
+  },
+  "languages": ["de", "en"],
+  "journals": [
+    { "code": "SAL", "type": "sales", "name": "Journal des ventes", "sequence": 10 },
+    { "code": "PUR", "type": "purchase", "name": "Journal des achats", "sequence": 20 },
+    { "code": "BNK", "type": "bank", "name": "Journal de banque", "sequence": 30 },
+    { "code": "CSH", "type": "cash", "name": "Journal de caisse", "sequence": 40 },
+    { "code": "MISC", "type": "general", "name": "Opérations diverses", "sequence": 50 },
+    { "code": "OPN", "type": "opening", "name": "Journal des reports à nouveau", "sequence": 60 }
+  ],
+  "charts": [
+    {
+      "code": "default",
+      "name": "PCN — plan comptable normalisé",
+      "accounts": "accounts.csv",
+      "default": true,
+      "audience": "companies",
+      "statements": ["LU-ECDF-BS-ABR", "LU-ECDF-PL-ABR"],
+      "legal_reference": "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce — applicable aux exercices commençant à partir du 1er janvier 2020"
+    }
+  ],
+  "documents": {
+    "numbering": "gapless_per_year",
+    "number_format": "{CODE}/{YYYY}/{NNNN}",
+    "legal_payment_days": 30,
+    "late_payment_reference": "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard, art. 3 et 5 — intérêt au taux directeur de la Banque centrale européenne majoré de huit points de pourcentage, et indemnité forfaitaire de 40 euros pour les frais de recouvrement",
+    "tax_point": "invoice_date",
+    "mentions": [
+      {
+        "code": "reverse_charge",
+        "applies_when": "reverse_charge",
+        "text": "Autoliquidation.",
+        "sequence": 10,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° — mention « Autoliquidation » lorsque l'acquéreur ou le preneur est redevable de la TVA ; art. 61, par. 2 et 3"
+      },
+      {
+        "code": "intracom_goods",
+        "applies_when": "intra_eu_goods",
+        "text": "Exonération de TVA — livraison intracommunautaire, art. 43, par. 1er, point d), de la loi TVA.",
+        "sequence": 20,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° — référence à la disposition qui exonère ; art. 43, par. 1er, points d), e) et f)"
+      },
+      {
+        "code": "intracom_services",
+        "applies_when": "intra_eu_services",
+        "text": "Autoliquidation — TVA due par le preneur.",
+        "sequence": 30,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° ; art. 17, par. 1er, point b) ; directive 2006/112/CE, art. 44 et 196"
+      },
+      {
+        "code": "export",
+        "applies_when": "export",
+        "text": "Exonération de TVA — exportation hors de l'Union européenne, art. 43, par. 1er, points a) et b), de la loi TVA.",
+        "sequence": 40,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 43, par. 1er, points a) et b)"
+      },
+      {
+        "code": "exempt",
+        "applies_when": "exempt",
+        "text": "Exonération de TVA, art. 44 de la loi TVA.",
+        "sequence": 50,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 44"
+      },
+      {
+        "code": "cash_basis",
+        "applies_when": "cash_basis",
+        "text": "Comptabilité de caisse.",
+        "sequence": 60,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 8° — mention « Comptabilité de caisse » lorsque la taxe est exigible à l'encaissement du prix ; art. 25"
+      },
+      {
+        "code": "small_business",
+        "applies_when": "small_business",
+        "text": "Régime de franchise pour les petites entreprises, art. 57bis de la loi TVA — TVA non applicable.",
+        "sequence": 70,
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 57bis, et art. 63, par. 8, 13°"
+      },
+      {
+        "code": "late_payment",
+        "applies_when": "late_payment",
+        "text": "À défaut de paiement à l'échéance, des intérêts de retard sont dus de plein droit, ainsi qu'une indemnité forfaitaire de 40 euros pour les frais de recouvrement.",
+        "sequence": 80,
+        "legal_reference": "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard, art. 3, 4 et 5"
+      }
+    ]
+  },
+  "einvoicing": {
+    "profile": "peppol-bis-3",
+    "mandatory_from": "2023-03-18",
+    "party_scheme": "9938",
+    "vat_scheme": "9938",
+    "legal_reference": "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession, modifiée par la loi du 13 décembre 2021 — les organismes publics reçoivent des factures électroniques conformes à la norme EN 16931 par le réseau Peppol depuis le 18 mai 2019 ; l'obligation d'émettre pèse sur les grandes entreprises depuis le 18 mai 2022, sur les entreprises moyennes depuis le 18 octobre 2022 et sur les petites entreprises et les entreprises nouvelles depuis le 18 mars 2023, date retenue ici parce qu'elle est celle à partir de laquelle l'obligation ne dépend plus de la taille. Le schéma déclaré est le numéro d'identification à la TVA luxembourgeois (ICD 9938, « LU:VAT »), seul identifiant que ce schéma Peppol couvre ; un opérateur luxembourgeois peut aussi être adressé par son matricule à onze chiffres du répertoire des personnes morales, qui relève d'un autre schéma"
+  },
+  "bank": {
+    "statement_formats": ["camt.053", "mt940"],
+    "payment_formats": ["pain.001", "pain.008"]
+  }
+}

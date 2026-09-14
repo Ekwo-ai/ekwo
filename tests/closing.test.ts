@@ -793,6 +793,15 @@ describe('the three functions', () => {
         loss: '129000',
         opening_journal_code: 'OPN',
       },
+      {
+        // Luxembourg keeps one account for the result of the year, whichever
+        // sign it has, where Belgium and France keep two.
+        country: 'LU',
+        closing_style: 'result_accounts',
+        profit: '142',
+        loss: '142',
+        opening_journal_code: 'OPN',
+      },
     ]);
   });
 });

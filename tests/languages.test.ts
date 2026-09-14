@@ -179,6 +179,7 @@ describe('what the seeds carry', () => {
     expect(defaults).toEqual([
       { country: 'BE', name: 'Belgium', name_i18n: { de: 'Belgien', en: 'Belgium', nl: 'België' } },
       { country: 'FR', name: 'France', name_i18n: { en: 'France' } },
+      { country: 'LU', name: 'Luxembourg', name_i18n: { de: 'Luxemburg', en: 'Luxembourg' } },
     ]);
   });
 
