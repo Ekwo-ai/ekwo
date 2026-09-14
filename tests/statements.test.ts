@@ -4,9 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { CBSO_26_M01F, FRAMEWORK, resolveFactKey } from '@ekwo-ai/xbrl-cbso';
-import { readFrameworkPack, readPack } from '../packages/cli/src/index.js';
-import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
+import { DEFAULT_CHART, readFrameworkPack, readPack } from '../packages/cli/src/index.js';
+import { asUser, expectError, freshDatabase, one, repoRoot, rows, seedFiles } from './helpers/db.js';
 import { demoCompanyId, newCompany, newContact, newDocument, newUser } from './helpers/factory.js';
+import { allPacks, expectationsOf, packWhere, packsRoot, roleOf, somePack } from './helpers/packs.js';
 
 // A financial statement is data. The schema could produce a
 // trial balance and nothing an accountant files; a balance sheet was a query
@@ -78,33 +79,34 @@ describe('the statements the packs carry', () => {
               (select count(*)::int from statement_line_rules r where r.statement_code = s.code) as rules
          from statement_templates s order by s.code`,
     );
-    expect(list).toEqual([
-      { code: 'BE-BNB-ABBR-AF', country: 'BE', chart_code: 'default', kind: 'allocation', lines: 6, rules: 7 },
-      { code: 'BE-BNB-ABBR-BS', country: 'BE', chart_code: 'default', kind: 'balance_sheet', lines: 31, rules: 26 },
-      { code: 'BE-BNB-ABBR-IS', country: 'BE', chart_code: 'default', kind: 'income_statement', lines: 16, rules: 14 },
-      {
-        code: 'EE-RPS-BS',
-        country: 'EE',
-        chart_code: 'default',
-        kind: 'balance_sheet',
-        lines: 50,
-        rules: 46,
-      },
-      {
-        code: 'EE-RPS-IS1',
-        country: 'EE',
-        chart_code: 'default',
-        kind: 'income_statement',
-        lines: 22,
-        rules: 21,
-      },
-      { code: 'FR-2050', country: 'FR', chart_code: 'default', kind: 'balance_sheet', lines: 63, rules: 100 },
-      { code: 'FR-2052', country: 'FR', chart_code: 'default', kind: 'income_statement', lines: 49, rules: 51 },
-      { code: 'IFRS-SME-BS', country: null, chart_code: null, kind: 'balance_sheet', lines: 18, rules: 17 },
-      { code: 'IFRS-SME-IS', country: null, chart_code: null, kind: 'income_statement', lines: 7, rules: 5 },
-      { code: 'LU-ECDF-BS-ABR', country: 'LU', chart_code: 'default', kind: 'balance_sheet', lines: 32, rules: 329 },
-      { code: 'LU-ECDF-PL-ABR', country: 'LU', chart_code: 'default', kind: 'income_statement', lines: 29, rules: 418 },
-    ]);
+    // What is seeded is what the packs carry — every pack `listPacks()` finds,
+    // and the framework beside them. A statement the seed dropped, gained or
+    // truncated shows up as a difference against the files themselves.
+    const framework = await readFrameworkPack();
+    const shape = (
+      statement: { code: string; kind: string; chart_code: string | null; lines: { rules: unknown[] }[] },
+      country: string | null,
+      chart: string | null,
+    ): Record<string, unknown> => ({
+      code: statement.code,
+      country,
+      chart_code: chart,
+      kind: statement.kind,
+      lines: statement.lines.length,
+      rules: statement.lines.reduce((n, line) => n + line.rules.length, 0),
+    });
+    const expected = [
+      ...allPacks.flatMap((pack) =>
+        pack.statements.map((statement) =>
+          shape(statement, pack.manifest.country, statement.chart_code ?? DEFAULT_CHART),
+        ),
+      ),
+      ...framework.statements.map((statement) => shape(statement, null, null)),
+    ].sort((a, b) => ((a['code'] as string) < (b['code'] as string) ? -1 : 1));
+
+    expect(list).toEqual(expected);
+    // A pack with no statement at all would make the comparison above empty.
+    expect(expected.length).toBeGreaterThanOrEqual(allPacks.length * 2);
   });
 
   it('carry no company_id, because a scheme is not customisable', async () => {
@@ -117,26 +119,49 @@ describe('the statements the packs carry', () => {
     expect(columns).toEqual([]);
   });
 
-  it('name the XBRL facts of the Belgian filing where they are verified', async () => {
-    // The CBSO taxonomy is dimensional: a rubric has no element name of its
-    // own, it is a metric plus a set of dimension members. So the column holds
-    // the fact key, and is null where nothing could be verified.
-    const filled = await one<{ total: number; named: number }>(
-      db,
-      `select count(*)::int as total, count(xbrl_element)::int as named
-         from statement_line_templates where statement_code like 'BE-BNB-ABBR-%'`,
+  it('name the XBRL facts of a filing, where a pack declares a taxonomy', async () => {
+    // A filing taxonomy like the CBSO one is dimensional: a rubric has no
+    // element name of its own, it is a metric plus a set of dimension members.
+    // So the column holds the fact key, and is null where nothing could be
+    // verified. Which pack files is a property of the pack, not of this test.
+    const filing = packWhere(
+      'declares a filing taxonomy on its statements',
+      (pack) => pack.statements.some((statement) => statement.taxonomy !== null),
     );
-    // Every line of the Belgian schemes now names its fact. A line losing its
-    // key is a regression, and so is a line gaining one nobody sourced.
-    expect(filled.total).toBe(53);
-    expect(filled.named).toBe(53);
+    const schemes = filing.statements.filter((statement) => statement.taxonomy !== null);
 
-    const receivables = await one<{ xbrl_element: string }>(
-      db,
-      `select xbrl_element from statement_line_templates
-        where statement_code = 'BE-BNB-ABBR-BS' and code = '40/41'`,
-    );
-    expect(receivables.xbrl_element).toBe('met:am1|bas:m9|rst:m2');
+    for (const statement of schemes) {
+      const filled = await one<{ total: number; named: number }>(
+        db,
+        `select count(*)::int as total, count(xbrl_element)::int as named
+           from statement_line_templates where statement_code = $1`,
+        [statement.code],
+      );
+      // Every line of a scheme that files names its fact. A line losing its
+      // key is a regression, and so is a line gaining one nobody sourced.
+      expect(filled.total, statement.code).toBe(statement.lines.length);
+      expect(filled.named, statement.code).toBe(
+        statement.lines.filter((line) => line.xbrl !== null).length,
+      );
+      expect(filled.named, statement.code).toBe(filled.total);
+    }
+
+    // And the keys the pack states in `golden/expectations.json` — the ones no
+    // other file can check, because the taxonomy they name is national — are
+    // the keys the seed loaded.
+    const stated = expectationsOf(filing).statement_facts ?? {};
+    expect(Object.keys(stated).length, `${filing.slug} states no fact key`).toBeGreaterThan(0);
+    for (const [code, facts] of Object.entries(stated)) {
+      for (const [line, key] of Object.entries(facts)) {
+        const row = await one<{ xbrl_element: string }>(
+          db,
+          `select xbrl_element from statement_line_templates
+            where statement_code = $1 and code = $2`,
+          [code, line],
+        );
+        expect(row.xbrl_element, `${code} ${line}`).toBe(key);
+      }
+    }
   });
 
   it('refuse a rule on a line that is computed from other lines', async () => {
@@ -775,7 +800,10 @@ describe('replaying the seeds', () => {
       return out;
     };
     const before = await snapshot();
-    for (const file of ['05_framework_generic.sql', '10_pack_be.sql', '11_pack_fr.sql', '13_pack_ee.sql']) {
+    // Every seed a pack compiles to, plus the framework beside them, so a new
+    // pack is replayed here the day it is built and not the day somebody adds
+    // its file name to this list.
+    for (const file of await seedFiles()) {
       await db.exec(await readFile(join(repoRoot, 'supabase', 'seed', file), 'utf8'));
     }
     expect(await snapshot()).toEqual(before);
@@ -783,29 +811,55 @@ describe('replaying the seeds', () => {
 });
 
 describe('what `ekwo pack check` refuses in a statement', () => {
-  const packs = join(repoRoot, 'packs');
+  const packs = packsRoot;
 
-  /** `packs/be` in a temporary directory, with its statements edited. */
+  // The refusals below are about the reader. They break a pack on purpose and
+  // read the message back, so the pack is whichever one comes first and every
+  // line they reach for is found in it rather than typed here.
+  const broken = somePack;
+  const sheet = broken.statements.find((s) => s.kind === 'balance_sheet')!;
+  /** A total of that sheet that adds at least two lines, one of them a total. */
+  const grandTotal = sheet.lines.find(
+    (line) =>
+      line.plus.length >= 2 &&
+      line.plus.some((code) => sheet.lines.find((l) => l.code === code)?.is_total === true),
+  )!;
+  /** The total inside it: the pair that a cycle can be built out of. */
+  const innerTotal = sheet.lines.find(
+    (line) => line.is_total && grandTotal.plus.includes(line.code),
+  )!;
+  /** A plain line the sheet catches with a range, to give its range to another. */
+  const ranged = sheet.lines.find(
+    (line) => !line.is_total && line.rules.some((rule) => rule.kind === 'code_range'),
+  )!;
+
+  /** A copy of the pack in a temporary directory, with its statements edited. */
   async function packWith(edit: (statements: Record<string, unknown>) => void): Promise<void> {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-stmt-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
+    await cp(join(packs, broken.slug), join(dir, broken.slug), { recursive: true });
     const statements = JSON.parse(
-      await readFile(join(packs, 'be', 'statements.json'), 'utf8'),
+      await readFile(join(packs, broken.slug, 'statements.json'), 'utf8'),
     ) as Record<string, unknown>;
     edit(statements);
-    await writeFile(join(dir, 'be', 'statements.json'), JSON.stringify(statements), 'utf8');
-    await readPack('be', dir);
+    await writeFile(join(dir, broken.slug, 'statements.json'), JSON.stringify(statements), 'utf8');
+    await readPack(broken.slug, dir);
   }
 
   type Statement = { code: string; lines: Record<string, unknown>[] };
   const balanceSheet = (s: Record<string, unknown>): Statement =>
-    (s['statements'] as Statement[]).find((st) => st.code === 'BE-BNB-ABBR-BS')!;
+    (s['statements'] as Statement[]).find((st) => st.code === sheet.code)!;
+  const lineOf = (s: Record<string, unknown>, code: string): Record<string, unknown> =>
+    balanceSheet(s).lines.find((l) => l['code'] === code)!;
 
   it('accepts the packs of this repository as they are', async () => {
-    for (const slug of ['be', 'fr']) {
-      const pack = await readPack(slug, packs);
-      expect(pack.statements.length, slug).toBeGreaterThan(1);
+    for (const pack of allPacks) {
+      expect(pack.statements.length, pack.slug).toBeGreaterThan(1);
+      // Every country pack files at least a balance sheet and a result.
+      const kinds = new Set(pack.statements.map((s) => s.kind));
+      expect([...kinds].sort(), pack.slug).toEqual(
+        expect.arrayContaining(['balance_sheet', 'income_statement']),
+      );
     }
     const framework = await readFrameworkPack();
     expect(framework.statements).toHaveLength(2);
@@ -814,7 +868,7 @@ describe('what `ekwo pack check` refuses in a statement', () => {
   it('refuses a total naming a line the statement does not carry', async () => {
     await expect(
       packWith((s) => {
-        balanceSheet(s).lines.find((l) => l['code'] === '20/58')!['plus'] = ['20', 'ZZ'];
+        lineOf(s, grandTotal.code)['plus'] = [grandTotal.plus[0]!, 'ZZ'];
       }),
     ).rejects.toThrow(/ZZ is not a line of this statement/);
   });
@@ -822,16 +876,15 @@ describe('what `ekwo pack check` refuses in a statement', () => {
   it('refuses a total naming itself', async () => {
     await expect(
       packWith((s) => {
-        balanceSheet(s).lines.find((l) => l['code'] === '20/58')!['plus'] = ['20', '20/58'];
+        lineOf(s, grandTotal.code)['plus'] = [grandTotal.plus[0]!, grandTotal.code];
       }),
-    ).rejects.toThrow(/20\/58 is the line itself/);
+    ).rejects.toThrow(new RegExp(`${grandTotal.code.replace('/', '\\/')} is the line itself`));
   });
 
   it('refuses two totals that depend on each other', async () => {
     await expect(
       packWith((s) => {
-        const lines = balanceSheet(s).lines;
-        lines.find((l) => l['code'] === '21/28')!['plus'] = ['20/58'];
+        lineOf(s, innerTotal.code)['plus'] = [grandTotal.code];
       }),
     ).rejects.toThrow(/depend on each other and on nothing else/);
   });
@@ -839,42 +892,67 @@ describe('what `ekwo pack check` refuses in a statement', () => {
   it('refuses a line that is both summed and computed', async () => {
     await expect(
       packWith((s) => {
-        balanceSheet(s).lines.find((l) => l['code'] === '21/28')!['rules'] = [
-          { kind: 'code_range', code_from: '21', code_to: '28' },
+        lineOf(s, innerTotal.code)['rules'] = [
+          { kind: 'code_range', code_from: ranged.rules[0]!.code_from, code_to: ranged.rules[0]!.code_to },
         ];
       }),
     ).rejects.toThrow(/a total is computed from other lines; it takes no rule of its own/);
   });
 
   it('refuses two lines that catch the same account on the same side', async () => {
+    // A second line given the range of the first: both now reach the accounts
+    // that fall in it, and neither the chart nor the sheet can say which.
+    const other = sheet.lines.find(
+      (line) => !line.is_total && line.code !== ranged.code && line.rules.length > 0,
+    )!;
     await expect(
       packWith((s) => {
-        balanceSheet(s).lines.find((l) => l['code'] === '29')!['rules'] = [
-          { kind: 'code_range', code_from: '28', code_to: '29' },
+        lineOf(s, other.code)['rules'] = [
+          { kind: 'code_range', code_from: ranged.rules[0]!.code_from, code_to: ranged.rules[0]!.code_to },
         ];
       }),
-    ).rejects.toThrow(/reaches 2 lines \(28, 29\)/);
+    ).rejects.toThrow(/reaches 2 lines/);
   });
 
   it('refuses a chart with an account no statement of it catches', async () => {
     // This is the check that makes a balance sheet tie out. Drop the line the
-    // cash accounts fall on and the company chart has nowhere to put 550000.
+    // cash account of the pack falls on, take it out of the total above it,
+    // and the company chart has nowhere to put the money in the bank.
+    const cash = roleOf(broken, 'cash');
+    /** Whether a rule of the sheet reaches an account code. */
+    const covers = (rule: { kind: string; code_from: string | null; code_to: string | null }): boolean => {
+      if (rule.kind === 'account_code') return cash === rule.code_from;
+      if (rule.kind === 'code_prefix') return cash.startsWith(rule.code_from ?? '\u0000');
+      if (rule.kind !== 'code_range' || rule.code_from === null) return false;
+      const width = Math.max(rule.code_from.length, (rule.code_to ?? rule.code_from).length);
+      const head = cash.slice(0, width).padEnd(width, '0');
+      return (
+        head >= rule.code_from.padEnd(width, '0') &&
+        head <= (rule.code_to ?? rule.code_from).padEnd(width, '9')
+      );
+    };
+    const catching = sheet.lines.find(
+      (line) =>
+        !line.is_total &&
+        line.rules.some(covers) &&
+        sheet.lines.some((other) => other.plus.includes(line.code)),
+    )!;
+    expect(catching, `no line of ${sheet.code} catches the cash account ${cash}`).toBeDefined();
+    const parent = sheet.lines.find((line) => line.plus.includes(catching.code))!;
     await expect(
       packWith((s) => {
         const statement = balanceSheet(s);
-        statement.lines = statement.lines.filter((l) => l['code'] !== '54/58');
-        statement.lines.find((l) => l['code'] === '29/58')!['plus'] = ['29', '3', '40/41', '50/53', '490/1'];
+        statement.lines = statement.lines.filter((l) => l['code'] !== catching.code);
+        lineOf(s, parent.code)['plus'] = parent.plus.filter((code) => code !== catching.code);
       }),
     ).rejects.toThrow(/reaches no line of any statement of this chart/);
   });
 
   it('gives every fact key to one line, so it names one fact', async () => {
-    // A key that fits two lines is a key missing a member. The two sides of the
-    // Belgian balance sheet share every member but `part:`, so `met:am1|bas:m25`
-    // alone was both totals at once and `met:am1|bas:m24` both regularisation
-    // lines. Sources for the members: Ekwo-ai/xbrl-cbso, docs/sources.md.
-    for (const slug of ['be', 'fr']) {
-      const pack = await readPack(slug, packs);
+    // A key that fits two lines is a key missing a member: a national taxonomy
+    // is dimensional, and two rubrics can share every member but one. The
+    // uniqueness holds for every pack, whatever its taxonomy.
+    for (const pack of allPacks) {
       for (const statement of pack.statements) {
         const byKey = new Map<string, string>();
         for (const line of statement.lines) {
@@ -884,31 +962,28 @@ describe('what `ekwo pack check` refuses in a statement', () => {
         }
       }
     }
-    const be = await readPack('be', packs);
-    const bs = be.statements.find((st) => st.code === 'BE-BNB-ABBR-BS')!;
-    const keyOf = (code: string): string | null => bs.lines.find((l) => l.code === code)!.xbrl;
-    expect(keyOf('20/58')).toBe('met:am1|bas:m25|part:m1');
-    expect(keyOf('10/49')).toBe('met:am1|bas:m25|part:m3');
-    expect(keyOf('490/1')).toBe('met:am1|bas:m24|part:m1');
-    expect(keyOf('492/3')).toBe('met:am1|bas:m24|part:m3');
 
-    // 22/27 is the tangible nature of the fixed-assets base, 24 a base of its
-    // own, 26 the remainder of the base — three lines nobody can tell apart
-    // from the reporting code alone.
-    expect(keyOf('22/27')).toBe('met:am1|bas:m2|ntr:m2');
-    expect(keyOf('24')).toBe('met:am1|bas:m5|ntr:m2');
-    expect(keyOf('26')).toBe('met:am1|bas:m2|ntr:m2|typ:m1');
-
-    // The result carried forward is one fact, shown on the balance sheet and
-    // again at the foot of the appropriation section. One fact, one key.
-    const af = be.statements.find((st) => st.code === 'BE-BNB-ABBR-AF')!;
-    expect(af.lines.find((l) => l.code === '14')!.xbrl).toBe(keyOf('14'));
+    // And the keys a pack states in `golden/expectations.json` are the keys it
+    // wrote on its lines. The members behind them are in that file, sourced;
+    // the pack, not this test, is where a country writes them down.
+    for (const pack of allPacks) {
+      for (const [code, facts] of Object.entries(expectationsOf(pack).statement_facts ?? {})) {
+        const statement = pack.statements.find((st) => st.code === code)!;
+        expect(statement, `${pack.slug} ${code}`).toBeDefined();
+        for (const [line, key] of Object.entries(facts)) {
+          expect(statement.lines.find((l) => l.code === line)?.xbrl, `${code} ${line}`).toBe(key);
+        }
+      }
+    }
   });
 
-  it('names the fact of every Belgian line, in all three schemes', async () => {
-    const be = await readPack('be', packs);
-    const schemes = be.statements.filter((st) => st.code.startsWith('BE-BNB-ABBR-'));
-    expect(schemes).toHaveLength(3);
+  it('names the fact of every line, in every scheme that files', async () => {
+    const filing = packWhere(
+      'declares a filing taxonomy on its statements',
+      (pack) => pack.statements.some((statement) => statement.taxonomy !== null),
+    );
+    const schemes = filing.statements.filter((st) => st.taxonomy !== null);
+    expect(schemes.length, filing.slug).toBeGreaterThan(0);
     const unnamed = schemes.flatMap((st) =>
       st.lines.filter((l) => l.xbrl === null).map((l) => `${st.code} ${l.code}`),
     );
@@ -927,8 +1002,11 @@ describe('what `ekwo pack check` refuses in a statement', () => {
     // package the National Bank publishes. This is the only place the pack and
     // the format library meet, and it is a test rather than a runtime
     // dependency: the core files nothing.
-    const be = await readPack('be', packs);
-    const schemes = be.statements.filter((st) => st.code.startsWith('BE-BNB-ABBR-'));
+    const filing = packWhere(
+      'declares the taxonomy this format library carries',
+      (pack) => pack.statements.some((st) => st.taxonomy === `nbb-cbso:${FRAMEWORK}`),
+    );
+    const schemes = filing.statements.filter((st) => st.taxonomy !== null);
 
     const wrong: string[] = [];
     let resolved = 0;
@@ -986,15 +1064,24 @@ describe('what `ekwo pack check` refuses in a statement', () => {
 
   it('allows two lines to share an account when one takes it in debit and one in credit', async () => {
     // The suspense account is a receivable while it is in debit and a payable
-    // while it is in credit, and the Belgian pack says exactly that.
-    const pack = await readPack('be', packs);
-    const bs = pack.statements.find((s) => s.code === 'BE-BNB-ABBR-BS')!;
+    // while it is in credit. A pack that splits it says so on two lines of one
+    // sheet, and this is the only way two lines may reach the same account.
+    const split = packWhere(
+      'splits an account between the two sides of its balance sheet',
+      (pack) =>
+        pack.statements.some(
+          (st) =>
+            st.kind === 'balance_sheet' &&
+            st.lines.filter((l) => l.rules.some((r) => r.side === 'debit')).length > 0 &&
+            st.lines.filter((l) => l.rules.some((r) => r.side === 'credit')).length > 0,
+        ),
+    );
+    const bs = split.statements.find((st) => st.kind === 'balance_sheet')!;
+    const suspense = roleOf(split, 'suspense');
     const sides = bs.lines
-      .filter((l) => l.rules.some((r) => r.code_from === '499'))
-      .map((l) => [l.code, l.rules.find((r) => r.code_from === '499')!.side]);
-    expect(sides).toEqual([
-      ['40/41', 'debit'],
-      ['42/48', 'credit'],
-    ]);
+      .filter((l) => l.rules.some((r) => r.side !== 'any' && suspense.startsWith(r.code_from ?? '\u0000')))
+      .map((l) => [l.code, l.rules.find((r) => suspense.startsWith(r.code_from ?? '\u0000'))!.side]);
+    expect(sides.length, split.slug).toBe(2);
+    expect(sides.map(([, side]) => side).sort()).toEqual(['credit', 'debit']);
   });
 });

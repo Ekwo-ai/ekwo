@@ -1,0 +1,20 @@
+{
+  "note": "Claims about this pack that no other pack can make, and that the pack's own files cannot check themselves against. Read by the tests through tests/helpers/packs.ts. Like the rest of golden/ beside scenario.json, this file is outside the pack checksum: it is evidence about the pack, not part of it.",
+  "statement_facts": {
+    "BE-BNB-ABBR-BS": {
+      "20/58": "met:am1|bas:m25|part:m1",
+      "10/49": "met:am1|bas:m25|part:m3",
+      "490/1": "met:am1|bas:m24|part:m1",
+      "492/3": "met:am1|bas:m24|part:m3",
+      "22/27": "met:am1|bas:m2|ntr:m2",
+      "24": "met:am1|bas:m5|ntr:m2",
+      "26": "met:am1|bas:m2|ntr:m2|typ:m1",
+      "40/41": "met:am1|bas:m9|rst:m2",
+      "14": "met:am2|bas:m44|ntr:m4"
+    },
+    "BE-BNB-ABBR-AF": {
+      "14": "met:am2|bas:m44|ntr:m4"
+    }
+  },
+  "facts_note": "The two sides of the balance sheet share every dimension member but part:, so met:am1|bas:m25 alone was both totals at once and met:am1|bas:m24 both regularisation lines. 22/27 is the tangible nature of the fixed-assets base, 24 a base of its own and 26 the remainder of that base: three rubrics nobody can tell apart from the reporting code. The result carried forward is one fact, shown on the balance sheet and again at the foot of the appropriation section, so both schemes name the same key. Sources: Ekwo-ai/xbrl-cbso, docs/sources.md."
+}
