@@ -19,6 +19,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
+import { allPacks, packWhere, roleOf } from './helpers/packs.js';
 import {
   newCompany,
   newContact,
@@ -778,40 +779,20 @@ describe('the three functions', () => {
               opening_journal_code
          from country_defaults order by country`,
     );
-    expect(defaults).toEqual([
-      {
-        country: 'BE',
-        closing_style: 'appropriation_accounts',
-        profit: '693000',
-        loss: '793000',
-        opening_journal_code: 'OPN',
-      },
-      {
-        // Estonia keeps one balance-sheet line for the result of the year, so
-        // the pack names one account for both signs.
-        country: 'EE',
-        closing_style: 'result_accounts',
-        profit: '2980',
-        loss: '2980',
-        opening_journal_code: 'ALG',
-      },
-      {
-        country: 'FR',
-        closing_style: 'result_accounts',
-        profit: '120000',
-        loss: '129000',
-        opening_journal_code: 'OPN',
-      },
-      {
-        // Luxembourg keeps one account for the result of the year, whichever
-        // sign it has, where Belgium and France keep two.
-        country: 'LU',
-        closing_style: 'result_accounts',
-        profit: '142',
-        loss: '142',
-        opening_journal_code: 'OPN',
-      },
-    ]);
+    // Four parameters of each manifest. A country that keeps one account for
+    // the result of the year, whichever sign it has, says so by naming the
+    // same account twice — which is a property of its pack, not of this test.
+    expect(defaults).toEqual(
+      allPacks
+        .map((pack) => ({
+          country: pack.manifest.country,
+          closing_style: pack.manifest.defaults['closing_style'],
+          profit: roleOf(pack, 'current_year_result_profit'),
+          loss: roleOf(pack, 'current_year_result_loss'),
+          opening_journal_code: pack.manifest.defaults.journal_roles?.['opening'],
+        }))
+        .sort((a, b) => (a.country < b.country ? -1 : 1)),
+    );
   });
 });
 
@@ -948,12 +929,20 @@ describe('what an entry is for', () => {
 // ---------------------------------------------------------------------------
 
 describe('a pack that declares a closing style', () => {
+  // The refusals below break a manifest on purpose. The pack they break is the
+  // one that closes through appropriation accounts, because that is the style
+  // whose extra accounts they take away — a property, not a country.
+  const closer = packWhere(
+    'closes through appropriation accounts',
+    (pack) => pack.manifest.defaults['closing_style'] === 'appropriation_accounts',
+  );
+
   /** A copy of `packs/` with one manifest patched, so nothing here edits the real one. */
   async function packsWith(patch: (defaults: Record<string, unknown>) => void): Promise<string> {
     const dir = join(tmpdir(), `ekwo-packs-${crypto.randomUUID()}`);
     await mkdir(dir, { recursive: true });
     await cp(join(repoRoot, 'packs'), dir, { recursive: true });
-    const file = join(dir, 'be', 'pack.json');
+    const file = join(dir, closer.slug, 'pack.json');
     const manifest = JSON.parse(await readFile(file, 'utf8')) as {
       defaults: Record<string, unknown>;
     };
@@ -963,8 +952,15 @@ describe('a pack that declares a closing style', () => {
   }
 
   it('is accepted as it stands', async () => {
-    const pack = await readPack('be');
-    expect(pack.manifest.defaults['closing_style']).toBe('appropriation_accounts');
+    // Every pack says how it closes, and the two styles are the ones the
+    // functions branch on. A pack that said nothing is refused by the reader.
+    for (const pack of allPacks) {
+      expect(
+        ['appropriation_accounts', 'result_accounts'],
+        pack.slug,
+      ).toContain(pack.manifest.defaults['closing_style']);
+    }
+    expect(closer.manifest.defaults['closing_style']).toBe('appropriation_accounts');
   });
 
   it('is refused when it names no account for the result', async () => {
@@ -973,7 +969,7 @@ describe('a pack that declares a closing style', () => {
       delete roles['current_year_result_profit'];
     });
     try {
-      await expect(readPack('be', dir)).rejects.toThrow(/current_year_result_profit/);
+      await expect(readPack(closer.slug, dir)).rejects.toThrow(/current_year_result_profit/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -985,7 +981,7 @@ describe('a pack that declares a closing style', () => {
       delete journals['opening'];
     });
     try {
-      await expect(readPack('be', dir)).rejects.toThrow(/journal_roles\.opening/);
+      await expect(readPack(closer.slug, dir)).rejects.toThrow(/journal_roles\.opening/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -997,7 +993,7 @@ describe('a pack that declares a closing style', () => {
       journals['opening'] = 'MISC';
     });
     try {
-      await expect(readPack('be', dir)).rejects.toThrow(/has to be of type opening/);
+      await expect(readPack(closer.slug, dir)).rejects.toThrow(/has to be of type opening/);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
