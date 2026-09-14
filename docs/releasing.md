@@ -71,6 +71,77 @@ that is not cut.
    node packages/cli/dist/bin.js --version    # prints the new number
    ```
 
+7. **The end-to-end run, against a real project.** `tests/e2e/` proves the
+   whole story against PGlite — the same release installed through the CLI and
+   the way `supabase db push` and `psql -f` do, compared row by row, then a
+   company brought from 1.0.0 through an opening balance, two invoices, the VAT
+   return, both financial statements, a close, a re-opening and a close again.
+   PGlite is real Postgres and four things it is not, and they are the four
+   that break a release:
+
+   - the published binary, over a pooler connection string;
+   - PostgREST — a function that exists and was never granted to
+     `authenticated` passes every test in this repository and answers
+     "permission denied" to the first user;
+   - GoTrue, so row level security judged on a real JWT rather than on a
+     session variable a test set;
+   - the extensions, roles and defaults a hosted project has.
+
+   ```sh
+   npm run build
+   npm run e2e:supabase
+   ```
+
+   It reads everything from the environment and writes no secret anywhere:
+
+   | Variable | What |
+   |---|---|
+   | `EKWO_DB_URL` | the pooler connection string of the project |
+   | `SUPABASE_URL` | `https://<ref>.supabase.co` |
+   | `SUPABASE_ANON_KEY` | the anon key — what a real client sends |
+   | `SUPABASE_SERVICE_ROLE_KEY` | used once, by `ekwo init`, to create the administrator |
+   | `EKWO_E2E_COUNTRY` | the pack to install. No default: a default country is a chart of accounts nobody chose |
+   | `EKWO_E2E_CHART` / `EKWO_E2E_LANGUAGE` | required whenever the pack carries more than one of either — `ekwo init` refuses to pick for you when there is nobody to ask, which is the right answer and the first thing this script found |
+   | `EKWO_E2E_ADMIN_EMAIL` / `EKWO_E2E_ADMIN_PASSWORD` | the administrator it creates and signs in as |
+   | `EKWO_E2E_PREVIOUS` | optional: install that release first, so the run upgrades an installation instead of creating one. Left out, those steps are skipped rather than passed |
+
+   **Point `EKWO_E2E_PREVIOUS` at the last tag.** It is the only way the run
+   exercises what a user will actually do, and the packages are not on npm yet,
+   so it takes a path to a built binary of an older checkout:
+
+   ```sh
+   git worktree add /tmp/prev v0.2.0
+   (cd /tmp/prev && npm ci && npm run build)
+   EKWO_E2E_PREVIOUS=/tmp/prev/packages/cli/dist/bin.js npm run e2e:supabase
+   ```
+
+   Once they are published, `ekwo@<x.y.z>` works in the same variable.
+
+   **The project has to be empty, and has to be one nobody minds losing.** The
+   script installs an instance, an administrator and a company, books into them
+   and closes a financial year, so it refuses a database that already holds an
+   `instance` row. It deletes nothing on its own: what is left behind is the
+   evidence. It is not in the CI and never will be — it costs money, and a
+   shared throwaway project would be a project two releases install into at
+   once.
+
+   **`--reset` empties the project so a failed run can be replayed.** It drops
+   the module schemas, `public` and `supabase_migrations`, and puts back the
+   schema and the default privileges a Supabase project has — which matters:
+   nothing in `supabase/migrations` grants table access to `anon` or
+   `authenticated`, because on a real project those come from the project's own
+   default privileges on `public`. Drop the schema without restoring them and
+   the reinstall succeeds, `ekwo doctor` is content, and the first read through
+   PostgREST answers `permission denied for table companies`.
+
+   ```sh
+   npm run e2e:supabase -- --reset
+   ```
+
+   It is as destructive as it sounds and it is deliberately not an `ekwo`
+   command: an installer that can empty a database is one somebody points at
+   the wrong connection string. For a throwaway project and nothing else.
+
 ## Cutting it
 
 1. Open a pull request with all of the above. The CI job *Migrations are

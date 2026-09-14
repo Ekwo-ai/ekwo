@@ -9,20 +9,19 @@
  * It replays the published 1.0.0 seeds — the four hand-written files kept in
  * `tests/fixtures/seeds-before-packs/` since the pack format replaced them —
  * installs a company from them, loads the packs of this release on top, and
- * asks what an upgrade would do.
+ * asks what an upgrade would do. The replay itself is
+ * `helpers/installed-at-1-0-0.ts`, because the end-to-end test carries the
+ * same company through a whole financial year afterwards and the two must
+ * start from one definition of "the previous version".
  *
  * The claim is: nothing silent. Every difference is either applied by one of
  * the two rules that cannot lose anything, or listed and left alone.
  */
 
 import type { PGlite } from '@electric-sql/pglite';
-import { readFile, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { asUser, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
-
-const seedDir = join(repoRoot, 'supabase', 'seed');
-const beforeDir = join(repoRoot, 'tests', 'fixtures', 'seeds-before-packs');
+import { asUser, one, rows } from './helpers/db.js';
+import { companyInstalledAtOneZeroZero } from './helpers/installed-at-1-0-0.js';
 
 interface Difference {
   object: string;
@@ -47,72 +46,8 @@ let companyId: string;
 let ownerId: string;
 let packVersion: string;
 
-/**
- * A company installed from the 1.0.0 seeds, in a database that then receives
- * the packs of this release.
- *
- * The two schema changes are the ones `packs.test.ts` makes for the same
- * reason: those seeds were written when a country had one chart of accounts,
- * so they name a key the schema has widened since and point at no chart. The
- * shape is given back to them for the length of the replay and then taken
- * away again, so the files themselves run untouched.
- */
-async function companyInstalledAtOneZeroZero(): Promise<PGlite> {
-  const pg = await freshDatabase({ seed: false });
-
-  await pg.exec(`
-    alter table account_templates drop constraint account_templates_chart_fk;
-    create unique index account_templates_old_key_idx on account_templates (country, code);
-  `);
-  await pg.exec(await readFile(join(seedDir, '00_currencies.sql'), 'utf8'));
-  for (const file of (await readdir(beforeDir)).filter((f) => f.endsWith('.sql')).sort()) {
-    await pg.exec(await readFile(join(beforeDir, file), 'utf8'));
-  }
-
-  // What migration `20260912095825` did when it introduced charts: one chart
-  // per country, from the accounts already loaded. In 1.0.0 that is the whole
-  // truth — a country had exactly one.
-  await pg.exec(`
-    insert into chart_templates (country, code, name, is_default)
-    select distinct t.country, t.chart_code, t.chart_code, true
-      from account_templates t
-    on conflict (country, code) do nothing;
-  `);
-
-  const owner = crypto.randomUUID();
-  await pg.query(`insert into auth.users (id, email) values ($1, $2)`, [
-    owner,
-    'owner@example.test',
-  ]);
-  const company = await pg.query<{ id: string }>(
-    `insert into companies (name, country, fiscal_country, currency_code, language)
-     select 'Installed at 1.0.0', 'BE', 'BE', d.currency_code, coalesce(d.language_default, 'fr')
-       from country_defaults d where d.country = 'BE'
-     returning id`,
-  );
-  companyId = company.rows[0]?.id as string;
-  ownerId = owner;
-  await pg.query(`insert into company_members (company_id, user_id, role) values ($1, $2, 'owner')`, [
-    companyId,
-    ownerId,
-  ]);
-  await pg.query(`select install_country_template($1, 'BE')`, [companyId]);
-
-  // The schema goes back to what it is, and this release's packs land on top.
-  await pg.exec(`
-    drop index account_templates_old_key_idx;
-    alter table account_templates
-      add constraint account_templates_chart_fk
-      foreign key (country, chart_code) references chart_templates (country, code);
-  `);
-  for (const file of (await readdir(seedDir)).filter((f) => f.endsWith('.sql')).sort()) {
-    await pg.exec(await readFile(join(seedDir, file), 'utf8'));
-  }
-  return pg;
-}
-
 beforeAll(async () => {
-  db = await companyInstalledAtOneZeroZero();
+  ({ db, companyId, ownerId } = await companyInstalledAtOneZeroZero({ country: 'BE' }));
   packVersion = (
     await one<{ version: string }>(db, `select version from country_packs where country = 'BE'`)
   ).version;

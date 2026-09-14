@@ -12,7 +12,8 @@ import {
   type PackTax,
 } from '../packages/cli/src/index.js';
 import { freshDatabase, one, rows } from './helpers/db.js';
-import { newCompany, newContact, newDocument } from './helpers/factory.js';
+import { newCompany } from './helpers/factory.js';
+import { replayScenario } from './helpers/golden-scenario.js';
 
 /**
  * The golden test of every country pack, replayed by one runner.
@@ -134,9 +135,6 @@ function runGolden(pack: Pack, golden: PackGolden): void {
     let db: PGlite;
     let companyId: string;
     let decimals: number;
-    /** `ref` of the scenario to the id in the database. */
-    const documents = new Map<string, string>();
-    const contacts = new Map<string, string>();
 
     beforeAll(async () => {
       db = await freshDatabase();
@@ -158,68 +156,7 @@ function runGolden(pack: Pack, golden: PackGolden): void {
       );
       decimals = Number(currency.decimal_places);
 
-      for (const contact of golden.contacts) {
-        contacts.set(
-          contact.ref,
-          await newContact(db, companyId, {
-            name: contact.name,
-            type: contact.type,
-            country: contact.country,
-            vat: contact.vat_number,
-            auxiliaryCode: contact.auxiliary_code,
-          }),
-        );
-      }
-
-      // In the order the scenario lists them, which is the order a business
-      // did them: numbering is gapless in most countries, so the order is
-      // part of what the golden records.
-      for (const document of golden.documents) {
-        const id = await newDocument(db, companyId, {
-          docType: document.type,
-          contactId: contacts.get(document.contact) as string,
-          date: document.date,
-          dueDate: document.due_date,
-          lines: document.lines.map((line) => ({
-            name: line.name,
-            quantity: line.quantity,
-            unitPrice: line.unit_price,
-            discountPercent: line.discount_percent,
-            taxCode: line.tax,
-            accountCode: line.account,
-          })),
-        });
-        await db.query(`select post_document($1)`, [id]);
-        documents.set(document.ref, id);
-      }
-
-      for (const payment of golden.payments) {
-        const row = await one<{ id: string }>(
-          db,
-          `insert into payments (company_id, direction, payment_date, amount, contact_id, journal_id)
-           values ($1, $2, $3::date, $4, $5,
-                   (select id from journals where company_id = $1 and code = $6))
-           returning id`,
-          [
-            companyId,
-            payment.direction,
-            payment.date,
-            payment.amount,
-            contacts.get(payment.contact) as string,
-            payment.journal,
-          ],
-        );
-        await db.query(`select post_payment($1)`, [row.id]);
-        if (payment.match === null) continue;
-
-        // A matching is between the two third-party lines: the one the
-        // document wrote and the one the payment wrote. `reconcile` takes the
-        // lesser of the two open amounts, so a part payment matches for what
-        // it is worth and leaves the invoice open for the rest.
-        const documentLine = await thirdPartyLine(db, 'document_id', documents.get(payment.match) as string);
-        const paymentLine = await thirdPartyLine(db, 'payment_id', row.id);
-        await db.query(`select reconcile($1, $2)`, [documentLine, paymentLine]);
-      }
+      await replayScenario(db, companyId, golden);
     }, 300_000);
 
     afterAll(async () => {
@@ -437,20 +374,4 @@ function runGolden(pack: Pack, golden: PackGolden): void {
       expect(Number(total.debit)).toBeGreaterThan(0);
     });
   });
-}
-
-/** The reconcilable third-party line an entry wrote, by what produced it. */
-async function thirdPartyLine(db: PGlite, column: 'document_id' | 'payment_id', id: string): Promise<string> {
-  const table = column === 'document_id' ? 'documents' : 'payments';
-  const row = await one<{ id: string }>(
-    db,
-    `select l.id
-       from entry_lines l
-       join accounts a on a.id = l.account_id
-       join ${table} t on t.entry_id = l.entry_id
-      where t.id = $1 and a.reconcilable
-        and a.account_type in ('asset_receivable', 'liability_payable')`,
-    [id],
-  );
-  return row.id;
 }

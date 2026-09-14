@@ -10,12 +10,33 @@ import { boolFlag, rejectUnknownFlags, type ParsedArgs } from '../args.js';
 import { migrationsDir } from '../bundle.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { doctor } from '../doctor.js';
-import { listMigrations } from '../migrations.js';
+import { listMigrations, type Migration } from '../migrations.js';
+import { allModuleMigrations, listModules } from '../module/read.js';
 import { isInteractive } from '../prompt.js';
 import { schemaIsInstalled } from '../bootstrap.js';
 import { dim, green, heading, line, red, warn, yellow } from '../ui.js';
 
 export const DOCTOR_FLAGS = [...CONNECTION_FLAGS, 'json', 'yes'] as const;
+
+/**
+ * The migrations this release carries, the socle's and the modules'.
+ *
+ * `ekwo migrate` installs the modules by default — a module is a schema whose
+ * tables are empty until a company enables it — and records their versions in
+ * the same history table as the socle's. So a gap computed against the socle
+ * alone reads eight module versions as history this CLI has no file for, and
+ * an installation that was merely kept up to date is reported as "ahead of
+ * this CLI: upgrade the CLI before migrating" — advice to upgrade something
+ * that is already current. Found by the end-to-end run of 14 September 2026
+ * against a real project, where `ekwo migrate` and `ekwo doctor` disagreed
+ * about the same database one command apart.
+ */
+async function everything(): Promise<Migration[]> {
+  const modules = await listModules();
+  return [...(await listMigrations(migrationsDir())), ...allModuleMigrations(modules)].sort((a, b) =>
+    a.version.localeCompare(b.version),
+  );
+}
 
 export async function doctorCommand(args: ParsedArgs): Promise<number> {
   rejectUnknownFlags(args, DOCTOR_FLAGS);
@@ -29,7 +50,7 @@ export async function doctorCommand(args: ParsedArgs): Promise<number> {
       return 1;
     }
 
-    const migrations = await listMigrations(migrationsDir());
+    const migrations = await everything();
     const report = await doctor(db, migrations);
 
     if (boolFlag(args, 'json')) {

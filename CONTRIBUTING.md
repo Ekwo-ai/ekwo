@@ -111,6 +111,24 @@ the review. A country pack without a golden scenario is refused by
 `ekwo pack check` and by the CI — see [`docs/packs.md`](docs/packs.md), "Golden
 scenario".
 
+### End to end
+
+`tests/e2e/` runs with the rest of `npm test`. It installs the same release
+twice — once through the CLI's runner, once the way `supabase db push` and
+`psql -f` do — and compares every row of every table the seeds write; then it
+takes a company installed at 1.0.0, upgrades its pack, opens a financial year,
+books two invoices, files the VAT return, prints both financial statements,
+closes the year, re-opens it and closes it again, comparing every figure to one
+it works out itself from `sum(debit) - sum(credit)`.
+
+Four things it cannot reach, because PGlite is not a project: the published
+binary over a pooler connection, PostgREST (a function that exists and was
+never granted to `authenticated` passes every test here), GoTrue, and the
+extensions a hosted project has. `npm run e2e:supabase` covers those against a
+real and empty Supabase project. It is run by hand before a release is tagged,
+never by the CI, and [`docs/releasing.md`](docs/releasing.md) is where its
+environment variables and its refusals are written down.
+
 ## No private data
 
 The repository must contain no real company, person, VAT number or bank

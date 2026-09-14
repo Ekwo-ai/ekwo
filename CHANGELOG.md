@@ -46,6 +46,63 @@ somewhere has already run it.
   Belgium moves to 1.5.1, France to 1.6.1 and the generic framework to 1.1.1:
   a legal source is a patch.
 
+- **An end-to-end test: the same release installed two ways, and a whole
+  financial year played out.**
+  `npx ekwo init` and `supabase db push` + `psql -f` have always been
+  documented as interchangeable, and nothing checked it. `tests/e2e/` now
+  installs the release both ways into two databases and compares the migration
+  history, every column of every table, the body of every function and every
+  row of every table the seeds write, rendered and sorted. The second path
+  imports nothing from the CLI, so what is compared is two installers rather
+  than one installer twice.
+  **It found one difference, in the documentation rather than the code.** The
+  by-hand instructions in the README named two seed files of the four
+  `config.toml` lists, so an installation made that way came up with a chart of
+  accounts and no generic financial statements, and nothing failed until
+  somebody asked for a balance sheet. The README is corrected and a test reads
+  it: every seed file the installer applies must be named there. On every byte
+  of reference data, the two paths agree.
+  **Then the year.** A company installed from the frozen 1.0.0 seeds is brought
+  to this release, its pack upgraded through `ekwo pack upgrade`, and carried
+  through the opening balance, a sale, a purchase, the VAT return, both
+  financial statements, the close, the re-opening and the close again — once
+  per country the frozen seeds carry, naming none of them: the accounts, the
+  journals, the tax, the declaration form and the schemes all come out of the
+  pack. Every figure is compared to one the test works out itself from
+  `sum(debit) - sum(credit)` and the pack's own rows, including the rule engine
+  that puts an account on a line and the evaluator the forms and the statements
+  share. Closing is what makes a balance sheet balance, and both sides of that
+  are asserted: out by exactly the result before, nil after.
+  **`npm run e2e:supabase`** does the same against a real Supabase project,
+  through the published binary, a GoTrue sign-in and PostgREST — the four
+  things PGlite is not. It installs at the previous tag, migrates, upgrades the
+  pack, signs in, books, files and closes, and prints a pass/fail table. It is
+  run by hand before a release is tagged, never by the CI, and it refuses a
+  database that already holds an `instance` row.
+
+### Fixed
+
+- **`ekwo pack upgrade` left a company on the old version when the release
+  changed nothing the difference compares.**
+  The command asked for the difference first and returned early when it was
+  empty, saying the company was already at the version this installation holds.
+  Those are two different claims: a patch release — a legal source added to a
+  tax, a box renamed — moves the pack version and touches no natural key, so
+  the difference is empty and `company_packs` went on recording the old
+  version for ever, with `ekwo pack status` calling the company behind every
+  time. `pack_upgrade()` already handled an empty difference by recording the
+  version, so the early return is gone rather than corrected. Found by the
+  end-to-end run against a real project, upgrading an installation made at
+  v0.2.0: Belgium moved 1.5.0 to 1.5.1 and the company stayed on 1.5.0.
+
+- **`ekwo status` and `ekwo doctor` reported an ordinary installation as ahead
+  of the CLI.**
+  `ekwo migrate` applies the modules' migrations beside the socle's and records
+  them in the same history, which is what it is meant to do. The other two
+  computed their gap against the socle alone, read those versions as history
+  they had no file for, and told the operator to upgrade a CLI that was already
+  current. All three now build the same set.
+
 ## [0.2.0] — 2026-09-14
 
 The first published release. `0.1.0` below was the first schema and was never

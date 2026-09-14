@@ -2369,3 +2369,122 @@ decision about what cadre A owes cadre B on the CA3 — a decision for the
 French pack and for an accountant reading it, not for the change that made
 them visible. They are the argument for the golden, made on the day it
 shipped.
+
+## Two install paths, one installation, proved end to end (14 September 2026)
+
+**The README has always said the two routes are interchangeable; nothing
+checked it.** `npx ekwo init` runs the CLI's migration runner and its seed
+loader; `supabase db push` followed by `psql -f` runs neither — the Supabase
+CLI reads the same folder of files, and the operator applies the seeds by
+hand. "Interchangeable" is a claim about the state of a database, so
+`tests/e2e/install_parity.test.ts` builds one of each and compares them: the
+migration history, the columns of every table, the body of every function, and
+every row of every table the seeds write, rendered as JSON and sorted. The
+second path deliberately imports nothing from `packages/cli` — a test that
+drove both through the same runner would prove the runner is deterministic,
+which nobody doubted.
+
+**The list of tables is read from the seeds, not written down.** A list
+written down is one a new pack section quietly falls out of. Three kinds of
+column are left out and each is named: `id` where it is a surrogate key behind
+`gen_random_uuid()`, the clock (`created_at`, `updated_at`, `installed_at`),
+and a uuid that is a foreign key to another template — for which the dump
+refuses to guess and demands a natural key. A migration that adds a reference
+between two template tables fails this test until somebody names it, which is
+the intended behaviour: comparing two random numbers and calling them equal is
+worse than not comparing at all.
+
+**What it found: the README told an operator to apply two seed files of the
+four.** `config.toml` lists `00_currencies`, `05_framework_generic` and the two
+packs; the by-hand instructions named the currencies and one pack. An
+installation made that way came up with a chart of accounts and no generic
+financial statements — the fallback for a chart that declares none of its own —
+and nothing failed, anywhere, until somebody asked for a balance sheet. The
+README is fixed, and a test now reads it: every seed file the installer applies
+must be named in it. Beyond that the two paths agreed on every byte.
+
+**The year is played out, not asserted at.** `tests/e2e/lifecycle.test.ts`
+starts where a real installation starts — the frozen 1.0.0 seeds, a company
+created from them, four releases of schema since — brings it to this release,
+upgrades its pack through `ekwo pack upgrade`, and then does the year: the
+opening balance, a sale, a purchase, the VAT return, both financial statements,
+the close, the re-opening, the close again. It runs once per country the frozen
+seeds carry and names none of them: the accounts, the journals, the tax, the
+declaration form and the schemes all come out of the pack, and a country that
+names no opening journal fails by name rather than silently.
+
+**Every figure is compared to one the test works out itself.** A test that
+reads `financial_statement()` and compares it to `financial_statement()` proves
+the database is deterministic. `tests/e2e/expected.ts` starts from
+`sum(debit) - sum(credit)` — an aggregate no function of this schema takes part
+in — and from the pack's own rows, and rebuilds the answer in TypeScript: the
+rule engine that puts an account on a line of a scheme, the evaluator the
+declaration forms and the statements share, and the boxes a tax posting writes.
+It is a reimplementation and not a second opinion, which is worth saying
+plainly: it follows the same rules, because the rules are the specification.
+What it cannot do is share a bug with the SQL. The rounding is the one
+deliberate exception — `roundCurrency` is the TypeScript half of a rule already
+pinned against the SQL half — so the two engines agree about rounding and about
+nothing else.
+
+**Closing is what makes a balance sheet balance, and the test says so.** Before
+the result of the year is appropriated, the accounts that carry forward are out
+by exactly that result and every scheme prints the gap; after the close they
+net to nil. Both figures are asserted, in both countries, which is how the
+end-to-end test would notice a closing style that moved the result to the wrong
+side.
+
+**What only a real run proves, and why it is not in the CI.** PGlite is real
+Postgres, and four things it is not. It is not the published binary over a
+pooler connection. It is not PostgREST — a function that exists and was never
+granted to `authenticated` passes every test in this repository and answers
+"permission denied" to the first user. It is not GoTrue, so row level security
+is judged on a session variable a test set rather than on a JWT a person was
+issued. And it is not a hosted project's extensions, roles and defaults.
+`scripts/e2e-supabase.mjs` covers those four against a real project, through
+`node packages/cli/dist/bin.js`, a GoTrue sign-in and PostgREST, and prints a
+pass/fail table. It is run by hand before a release is tagged and never by the
+CI: it costs money and it needs a project nobody minds losing.
+
+**It refuses a database that is not empty.** The script installs an instance,
+an administrator and a company, books into them and closes a financial year.
+Run against books that matter it would be a disaster with a pass/fail table at
+the end, so the first thing it does is ask whether `public.instance` holds a
+row and stop if it does. It deletes nothing on its own: what is left behind is
+the evidence. `--reset` is the exception and exists for one reason — a run that
+fails halfway leaves an instance row, so the next one is refused, which is
+right and useless while a script is being written. It is deliberately not an
+`ekwo` command: an installer that can empty a database is one somebody points
+at the wrong connection string.
+
+**What the first real run found, in the order it found it.** All four are
+things no test against PGlite could have said.
+
+*`ekwo init` cannot be run unattended on a pack with several charts or several
+languages* — it refuses to pick, by name, and says which flag to pass. That is
+the right answer and not a defect; it is written down here because every
+script that installs Ekwo will meet it.
+
+*Nothing in `supabase/migrations` grants table access to `anon` or
+`authenticated`.* On a real project those come from the project's own default
+privileges on `public`, and the test harness supplies them from a shim. Drop
+and recreate the `public` schema without putting them back — which is what the
+first `--reset` did — and the reinstall succeeds, `ekwo doctor` is content, and
+the first read through PostgREST answers `permission denied for table
+companies`. The reset restores them now. The schema being self-contained on
+that point is a decision for another day; what is decided here is that the gap
+is visible rather than discovered.
+
+*`ekwo pack upgrade` left the company behind.* It asked for the difference and
+returned early when it was empty, saying the company was already at the version
+this installation holds — two different claims. A patch release moves the
+version and touches no natural key, so the difference is empty and the company
+recorded the old version for ever. The early return is gone; `pack_upgrade()`
+already did the right thing with an empty difference.
+
+*`ekwo doctor` told the operator to upgrade a CLI that was already current.*
+`ekwo migrate` applies the modules' migrations beside the socle's, into the
+same history; `status` and `doctor` computed their gap against the socle alone
+and read the eight module versions as history they had no file for. One command
+after another, on the same database, the two disagreed. All three build the
+same set now.

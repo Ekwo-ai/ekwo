@@ -17,12 +17,17 @@ import { repoRoot } from '../helpers/db.js';
 export const migrationsPath = join(repoRoot, 'supabase', 'migrations');
 export const seedPath = join(repoRoot, 'supabase', 'seed');
 
-type Queryable = {
+export type Queryable = {
   query: <T>(sql: string, params?: unknown[]) => Promise<{ rows: T[] }>;
   exec: (sql: string) => Promise<unknown>;
 };
 
-function adapt(handle: Queryable, root: PGlite): SqlClient {
+/**
+ * Exported because the end-to-end tests build their database with the test
+ * harness and then hand it to the CLI — `ekwo pack upgrade` against a company
+ * that was installed at the previous version. One adapter, not two.
+ */
+export function adapt(handle: Queryable, root: PGlite): SqlClient {
   return {
     async exec(sql: string): Promise<void> {
       await handle.exec(sql);

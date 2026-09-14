@@ -11,7 +11,10 @@ import {
   applySeeds,
   bootstrap,
   doctor,
+  applyMigration,
+  allModuleMigrations,
   listMigrations,
+  listModules,
   status,
   syncSchemaVersion,
   type Migration,
@@ -76,6 +79,29 @@ describe('status', () => {
     );
     const report = await status(db, migrations);
     expect(report.pending).toHaveLength(1);
+  });
+
+  it('counts the modules, so an installation kept up to date is not "ahead"', async () => {
+    // `ekwo migrate` applies the socle's migrations and the modules' into one
+    // history. A gap computed against the socle alone reads the module
+    // versions as history this release has no file for, and tells the operator
+    // to upgrade a CLI that is already current — which is what `ekwo doctor`
+    // did on a real project on 14 September 2026, one command after `ekwo
+    // migrate` had put them there.
+    const modules = allModuleMigrations(await listModules());
+    expect(modules.length).toBeGreaterThan(0);
+    for (const migration of modules) {
+      await applyMigration(db, migration);
+    }
+
+    expect((await status(db, migrations)).unknown).toHaveLength(modules.length);
+    const everything = [...migrations, ...modules];
+    expect((await status(db, everything)).unknown).toHaveLength(0);
+    expect((await status(db, everything)).pending).toHaveLength(0);
+
+    const report = await doctor(db, everything);
+    const gap = report.checks.find((c) => c.name === 'migrations');
+    expect(gap?.severity).toBe('ok');
   });
 
   it('says so when nothing is installed at all', async () => {

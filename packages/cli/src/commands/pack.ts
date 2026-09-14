@@ -18,7 +18,7 @@ import { join } from 'node:path';
 import { rejectUnknownFlags, boolFlag, stringFlag, UsageError, type ParsedArgs } from '../args.js';
 import { CONNECTION_FLAGS, openDatabase } from '../context.js';
 import { isInteractive } from '../prompt.js';
-import { packDiff, packStatus, packUpgrade, resolveCompany, type PackChange } from '../pack/upgrade.js';
+import { packStatus, packUpgrade, resolveCompany, type PackChange } from '../pack/upgrade.js';
 import {
   compileFrameworkPack,
   compileModuleSeeds,
@@ -295,13 +295,20 @@ async function upgradeSubcommand(args: ParsedArgs): Promise<number> {
     const country = stringFlag(args, 'country');
     const apply = boolFlag(args, 'apply');
 
-    const before = await packDiff(db, company.id, country);
-    if (before.length === 0) {
-      heading(company.name);
-      skipped('already the version this installation holds');
-      return 0;
-    }
-
+    // No special case for "nothing differs", and there used to be one: the
+    // command asked for the difference first and returned early when it was
+    // empty, saying the company was already at the version this installation
+    // holds. Those are two different claims. A pack release whose only change
+    // is a legal reference on a tax — a patch, and the commonest kind there is
+    // — moves the version and produces no difference this diff compares, so
+    // the company went on recording the old version for ever and `ekwo pack
+    // status` went on calling it behind. Found by the end-to-end run against a
+    // real project, upgrading an installation made at v0.2.0: the pack moved
+    // 1.5.0 to 1.5.1 and the company stayed on 1.5.0.
+    //
+    // `pack_upgrade()` handles an empty difference on its own — it applies
+    // nothing and records the version — so the branch is gone rather than
+    // corrected.
     const result = await packUpgrade(db, company.id, {
       apply,
       ...(country === undefined ? {} : { country }),

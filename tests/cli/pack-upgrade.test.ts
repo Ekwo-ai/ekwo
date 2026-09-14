@@ -122,6 +122,31 @@ describe('pack upgrade', () => {
     expect(held[0]?.version).toBe(result.to_version);
   });
 
+  it('records the version when the release changed nothing the diff compares', async () => {
+    // A patch release — a legal reference added to a tax, a box renamed — moves
+    // the pack version and leaves every natural key exactly as it was. The
+    // difference is empty, and the company must still stop being behind:
+    // `ekwo pack status` reads the recorded version, not the difference.
+    const diff = await packDiff(db, companyId);
+    expect(diff).toHaveLength(0);
+
+    const result = await packUpgrade(db, companyId);
+    expect(result.from_version).toBe('1.0.0');
+    expect(result.applied).toHaveLength(0);
+    expect(result.listed).toHaveLength(0);
+    expect(result.version_moved).toBe(true);
+
+    const held = await db.query<{ version: string }>(
+      `select version from company_packs where company_id = $1`,
+      [companyId],
+    );
+    expect(held[0]?.version).toBe(result.to_version);
+    expect(held[0]?.version).not.toBe('1.0.0');
+
+    const status = await packStatus(db);
+    expect(status.companies.find((c) => c.companyId === companyId)?.behind).toBe(false);
+  });
+
   it('lists what differs and changes nothing, until it is asked', async () => {
     await db.query(
       `update accounts set name = 'Renommé par l''opérateur' where company_id = $1 and code = '700000'`,

@@ -8,3 +8,10 @@ coverage/
 !.env.example
 supabase/.temp/
 .claude/
+
+# `ekwo init` writes this next to wherever it was run, and running it from a
+# clone is the ordinary way to install from source. It holds no secret — the
+# project URL, the country, the schema version — but it is one installation's
+# and not this repository's, and a `git add -A` after an install would publish
+# which project the person installed into.
+ekwo.json
