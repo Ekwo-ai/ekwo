@@ -27,9 +27,14 @@ afterAll(async () => {
 });
 
 describe('the anonymous role', () => {
-  it('still reads an empty set, because the policy helpers stay executable', async () => {
-    const seen = await asUser(db, strangerId, () => rows(db, `select id from documents`), 'anon');
-    expect(seen).toEqual([]);
+  it('holds no privilege on a table at all, so a read is refused outright', async () => {
+    const message = await asUser(
+      db,
+      strangerId,
+      () => expectError(db, `select id from documents`),
+      'anon',
+    );
+    expect(message).toMatch(/permission denied for table documents/);
   });
 
   it('cannot execute a report', async () => {

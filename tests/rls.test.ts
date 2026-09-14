@@ -184,8 +184,18 @@ describe('row level security', () => {
     expect(matching.matching_number).toMatch(/^A\d{4}$/);
   });
 
-  it('shows nothing at all to an anonymous visitor', async () => {
-    const seen = await asUser(db, strangerId, async () => rows(db, `select id from documents`), 'anon');
-    expect(seen).toEqual([]);
+  it('refuses an anonymous visitor at the table, before any policy is read', async () => {
+    // Until `20260914151207` this read returned an empty set: the project's
+    // default privileges gave `anon` SELECT — and INSERT, UPDATE and DELETE —
+    // on every table, and row level security was the only thing between a
+    // visitor and the books. The schema grants its own rights now, `anon`
+    // holds none on any table, and the refusal arrives one layer earlier.
+    const message = await asUser(
+      db,
+      strangerId,
+      () => expectError(db, `select id from documents`),
+      'anon',
+    );
+    expect(message).toMatch(/permission denied for table documents/);
   });
 });

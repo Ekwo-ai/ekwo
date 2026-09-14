@@ -218,15 +218,21 @@ describe('chart_templates under row level security', () => {
       );
       expect(message).toMatch(/row-level security|permission denied/);
 
-      const changed = await db.query(`update chart_templates set name = 'Changé' where code = 'asbl'`);
-      expect(changed.affectedRows ?? 0).toBe(0);
+      // Since `20260914151207` the grant says the same thing as the policy:
+      // `authenticated` holds SELECT on this table and nothing else, so an
+      // update is refused before a row is looked at.
+      expect(
+        await expectError(db, `update chart_templates set name = 'Changé' where code = 'asbl'`),
+      ).toMatch(/permission denied for table chart_templates/);
     });
   });
 
-  it('is invisible to a request that carries no user', async () => {
+  it('is refused to a request that carries no user', async () => {
     await db.exec(`select set_config('request.jwt.claims', '', false); set role anon;`);
     try {
-      expect(await rows(db, 'select code from chart_templates')).toEqual([]);
+      expect(await expectError(db, 'select code from chart_templates')).toMatch(
+        /permission denied for table chart_templates/,
+      );
     } finally {
       await db.exec('reset role;');
     }

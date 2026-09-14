@@ -8,7 +8,12 @@ export const repoRoot = join(here, '..', '..');
 const migrationsDir = join(repoRoot, 'supabase', 'migrations');
 const seedDir = join(repoRoot, 'supabase', 'seed');
 const modulesDir = join(repoRoot, 'modules');
-const shimPath = join(here, 'supabase-shim.sql');
+/**
+ * The Supabase shim, applied before the migrations. Exported because
+ * `tests/grants.test.ts` builds a database by hand, starting from roles that
+ * hold nothing at all, to prove the migrations are the only thing that grants.
+ */
+export const shimPath = join(here, 'supabase-shim.sql');
 
 export interface Options {
   /** Apply `supabase/seed/*.sql` after the migrations. Default true. */
@@ -89,6 +94,14 @@ export async function moduleSeedFiles(): Promise<ModuleFile[]> {
  *
  * PGlite is Postgres compiled to WebAssembly, so the migrations run against
  * the real planner and the real constraints — no Docker, no stub.
+ *
+ * Nothing here grants `anon` or `authenticated` anything. It used to: the
+ * shim carried the default privileges of a Supabase project and this function
+ * ended with a `grant … on all tables in schema public`, so a test that read a
+ * table as a signed-in user proved nothing about whether the schema had ever
+ * granted the read. Since `20260914151207` the migrations declare their own
+ * privileges by name, and the only thing between a role and a table in these
+ * tests is a `grant` somebody wrote.
  */
 export async function freshDatabase(options: Options = {}): Promise<PGlite> {
   const db = new PGlite();
@@ -142,16 +155,6 @@ export async function freshDatabase(options: Options = {}): Promise<PGlite> {
       }
     }
   }
-
-  // Everything created after the shim's ALTER DEFAULT PRIVILEGES still needs
-  // the grants, because migrations run as the owner in one session.
-  await db.exec(`
-    grant select, insert, update, delete on all tables in schema public to authenticated;
-    grant select on all tables in schema public to anon;
-    -- Not to anon: since migration 20260911210131 the anonymous role executes
-    -- only the policy helpers, and those grants are the migration's own.
-    grant execute on all functions in schema public to authenticated;
-  `);
 
   // This connection is the installer, and says so. `is_installer()` is what
   // the guards read instead of "auth.uid() is null", so a test that arranges

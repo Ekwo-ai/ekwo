@@ -387,14 +387,16 @@ describe('the form tables under row level security', () => {
         expect(message, statement).toMatch(/row-level security|permission denied/);
       }
 
-      // An update or a delete finds no row at all: there is no policy that
-      // shows one for writing, which is the quieter half of the same refusal.
+      // An update and a delete are refused in the same breath since
+      // `20260914151207`: the grant on a form table is SELECT, so neither
+      // statement reaches a policy.
       for (const statement of [
         `update tax_report_box_templates set name = 'Changé' where box = '59'`,
         `delete from tax_report_box_templates where box = '59'`,
       ]) {
-        const result = await db.query(statement);
-        expect(result.affectedRows ?? 0, statement).toBe(0);
+        expect(await expectError(db, statement), statement).toMatch(
+          /permission denied for table tax_report_box_templates/,
+        );
       }
     });
 
@@ -406,13 +408,18 @@ describe('the form tables under row level security', () => {
     expect(intact.name).toBe('TVA déductible');
   });
 
-  it('are invisible to a request that carries no user', async () => {
+  it('are refused to a request that carries no user', async () => {
     // A Supabase `anon` key carries no `sub`, so `auth.uid()` is null and the
-    // policy is false — the same answer `account_templates` gives.
+    // policy would be false. Since `20260914151207` the statement does not get
+    // that far: `anon` holds no privilege on any table of this schema.
     await db.exec(`select set_config('request.jwt.claims', '', false); set role anon;`);
     try {
-      expect(await rows(db, `select code from tax_report_templates`)).toEqual([]);
-      expect(await rows(db, `select box from tax_report_box_templates`)).toEqual([]);
+      for (const sql of [
+        `select code from tax_report_templates`,
+        `select box from tax_report_box_templates`,
+      ]) {
+        expect(await expectError(db, sql), sql).toMatch(/permission denied for table/);
+      }
     } finally {
       await db.exec(`reset role;`);
     }

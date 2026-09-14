@@ -375,14 +375,14 @@ describe('who may read it', () => {
     expect(seen[0]?.count).toBe('0');
   });
 
-  it('shows the anonymous role nothing at all', async () => {
-    const seen = await asUser(
+  it('is not even readable by the anonymous role: no grant, no policy to read', async () => {
+    const message = await asUser(
       db,
       '00000000-0000-0000-0000-000000000000',
-      async () => rows<{ count: string }>(db, `select count(*)::text as count from audit_log`),
+      () => expectError(db, `select count(*) from audit_log`),
       'anon',
     );
-    expect(seen[0]?.count).toBe('0');
+    expect(message).toMatch(/permission denied for table audit_log/);
   });
 
   it('keeps the rows of the installation itself for an instance administrator', async () => {
@@ -406,15 +406,22 @@ describe('who may read it', () => {
 });
 
 describe('append-only', () => {
-  it('lets a member change nothing: there is no policy for it', async () => {
-    // Row level security has a select policy and nothing else, so an update or
-    // a delete matches no row rather than raising. Nothing moves, which is the
-    // claim; the trigger below is what holds for the roles policies do not
-    // apply to.
+  it('refuses a member an update and a delete, at the privilege', async () => {
+    // Two layers say no, and this is the outer one. `20260914151207` grants
+    // `authenticated` SELECT on `audit_log` and nothing else, so the statement
+    // never reaches the policies — which have no INSERT, UPDATE or DELETE of
+    // their own either. The trigger below is the third, and the one that holds
+    // for the roles no policy applies to.
     const before = await one<{ count: string }>(db, `select count(*)::text as count from audit_log`);
     await asUser(db, ownerId, async () => {
-      await db.query(`update audit_log set action = 'rewritten' where company_id = $1`, [companyId]);
-      await db.query(`delete from audit_log where company_id = $1`, [companyId]);
+      expect(
+        await expectError(db, `update audit_log set action = 'rewritten' where company_id = $1`, [
+          companyId,
+        ]),
+      ).toMatch(/permission denied for table audit_log/);
+      expect(
+        await expectError(db, `delete from audit_log where company_id = $1`, [companyId]),
+      ).toMatch(/permission denied for table audit_log/);
     });
     const after = await one<{ count: string }>(db, `select count(*)::text as count from audit_log`);
     expect(after.count).toBe(before.count);

@@ -193,7 +193,10 @@ describe('enabling a module', () => {
     ).toEqual({ settings: { period: 'monthly' } });
   });
 
-  it('cannot be written round: company_modules has no write policy', async () => {
+  it('cannot be written round: enable_module() is the only way in', async () => {
+    // Two refusals, outermost first. `20260914151207` grants `authenticated`
+    // SELECT on `company_modules` and nothing else, so the insert never gets
+    // as far as the policies — which have no INSERT of their own either.
     const message = await asUser(db, ownerId, () =>
       expectError(
         db,
@@ -201,7 +204,7 @@ describe('enabling a module', () => {
         [companyId],
       ),
     );
-    expect(message).toMatch(/row-level security|violates/i);
+    expect(message).toMatch(/permission denied for table company_modules/);
   });
 
   it('shows a stranger none of it', async () => {

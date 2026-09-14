@@ -698,12 +698,14 @@ describe('the statement tables under row level security', () => {
         expect(message, sql).toMatch(/row-level security|permission denied/);
       }
 
+      // Refused at the privilege since `20260914151207`: these three tables
+      // are what a country pack installs, and `authenticated` holds SELECT on
+      // them and nothing else.
       for (const sql of [
         `update statement_line_templates set name = 'Changé' where code = '40/41'`,
         `delete from statement_line_rules where line_code = '40/41'`,
       ]) {
-        const result = await db.query(sql);
-        expect(result.affectedRows ?? 0, sql).toBe(0);
+        expect(await expectError(db, sql), sql).toMatch(/permission denied for table/);
       }
     });
 
@@ -715,12 +717,16 @@ describe('the statement tables under row level security', () => {
     expect(intact.name).toBe('Créances à un an au plus');
   });
 
-  it('is invisible to a request that carries no user', async () => {
+  it('is refused to a request that carries no user', async () => {
     await db.exec(`select set_config('request.jwt.claims', '', false); set role anon;`);
     try {
-      expect(await rows(db, 'select code from statement_templates')).toEqual([]);
-      expect(await rows(db, 'select code from statement_line_templates')).toEqual([]);
-      expect(await rows(db, 'select line_code from statement_line_rules')).toEqual([]);
+      for (const sql of [
+        'select code from statement_templates',
+        'select code from statement_line_templates',
+        'select line_code from statement_line_rules',
+      ]) {
+        expect(await expectError(db, sql), sql).toMatch(/permission denied for table/);
+      }
     } finally {
       await db.exec('reset role;');
     }

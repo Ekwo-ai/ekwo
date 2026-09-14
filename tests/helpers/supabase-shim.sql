@@ -69,15 +69,23 @@ begin
 end
 $$;
 
-grant usage on schema public to anon, authenticated, service_role;
+-- Usage on `auth`, which is Supabase's schema and not Ekwo's to grant. Its
+-- helpers are what every policy of the schema calls.
 grant usage on schema auth to anon, authenticated, service_role;
 grant execute on all functions in schema auth to anon, authenticated, service_role;
 
-alter default privileges in schema public
-  grant select, insert, update, delete on tables to authenticated;
-alter default privileges in schema public
-  grant select on tables to anon;
-alter default privileges in schema public
-  grant execute on functions to anon, authenticated, service_role;
-alter default privileges in schema public
-  grant usage, select on sequences to anon, authenticated, service_role;
+-- And that is all this shim gives.
+--
+-- It used to end with the default privileges a Supabase project carries on
+-- `public` — `grant all on tables`, `on sequences`, `on functions`, to the
+-- three API roles — so that every table the migrations created came out
+-- readable and writable without a single `grant` in the migrations
+-- themselves. That made the whole suite pass against privileges no
+-- installation was guaranteed to have: drop and recreate `public` on a real
+-- project and the first read answers "permission denied for table companies",
+-- which is what the end-to-end run of 14 September 2026 found.
+--
+-- Since `20260914151207` the schema grants its own rights, by name, so the
+-- shim stops providing them. What the roles can reach in these tests is now
+-- exactly what a migration granted them, and `tests/grants.test.ts` replays
+-- the whole thing on a database where the roles start with nothing at all.
