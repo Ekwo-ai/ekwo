@@ -5,6 +5,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { compilePack, listPacks, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
 import { newCompany, newUser } from './helpers/factory.js';
+import {
+  allPacks,
+  certificationStatuses,
+  defaultChartOf,
+  packCountries,
+  roleOf,
+  somePack,
+} from './helpers/packs.js';
 
 // What the pack migration added: an installation that knows which version of
 // which pack it holds, a company that knows which one it copied, labels in
@@ -40,7 +48,7 @@ describe('country_packs', () => {
       `select country, version, certification_status::text, certified_by, checksum
          from country_packs order by country`,
     );
-    expect(loaded.map((p) => p.country)).toEqual(['BE', 'EE', 'FR', 'LU']);
+    expect(loaded.map((p) => p.country)).toEqual(packCountries);
     for (const pack of loaded) {
       // Both packs have moved in minor steps since they were extracted —
       // taxes, a second chart, financial statements, document rules — and
@@ -48,11 +56,11 @@ describe('country_packs', () => {
       // upgrade` diffs on this number, so a pack that grows without
       // announcing it is a pack nobody can upgrade to.
       expect(pack.version).toBe(await versionOf(pack.country));
-      // `maintained` or `community`, never `ekwo`: Ekwo keeps Belgium and
-      // France current, Estonia and Luxembourg were contributed, and no
-      // accountant has read any of them. Certified describes a review, or
-      // nothing.
-      expect(['maintained', 'community']).toContain(pack.certification_status);
+      // A status the published schema defines, and no other: `certified` was
+      // never one of them. Certification describes a review, or nothing.
+      expect(certificationStatuses).toContain(pack.certification_status);
+      // And only a review names somebody, which none of these packs is.
+      expect(pack.certification_status).not.toBe('reviewed');
       expect(pack.certified_by).toBeNull();
       expect(pack.checksum).toMatch(/^[0-9a-f]{64}$/);
     }
@@ -253,13 +261,14 @@ describe('a seed applied again', () => {
     // The pack changes: one label, recompiled and re-applied. This is what
     // `on conflict do nothing` used to swallow entirely — an instance
     // installed yesterday received no correction, ever.
-    const pack = await readPack('be', packs);
+    const pack = somePack;
+    const sales = roleOf(pack, 'sales');
     const edited = {
       ...pack,
       charts: pack.charts.map((chart) => ({
         ...chart,
         accounts: chart.accounts.map((a) =>
-          a.code === '700000' ? { ...a, name: 'Ventes de marchandises ou de services (corrigé)' } : a,
+          a.code === sales ? { ...a, name: 'Ventes de marchandises ou de services (corrigé)' } : a,
         ),
       })),
     };
@@ -268,16 +277,17 @@ describe('a seed applied again', () => {
     const template = await one<{ name: string }>(
       db,
       `select name from account_templates
-        where country = 'BE' and chart_code = 'default' and code = '700000'`,
+        where country = $1 and chart_code = $2 and code = $3`,
+      [pack.manifest.country, defaultChartOf(pack).code, sales],
     );
     expect(template.name).toBe('Ventes de marchandises ou de services (corrigé)');
 
     const copied = await one<{ name: string }>(
       db,
-      `select name from accounts where company_id = $1 and code = '700000'`,
-      [companyId],
+      `select name from accounts where company_id = $1 and code = $2`,
+      [companyId, sales],
     );
-    expect(copied.name).toBe('Ventes de marchandises ou de services');
+    expect(copied.name).toBe(pack.accounts.find((a) => a.code === sales)!.name);
     await db.exec('rollback');
   });
 
@@ -316,19 +326,34 @@ describe('report_code, and the province a party sits in', () => {
          join tax_templates t on t.id = p.tax_template_id
         group by 1, 2 order by 1`,
     );
-    // The postings with no form are the `tax_on_base` shares of a tax that is
-    // only partly deductible, in the two countries whose return carries no box
-    // for the base of a purchase: the French fuel tax, and the Estonian car
-    // and non-deductible taxes. That amount is ledger only — which is why the
-    // test above asks for a form on a *boxed* posting and not on every one.
-    expect(forms).toEqual([
-      { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 88 },
-      { country: 'EE', report_code: 'EE-KMD', n: 86 },
-      { country: 'EE', report_code: null, n: 6 },
-      { country: 'FR', report_code: 'FR-CA3', n: 76 },
-      { country: 'FR', report_code: null, n: 2 },
-      { country: 'LU', report_code: 'LU-VAT-PERIODIC', n: 124 },
-    ]);
+    // Every posting of every pack, grouped the way the pack writes it: a
+    // posting carrying a box is on the pack's periodic return, and one that
+    // carries none is ledger only — the `tax_on_base` share of a purchase,
+    // where a form has no grid for the base. Which is why the test above asks
+    // for a form on a *boxed* posting and not on every one.
+    const expected = allPacks
+      .flatMap((pack) => {
+        const counted = new Map<string | null, number>();
+        for (const tax of pack.taxes) {
+          for (const posting of [...tax.postings.invoice, ...tax.postings.credit_note]) {
+            const form = posting.box === null ? null : (posting.report ?? pack.reportCode);
+            counted.set(form, (counted.get(form) ?? 0) + 1);
+          }
+        }
+        return [...counted].map(([report_code, n]) => ({
+          country: pack.manifest.country,
+          report_code,
+          n,
+        }));
+      })
+      .sort((a, b) =>
+        a.country === b.country
+          ? String(a.report_code).localeCompare(String(b.report_code))
+          : a.country < b.country
+            ? -1
+            : 1,
+      );
+    expect(forms).toEqual(expected);
   });
 
   it('carries it into a company, so a posted line knows which return it feeds', async () => {
@@ -412,13 +437,8 @@ describe('row level security on the two new tables', () => {
     await newCompany(db, { name: 'RLS pack SRL', ownerId });
     const strangerId = await newUser(db);
 
-    // Ordered here, not left to the order the seeds happen to be applied in:
-    // a seed's number is the pack's own since `seed_sequence`, so file-name order
-    // is no longer alphabetical order.
-    const seen = await asUser(db, ownerId, () =>
-      rows(db, 'select country from country_packs order by country'),
-    );
-    expect(seen.map((r) => (r as { country: string }).country)).toEqual(['BE', 'EE', 'FR', 'LU']);
+    const seen = await asUser(db, ownerId, () => rows(db, 'select country from country_packs'));
+    expect(seen.map((r) => (r as { country: string }).country)).toEqual(packCountries);
 
     const nothing = await asUser(db, strangerId, () => rows(db, 'select country from country_packs'));
     expect(nothing).toEqual([]);

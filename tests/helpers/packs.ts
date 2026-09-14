@@ -26,7 +26,7 @@
 
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { listPacks, packsDir, readPack, type Pack } from '../../packages/cli/src/index.js';
+import { listPacks, packsDir, readPack, readSchema, type Pack } from '../../packages/cli/src/index.js';
 
 /** Directory the packs are read from. The one `ekwo pack` itself uses. */
 export const packsRoot = packsDir();
@@ -34,11 +34,34 @@ export const packsRoot = packsDir();
 /** Every pack of this repository, by directory name, alphabetically. */
 export const packSlugs: string[] = await listPacks(packsRoot);
 
+/** The published pack schema, for the enumerations a test must not restate. */
+const schema = await readSchema(packsRoot);
+
 /** Every pack, read and validated, in the same order. */
 export const allPacks: Pack[] = await Promise.all(packSlugs.map((slug) => readPack(slug, packsRoot)));
 
 /** The ISO country code of every pack, which is what the database stores. */
 export const packCountries: string[] = allPacks.map((pack) => pack.manifest.country);
+
+/**
+ * The certification statuses the published schema defines.
+ *
+ * A test that listed them by hand would pass a pack claiming a status the
+ * schema never had, and fail the day the schema gained one. It is the schema
+ * that says what a pack may claim, so it is the schema that is read.
+ */
+export const certificationStatuses: string[] = (() => {
+  const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
+  const properties = (defs['certification']?.['properties'] ?? {}) as Record<
+    string,
+    Record<string, unknown>
+  >;
+  const values = properties['status']?.['enum'];
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error('packs/schema/pack.1.json defines no certification status');
+  }
+  return values as string[];
+})();
 
 /**
  * A pack, any pack.
