@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PackError, readPack, resolveBoxRef } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
+import { allPacks, packWhere, packsRoot } from './helpers/packs.js';
 import { demoCompanyId, newCompany, newContact, newDocument } from './helpers/factory.js';
 
 // A declaration form is data. `vat_return()` used to sum the ledger
@@ -58,12 +59,19 @@ describe('the forms the packs carry', () => {
                 where b.country = t.country and b.report_code = t.code) as boxes
          from tax_report_templates t order by t.country`,
     );
-    expect(forms).toEqual([
-      { country: 'BE', code: 'BE-VAT-PERIODIC', period: 'month_or_quarter', boxes: 31 },
-      { country: 'EE', code: 'EE-KMD', period: 'month', boxes: 34 },
-      { country: 'FR', code: 'FR-CA3', period: 'month_or_quarter', boxes: 22 },
-      { country: 'LU', code: 'LU-VAT-PERIODIC', period: 'month_or_quarter', boxes: 156 },
-    ]);
+    // The forms are the ones the packs carry: a country whose pack declares a
+    // periodic return has it seeded whole, and one more pack needs no line here.
+    const expected = allPacks
+      .filter((pack) => pack.report !== null)
+      .map((pack) => ({
+        country: pack.manifest.country,
+        code: pack.report!.code,
+        period: pack.report!.period,
+        boxes: pack.report!.boxes.length,
+      }))
+      .sort((a, b) => (a.country < b.country ? -1 : 1));
+    expect(forms).toEqual(expected);
+    expect(expected.length, 'no pack carries a periodic return').toBeGreaterThan(0);
   });
 
   it('refuse a formula on a box that is summed from the ledger', async () => {
@@ -429,29 +437,36 @@ describe('the form tables under row level security', () => {
 });
 
 describe('what `ekwo pack check` refuses in a formula', () => {
-  const packs = join(repoRoot, 'packs');
+  const packs = packsRoot;
 
-  /** `packs/fr` in a temporary directory, with its form replaced. */
+  // A refusal is about the reader. It replaces the boxes of whichever pack
+  // carries a periodic return and comes first, so no country is named here.
+  const broken = packWhere('carries a periodic return', (pack) => pack.report !== null);
+
+  /** A copy of that pack in a temporary directory, with its form replaced. */
   async function packWith(boxes: unknown[]): Promise<void> {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-pack-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'fr'), join(dir, 'fr'), { recursive: true });
-    const form = JSON.parse(await readFile(join(packs, 'fr', 'tax_report.json'), 'utf8')) as {
-      boxes: unknown[];
-    };
+    await cp(join(packs, broken.slug), join(dir, broken.slug), { recursive: true });
+    const form = JSON.parse(
+      await readFile(join(packs, broken.slug, 'tax_report.json'), 'utf8'),
+    ) as { boxes: unknown[] };
     form.boxes = boxes;
-    await writeFile(join(dir, 'fr', 'tax_report.json'), JSON.stringify(form), 'utf8');
-    await readPack('fr', dir);
+    await writeFile(join(dir, broken.slug, 'tax_report.json'), JSON.stringify(form), 'utf8');
+    await readPack(broken.slug, dir);
   }
 
   const base = { kind: 'base', name: 'Base', sequence: 10 } as const;
   const total = { kind: 'total', name: 'Total' } as const;
 
   it('accepts the packs of this repository as they are', async () => {
-    for (const slug of ['be', 'fr']) {
-      const pack = await readPack(slug, packs);
-      expect(pack.report?.boxes.length, slug).toBeGreaterThan(20);
-      expect(pack.report?.code, slug).toBe(slug === 'be' ? 'BE-VAT-PERIODIC' : 'FR-CA3');
+    for (const pack of allPacks) {
+      // A country pack of a VAT jurisdiction carries a periodic return, its
+      // code is the one the seed loaded, and its boxes are not a stub.
+      expect(pack.report, pack.slug).not.toBeNull();
+      expect(pack.report!.boxes.length, pack.slug).toBeGreaterThan(20);
+      expect(pack.reportCode, pack.slug).toBe(pack.report!.code);
+      expect(pack.report!.code.startsWith(pack.manifest.country), pack.slug).toBe(true);
     }
   });
 
@@ -512,10 +527,14 @@ describe('what `ekwo pack check` refuses in a formula', () => {
   });
 
   it('refuses a tax that posts to a box the form does not carry', async () => {
-    // FR-S-20 posts its base and its tax to box 08; a form without it is a
-    // return that would silently lose the amount.
+    // Every tax of the pack posts its base to a box. A form that carries none
+    // of them is a return that would silently lose the amount, and the reader
+    // names the first box it could not find.
+    const posted = broken.taxes
+      .flatMap((tax) => tax.postings.invoice)
+      .find((posting) => posting.type === 'base' && posting.box !== null)!;
     await expect(packWith([{ ...base, box: '99' }])).rejects.toThrow(
-      /box 08:base is not a base box of this form/,
+      new RegExp(`box ${posted.box}:base is not a base box of this form`),
     );
   });
 
