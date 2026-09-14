@@ -371,7 +371,8 @@ route does.
 `packages/core` carries the types of the schema and a typed client over its
 functions, with no runtime dependency beyond an optional
 `@supabase/supabase-js`. The FEC moved out to `@ekwo-ai/fec`, because a file
-format is MIT; `@ekwo-ai/core` re-exports it for one version.
+format is MIT; the re-exports `@ekwo-ai/core` kept for one version are gone
+since `v0.2.0`, so import the generator from the package that owns it.
 `packages/cli` is the `ekwo` command above; it has one runtime dependency, the
 Postgres driver, and never writes a secret to disk.
 

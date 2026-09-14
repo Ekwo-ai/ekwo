@@ -55,5 +55,11 @@ anything in a dependency that is already reported upstream.
 
 ## Supported versions
 
-Until the first tagged release, `main` is the only supported line. From the
-first tag, the latest minor receives fixes; the changelog says what changed.
+`v0.2.0`, released on 14 September 2026, is the first tagged release. The
+latest minor is the supported line: it receives the fixes, and the changelog
+says what changed. `main` is where they land first.
+
+There is no backport to an earlier minor. Migrations move forward only —
+there is no `down` — so the answer to a fix on an old installation is
+`npx ekwo migrate`, and [`docs/releasing.md`](docs/releasing.md) is how a
+release carrying one is cut.

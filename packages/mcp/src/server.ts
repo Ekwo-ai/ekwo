@@ -18,7 +18,15 @@ import * as write from './tools/write.js';
 import { toolsetsFor } from './tools/modules.js';
 
 export const SERVER_NAME = '@ekwo-ai/mcp';
-export const SERVER_VERSION = '0.1.0';
+/**
+ * What this server tells a client it is, in the MCP handshake.
+ *
+ * Repeated here rather than read from `package.json`, for the reason
+ * `SCHEMA_MIN` is: a bundle that never ships a manifest still has to carry it.
+ * `tests/mcp/surface.test.ts` keeps the two equal, so a release that bumps one
+ * and forgets the other fails the build.
+ */
+export const SERVER_VERSION = '0.2.0';
 
 /** Everything a tool returns: JSON, pretty-printed, as one text block. */
 function ok(payload: unknown): CallToolResult {

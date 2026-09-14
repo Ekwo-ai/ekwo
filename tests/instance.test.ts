@@ -45,7 +45,11 @@ describe('the instance row', () => {
     expect(row.organization_name).toBe('Exemple Conseil');
     expect(row.country).toBe('BE');
     expect(row.edition).toBe('community');
-    expect(row.schema_version).toBe('0.1.0');
+    // Whatever the release defines, and not a number written here: the column
+    // default calls the function, which is the property under test. What the
+    // number is for a given release is pinned in `tests/cli/schema-version.test.ts`.
+    const defined = await one<{ version: string }>(db, `select ekwo_schema_version() as version`);
+    expect(row.schema_version).toBe(defined.version);
     expect(row.installed_at).toBeInstanceOf(Date);
   });
 

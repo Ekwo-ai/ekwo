@@ -267,7 +267,7 @@ writes the address and a date onto your instance row, and a POST goes to
   "organization": "My Organisation",
   "country": "BE",
   "edition": "community",
-  "schema_version": "0.1.0",
+  "schema_version": "0.2.0",
   "contact_email": "you@example.com"
 }
 ```

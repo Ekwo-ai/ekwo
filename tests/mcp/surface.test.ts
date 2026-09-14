@@ -8,12 +8,14 @@
  * rather than in somebody's Claude Desktop.
  */
 
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { buildServer, type Backend } from '../../packages/mcp/src/index.js';
-import { freshDatabase } from '../helpers/db.js';
+import { SERVER_NAME, SERVER_VERSION, buildServer, type Backend } from '../../packages/mcp/src/index.js';
+import { freshDatabase, repoRoot } from '../helpers/db.js';
 import { newCompany, type Fixture } from '../helpers/factory.js';
 import { backendFor } from './helpers.js';
 
@@ -85,6 +87,22 @@ beforeAll(async () => {
 afterAll(async () => {
   await client.close();
   await db.close();
+});
+
+describe('what the server says it is', () => {
+  it('names itself and its version in the handshake, and the version is the package', async () => {
+    const info = client.getServerVersion();
+    expect(info?.name).toBe(SERVER_NAME);
+    expect(info?.version).toBe(SERVER_VERSION);
+
+    // The constant is repeated in the source so a bundle carries it without a
+    // manifest; this is what keeps the two from drifting at a release.
+    const manifest = JSON.parse(
+      await readFile(join(repoRoot, 'packages', 'mcp', 'package.json'), 'utf8'),
+    ) as { name: string; version: string };
+    expect(manifest.name).toBe(SERVER_NAME);
+    expect(manifest.version).toBe(SERVER_VERSION);
+  });
 });
 
 describe('the tools a client is offered', () => {

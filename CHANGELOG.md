@@ -9,6 +9,13 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-14
+
+The first published release. `0.1.0` below was the first schema and was never
+tagged; nothing outside this repository had run it. From `v0.2.0` on, a
+published migration is never edited — the rule is enforced on every push and
+against the latest tag, and a mistake is corrected by a new migration, always.
+
 ### Added
 
 - **An append-only audit trail, and the first pack upgrade.**
@@ -412,129 +419,6 @@ somewhere has already run it.
   sheet keeps both. `reopen_fiscal_year()` undoes both. Migrations
   `20260912105720` and `20260912105721`.
 
-### Removed
-
-- **`@ekwo-ai/core/fec` and the FEC re-exports of `@ekwo-ai/core` are gone.**
-  The release that moved the format to `@ekwo-ai/fec` kept them alive for one
-  version, and this is the next one: import `generateFec`, `checkFec`,
-  `fecFileName`, `fromQueryRow`, `formatFecDate`, `formatFecAmount` and
-  `FEC_COLUMNS` from `@ekwo-ai/fec`. The core still depends on it, because
-  `EkwoClient.generateFec()` writes the file it has just fetched.
-
-### Security
-
-- **A test now fails if any function of `public` is executable by PUBLIC.**
-  The finding below was a README rule and a revoke in one migration; it is a
-  test in `tests/hardening.test.ts`, which reads `proacl` — a null one counts,
-  being the built-in default — so the next migration that forgets the revoke
-  fails in CI rather than on a live project.
-- **A function created after `20260911210131` was open again.** That migration
-  changed the default privileges so that "a function added tomorrow starts
-  closed", and PostgreSQL does not work that way: `alter default privileges …
-  revoke execute on functions from public` does not delete the built-in world
-  default, it is merged with it, so the next function created came out with
-  `=X` — EXECUTE for PUBLIC, which on Supabase is an anonymous RPC endpoint.
-  `install_country_template` was that function, for the length of one commit.
-  Migration `20260912074712` repeats the revoke from PUBLIC (never from
-  `anon`, which holds explicit grants on the eight policy helpers), and
-  `supabase/migrations/README.md` makes it a rule for every migration that
-  adds a function. `tests/hardening.test.ts` pins the list of functions
-  `anon` may execute and is what caught it.
-- The anonymous role could execute every function of the schema (Postgres
-  grants EXECUTE to PUBLIC; Supabase exposes `public` functions as RPC). It
-  now executes only the eight helpers the policies evaluate, and the default
-  privileges keep it that way for functions added later. Migration
-  `20260911210131`.
-- `instance_admins` was readable by any signed-in user, member or not; a
-  Supabase project accepts self sign-up by default. Administrators are now
-  visible to members of a company, to administrators, and to oneself.
-- README: a Security section that says to turn off public sign-ups on the
-  project, and why an installation should keep two administrators.
-
-### Fixed
-
-- **A `jsonb` argument crossed the direct-Postgres route as a Postgres array.**
-  PostgREST posts the arguments of a function as JSON, so a `jsonb` parameter
-  receives a real array there; a driver handed a JavaScript array builds an
-  array *literal* instead, and `node-postgres` turns an array of objects into
-  `{"[object Object]"}`. The SQL backend now stringifies an object or array
-  argument and casts the placeholder to `jsonb`, so the two routes agree
-  rather than agreeing by accident on one driver. Found while adding
-  `opening_balance`, which is the first function to take one.
-
-- `record_payment` (MCP) asked for a journal even when `bank_account_id` was
-  given, although the account carries its journal. It now takes the journal
-  from the account. Found on the first run against a real Supabase project.
-
-- **`--db-region` built a pooler hostname and called it the answer.** The
-  region does not determine the generation prefix: a project created in
-  `eu-west-3` answers on `aws-1-eu-west-3.pooler.supabase.com` and returns
-  "Tenant or user not found" on `aws-0-`, which reads like a wrong password
-  rather than a wrong host. `--project-ref` with `--db-password` and
-  `--db-region` now tries both generations on the session port, keeps the one
-  that answers and prints it. Without `--db-region` nothing is derived at all:
-  the CLI asks for the connection string the dashboard prints under Connect →
-  Session pooler, because the direct host `db.<ref>.supabase.co` is IPv6-only
-  on any recent project and deriving it silently produces a hang.
-- **Three columns of `country_defaults` had no reader.**
-  `sales_account_code`, `purchase_account_code` and `currency_code` were
-  declared from the first release and consumed by nothing — the state the
-  naming policy forbids. They are consumed now rather than deleted: migration
-  `20260911193853` adds `companies.default_sales_account_id` and
-  `default_purchase_account_id`, `install_country_template` wires them from
-  the country model, and a document line that names no account is resolved by
-  trigger — the line, then the company default, then the country model.
-  `ekwo init` offers `country_defaults.currency_code` as the currency of the
-  company, which has to happen before the insert: `companies.currency_code` is
-  `not null default 'EUR'` and is never empty afterwards.
-
-- **A freshly installed company refused its first payment.**
-  `country_defaults.bank_account_code` was declared from the first release and
-  read by nothing, so `install_country_template` left
-  `journals.default_account_id` null on every journal and `post_payment()`
-  found no bank side — the demo seed wired it by hand, which was the symptom.
-  Migration `20260911183000` adds `cash_account_code` to the country model and
-  points the bank and cash journals at their account (`550000` / `570000` in
-  the PCMN, `512000` / `530000` in the PCG). A company that already chose a
-  default account keeps it.
-- **Nobody but the database owner could post an entry.** `next_entry_number()`
-  and `next_matching_number()` write `journal_sequences` and
-  `matching_sequences`, which carry a select policy and no other, and both ran
-  as the caller — so posting a document or drawing a matching letter failed
-  for every signed-in user with "new row violates row-level security policy".
-  It went unnoticed because the tests and the installer both run as the owner.
-  Migration `20260911173100` makes the two functions `security definer` and
-  has each check that the caller may write the company it is counting for.
-- Re-applying the tax seeds — a second `ekwo init` or `supabase db push` on
-  the same project — failed on `tax_posting_templates`, which had no natural
-  key to conflict on. Migration `20260911160000` adds it and the seeds use it;
-  a test now applies every reference seed twice. Found on the first real
-  installation.
-
-### Changed
-
-- `docs/schema.md` gains a section per module schema, generated the same way
-  the socle's is. `docs/modules.md` is how to write one; `docs/decisions.md`
-  carries the reasoning. `supabase/config.toml` says in a comment which line
-  exposes a module schema, and leaves it out by default. `ekwo migrate` applies
-  the modules this release carries unless `--no-modules` is passed.
-
-- **The postings of one side of a tax share out the amount of the group**, the
-  last taking the remainder, instead of each rounding on its own. No tax had
-  more than one posting per side before, so nothing that exists moves; two
-  halves of 0,63 now come out as 0,32 and 0,31 rather than 0,32 twice, which
-  would have been refused as `document_total_mismatch`.
-- **`document_tax_summary.tax_charged` counts `tax_on_base` postings**, so the
-  supplier of a partially deductible purchase is owed the whole invoice.
-- **The two constraints on a posting's account become one**,
-  `tax_postings_account_by_type` (and its twin on the templates): a `tax`
-  posting needs an account, every other type must have none. A value added to
-  the enum later has to come back to it rather than slip through.
-- **`list_taxes` and the `ekwo://companies/{id}/taxes` resource expose the new
-  columns**, and the postings carry their `report_code`.
-
-### Added
-
 - **One tax engine, several kinds of tax.** `tax_kind`
   (`vat`/`gst`/`sales_tax`/`withholding`/`other`), `recoverable`,
   `jurisdiction`, `price_include` and `cash_basis` on `taxes` and
@@ -827,6 +711,216 @@ somewhere has already run it.
   status and doctor checks, and registration with the endpoint mocked and with
   it unreachable.
 
+### Changed
+
+- `docs/schema.md` gains a section per module schema, generated the same way
+  the socle's is. `docs/modules.md` is how to write one; `docs/decisions.md`
+  carries the reasoning. `supabase/config.toml` says in a comment which line
+  exposes a module schema, and leaves it out by default. `ekwo migrate` applies
+  the modules this release carries unless `--no-modules` is passed.
+
+- **The postings of one side of a tax share out the amount of the group**, the
+  last taking the remainder, instead of each rounding on its own. No tax had
+  more than one posting per side before, so nothing that exists moves; two
+  halves of 0,63 now come out as 0,32 and 0,31 rather than 0,32 twice, which
+  would have been refused as `document_total_mismatch`.
+- **`document_tax_summary.tax_charged` counts `tax_on_base` postings**, so the
+  supplier of a partially deductible purchase is owed the whole invoice.
+- **The two constraints on a posting's account become one**,
+  `tax_postings_account_by_type` (and its twin on the templates): a `tax`
+  posting needs an account, every other type must have none. A value added to
+  the enum later has to come back to it rather than slip through.
+- **`list_taxes` and the `ekwo://companies/{id}/taxes` resource expose the new
+  columns**, and the postings carry their `report_code`.
+
+- **The repository is `Ekwo-ai/ekwo-os`**, and every link, `homepage`,
+  `repository` field and clone line in the documentation and in the six
+  package manifests points there.
+
+- **Eighty-five foreign keys had no index on the side that needs one.**
+  Postgres indexes the referenced side of a foreign key, because that side is
+  a primary key, and nothing on the referencing side — so every delete of a
+  parent scans its children, and most joins an accounting core writes are on
+  exactly those columns. Migration `20260913104232` creates 71 of them across
+  the socle and the two module migrations `20260913104233` and
+  `20260913104234` cover `assets` and `budgets`. Where a table has a
+  single-column key and a composite one leading with the same column, the
+  composite serves both and is the one created. On the demo company nothing
+  was slow, which is why it survived forty-nine migrations; on four years of
+  books it is the difference between a report and a timeout.
+
+- **The additive-migrations rule runs on every push, not only on a pull
+  request.** The job was gated on `pull_request` and everything went straight
+  to `main`, so it never looked. It now compares a push to `main` against the
+  previous commit and against the latest tag — the released set — and a pull
+  request against its base branch. The README of a migrations directory is
+  documentation, so it is out of the glob.
+
+- **`docs/schema.md` is checked to be the output of the generator.** It is
+  built from the migrations, the generator is deterministic, and the build
+  fails when the committed file is not what `npm run docs:schema` produces. A
+  hand-written line in a generated file is a lie that outlives the person who
+  wrote it.
+
+### Removed
+
+- **`@ekwo-ai/core/fec` and the FEC re-exports of `@ekwo-ai/core` are gone.**
+  The release that moved the format to `@ekwo-ai/fec` kept them alive for one
+  version, and this is the next one: import `generateFec`, `checkFec`,
+  `fecFileName`, `fromQueryRow`, `formatFecDate`, `formatFecAmount` and
+  `FEC_COLUMNS` from `@ekwo-ai/fec`. The core still depends on it, because
+  `EkwoClient.generateFec()` writes the file it has just fetched.
+
+### Fixed
+
+- **A `jsonb` argument crossed the direct-Postgres route as a Postgres array.**
+  PostgREST posts the arguments of a function as JSON, so a `jsonb` parameter
+  receives a real array there; a driver handed a JavaScript array builds an
+  array *literal* instead, and `node-postgres` turns an array of objects into
+  `{"[object Object]"}`. The SQL backend now stringifies an object or array
+  argument and casts the placeholder to `jsonb`, so the two routes agree
+  rather than agreeing by accident on one driver. Found while adding
+  `opening_balance`, which is the first function to take one.
+
+- `record_payment` (MCP) asked for a journal even when `bank_account_id` was
+  given, although the account carries its journal. It now takes the journal
+  from the account. Found on the first run against a real Supabase project.
+
+- **`--db-region` built a pooler hostname and called it the answer.** The
+  region does not determine the generation prefix: a project created in
+  `eu-west-3` answers on `aws-1-eu-west-3.pooler.supabase.com` and returns
+  "Tenant or user not found" on `aws-0-`, which reads like a wrong password
+  rather than a wrong host. `--project-ref` with `--db-password` and
+  `--db-region` now tries both generations on the session port, keeps the one
+  that answers and prints it. Without `--db-region` nothing is derived at all:
+  the CLI asks for the connection string the dashboard prints under Connect →
+  Session pooler, because the direct host `db.<ref>.supabase.co` is IPv6-only
+  on any recent project and deriving it silently produces a hang.
+- **Three columns of `country_defaults` had no reader.**
+  `sales_account_code`, `purchase_account_code` and `currency_code` were
+  declared from the first release and consumed by nothing — the state the
+  naming policy forbids. They are consumed now rather than deleted: migration
+  `20260911193853` adds `companies.default_sales_account_id` and
+  `default_purchase_account_id`, `install_country_template` wires them from
+  the country model, and a document line that names no account is resolved by
+  trigger — the line, then the company default, then the country model.
+  `ekwo init` offers `country_defaults.currency_code` as the currency of the
+  company, which has to happen before the insert: `companies.currency_code` is
+  `not null default 'EUR'` and is never empty afterwards.
+
+- **A freshly installed company refused its first payment.**
+  `country_defaults.bank_account_code` was declared from the first release and
+  read by nothing, so `install_country_template` left
+  `journals.default_account_id` null on every journal and `post_payment()`
+  found no bank side — the demo seed wired it by hand, which was the symptom.
+  Migration `20260911183000` adds `cash_account_code` to the country model and
+  points the bank and cash journals at their account (`550000` / `570000` in
+  the PCMN, `512000` / `530000` in the PCG). A company that already chose a
+  default account keeps it.
+- **Nobody but the database owner could post an entry.** `next_entry_number()`
+  and `next_matching_number()` write `journal_sequences` and
+  `matching_sequences`, which carry a select policy and no other, and both ran
+  as the caller — so posting a document or drawing a matching letter failed
+  for every signed-in user with "new row violates row-level security policy".
+  It went unnoticed because the tests and the installer both run as the owner.
+  Migration `20260911173100` makes the two functions `security definer` and
+  has each check that the caller may write the company it is counting for.
+- Re-applying the tax seeds — a second `ekwo init` or `supabase db push` on
+  the same project — failed on `tax_posting_templates`, which had no natural
+  key to conflict on. Migration `20260911160000` adds it and the seeds use it;
+  a test now applies every reference seed twice. Found on the first real
+  installation.
+
+- **`aged_balance` reported any group it did not know as receivable.** The
+  function tested `p_group = 'payable'` twice and fell through to the
+  receivable ageing on everything else, so `'supplier'`, `'creditors'`,
+  `'Payable'` or a typo returned a full, plausible, wrong report — the one
+  failure mode a report must not have, because nothing about it looks like an
+  error. Migration `20260913104014` names the two groups and refuses anything
+  else.
+
+- **A cash-basis tax whose posting named no declaration box never settled.**
+  `post_document()` writes `box_amount` only for a posting that names a box,
+  and `settle_cash_basis_tax()` looks for lines that have one, so the amount
+  landed on the transition account and stayed there — silently, for as long as
+  nobody reconciled that account. Migration `20260913103355` refuses the
+  combination where it is created, in the pack compiler and in the schema,
+  rather than at the moment it would have gone wrong.
+
+- **Seven columns defaulted to `'EUR'` and one to `'fr'`.** A company,
+  document, payment, product, bank account or statement created without a
+  currency got euros instead of an error — the country literals in another
+  hat. Migration `20260913102758` drops the defaults; the value now comes from
+  the pack of the fiscal country or from the row above, and a pack that says
+  nothing is refused by name instead of assuming Europe.
+
+- **A negative half was rounded three different ways by three packages.**
+  `@ekwo-ai/factur-x`, `@ekwo-ai/xbrl-cbso` and `@ekwo-ai/mcp` each reached
+  for `Math.round` or `toFixed`, which disagree on `-0.005`. Each carries the
+  same half-up-on-the-absolute-value rounding now, which is what the schema
+  does, so a credit note is its invoice with the sign flipped in the export as
+  well as in the ledger.
+
+- **A connection that could not declare itself the installer carried on.**
+  `connect()` swallowed the failure of `set_config('ekwo.installing', …)`, and
+  the run then failed five guards later with a message about a capability the
+  operator cannot have. It closes the connection and raises where it happened.
+
+### Security
+
+- **A machine key could do anything, because it has no session.** Eleven
+  functions and triggers were written as `if auth.uid() is not null and not
+  has_capability(…) then raise`, which checks a signed-in caller and exempts a
+  caller with no session. That was the installer, until `20260913085932` added
+  API keys — a key is deliberately not a session, `auth.uid()` stays null, and
+  every one of those guards stood aside. A key issued with `["entries.read"]`
+  could post an entry, close a financial year, invite a member, create a
+  company and issue itself a second key carrying every capability of the
+  installation. Migration `20260913102115` names the exemption instead of
+  inferring it: `is_installer()` is true only when the migration runner set
+  `ekwo.installing` on its own connection, and false outright when there is a
+  session or a key presenting itself. A caller reaching the database through
+  PostgREST cannot set it.
+- **`is_company_owner()` and `can_write_company()` answered NULL to a
+  stranger, and `not NULL` never raises.** Inside a policy that is harmless;
+  inside a `security definer` function it is the opposite, and the stranger
+  walked past the exception into the body. `enable_module()` and
+  `disable_module()` did exactly that, on a table with no write policy at all,
+  so the function was the only door and the door was open. Migration
+  `20260913101536` makes both helpers answer false rather than null.
+- **`EKWO_ACCESS_TOKEN` was the second door for a `service_role` key.** The
+  MCP server refused one in `SUPABASE_ANON_KEY` and not in the access token,
+  which goes into the `Authorization` header — where PostgREST reads the role
+  — so a key pasted there bypassed every policy while the anon key beside it
+  made the configuration look right. It is refused in both slots now, by name.
+- **A test now fails if any function of `public` is executable by PUBLIC.**
+  The finding below was a README rule and a revoke in one migration; it is a
+  test in `tests/hardening.test.ts`, which reads `proacl` — a null one counts,
+  being the built-in default — so the next migration that forgets the revoke
+  fails in CI rather than on a live project.
+- **A function created after `20260911210131` was open again.** That migration
+  changed the default privileges so that "a function added tomorrow starts
+  closed", and PostgreSQL does not work that way: `alter default privileges …
+  revoke execute on functions from public` does not delete the built-in world
+  default, it is merged with it, so the next function created came out with
+  `=X` — EXECUTE for PUBLIC, which on Supabase is an anonymous RPC endpoint.
+  `install_country_template` was that function, for the length of one commit.
+  Migration `20260912074712` repeats the revoke from PUBLIC (never from
+  `anon`, which holds explicit grants on the eight policy helpers), and
+  `supabase/migrations/README.md` makes it a rule for every migration that
+  adds a function. `tests/hardening.test.ts` pins the list of functions
+  `anon` may execute and is what caught it.
+- The anonymous role could execute every function of the schema (Postgres
+  grants EXECUTE to PUBLIC; Supabase exposes `public` functions as RPC). It
+  now executes only the eight helpers the policies evaluate, and the default
+  privileges keep it that way for functions added later. Migration
+  `20260911210131`.
+- `instance_admins` was readable by any signed-in user, member or not; a
+  Supabase project accepts self sign-up by default. Administrators are now
+  visible to members of a company, to administrators, and to oneself.
+- README: a Security section that says to turn off public sign-ups on the
+  project, and why an installation should keep two administrators.
+
 ## [0.1.0] — 2026-09-11
 
 ### Added
@@ -883,3 +977,6 @@ somewhere has already run it.
   WebAssembly, covering posting, credit notes, self-assessment, matching,
   period locks, reports, row level security, the instance singleton and its
   roles, and a golden FEC export.
+
+[Unreleased]: https://github.com/Ekwo-ai/ekwo-os/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Ekwo-ai/ekwo-os/releases/tag/v0.2.0

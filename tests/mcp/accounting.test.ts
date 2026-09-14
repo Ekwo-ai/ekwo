@@ -405,7 +405,10 @@ describe('the books, through the tools', () => {
 
   it('says how it is connected and what it can see', async () => {
     const state = record(await readTools.status(backend));
-    expect(state['schema_version']).toBe('0.1.0');
+    // The version the database it is pointed at defines, not one written here:
+    // what this asserts is that `status` reports it, and a release bumps it.
+    const defined = await db.query<{ version: string }>(`select ekwo_schema_version() as version`);
+    expect(state['schema_version']).toBe(defined.rows[0]?.version);
     expect(record(state['connection'])['mode']).toBe('sql');
     expect(record(state['connection'])['acting_as']).toBe(fx.ownerId);
     expect(list(state['companies']).map((row) => row['id'])).toEqual([fx.companyId]);

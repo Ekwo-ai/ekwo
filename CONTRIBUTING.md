@@ -111,3 +111,12 @@ Demo data is fictional and stays that way.
 ## Commits
 
 Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`.
+
+## Releases
+
+A release is one tag carrying the migrations, the packs and the packages
+together, and `v0.2.0` is the first. What has to move and in which order is in
+[`docs/releasing.md`](docs/releasing.md). Two consequences reach an ordinary
+pull request: a published migration is never edited, and anything that ships
+gets a line under `[Unreleased]` in [`CHANGELOG.md`](CHANGELOG.md) in the same
+pull request that ships it.

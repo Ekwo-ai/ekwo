@@ -6,7 +6,18 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-14
+
+Released with Ekwo OS `v0.2.0`, the first tagged release of the repository this
+package lives in.
+
 ### Fixed
+- **A negative half was rounded the wrong way.** The equations and the PCMN
+  mapping used `Math.round(v * 100) / 100`, which goes towards positive
+  infinity and turns `-0.005` into `-0.00`, and which reads `2.675` as `2.67`
+  because `2.675 * 100` is really `267.49999999999994`. The new `roundCurrency`
+  rounds half up on the absolute value, and is the same file in the three
+  packages that hold a copy.
 - **53 reporting codes were filed under the wrong fact**, among them nine pairs that were
   swapped with each other: `22/27` (Immobilisations corporelles) with `24` (Mobilier et
   matériel roulant), `20/58` (TOTAL DE L'ACTIF) with `10/49` (TOTAL DU PASSIF), `10`

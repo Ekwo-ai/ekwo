@@ -2139,8 +2139,10 @@ one, so undoing a schema change on a database with a year of entries in it is a
 restore and not a script.
 
 The rule that no published migration is ever edited is enforced by CI since
-13 September and was not redone here. The repository has no tag yet; the first
-one is a release decision and this change does not take it.
+13 September and was not redone here. The tag that rule is measured against
+arrived the next day: `v0.2.0`, on 14 September 2026, is the first release of
+this repository, and from it the rule is absolute rather than conditional on
+nothing having been installed.
 
 **`ekwo doctor` gained one check and not an inventory.** It now reads the
 catalogue and says whether the audit trail is still what it claims to be: the
@@ -2247,3 +2249,40 @@ decimals and not a method, because every pack in this repository declares
 `half_up` and a Factur-X or CBSO file is written from amounts the ledger has
 already rounded. The first pack to declare `half_even` will have to hand the
 method to the bricks as well; the vector test is where that will be noticed.
+
+## The first release is v0.2.0 (14 September 2026)
+
+The repository had a `[0.1.0]` section in its changelog and no tag. That was
+the honest state — 0.1.0 was the first schema and nothing outside this
+repository had run it, which is the one circumstance in which editing a
+published migration costs nothing, and it is what the exception of 11 to 13
+September relied on. A tag ends that circumstance, and it ends it for good:
+from here a mistake in a published migration is corrected by a new migration,
+and CI measures the rule against the latest tag on every push.
+
+**The number is 0.2.0 and not 0.1.1 or 1.0.0.** Everything between the two is
+additive — the installer, the MCP server, country packs, capabilities and
+machine keys, modules, the audit trail, the generalised tax engine, financial
+statements, languages, currency-aware rounding — so a minor is what semantic
+versioning asks for. 1.0.0 is a promise about stability that a schema three
+days old cannot make.
+
+**The schema floor moves with it.** `ekwo`, `@ekwo-ai/core` and `@ekwo-ai/mcp`
+declare `schema_min` 0.2.0, because the packages of this release read
+`audit_log`, the rounding functions and `company_packs`, and a 0.1.0 database
+has none of them. The floor is a floor and not the version: a later release
+that adds nothing a package reads leaves it where it is.
+
+**A release bumps `ekwo_schema_version()` in a migration of its own**, and
+nothing else in that file. The column default and `init_instance()` call the
+function, so a fresh installation records the new number without a second
+edit; an installation that already exists gets it from `ekwo migrate`, which
+writes the answer back onto `instance.schema_version`. The two were always
+going to drift otherwise, and the number that drifts is the one a client
+refuses an old database on.
+
+**The packages are not on npm.** There is no account for the organisation yet,
+so `npx ekwo init` is what the CLI will be called and not what it is reachable
+as today. The order is deliberate when there is one: tag first, publish after,
+so a version on npm is always a version whose source someone can read.
+`docs/releasing.md` is the procedure.

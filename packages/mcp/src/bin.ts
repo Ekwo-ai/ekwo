@@ -15,7 +15,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { openBackend, readConfig } from './config.js';
 import { assertSchemaSupported } from './schema.js';
-import { buildServer } from './server.js';
+import { SERVER_VERSION, buildServer } from './server.js';
 import { installedModules } from './tools/modules.js';
 
 async function main(): Promise<void> {
@@ -25,7 +25,7 @@ async function main(): Promise<void> {
     return;
   }
   if (argument === '--version' || argument === '-v') {
-    process.stderr.write('0.1.0\n');
+    process.stderr.write(`${SERVER_VERSION}\n`);
     return;
   }
 

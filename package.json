@@ -1,6 +1,6 @@
 {
   "name": "ekwo",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Ekwo OS — an open accounting core for Postgres and Supabase.",
   "license": "AGPL-3.0-only",

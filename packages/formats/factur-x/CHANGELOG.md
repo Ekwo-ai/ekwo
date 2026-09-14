@@ -6,6 +6,19 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] — 2026-09-14
+
+Released with Ekwo OS `v0.2.0`, the first tagged release of the repository this
+package lives in.
+
+### Fixed
+- **A negative half was rounded the wrong way.** The totals used
+  `Math.round((v + EPSILON) * 100) / 100`, which goes towards positive infinity
+  and turns `-0.005` into `-0.00` — so a credit note was not its invoice with
+  the sign flipped, and the cent was found by whoever filed the return. The new
+  `roundCurrency` rounds half up on the absolute value, which is symmetric by
+  construction, and is the same file in the three packages that hold a copy.
+
 ## [0.1.0] — 2026-09-11
 
 ### Added
