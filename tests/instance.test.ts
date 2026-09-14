@@ -43,6 +43,8 @@ describe('the instance row', () => {
 
     expect(row.instance_id).toMatch(/^[0-9a-f-]{36}$/);
     expect(row.organization_name).toBe('Exemple Conseil');
+    // country-literal: the demo seed installs a Belgian practice, and this
+    // reads back what `supabase/seed/90_demo_company.sql` wrote.
     expect(row.country).toBe('BE');
     expect(row.edition).toBe('community');
     // Whatever the release defines, and not a number written here: the column

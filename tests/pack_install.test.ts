@@ -437,7 +437,12 @@ describe('row level security on the two new tables', () => {
     await newCompany(db, { name: 'RLS pack SRL', ownerId });
     const strangerId = await newUser(db);
 
-    const seen = await asUser(db, ownerId, () => rows(db, 'select country from country_packs'));
+    // Ordered here, not left to the order the seeds happen to be applied in:
+    // a seed's number is the pack's own since `seed_sequence`, so file-name
+    // order is no longer alphabetical order.
+    const seen = await asUser(db, ownerId, () =>
+      rows(db, 'select country from country_packs order by country'),
+    );
     expect(seen.map((r) => (r as { country: string }).country)).toEqual(packCountries);
 
     const nothing = await asUser(db, strangerId, () => rows(db, 'select country from country_packs'));

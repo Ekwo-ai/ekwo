@@ -312,6 +312,7 @@ describe('pack, seed, database, pack again', () => {
 describe('the committed seeds', () => {
   it('are the exact output of their pack — what `ekwo pack check` runs in CI', async () => {
     const slugs = await listPacks(packs);
+    const declared = await declaredSeedSequences(packs);
     expect(slugs, 'this repository ships no pack at all').not.toHaveLength(0);
     expect(slugs).toEqual([...slugs].sort());
     for (const slug of slugs) {
@@ -339,6 +340,9 @@ describe('the committed seeds', () => {
   it('keep the number they shipped with, whatever is added beside them', async () => {
     const slugs = await listPacks(packs);
     const declared = await declaredSeedSequences(packs);
+    // country-literal: these three numbers are history, not a list of packs —
+    // they are the file names released installations already hold, and a pack
+    // that landed later cannot change them.
     expect(seedFileName('be', slugs, declared)).toBe('10_pack_be.sql');
     expect(seedFileName('fr', slugs, declared)).toBe('11_pack_fr.sql');
     expect(seedFileName('lu', slugs, declared)).toBe('12_pack_lu.sql');

@@ -87,6 +87,8 @@ describe('the assets copied into the package', () => {
     }
 
     // And the runtime resolver never points there either.
+    // country-literal: `ee/` is the enterprise-edition folder of this
+    // repository. It is not the Estonian pack, which lives in `packs/ee/`.
     expect(migrationsDir(resolveBundleDir())).not.toContain(`${join('ee', 'supabase')}`);
   });
 });

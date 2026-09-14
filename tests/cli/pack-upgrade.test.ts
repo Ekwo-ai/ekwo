@@ -24,6 +24,10 @@ import {
   type SqlClient,
 } from '../../packages/cli/src/index.js';
 import { emptyDatabase, makeAuthUser, migrationsPath, seedPath } from './helpers.js';
+import { somePack } from '../helpers/packs.js';
+
+// The installation these tests bootstrap is in some country, named once.
+const HOME = somePack.manifest.country;
 
 let db: SqlClient;
 let migrations: Migration[];
@@ -37,7 +41,7 @@ beforeEach(async () => {
   const userId = await makeAuthUser(db, 'first@example.test');
   const result = await bootstrap(db, {
     organization: 'Example Group',
-    country: 'BE',
+    country: HOME,
     company: 'Example One',
     fiscalYear: 2026,
     adminUserId: userId,
@@ -53,10 +57,10 @@ describe('pack status', () => {
   it('reports the packs loaded here and where each company stands', async () => {
     const report = await packStatus(db);
 
-    expect(report.packs.map((p) => p.country)).toContain('BE');
+    expect(report.packs.map((p) => p.country)).toContain(HOME);
     const company = report.companies.find((c) => c.name === 'Example One');
     expect(company).toBeDefined();
-    expect(company?.country).toBe('BE');
+    expect(company?.country).toBe(HOME);
     expect(company?.chartCode).toBe('default');
     expect(company?.heldVersion).toBe(company?.packVersion);
     expect(company?.behind).toBe(false);

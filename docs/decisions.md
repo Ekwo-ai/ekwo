@@ -2803,6 +2803,47 @@ and a computed statement line may carry a sign that is applied twice. None of
 the four was patched into the core for Luxembourg's sake. That is the whole
 point of a pack being data.
 
+## Estonia was written to test the format, not to open a market (14 September 2026)
+
+The plan put the United Kingdom and Canada first. Estonia went ahead of both,
+alongside Luxembourg, and the reason is what the pack format was for.
+
+**A country nobody designed the format for is the only thing that proves a
+format is a format.** Belgium and France were extracted from a core that had
+been built around them, so everything they needed was there by construction. A
+pack written from the outside in — by somebody reading a foreign statute, with
+no permission to change the core — is the honest test of the claim that a
+country is data. Estonia was picked because it is small enough to finish and
+awkward enough to be interesting: a standard rate that moved twice in eighteen
+months, a return whose boxes nest three deep, a reduced rate that went 9 %, 5 %
+and 9 % again, and **no legal chart of accounts at all**, which is the case the
+format had never met.
+
+**The rule held, and the pack is entirely data.** No migration, no function, no
+column, and no change to `tests/golden.test.ts`, which installed a company on
+the new pack and replayed fourteen documents without knowing that Estonia
+exists. Six things the core cannot say turned up, and all six are written in
+[`international.md`](international.md) with a fix and with the workaround the
+pack uses instead — because a gap fixed quietly during a pack is a gap the next
+contributor meets again.
+
+**The one place where the format bent is worth naming.** A tax carries one
+`base` posting per kind of document, so it reports to one box; form KMD asks
+for the same amount in a box, in the memo box inside it, and sometimes in a
+third. The pack posts to the innermost box and rebuilds the printed parents as
+totals, which needs six boxes the form does not print. That is exact and it is
+not obvious, so it is documented in the pack's own README rather than left for
+somebody to find in a diff. The alternative — filling the parent and leaving
+the memo boxes empty — would have produced a return the tax authority
+cross-checks and rejects, and would have looked fine in every test.
+
+**Estonia is `community`, and stays there.** Nobody has read it against the law
+they apply. Writing a pack carefully, citing an article on every rate and every
+box, and proving that fourteen documents produce the figures somebody wrote
+down is exactly what `community` means: contributed, not reviewed. The status
+moves when an Estonian accountant puts their name in the manifest, and not
+before.
+
 ## A test may book in a country. It may not expect one.
 
 *14 September 2026*

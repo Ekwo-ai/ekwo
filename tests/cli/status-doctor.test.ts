@@ -21,6 +21,10 @@ import {
   type SqlClient,
 } from '../../packages/cli/src/index.js';
 import { emptyDatabase, makeAuthUser, migrationsPath, seedPath } from './helpers.js';
+import { somePack } from '../helpers/packs.js';
+
+// The installation these tests bootstrap is in some country, named once.
+const HOME = somePack.manifest.country;
 
 let db: SqlClient;
 let migrations: Migration[];
@@ -35,7 +39,7 @@ beforeEach(async () => {
   userId = await makeAuthUser(db, 'first@example.test');
   const result = await bootstrap(db, {
     organization: 'Example Group',
-    country: 'BE',
+    country: HOME,
     company: 'Example One',
     fiscalYear: 2026,
     adminUserId: userId,
@@ -64,8 +68,10 @@ describe('status', () => {
 
     expect(report.companies).toHaveLength(1);
     expect(report.companies[0]?.name).toBe('Example One');
-    expect(report.companies[0]?.country).toBe('BE');
-    expect(report.companies[0]?.accounts).toBeGreaterThan(300);
+    expect(report.companies[0]?.country).toBe(HOME);
+    expect(report.companies[0]?.accounts).toBe(
+      (somePack.charts.find((chart) => chart.is_default) ?? somePack.charts[0]!).accounts.length,
+    );
     expect(report.companies[0]?.fiscalYears).toBe(1);
     // A fresh installation has nothing closed; `close_fiscal_year` is the
     // only thing that changes this number.

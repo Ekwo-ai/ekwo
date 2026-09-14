@@ -26,7 +26,7 @@
  *
  *     // country-literal: the demo company is Belgian, and this reads its books
  *
- * on the offending line or the one above it.
+ * on the offending line, or in a comment above the lines it covers.
  */
 
 import { readdir, readFile } from 'node:fs/promises';
@@ -115,9 +115,35 @@ function lineOf(text, index) {
   return text.slice(0, index).split('\n').length;
 }
 
-/** True when the line, or the one above it, carries the marker. */
-function excused(lines, line) {
-  return MARKER.test(lines[line - 1] ?? '') || MARKER.test(lines[line - 2] ?? '');
+/**
+ * The lines a marker excuses.
+ *
+ * Its own line, and — when it stands in a comment above the code — the run of
+ * code under that comment, down to the first blank line. A reason worth
+ * writing rarely fits on one line and rarely covers exactly one.
+ */
+function excusedLines(lines) {
+  const excused = new Set();
+  let marked = false;
+  lines.forEach((raw, index) => {
+    const text = raw.trim();
+    const line = index + 1;
+    if (MARKER.test(text)) {
+      excused.add(line);
+      if (text.startsWith('//')) marked = true;
+      return;
+    }
+    if (text.startsWith('//')) {
+      if (marked) excused.add(line);
+      return;
+    }
+    if (text === '') {
+      marked = false;
+      return;
+    }
+    if (marked) excused.add(line);
+  });
+  return excused;
 }
 
 async function main() {
@@ -129,16 +155,19 @@ async function main() {
     if (file.endsWith('scripts/check-no-country-literals-in-tests.mjs')) continue;
     const text = await readFile(join(root, file), 'utf8');
     const lines = text.split('\n');
+    const excused = excusedLines(lines);
     const flag = (index, rule, what) => {
       const line = lineOf(text, index);
-      if (excused(lines, line)) return;
+      if (excused.has(line)) return;
       problems.push({ file, line, rule, what });
     };
 
     // 1. A country in an expectation.
     for (const [from, to] of expectRanges(text)) {
       const slice = text.slice(from, to);
-      const near = /country[A-Za-z_'"\]\s]{0,16}?(?:===?|:|<>)\s*(['"])([A-Z]{2})\1/g;
+      // A country code within reach of the word `country`: `country: 'BE'`,
+      // `country = 'BE'`, `country'] === 'BE'`, `row.country).toBe('BE')`.
+      const near = /country[^\n'"]{0,60}?(['"])([A-Z]{2})\1/g;
       for (const match of slice.matchAll(near)) {
         if (!COUNTRIES.has(match[2])) continue;
         flag(from + match.index, 1, `${match[2]} is expected by hand; take it from the pack`);
