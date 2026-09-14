@@ -120,11 +120,20 @@ the country-less pack whose rules are all `account_type` — which is what the
 eighteen account types buy, and what gives a British or American chart with no
 legal codes a balance sheet that ties out.
 
+**A sign belongs to a line summed from the ledger, and to no other.** `sign:
+-1` is how a scheme prints a credit balance as a positive figure, and
+`financial_statement()` applies it when it sums the line. A total is then
+worked out from lines that already read that way, so a sign on the total would
+be applied to them a second time: flip a credit line and flip the subtotal
+above it, and the figure comes back the way it started, silently. It cost the
+Luxembourg pack a wrong set of golden figures. `ekwo pack check` refuses the
+two together; `minus` is how a total subtracts.
+
 `ekwo pack check` refuses a statement whose totals form a cycle, a line that is
-both summed and computed, two lines that catch one account on the same side,
-two lines that carry the same fact key, and — the check that makes a balance
-sheet balance — **a chart with an account that reaches no line of any of its
-statements**. A heading, an account with
+both summed and computed, a computed line carrying a sign, two lines that catch
+one account on the same side, two lines that carry the same fact key, and — the
+check that makes a balance sheet balance — **a chart with an account that
+reaches no line of any of its statements**. A heading, an account with
 children, may reach none: it straddles the lines its children are split over
 and nothing is posted to it.
 
@@ -161,14 +170,14 @@ nothing there to build.
 Packs (4)
   generic  Generic framework 1.1.1 · 2 statements · no country · certification maintained
           no golden — A framework is not a country: this pack carries statements and nothing else …
-  be  Belgium 1.5.1 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
+  be  Belgium 1.6.0 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCMN — plan comptable minimum normalisé, 353 accounts, BE-BNB-ABBR-BS, BE-BNB-ABBR-IS, BE-BNB-ABBR-AF
           asbl — PCMN — associations et fondations, 349 accounts, generic statements only
-  ee  Estonia 1.0.0 · 1 chart(s), 120 accounts · 29 taxes · 2 statements · et, en · certification community · golden: 14 documents, 4 payments, 4 period(s)
+  ee  Estonia 1.1.0 · 1 chart(s), 120 accounts · 29 taxes · 2 statements · et, en · certification community · golden: 14 documents, 4 payments, 4 period(s)
           default (default) — Eesti väikeettevõtja kontoplaan, 120 accounts, EE-RPS-BS, EE-RPS-IS1
-  fr  France 1.6.1 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
+  fr  France 1.7.0 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCG — plan comptable général, 394 accounts, FR-2050, FR-2052
-  lu  Luxembourg 1.0.0 · 1 chart(s), 1026 accounts · 35 taxes · 2 statements · fr, de, en · certification community · golden: 10 documents, 3 payments, 4 period(s)
+  lu  Luxembourg 1.1.0 · 1 chart(s), 1026 accounts · 35 taxes · 2 statements · fr, de, en · certification community · golden: 10 documents, 3 payments, 4 period(s)
           default (default) — PCN — plan comptable normalisé, 1026 accounts, LU-ECDF-BS-ABR, LU-ECDF-PL-ABR
 ```
 
@@ -367,6 +376,30 @@ declared before it. That covers the Belgian 71/72, the French 16, 23, 25 and
 28, and the British box 5. `hidden` marks an intermediate total the form does
 not print — `vat_return()` returns it with the flag rather than dropping it.
 
+**How often the form is filed is part of the form.** `period` is the list of
+cadences it accepts — `["month", "quarter"]` in Belgium, France and Luxembourg,
+`["month"]` in Estonia
+— and there is no default for it: a pack that names none is refused, because
+the column this compiles to used to default to "monthly or quarterly" and a
+country that had never thought about its cadence filed on Belgium's without
+anybody deciding that. A single string is still read, `month_or_quarter`
+meaning the two cadences it names, so a pack written before the list keeps
+working.
+
+Which cadence a given company files on is `companies.vat_period`, settled at
+install. A pack may propose one in `defaults.vat_period`, and should only where
+the law of that country gives one answer that does not depend on a fact about
+the company. Estonia does — the taxable period is the calendar month for
+everybody (käibemaksuseadus § 27 lõige 1) — and Belgium, France and Luxembourg
+do not, because all three make the cadence follow turnover; each cites the
+article that says so on the form's `legal_reference`. Where the pack proposes nothing
+and the form offers several, `ekwo init` asks, `--vat-period` answers outside a
+terminal, and a company that has not decided is recorded as not having decided.
+`vat_return()` then refuses a period that company does not file on — and only
+when the refusal is certain: the form offers the recorded cadence, the dates
+are themselves a whole cadence of that form, and the two differ. A fortnight,
+a half-year and the annual form a quarterly filer also files all go through.
+
 A reference is bare (`54`) where the form carries the box once, and qualified
 (`08:tax`) where it carries a base and a tax on the same line, as the CA3
 does. `ekwo pack check` refuses:
@@ -377,7 +410,8 @@ does. `ekwo pack check` refuses:
 - a total that names a total computed **after** it in the sequence;
 - a formula on a box that is summed from the ledger;
 - the same box declared twice with the same kind;
-- a tax that posts to a box the form does not declare.
+- a tax that posts to a box the form does not declare;
+- a form that names no cadence, and a proposed cadence the form is not filed on.
 
 The form is reference data and is never copied into a company: a chart of
 accounts is customisable, a form is not. A new version of a form is a **new

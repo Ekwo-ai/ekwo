@@ -1,6 +1,6 @@
 -- Ekwo OS — Estonia: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/ee at version 1.0.0, do not edit.
+-- Generated from packs/ee at version 1.1.0, do not edit.
 -- Change the pack and run `ekwo pack build ee`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -26,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('EE', 'Estonia', '1.0.0', date '2026-09-14', '20260913114535', 'community', null, null, '5a4382d57bd8232250b8dfc0cbba8bfb39ad603c9c3635fa5644595d1d7a677b')
+  ('EE', 'Estonia', '1.1.0', date '2026-09-14', '20260914163943', 'community', null, null, 'd0ee6bdfdc5cba205e9ac603e9a09ed7ab63d6d5c46ff0ab87fd9678b7ec4113')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -368,12 +368,12 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   report_code        = excluded.report_code;
 
 insert into tax_report_templates
-  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+  (country, code, name, periods, valid_from, valid_to, legal_reference, is_periodic_return)
 values
-  ('EE', 'EE-KMD', 'Käibedeklaratsioon (vorm KMD)', 'month', date '2025-07-01', null, 'Käibemaksuseadus § 27 lõige 1 — maksustamisperiood on kalendrikuu ja deklaratsioon esitatakse järgneva kuu 20. kuupäevaks; vorm on rahandusministri 10.06.2014 määruse nr 17 lisa 1 rahandusministri 14.05.2025 määruse nr 20 sõnastuses, kehtiv alates 01.07.2025. Vormil on lahtrite tähiseid, mida see fail ei saa tähemärgi haaval korrata: ülaindeksiga lahtrid 1¹, 1², 2¹, 2² ja 4¹ kannavad siin tähiseid 1a, 1b, 2a, 2b ja 4a ning punktiga alamlahtrid 3.1, 3.1.1, 3.2, 3.2.1, 5.1, 5.2, 5.3, 5.4, 6.1 ja 7.1 kannavad tähiseid 31, 311, 32, 321, 51, 52, 53, 54, 61 ja 71. Iga lahtri õiguslik viide nimetab vormil trükitud tähise.', true)
+  ('EE', 'EE-KMD', 'Käibedeklaratsioon (vorm KMD)', array['month']::declaration_period[], date '2025-07-01', null, 'Käibemaksuseadus § 27 lõige 1 — maksustamisperiood on kalendrikuu ja deklaratsioon esitatakse järgneva kuu 20. kuupäevaks; vorm on rahandusministri 10.06.2014 määruse nr 17 lisa 1 rahandusministri 14.05.2025 määruse nr 20 sõnastuses, kehtiv alates 01.07.2025. Vormil on lahtrite tähiseid, mida see fail ei saa tähemärgi haaval korrata: ülaindeksiga lahtrid 1¹, 1², 2¹, 2² ja 4¹ kannavad siin tähiseid 1a, 1b, 2a, 2b ja 4a ning punktiga alamlahtrid 3.1, 3.1.1, 3.2, 3.2.1, 5.1, 5.2, 5.3, 5.4, 6.1 ja 7.1 kannavad tähiseid 31, 311, 32, 321, 51, 52, 53, 54, 61 ja 71. Iga lahtri õiguslik viide nimetab vormil trükitud tähise.', true)
 on conflict (country, code) do update set
   name               = excluded.name,
-  period             = excluded.period,
+  periods            = excluded.periods,
   valid_from         = excluded.valid_from,
   valid_to           = excluded.valid_to,
   legal_reference    = excluded.legal_reference,
@@ -621,9 +621,10 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label,
+   vat_period_default)
 values
-  ('EE', 'Estonia', '{"en":"Estonia"}'::jsonb, array['et', 'en']::text[], 'EUR', '1200', '2100', '2490', '4920', '2970', '3000', '4000', '1010', '1000', 'MUU', 'OST', 'MIS', 'et', 'result_accounts', '2980', '2980', null, 'ALG', 'half_up', default, '3850', '4970', null, null, null, null, null)
+  ('EE', 'Estonia', '{"en":"Estonia"}'::jsonb, array['et', 'en']::text[], 'EUR', '1200', '2100', '2490', '4920', '2970', '3000', '4000', '1010', '1000', 'MUU', 'OST', 'MIS', 'et', 'result_accounts', '2980', '2980', null, 'ALG', 'half_up', default, '3850', '4970', null, null, null, null, null, 'month'::declaration_period)
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -655,7 +656,8 @@ on conflict (country) do update set
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
   asset_disposal_value_code       = excluded.asset_disposal_value_code,
-  opening_entry_label             = excluded.opening_entry_label;
+  opening_entry_label             = excluded.opening_entry_label,
+  vat_period_default              = excluded.vat_period_default;
 
 update country_defaults set
   numbering_gapless       = false,

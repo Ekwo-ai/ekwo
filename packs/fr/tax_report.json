@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
   "code": "FR-CA3",
   "name": "Déclaration de TVA 3310-CA3",
-  "period": "month_or_quarter",
+  "period": ["month", "quarter"],
   "valid_from": "2022-01-01",
-  "legal_reference": "CGI, art. 287 — formulaire 3310-CA3",
+  "legal_reference": "CGI, art. 287 — formulaire 3310-CA3. Cadence : CGI, art. 287, 2 (déclaration mensuelle ; dépôt trimestriel admis lorsque la taxe exigible annuellement est inférieure à 4 000 euros)",
   "boxes": [
     { "box": "01", "kind": "total", "name": "Ventes, prestations de services", "sequence": 10, "plus": ["08:base", "09:base", "9B:base", "13:base"], "legal_reference": "Code général des impôts, art. 287, 2 — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 01" },
     { "box": "03", "kind": "base", "name": "Acquisitions intracommunautaires", "sequence": 20, "legal_reference": "Code général des impôts, art. 256 bis — acquisitions intracommunautaires — formulaire 3310-CA3 (cerfa 10963), cadre A, ligne 03" },

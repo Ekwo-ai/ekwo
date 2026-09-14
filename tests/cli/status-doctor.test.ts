@@ -78,6 +78,26 @@ describe('status', () => {
     expect(report.companies[0]?.closedFiscalYears).toBe(0);
   });
 
+  it('says how often each company files, and says so when nothing was recorded', async () => {
+    // What a reminder and any client offering "file the current period" read.
+    // Null is printed as an absence rather than filled in with a cadence
+    // nobody chose: every pack here makes it follow turnover.
+    const unrecorded = await status(db, migrations);
+    expect(unrecorded.companies[0]?.vatPeriod).toBeNull();
+
+    const second = await bootstrap(db, {
+      organization: 'Example Group',
+      country: 'BE',
+      company: 'Example Two',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      vatPeriod: 'quarter',
+    });
+    expect(second.vatPeriod).toBe('quarter');
+    const report = await status(db, migrations);
+    expect(report.companies.find((c) => c.name === 'Example Two')?.vatPeriod).toBe('quarter');
+  });
+
   it('shows the gap when a migration has not been applied', async () => {
     await db.query(
       'delete from supabase_migrations.schema_migrations where version = $1',

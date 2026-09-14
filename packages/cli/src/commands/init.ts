@@ -28,6 +28,8 @@ import {
   countryLanguage,
   countryLanguages,
   countryPack,
+  countryVatPeriod,
+  countryVatPeriods,
   installedPacks,
 } from '../bootstrap.js';
 import { printOperatorChecklist } from '../checklist.js';
@@ -57,6 +59,7 @@ export const INIT_FLAGS = [
   'fiscal-year-start',
   'currency',
   'language',
+  'vat-period',
   'iban',
   'bic',
   'bank-name',
@@ -233,6 +236,60 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
             : (packLanguage ?? required('--language', 'the language of the books')))
     ).toLowerCase();
 
+    // How often the company files its periodic return. The third question of
+    // the same family as the currency and the language, and the one with the
+    // sharpest consequence when it is wrong: a quarterly filer handed a
+    // monthly return misses a deadline.
+    //
+    // Where the form offers one cadence there is nothing to ask. Where it
+    // offers several, the pack proposes one only if the law of that country
+    // gives one answer — and none of the packs shipped here does, because all
+    // three make the cadence follow turnover. So the question is asked, with
+    // nothing preselected, and "later" is one of the answers: the column is
+    // nullable and a company that has not decided is recorded as not having
+    // decided rather than as filing monthly.
+    const vatPeriods = await countryVatPeriods(db, country);
+    const packVatPeriod = await countryVatPeriod(db, country);
+    const askedVatPeriod = stringFlag(args, 'vat-period')?.toLowerCase();
+    if (
+      askedVatPeriod !== undefined &&
+      vatPeriods.length > 0 &&
+      !vatPeriods.includes(askedVatPeriod)
+    ) {
+      throw new Error(
+        `unknown_vat_period: the ${country} periodic return is filed ${vatPeriods.join(' or ')}, ` +
+          `not ${askedVatPeriod}.`,
+      );
+    }
+    const chosenVatPeriod =
+      askedVatPeriod ??
+      (vatPeriods.length === 1
+        ? vatPeriods[0]
+        : vatPeriods.length > 1 && interactive
+          ? await choose(
+              'How often does this company file its VAT return?',
+              [
+                ...vatPeriods.map((code) => ({
+                  value: code,
+                  label:
+                    code === packVatPeriod
+                      ? `every ${code} — what the law of this country provides for by default`
+                      : `every ${code}`,
+                })),
+                { value: 'later', label: 'not decided yet; ekwo status will say so' },
+              ],
+            )
+          : packVatPeriod);
+    const vatPeriod = chosenVatPeriod === 'later' ? undefined : chosenVatPeriod;
+    if (vatPeriod === undefined && vatPeriods.length > 1) {
+      note(
+        dim(
+          `filing cadence not recorded — ${country} files ${vatPeriods.join(' or ')}; ` +
+            'pass --vat-period, or set companies.vat_period later.',
+        ),
+      );
+    }
+
     // What the operator is about to install, and how much anyone has read it.
     const pack = await countryPack(db, country);
     if (pack === undefined) {
@@ -290,6 +347,7 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
       currencyCode,
       language,
       ...(chartCode === undefined ? {} : { chartCode }),
+      ...(vatPeriod === undefined ? {} : { vatPeriod }),
       bankAccount,
     });
     for (const s of outcome.steps) {
@@ -329,6 +387,10 @@ export async function initCommand(args: ParsedArgs, deps: InitDeps = {}): Promis
             ? ''
             : ` — ${charts.find((c) => c.code === outcome.chartCode)?.name}`
         }`,
+      ],
+      [
+        'files its VAT return',
+        outcome.vatPeriod === undefined ? 'not recorded' : `every ${outcome.vatPeriod}`,
       ],
       [
         'country pack',

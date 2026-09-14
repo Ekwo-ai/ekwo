@@ -86,6 +86,9 @@ ${bold('ekwo init')}
                             month the country pack opens a year on; required
                             when the pack names none.
   --language <xx>           Language of the books. Defaults to the country pack's.
+  --vat-period <cadence>    How often the company files its VAT return: month,
+                            quarter or year. Asked when the country's form
+                            offers several; left unrecorded when nothing says.
   --demo                    Also load the sample company.
   --register                Register without being asked. --register-email sets
                             the address; otherwise --admin-email is used.

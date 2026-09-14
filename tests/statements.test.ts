@@ -899,6 +899,46 @@ describe('what `ekwo pack check` refuses in a statement', () => {
     ).rejects.toThrow(/a total is computed from other lines; it takes no rule of its own/);
   });
 
+  it('refuses a sign on a line computed from other lines', async () => {
+    // The sign would be applied a second time. `financial_statement()` reads
+    // every line from the ledger through the sign the scheme gives it, and the
+    // evaluator then multiplies the total by the total's own — so a scheme
+    // that flips a credit line and flips the subtotal above it gets the figure
+    // back the way it started. It cost the Luxembourg pack a wrong set of
+    // golden figures, and nothing said so.
+    await expect(
+      packWith((s) => {
+        lineOf(s, grandTotal.code)['sign'] = -1;
+      }),
+    ).rejects.toThrow(/a computed line takes no sign of its own/);
+  });
+
+  it('refuses the sign even when it is the 1 every line reads with', async () => {
+    // `"sign": 1` changes no figure, and it is still refused: a pack that
+    // writes it is saying something about a total that a total cannot say, and
+    // the moment to tell its author is while they are writing the pack.
+    await expect(
+      packWith((s) => {
+        lineOf(s, grandTotal.code)['sign'] = 1;
+      }),
+    ).rejects.toThrow(/a computed line takes no sign of its own/);
+  });
+
+  it('leaves the sign alone on a line summed from the ledger', () => {
+    // Which is where it belongs, and where the packs of this repository use
+    // it. Read across every pack: the rule is about the core, so a pack that
+    // arrives tomorrow is covered without a line being added here.
+    const signed = allPacks.flatMap((pack) =>
+      pack.statements.flatMap((st) =>
+        st.lines.filter((line) => line.sign === -1).map((line) => ({ pack, st, line })),
+      ),
+    );
+    expect(signed.length, 'no pack reads a line against its balance').toBeGreaterThan(0);
+    for (const { pack, st, line } of signed) {
+      expect(line.is_total, `${pack.slug} ${st.code} ${line.code}`).toBe(false);
+    }
+  });
+
   it('refuses two lines that catch the same account on the same side', async () => {
     // A second line given the range of the first: both now reach the accounts
     // that fall in it, and neither the chart nor the sheet can say which.

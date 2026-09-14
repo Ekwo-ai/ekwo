@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
   "code": "LU-VAT-PERIODIC",
   "name": "Déclaration périodique de TVA (eCDF)",
-  "period": "month_or_quarter",
+  "period": ["month", "quarter"],
   "valid_from": "2015-01-01",
-  "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle)",
+  "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle). Cadence : art. 64, paragraphes 1 à 3 — mensuelle au-dessus de 620 000 euros de chiffre d'affaires, trimestrielle entre 112 000 et 620 000, annuelle en dessous, la déclaration annuelle étant un formulaire distinct que ce pack ne porte pas",
   "boxes": [
     {
       "box": "471",

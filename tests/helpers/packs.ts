@@ -64,6 +64,26 @@ export const certificationStatuses: string[] = (() => {
 })();
 
 /**
+ * The cadences a declaration form may be filed on, from the published schema.
+ *
+ * Same reason as the statuses above: a test that listed `month`, `quarter` and
+ * `year` by hand would stop noticing the day the schema gained a fourth, and
+ * would accept a pack claiming one the schema never had.
+ */
+export const declarationPeriods: string[] = (() => {
+  const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
+  const properties = (defs['defaults']?.['properties'] ?? {}) as Record<
+    string,
+    Record<string, unknown>
+  >;
+  const values = properties['vat_period']?.['enum'];
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error('packs/schema/pack.1.json defines no declaration period');
+  }
+  return values as string[];
+})();
+
+/**
  * A pack, any pack.
  *
  * For a test whose subject is the reader and not the country: a manifest field

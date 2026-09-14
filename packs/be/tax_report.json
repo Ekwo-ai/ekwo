@@ -2,9 +2,9 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
   "code": "BE-VAT-PERIODIC",
   "name": "Déclaration périodique à la TVA",
-  "period": "month_or_quarter",
+  "period": ["month", "quarter"],
   "valid_from": "2024-01-01",
-  "legal_reference": "AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI",
+  "legal_reference": "AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI. Cadence : Code de la TVA, art. 53, §1er, alinéa 1er, 2° (déclaration mensuelle) et AR n. 1, art. 18, §2 (déclaration trimestrielle en dessous des seuils de chiffre d'affaires)",
   "boxes": [
     { "box": "00", "kind": "base", "name": "Opérations soumises à un régime particulier", "sequence": 10, "legal_reference": "Code de la TVA, art. 58, § 1er, et arrêté royal n° 20 du 20 juillet 1970, tableau C — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 00" },
     { "box": "01", "kind": "base", "name": "Opérations à 6 %", "sequence": 20, "legal_reference": "Arrêté royal n° 20 du 20 juillet 1970, art. 1er et tableau A — taux de 6 % — formulaire 625 (déclaration périodique à la TVA), cadre II, grille 01" },

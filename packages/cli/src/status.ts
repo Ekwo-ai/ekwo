@@ -26,6 +26,13 @@ export interface CompanySummary {
   packVersion: string | null;
   /** Chart of accounts this company keeps its books on. */
   chartCode: string | null;
+  /**
+   * How often the company files its periodic return, or null when it has not
+   * been recorded. Printed as "filing cadence not recorded" rather than filled
+   * in with a plausible one: this is the answer a reminder and a client that
+   * offers "file the current period" read.
+   */
+  vatPeriod: string | null;
 }
 
 /** A country pack loaded in this installation. */
@@ -98,9 +105,11 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     closed_fiscal_years: string;
     pack_version: string | null;
     chart_code: string | null;
+    vat_period: string | null;
   }>(
     `select c.name,
             c.country,
+            c.vat_period,
             (select count(*) from accounts a where a.company_id = c.id)::text as accounts,
             (select count(*) from entries e where e.company_id = c.id)::text as entries,
             (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years,
@@ -154,6 +163,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       closedFiscalYears: Number(c.closed_fiscal_years),
       packVersion: c.pack_version,
       chartCode: c.chart_code,
+      vatPeriod: c.vat_period,
     })),
     packs: packs.map((p) => ({
       country: p.country,

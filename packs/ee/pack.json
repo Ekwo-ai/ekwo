@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "EE",
   "name": "Estonia",
-  "version": "1.0.0",
-  "schema_min": "20260913114535",
+  "version": "1.1.0",
+  "schema_min": "20260914163943",
   "seed_sequence": 13,
   "released_at": "2026-09-14",
   "certification": {
@@ -28,6 +28,7 @@
     "language": "et",
     "rounding_method": "half_up",
     "closing_style": "result_accounts",
+    "vat_period": "month",
     "roles": {
       "receivable": "1200",
       "payable": "2100",

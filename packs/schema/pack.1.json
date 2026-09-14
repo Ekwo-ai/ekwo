@@ -109,6 +109,10 @@
           "description": "How the year-end close moves the result. retained_earnings: straight into retained earnings (UK, US). result_accounts: into a current-year result account that sits on the balance sheet and waits for the meeting that allocates it (FR 120/129). appropriation_accounts: through an appropriation account that is itself part of the income statement, and from there to retained earnings (BE 693/793 to 140/141). Named after the mechanism, never after a country."
         },
         "fiscal_year_default": { "enum": ["calendar", "april", "july", "october"] },
+        "vat_period": {
+          "enum": ["month", "quarter", "year"],
+          "description": "Cadence a company of this country files its periodic return on unless it says otherwise. Declare it only where the law gives one answer that does not depend on a fact about the company; where the cadence follows turnover, leave it out and `ekwo init` asks. It must be one of the cadences tax_report.json declares."
+        },
         "region": {
           "type": ["string", "null"],
           "description": "Province or state a company of this country sits in unless it says otherwise, ISO 3166-2 without the country prefix (QC, BC). Null where a country taxes uniformly, which is every country of phase 0. The declarative rules that turn a region into a suggested tax — tax_rule_templates and suggest_tax() — arrive in phase 1 with the Canadian pack; the column exists now so the migration happens once."
@@ -396,7 +400,13 @@
         "$schema": { "type": "string" },
         "code": { "$ref": "#/$defs/code" },
         "name": { "type": "string" },
-        "period": { "enum": ["month", "quarter", "month_or_quarter", "year"] },
+        "period": {
+          "description": "Cadences this form is filed on. A list, because one set of boxes may be filed monthly, quarterly or annually depending on turnover. The single string is what this field was before the list and is still read: `month_or_quarter` means the two cadences it names.",
+          "oneOf": [
+            { "enum": ["month", "quarter", "month_or_quarter", "year"] },
+            { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["month", "quarter", "year"] } }
+          ]
+        },
         "valid_from": { "$ref": "#/$defs/date" },
         "valid_to": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
         "legal_reference": { "type": ["string", "null"] },
@@ -604,7 +614,7 @@
         "parent": { "type": ["string", "null"] },
         "name": { "type": "string", "minLength": 1 },
         "sequence": { "type": "integer", "minimum": 0 },
-        "sign": { "enum": [1, -1] },
+        "sign": { "enum": [1, -1], "description": "How the scheme reads this line: -1 prints a credit balance as a positive figure. A line computed from others takes none — every line its formula names already carries its own sign, so a sign here would be applied to them a second time. Use `minus` to subtract." },
         "is_total": { "type": "boolean" },
         "plus": { "type": "array", "items": { "$ref": "#/$defs/code" } },
         "minus": { "type": "array", "items": { "$ref": "#/$defs/code" } },

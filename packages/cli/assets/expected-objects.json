@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.2.0",
-  "migration": "20260914152840",
+  "migration": "20260914163943",
   "socle": {
     "schema": "public",
     "tables": [
@@ -764,6 +764,10 @@
             "type": "text"
           },
           {
+            "name": "vat_period",
+            "type": "declaration_period"
+          },
+          {
             "name": "website",
             "type": "text"
           }
@@ -1208,6 +1212,10 @@
           {
             "name": "tax_point_rule",
             "type": "text"
+          },
+          {
+            "name": "vat_period_default",
+            "type": "declaration_period"
           },
           {
             "name": "vat_scheme",
@@ -2614,8 +2622,8 @@
             "type": "jsonb"
           },
           {
-            "name": "period",
-            "type": "text"
+            "name": "periods",
+            "type": "declaration_period[]"
           },
           {
             "name": "valid_from",
@@ -3013,6 +3021,10 @@
       {
         "name": "current_api_key",
         "arguments": ""
+      },
+      {
+        "name": "declaration_period_of",
+        "arguments": "p_from date, p_to date"
       },
       {
         "name": "disable_module",
@@ -4113,6 +4125,15 @@
           "both",
           "employee",
           "other"
+        ]
+      },
+      {
+        "name": "declaration_period",
+        "kind": "enum",
+        "labels": [
+          "month",
+          "quarter",
+          "year"
         ]
       },
       {
@@ -5381,6 +5402,17 @@
         {
           "name": "current_api_key",
           "arguments": "",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "declaration_period_of",
+          "arguments": "p_from date, p_to date",
           "anon": [],
           "authenticated": [
             "execute"

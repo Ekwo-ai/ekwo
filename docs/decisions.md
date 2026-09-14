@@ -2801,7 +2801,9 @@ declaration periodicity, a form's `period` cannot name three cadences, the
 `sequence` of a declaration box means print order and evaluation order at once,
 and a computed statement line may carry a sign that is applied twice. None of
 the four was patched into the core for Luxembourg's sake. That is the whole
-point of a pack being data.
+point of a pack being data — and three of the four were closed on their own
+merits on 14 September 2026, for every country, in the last two entries of
+this file.
 
 ## Estonia was written to test the format, not to open a market (14 September 2026)
 
@@ -3020,3 +3022,86 @@ name rather than moving a used account between statements. That difference was
 already classified `review` — the rule that exists precisely because there is no
 way to be sure from here which of the two is right — and a refusal is the honest
 end of that sentence.
+
+## A sign belongs to a line summed from the ledger (14 September 2026)
+
+A statement line carries `sign: -1` when the scheme prints a credit balance as
+a positive figure, and `financial_statement()` applies it when it sums that
+line from the ledger. A total is worked out afterwards, from lines that already
+read the way the scheme prints them — and the evaluator multiplied the total by
+the total's own sign as well. So a scheme that flips a credit line and flips
+the subtotal above it got the figure back the way it started, silently. It cost
+the Luxembourg pack a wrong set of golden figures, caught by somebody reading
+them rather than by any check.
+
+**`ekwo pack check` refuses `sign` on a line with `plus` or `minus`**, next to
+the rule that already refuses a line that is both summed and computed. The
+explicit `1` is refused too: it changes no figure, and a pack that writes it is
+saying something about a total that a total cannot say — the moment to tell its
+author is while they are writing the pack, not when a reviewer is checking the
+figures.
+
+**The evaluator is not changed, and the option to change it is not left open
+either.** "Apply the sign once" has no meaning while every line under the total
+carries its own: there is no second application to remove, only a first one on
+figures that were already read correctly. The day a country wants a total
+presented against the direction of its components, the honest shape is a line
+of its own — a total is what the lines add up to, not a place to reverse them —
+and `minus` is what expresses the subtraction meanwhile. No pack combined the
+two, so the refusal moved no golden figure.
+
+## How often a company files is data, and the return reads it (14 September 2026)
+
+`vat_return()` takes two dates, which is right: a return is a period and the
+caller knows which one. What nothing held was how often the company files at
+all. Luxembourg sets the cadence by turnover — annual up to 112 000 euros,
+quarterly to 620 000, monthly above — and Belgium and France each have a
+principal cadence and a threshold below which another is allowed. A quarterly
+filer could be handed a July return and nothing anywhere said so.
+
+**Three pieces, each in the place that owns the answer.**
+`tax_report_templates.periods` is what the *form* accepts, a list because one
+set of boxes may be filed on more than one cadence. `companies.vat_period` is
+what *this company* files. `country_defaults.vat_period_default` is what the
+*pack* proposes. Splitting it that way is what keeps `vat_return()` free of a
+country: the form says what is possible, the company says what is true, and
+neither is a constant in a function.
+
+**One vocabulary, not two.** `month`, `quarter`, `year` — an enum now, where
+they were three spellings agreed by convention in a check constraint. A second
+set of words for the same three facts (`monthly`, `quarterly`) would have been
+the same fact written twice, which is the one thing this schema will not do.
+`month_or_quarter` was never a cadence anybody files on; it was two of them
+pretending to be one, and there was no `month_or_quarter_or_year` to invent
+next. It is read as the two it names, so a pack written before the list keeps
+working.
+
+**The column default is the part that had to go.** `period` defaulted to
+`month_or_quarter`, so a pack that had never considered its cadence filed on
+Belgium's and France's, silently, in a column a reader would take for data.
+There is no default now, and a form that names none is refused by name.
+
+**A pack proposes a cadence only where the law gives one answer that does not
+depend on a fact about the company.** One of the four does. Estonia's taxable
+period is the calendar month for everybody, with no option and no threshold
+(käibemaksuseadus § 27 lõige 1), so `packs/ee` proposes `month` and a company
+installed there never sees the question.
+Belgium's law makes the monthly return the rule (Code de la TVA, art. 53, §1er,
+alinéa 1er, 2°) and allows the quarterly one below turnover thresholds (AR n. 1,
+art. 18, §2); France's is the same shape (CGI, art. 287, 2 — monthly, quarterly
+admitted under 4 000 euros of annual tax); Luxembourg's three cadences follow
+turnover outright. In those three, which one applies is a fact about the
+company and not about the country, so `vat_period_default` is null and each
+pack cites the article on its form instead. This is the same argument the language
+question settled: offering one of several lawful answers as the one to press
+Enter on is how the other one ends up installed. A wrong cadence is a missed
+deadline.
+
+**What the return does with it, and what it deliberately does not.** It refuses
+a period the company does not file on, and only when the refusal is certain:
+the company has recorded a cadence, the form offers that cadence, the dates
+asked for are themselves a whole cadence of that form, and the two differ.
+Everything else goes through — a fortnight, a half-year, the annual
+recapitulative form a quarterly filer also files. `vat_return()` is a control
+query as often as it is a filing, and a guard that refused an analysis would be
+a guard people work around.

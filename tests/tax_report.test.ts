@@ -3,9 +3,9 @@ import { cp, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PackError, readPack, resolveBoxRef } from '../packages/cli/src/index.js';
+import { PackError, readPack, resolveBoxRef, type Pack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
-import { allPacks, packWhere, packsRoot } from './helpers/packs.js';
+import { allPacks, declarationPeriods, packWhere, packsRoot } from './helpers/packs.js';
 import { demoCompanyId, newCompany, newContact, newDocument } from './helpers/factory.js';
 
 // A declaration form is data. `vat_return()` used to sum the ledger
@@ -52,9 +52,9 @@ async function vatReturn(company: string, from: string, to: string, code?: strin
 
 describe('the forms the packs carry', () => {
   it('are seeded with their boxes, and belong to nobody', async () => {
-    const forms = await rows<{ country: string; code: string; period: string; boxes: number }>(
+    const forms = await rows<{ country: string; code: string; periods: string[]; boxes: number }>(
       db,
-      `select t.country, t.code, t.period,
+      `select t.country, t.code, t.periods::text[] as periods,
               (select count(*)::int from tax_report_box_templates b
                 where b.country = t.country and b.report_code = t.code) as boxes
          from tax_report_templates t order by t.country`,
@@ -66,7 +66,7 @@ describe('the forms the packs carry', () => {
       .map((pack) => ({
         country: pack.manifest.country,
         code: pack.report!.code,
-        period: pack.report!.period,
+        periods: pack.report!.periods,
         boxes: pack.report!.boxes.length,
       }))
       .sort((a, b) => (a.country < b.country ? -1 : 1));
@@ -632,5 +632,234 @@ describe('a row that names no currency', () => {
       `insert into companies (name, country, fiscal_country) values ('Muette SRL', 'ZZ', 'ZZ')`,
     );
     expect(message).toMatch(/currency_code|not-null|null value/i);
+  });
+});
+
+// How often a company files, and what the return does with it
+//
+// `vat_return()` takes two dates, which is right: a return is a period and the
+// caller knows which one. What nothing held was how often the company files at
+// all, so a quarterly filer could be handed a July return and nothing said so.
+
+describe('the cadence a pair of dates is', () => {
+  it('names a whole month, quarter or year, and nothing else', async () => {
+    const cases: [string, string, string | null][] = [
+      ['2026-07-01', '2026-07-31', 'month'],
+      ['2026-02-01', '2026-02-28', 'month'],
+      ['2026-07-01', '2026-09-30', 'quarter'],
+      ['2026-01-01', '2026-03-31', 'quarter'],
+      ['2026-01-01', '2026-12-31', 'year'],
+      // A fortnight, a half-year and a month that stops a day early are not
+      // filing periods, and null is what says so.
+      ['2026-07-01', '2026-07-15', null],
+      ['2026-01-01', '2026-06-30', null],
+      ['2026-07-02', '2026-07-31', null],
+      ['2026-07-01', '2026-07-30', null],
+    ];
+    for (const [from, to, expected] of cases) {
+      const answer = await one<{ period: string | null }>(
+        db,
+        'select declaration_period_of($1::date, $2::date) as period',
+        [from, to],
+      );
+      expect(answer.period, `${from} to ${to}`).toBe(expected);
+    }
+  });
+});
+
+describe('a return asked for a period the company does not file', () => {
+  // The country whose form offers a choice is the one this is about: where a
+  // form is filed on a single cadence there is no wrong period to ask for.
+  const choice = packWhere(
+    'whose periodic return is filed on more than one cadence',
+    (pack) => (pack.report?.periods.length ?? 0) > 1,
+  );
+  const files = choice.report!.periods[1]!;
+  const asked = choice.report!.periods[0]!;
+  const notFiled = declarationPeriods.find(
+    (cadence) => !choice.report!.periods.includes(cadence),
+  )!;
+
+  /** A whole month, quarter or year of the year the fixtures book in. */
+  const RANGE: Record<string, [string, string]> = {
+    month: ['2026-07-01', '2026-07-31'],
+    quarter: ['2026-07-01', '2026-09-30'],
+    year: ['2026-01-01', '2026-12-31'],
+  };
+
+  let filer: { companyId: string; ownerId: string };
+
+  beforeAll(async () => {
+    filer = await newCompany(db, { country: choice.manifest.country, name: 'Déclarante SRL' });
+    // Recorded by a member of the company, under row level security, because
+    // that is who records it in an installation.
+    await asUser(db, filer.ownerId, async () => {
+      await db.query('update companies set vat_period = $2::declaration_period where id = $1', [
+        filer.companyId,
+        files,
+      ]);
+    });
+  }, 60_000);
+
+  it('refuses the other cadence of the same form, by name', async () => {
+    const message = await expectError(
+      db,
+      `select * from vat_return($1, $2::date, $3::date)`,
+      [filer.companyId, ...RANGE[asked]!],
+    );
+    expect(message).toMatch(/wrong_declaration_period/);
+    expect(message).toMatch(new RegExp(`${files}\\b`));
+  });
+
+  it('answers the cadence it does file', async () => {
+    const [from, to] = RANGE[files]!;
+    const boxes = await vatReturn(filer.companyId, from, to);
+    expect(Array.isArray(boxes)).toBe(true);
+  });
+
+  it('answers a range that is no filing period at all', async () => {
+    // A fortnight is an analysis, not a return filed on the wrong cadence, and
+    // a control query is refused for nothing.
+    const boxes = await vatReturn(filer.companyId, '2026-07-01', '2026-07-15');
+    expect(Array.isArray(boxes)).toBe(true);
+  });
+
+  it('answers a cadence this form is not filed on at all', async () => {
+    // The guard only speaks about cadences the form itself accepts. Anything
+    // else is a figure somebody wants, not a filing.
+    const [from, to] = RANGE[notFiled]!;
+    const boxes = await vatReturn(filer.companyId, from, to);
+    expect(Array.isArray(boxes)).toBe(true);
+  });
+
+  it('imposes nothing on a company that has recorded no cadence', async () => {
+    const silent = await newCompany(db, {
+      country: choice.manifest.country,
+      name: 'Sans cadence SRL',
+    });
+    const recorded = await one<{ vat_period: string | null }>(
+      db,
+      'select vat_period from companies where id = $1',
+      [silent.companyId],
+    );
+    expect(recorded.vat_period).toBeNull();
+    const [from, to] = RANGE[asked]!;
+    const boxes = await vatReturn(silent.companyId, from, to);
+    expect(Array.isArray(boxes)).toBe(true);
+  });
+
+  it('refuses a cadence that is not one, at the column', async () => {
+    const message = await expectError(
+      db,
+      `update companies set vat_period = 'fortnight' where id = $1`,
+      [filer.companyId],
+    );
+    expect(message).toMatch(/declaration_period|invalid input value/i);
+  });
+});
+
+describe('what `ekwo pack check` refuses about a cadence', () => {
+  /** A pack in a temporary directory, with one of its files edited. */
+  async function packWith(
+    pack: Pack,
+    file: string,
+    edit: (content: Record<string, unknown>) => void,
+  ): Promise<Pack> {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-period-'));
+    await cp(join(packsRoot, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packsRoot, pack.slug), join(dir, pack.slug), { recursive: true });
+    const content = JSON.parse(
+      await readFile(join(packsRoot, pack.slug, file), 'utf8'),
+    ) as Record<string, unknown>;
+    edit(content);
+    await writeFile(join(dir, pack.slug, file), JSON.stringify(content), 'utf8');
+    return readPack(pack.slug, dir);
+  }
+
+  it('reads every form of this repository as a list of cadences', async () => {
+    for (const pack of allPacks) {
+      if (pack.report === null) continue;
+      expect(pack.report.periods.length, pack.slug).toBeGreaterThan(0);
+      for (const period of pack.report.periods) {
+        expect(declarationPeriods, `${pack.slug} ${period}`).toContain(period);
+      }
+    }
+  });
+
+  it('refuses a form that names no cadence', async () => {
+    // The column used to default to "monthly or quarterly", so a pack that had
+    // never thought about it filed on somebody else's cadence and nothing said
+    // so.
+    const carrier = packWhere('that carries a declaration form', (p) => p.report !== null);
+    await expect(
+      packWith(carrier, 'tax_report.json', (r) => delete r['period']),
+    ).rejects.toThrow(/names no cadence/);
+  });
+
+  it('still reads the single word a pack written before the list uses', async () => {
+    const two = packWhere(
+      'whose periodic return is filed on more than one cadence',
+      (p) => (p.report?.periods.length ?? 0) > 1,
+    );
+    const legacy = await packWith(two, 'tax_report.json', (r) => {
+      r['period'] = 'month_or_quarter';
+    });
+    expect(legacy.report?.periods).toEqual(two.report?.periods);
+  });
+
+  it('refuses a proposed cadence the form is not filed on', async () => {
+    const two = packWhere(
+      'whose periodic return is filed on more than one cadence',
+      (p) => (p.report?.periods.length ?? 0) > 1,
+    );
+    const absent = declarationPeriods.find((c) => !two.report!.periods.includes(c))!;
+    await expect(
+      packWith(two, 'pack.json', (m) => {
+        (m['defaults'] as Record<string, unknown>)['vat_period'] = absent;
+      }),
+    ).rejects.toThrow(new RegExp(`not a cadence ${two.report!.code} is filed on`));
+  });
+
+  it('accepts a proposed cadence the form does offer', async () => {
+    const two = packWhere(
+      'whose periodic return is filed on more than one cadence',
+      (p) => (p.report?.periods.length ?? 0) > 1,
+    );
+    const offered = two.report!.periods[1]!;
+    const proposing = await packWith(two, 'pack.json', (m) => {
+      (m['defaults'] as Record<string, unknown>)['vat_period'] = offered;
+    });
+    expect(proposing.manifest.defaults['vat_period']).toBe(offered);
+  });
+
+  it('lets a pack propose a cadence only where its form is filed on one', () => {
+    // The policy, stated as an assertion rather than as four country names.
+    // A form filed on a single cadence leaves nothing to choose, so the pack
+    // answers and `ekwo init` never asks. A form filed on several means the
+    // answer is a fact about the company — turnover, everywhere in Europe —
+    // and a pack proposing one of two lawful answers would be choosing a
+    // filing deadline for somebody it knows nothing about. It cites the
+    // article on the form instead.
+    for (const pack of allPacks) {
+      const proposed = pack.manifest.defaults['vat_period'] as string | undefined;
+      if (pack.report === null || pack.report.periods.length > 1) {
+        expect(proposed, pack.slug).toBeUndefined();
+      } else {
+        expect(proposed, pack.slug).toBe(pack.report.periods[0]);
+      }
+    }
+  });
+
+  it('installs exactly what each pack proposes, and null where it proposes none', async () => {
+    for (const pack of allPacks) {
+      const row = await one<{ vat_period_default: string | null }>(
+        db,
+        'select vat_period_default from country_defaults where country = $1',
+        [pack.manifest.country],
+      );
+      expect(row.vat_period_default, pack.slug).toBe(
+        (pack.manifest.defaults['vat_period'] as string | undefined) ?? null,
+      );
+    }
   });
 });

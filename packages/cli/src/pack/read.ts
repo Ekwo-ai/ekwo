@@ -110,6 +110,13 @@ export interface PackStatementLine {
   name: string;
   sequence: number;
   sign: 1 | -1;
+  /**
+   * Whether the line wrote `sign` itself, as opposed to taking the 1 every
+   * line reads with. The checker needs the difference: a total that declares
+   * `"sign": 1` is saying something about a total that a total cannot say,
+   * and it is worth telling its author so while they are writing the pack.
+   */
+  declares_sign: boolean;
   is_total: boolean;
   plus: string[];
   minus: string[];
@@ -199,7 +206,17 @@ export interface PackDocumentRules {
 export interface PackReport {
   code: string;
   name: string;
-  period: string;
+  /**
+   * The cadences this form is filed on, in the order month, quarter, year.
+   *
+   * A list because a country may file one set of boxes on more than one
+   * cadence, and because the single value it replaced had no honest answer
+   * for the country that files three: the word `month_or_quarter` was two
+   * cadences pretending to be one, and there was no `month_or_quarter_or_year`
+   * to invent next. A pack written before the list still says
+   * `"period": "month_or_quarter"`, and that is read as the two it names.
+   */
+  periods: string[];
   valid_from: string;
   valid_to: string | null;
   legal_reference: string | null;
@@ -709,6 +726,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
 
   issues.push(...crossReferences(manifest, charts, taxes));
   issues.push(...reportReferences(report, taxes));
+  issues.push(...proposedPeriod(manifest, report));
   issues.push(...statementReferences(statements, charts));
   issues.push(...documentReferences(documents));
 
@@ -1078,6 +1096,33 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
   };
 }
 
+/**
+ * The cadences a form declares, from either shape of the field.
+ *
+ * An empty list is what a pack that says nothing gets — not a cadence guessed
+ * for it. `month_or_quarter` used to be the column's default, so every country
+ * that had not spoken filed Belgium's and France's return without anybody
+ * deciding that. `ekwo pack check` names the omission instead.
+ */
+const PERIOD_ORDER = ['month', 'quarter', 'year'];
+
+function normalisePeriods(raw: unknown): string[] {
+  const listed =
+    raw === undefined || raw === null
+      ? []
+      : Array.isArray(raw)
+        ? raw.map(String)
+        : String(raw) === 'month_or_quarter'
+          ? ['month', 'quarter']
+          : [String(raw)];
+  const unique = [...new Set(listed)];
+  return unique.sort(
+    (a, b) =>
+      (PERIOD_ORDER.indexOf(a) === -1 ? PERIOD_ORDER.length : PERIOD_ORDER.indexOf(a)) -
+      (PERIOD_ORDER.indexOf(b) === -1 ? PERIOD_ORDER.length : PERIOD_ORDER.indexOf(b)),
+  );
+}
+
 function normaliseReport(raw: Record<string, unknown>): PackReport {
   const boxes = ((raw['boxes'] ?? []) as Record<string, unknown>[]).map((box, index) => ({
     box: String(box['box']),
@@ -1095,7 +1140,7 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
   return {
     code: String(raw['code']),
     name: String(raw['name'] ?? raw['code']),
-    period: String(raw['period'] ?? 'month_or_quarter'),
+    periods: normalisePeriods(raw['period']),
     valid_from: String(raw['valid_from'] ?? '1970-01-01'),
     valid_to: (raw['valid_to'] as string | undefined) ?? null,
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
@@ -1462,6 +1507,7 @@ function normaliseStatements(raw: Record<string, unknown>, charts: PackChart[]):
       name: String(line['name']),
       sequence: typeof line['sequence'] === 'number' ? line['sequence'] : (index + 1) * 10,
       sign: (line['sign'] === -1 ? -1 : 1) as 1 | -1,
+      declares_sign: line['sign'] !== undefined,
       is_total: line['is_total'] === true,
       plus: (line['plus'] as string[] | undefined) ?? [],
       minus: (line['minus'] as string[] | undefined) ?? [],
@@ -1621,6 +1667,22 @@ function statementReferences(statements: PackStatement[], charts: PackChart[]): 
           message: 'only a total is computed from other lines; mark it is_total or drop the formula',
         });
       }
+      // A sign on a computed line is applied a second time. Every line a
+      // formula names already carries the sign the scheme reads it with —
+      // `financial_statement()` applies it when it sums the line from the
+      // ledger — and the evaluator then multiplies the total by the total's
+      // own sign, so a scheme that flips a credit line and flips the subtotal
+      // above it gets the figure back the way it started. It cost the
+      // Luxembourg pack a wrong set of golden figures, caught by reading them
+      // rather than by any check. `minus` is how a total subtracts.
+      if (line.declares_sign && line.plus.length + line.minus.length > 0) {
+        issues.push({
+          path: `${where} ${line.code}`,
+          message:
+            'a computed line takes no sign of its own: the lines it names already carry theirs, ' +
+            'and a sign here is applied to them a second time. Use minus to subtract.',
+        });
+      }
     }
 
     for (const line of statement.lines) {
@@ -1760,10 +1822,66 @@ export function resolveBoxRef(ref: string, boxes: PackReportBox[]): PackReportBo
  * itself, and it never names a total that is computed after it — the totals
  * are evaluated once, in the order the form declares them.
  */
+/**
+ * The cadence the pack proposes, against the cadences its form accepts.
+ *
+ * `defaults.vat_period` is what a company of this country files on unless it
+ * says otherwise, and it is wired onto `companies.vat_period` at install. A
+ * pack may leave it out, and three of the four here do: Belgium, France and
+ * Luxembourg all make the cadence follow turnover, so proposing one of two
+ * lawful answers would be choosing a filing deadline for a company the pack
+ * knows nothing about. What a pack may not do is propose a cadence its own
+ * form does not accept.
+ */
+function proposedPeriod(manifest: Manifest, report: PackReport | null): Issue[] {
+  const proposed = manifest.defaults['vat_period'] as string | undefined;
+  if (proposed === undefined) return [];
+  if (report === null) {
+    return [
+      {
+        path: 'defaults.vat_period',
+        message: `${proposed}, but this pack carries no declaration form to file on that cadence`,
+      },
+    ];
+  }
+  if (!report.periods.includes(proposed)) {
+    return [
+      {
+        path: 'defaults.vat_period',
+        message:
+          `${proposed} is not a cadence ${report.code} is filed on ` +
+          `(${report.periods.join(', ') || 'none declared'})`,
+      },
+    ];
+  }
+  return [];
+}
+
 function reportReferences(report: PackReport | null, taxes: PackTax[]): Issue[] {
   if (report === null) return [];
   const issues: Issue[] = [];
   const where = 'tax_report.json';
+
+  // How often the form is filed. There is no default for this and there must
+  // not be one: `tax_report_templates.period` carried `month_or_quarter` as a
+  // column default, so a pack that had never thought about its cadence filed
+  // on Belgium's, and nothing anywhere said so.
+  if (report.periods.length === 0) {
+    issues.push({
+      path: where,
+      message:
+        'the form names no cadence; add "period": ["month", "quarter"] — how often it is filed, ' +
+        'which nothing can work out on its behalf',
+    });
+  }
+  for (const period of report.periods) {
+    if (!PERIOD_ORDER.includes(period)) {
+      issues.push({
+        path: `${where} period`,
+        message: `${period} is not a cadence; use ${PERIOD_ORDER.join(', ')}`,
+      });
+    }
+  }
 
   const seen = new Set<string>();
   for (const box of report.boxes) {

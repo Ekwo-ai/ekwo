@@ -293,24 +293,27 @@ Three things about it are worth knowing beyond the pack's own
 ### From Luxembourg
 
 A country pack is a test of the format as much as of the country. Four things
-the Luxembourg pack had to work around, with what would fix each. **None is
-implemented**: a gap the core has is a core issue, and patching the core for one
-country is what this format exists not to do.
+the Luxembourg pack had to work around, with what would fix each. None was
+implemented for Luxembourg's sake — a gap the core has is a core issue, and
+patching the core for one country is what this format exists not to do. Three
+were then closed on their own merits, a day later and for every country; the
+fourth still stands.
 
-- **A company does not record which period it files on.** Luxembourg sets the
-  cadence by turnover — annual up to 112 000 euros, quarterly to 620 000,
-  monthly above — and nothing in the schema holds that answer. `vat_return()`
-  takes two dates, which is right, but `ekwo status`, a reminder and any client
-  that offers "file the current period" have to ask the user every time. *Fix: a
-  `vat_period` column on `companies`, wired at install from a new default on
-  `country_defaults` and changeable afterwards. The return itself would not read
-  it; everything around the return would.*
-- **A form's `period` cannot say "month, quarter or year".** The enum offers
-  `month`, `quarter`, `month_or_quarter` and `year`, so a country filing one
-  set of boxes on three cadences cannot declare it. Luxembourg escapes because
-  its annual return really is a different form, and the pack declares
-  `month_or_quarter` truthfully. *Fix: make `period` an array of the cadences
-  the form accepts, defaulting to the one value a pack writes today.*
+- ~~**A company does not record which period it files on.**~~ **Closed, 14
+  September 2026.** `companies.vat_period` holds the answer, nullable and with
+  no default; `country_defaults.vat_period_default` is where a pack proposes
+  one, and every pack here leaves it null because Belgium, France and
+  Luxembourg all make the cadence follow turnover. `ekwo init` asks when the
+  form offers several, `ekwo status` prints it, and `vat_return()` does read it
+  after all: it refuses a period the company does not file on, which is the one
+  use of the answer that nothing around the return could have.
+- ~~**A form's `period` cannot say "month, quarter or year".**~~ **Closed, 14
+  September 2026.** `tax_report_templates.periods` is a list of
+  `declaration_period`, and `tax_report.json` takes either the list or the
+  single word it used to. `month_or_quarter` is read as the two cadences it
+  always meant, and the column's default — which handed Belgium's cadence to
+  every country that had not spoken — is gone: a form that names none is
+  refused by `ekwo pack check`.
 - **`sequence` on a declaration box means print order and evaluation order at
   once.** `ekwo pack check` refuses a total that names a total at the same
   sequence or later, from before `evaluate_totals()` learned to order by
@@ -318,12 +321,14 @@ country is what this format exists not to do.
   adds, so the two meanings cannot both hold and the pack orders by dependency.
   *Fix: drop that rule from `pack check` — a cycle is already reported by name —
   or add a `print_sequence` and let the two be different questions.*
-- **A statement line may be computed and carry a sign, and the sign is applied
-  to the total.** A line with `plus` already adds figures that read the way the
-  scheme prints them, so a sign there flips them a second time, silently. It
-  cost a wrong set of golden figures here, caught by reading them. *Fix: refuse
-  `sign` together with `plus` or `minus` in `ekwo pack check`, the way it
-  already refuses a line that is both summed and computed.*
+- ~~**A statement line may be computed and carry a sign, and the sign is applied
+  to the total.**~~ **Closed, 14 September 2026.** `ekwo pack check` refuses
+  `sign` together with `plus` or `minus`, the way it already refuses a line
+  that is both summed and computed. The evaluator is unchanged: applying the
+  sign "once" has no meaning while the lines below carry their own, and the day
+  a country wants a total presented against its components, the honest shape is
+  a second line rather than a flag that reverses one. No pack combined the two,
+  so no golden figure moved.
 
 One restriction turned out to be worth keeping. **A tax takes one `base`
 posting per kind of document**, and the Luxembourg return reports the taxable

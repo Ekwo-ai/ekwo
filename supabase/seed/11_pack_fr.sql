@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.6.1, do not edit.
+-- Generated from packs/fr at version 1.7.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -28,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.6.1', date '2026-09-14', '20260913114535', 'maintained', null, null, 'e5cafe59955d9ac192cd63eabfc605bb14fe05872f1cf52e8af617281bcf0dc0')
+  ('FR', 'France', '1.7.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '833566239c8987d1419f05594d0b1998f973c29b61c878668dbc0017ab594508')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -625,12 +625,12 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   report_code        = excluded.report_code;
 
 insert into tax_report_templates
-  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+  (country, code, name, periods, valid_from, valid_to, legal_reference, is_periodic_return)
 values
-  ('FR', 'FR-CA3', 'Déclaration de TVA 3310-CA3', 'month_or_quarter', date '2022-01-01', null, 'CGI, art. 287 — formulaire 3310-CA3', true)
+  ('FR', 'FR-CA3', 'Déclaration de TVA 3310-CA3', array['month', 'quarter']::declaration_period[], date '2022-01-01', null, 'CGI, art. 287 — formulaire 3310-CA3. Cadence : CGI, art. 287, 2 (déclaration mensuelle ; dépôt trimestriel admis lorsque la taxe exigible annuellement est inférieure à 4 000 euros)', true)
 on conflict (country, code) do update set
   name               = excluded.name,
-  period             = excluded.period,
+  periods            = excluded.periods,
   valid_from         = excluded.valid_from,
   valid_to           = excluded.valid_to,
   legal_reference    = excluded.legal_reference,
@@ -990,9 +990,10 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label,
+   vat_period_default)
 values
-  ('FR', 'France', '{"en":"France"}'::jsonb, array['fr', 'en']::text[], 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000', null, null, '775000', '675000', 'À-nouveaux')
+  ('FR', 'France', '{"en":"France"}'::jsonb, array['fr', 'en']::text[], 'EUR', '411000', '401000', '471000', '658000', '110000', '706000', '606300', '512000', '530000', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '120000', '129000', '119000', 'OPN', 'half_up', default, '766000', '666000', null, null, '775000', '675000', 'À-nouveaux', null)
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -1024,7 +1025,8 @@ on conflict (country) do update set
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
   asset_disposal_value_code       = excluded.asset_disposal_value_code,
-  opening_entry_label             = excluded.opening_entry_label;
+  opening_entry_label             = excluded.opening_entry_label,
+  vat_period_default              = excluded.vat_period_default;
 
 update country_defaults set
   numbering_gapless       = true,

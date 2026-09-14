@@ -24,7 +24,14 @@ import {
   type SqlClient,
 } from '../../packages/cli/src/index.js';
 import { emptyDatabase, makeAuthUser, migrationsPath, seedPath } from './helpers.js';
-import { allPacks, packCountries, packWhere, roleOf, somePack } from '../helpers/packs.js';
+import {
+  allPacks,
+  declarationPeriods as CADENCES,
+  packCountries,
+  packWhere,
+  roleOf,
+  somePack,
+} from '../helpers/packs.js';
 
 let db: SqlClient;
 
@@ -331,6 +338,66 @@ describe('bootstrap', () => {
       [chosen.companyId],
     );
     expect(row[0]?.currency_code).toBe('USD');
+  });
+
+  it('records how often the company files, and refuses a cadence the form has not', async () => {
+    const userId = await makeAuthUser(db);
+    // The country whose form offers a choice is the one this is about: where a
+    // form is filed on one cadence there is nothing to record wrongly.
+    const choice = packWhere(
+      'whose periodic return is filed on more than one cadence',
+      (pack) => (pack.report?.periods.length ?? 0) > 1,
+    );
+    const country = choice.manifest.country;
+    const files = choice.report!.periods[1]!;
+    const notFiled = CADENCES.find((cadence) => !choice.report!.periods.includes(cadence))!;
+
+    // Nothing said, and nothing invented: a pack proposes a cadence only where
+    // the law of its country gives one answer for everybody, and this one does
+    // not, so the company is recorded as not having decided.
+    const silent = await bootstrap(db, {
+      organization: 'Example Group',
+      country,
+      company: 'Example One',
+      fiscalYear: 2026,
+      adminUserId: userId,
+    });
+    expect(silent.vatPeriod).toBeUndefined();
+    const unrecorded = await db.query<{ vat_period: string | null }>(
+      'select vat_period from companies where id = $1',
+      [silent.companyId],
+    );
+    expect(unrecorded[0]?.vat_period).toBeNull();
+
+    const chosen = await bootstrap(db, {
+      organization: 'Example Group',
+      country,
+      company: 'Example Two',
+      fiscalYear: 2026,
+      adminUserId: userId,
+      vatPeriod: files,
+    });
+    expect(chosen.vatPeriod).toBe(files);
+    const recorded = await db.query<{ vat_period: string | null }>(
+      'select vat_period from companies where id = $1',
+      [chosen.companyId],
+    );
+    expect(recorded[0]?.vat_period).toBe(files);
+
+    // A cadence the form is not filed on. The refusal names what the form does
+    // accept, so the operator can see the answer rather than guess again.
+    await expect(
+      bootstrap(db, {
+        organization: 'Example Group',
+        country,
+        company: 'Example Three',
+        fiscalYear: 2026,
+        adminUserId: userId,
+        vatPeriod: notFiled,
+      }),
+    ).rejects.toThrow(
+      new RegExp(`unknown_vat_period: .* is filed ${choice.report!.periods.join(' or ')}`),
+    );
   });
 
   it('installs the default chart of the country, and records which one it was', async () => {

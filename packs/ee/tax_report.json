@@ -2,7 +2,7 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
   "code": "EE-KMD",
   "name": "Käibedeklaratsioon (vorm KMD)",
-  "period": "month",
+  "period": ["month"],
   "valid_from": "2025-07-01",
   "legal_reference": "Käibemaksuseadus § 27 lõige 1 — maksustamisperiood on kalendrikuu ja deklaratsioon esitatakse järgneva kuu 20. kuupäevaks; vorm on rahandusministri 10.06.2014 määruse nr 17 lisa 1 rahandusministri 14.05.2025 määruse nr 20 sõnastuses, kehtiv alates 01.07.2025. Vormil on lahtrite tähiseid, mida see fail ei saa tähemärgi haaval korrata: ülaindeksiga lahtrid 1¹, 1², 2¹, 2² ja 4¹ kannavad siin tähiseid 1a, 1b, 2a, 2b ja 4a ning punktiga alamlahtrid 3.1, 3.1.1, 3.2, 3.2.1, 5.1, 5.2, 5.3, 5.4, 6.1 ja 7.1 kannavad tähiseid 31, 311, 32, 321, 51, 52, 53, 54, 61 ja 71. Iga lahtri õiguslik viide nimetab vormil trükitud tähise.",
   "boxes": [

@@ -2,8 +2,8 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "LU",
   "name": "Luxembourg",
-  "version": "1.0.0",
-  "schema_min": "20260913114535",
+  "version": "1.1.0",
+  "schema_min": "20260914163943",
   "seed_sequence": 12,
   "released_at": "2026-09-14",
   "certification": {

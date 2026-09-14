@@ -1,6 +1,6 @@
 -- Ekwo OS — Luxembourg: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/lu at version 1.0.0, do not edit.
+-- Generated from packs/lu at version 1.1.0, do not edit.
 -- Change the pack and run `ekwo pack build lu`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('LU', 'Luxembourg', '1.0.0', date '2026-09-14', '20260913114535', 'community', null, null, '7f484bac1bdc197bd78cdeef526587f69c64b0494b7abe99d41ed859fe002811')
+  ('LU', 'Luxembourg', '1.1.0', date '2026-09-14', '20260914163943', 'community', null, null, 'acedf79280ab28dbb7e39618aaa73b4c187f6563e4252f5bd161252b0bb0cf69')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -1310,12 +1310,12 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   report_code        = excluded.report_code;
 
 insert into tax_report_templates
-  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+  (country, code, name, periods, valid_from, valid_to, legal_reference, is_periodic_return)
 values
-  ('LU', 'LU-VAT-PERIODIC', 'Déclaration périodique de TVA (eCDF)', 'month_or_quarter', date '2015-01-01', null, 'Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle)', true)
+  ('LU', 'LU-VAT-PERIODIC', 'Déclaration périodique de TVA (eCDF)', array['month', 'quarter']::declaration_period[], date '2015-01-01', null, 'Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle). Cadence : art. 64, paragraphes 1 à 3 — mensuelle au-dessus de 620 000 euros de chiffre d''affaires, trimestrielle entre 112 000 et 620 000, annuelle en dessous, la déclaration annuelle étant un formulaire distinct que ce pack ne porte pas', true)
 on conflict (country, code) do update set
   name               = excluded.name,
-  period             = excluded.period,
+  periods            = excluded.periods,
   valid_from         = excluded.valid_from,
   valid_to           = excluded.valid_to,
   legal_reference    = excluded.legal_reference,
@@ -2354,9 +2354,10 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label,
+   vat_period_default)
 values
-  ('LU', 'Luxembourg', '{"de":"Luxemburg","en":"Luxembourg"}'::jsonb, array['fr', 'de', 'en']::text[], 'EUR', '4011', '44111', '484', '6488', '1412', '7061', '6061', '5131', '516', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '142', '142', null, 'OPN', 'half_up', default, '7562', '6562', null, null, null, null, 'Report à nouveau')
+  ('LU', 'Luxembourg', '{"de":"Luxemburg","en":"Luxembourg"}'::jsonb, array['fr', 'de', 'en']::text[], 'EUR', '4011', '44111', '484', '6488', '1412', '7061', '6061', '5131', '516', 'SAL', 'PUR', 'MISC', 'fr', 'result_accounts', '142', '142', null, 'OPN', 'half_up', default, '7562', '6562', null, null, null, null, 'Report à nouveau', null)
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -2388,7 +2389,8 @@ on conflict (country) do update set
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
   asset_disposal_value_code       = excluded.asset_disposal_value_code,
-  opening_entry_label             = excluded.opening_entry_label;
+  opening_entry_label             = excluded.opening_entry_label,
+  vat_period_default              = excluded.vat_period_default;
 
 update country_defaults set
   numbering_gapless       = true,

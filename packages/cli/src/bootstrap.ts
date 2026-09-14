@@ -53,6 +53,12 @@ export interface BootstrapOptions {
   language?: string | undefined;
   /** Chart of accounts to install. Left out, the pack's default chart. */
   chartCode?: string | undefined;
+  /**
+   * How often the company files its periodic return. Left out, the cadence
+   * the pack proposes; left out by the pack too, the column stays null and
+   * nothing here invents one.
+   */
+  vatPeriod?: string | undefined;
   /** The main bank account, when the operator has one to give. */
   bankAccount?: BankAccountOptions | undefined;
 }
@@ -72,6 +78,8 @@ export interface BootstrapResult {
   packVersion?: string | undefined;
   /** Chart of accounts the company was installed on. */
   chartCode?: string | undefined;
+  /** The cadence recorded on the company, when one was settled. */
+  vatPeriod?: string | undefined;
   /** The bank account, when one was asked for. */
   bankAccountId?: string | undefined;
   steps: Step[];
@@ -134,6 +142,47 @@ export async function countryLanguages(db: SqlClient, country: string): Promise<
     label: row.name_i18n?.[code] ?? row.name,
     isPackLanguage: code === own,
   }));
+}
+
+/**
+ * The cadences the periodic return of this country is filed on.
+ *
+ * Read from the form rather than from a list in this file, because how often a
+ * return is filed is part of the return. An empty list means the installation
+ * carries no form for that country, and `ekwo init` then asks nothing: there
+ * is no cadence to choose between.
+ */
+export async function countryVatPeriods(db: SqlClient, country: string): Promise<string[]> {
+  const row = await first<{ periods: string[] }>(
+    db,
+    `select t.periods::text[] as periods
+       from tax_report_templates t
+      where t.country = $1 and t.is_periodic_return
+      order by t.valid_from desc
+      limit 1`,
+    [country.toUpperCase()],
+  );
+  return row?.periods ?? [];
+}
+
+/**
+ * The cadence the pack proposes, or nothing.
+ *
+ * Nothing is the answer for three of the four packs here: Belgium, France and
+ * Luxembourg each make the cadence follow turnover, so the pack has no way to
+ * know and says so by staying silent. Estonia's taxable period is the calendar
+ * month for everybody, so it proposes one. It is
+ * `country_defaults.vat_period_default`.
+ */
+export async function countryVatPeriod(db: SqlClient, country: string): Promise<string | undefined> {
+  // `scalar` hands back the null the column holds, and a null here is a pack
+  // that has said nothing — the same thing as no row at all to every caller.
+  const proposed = await scalar<string>(
+    db,
+    'select vat_period_default from country_defaults where country = $1',
+    [country.toUpperCase()],
+  );
+  return proposed ?? undefined;
 }
 
 /**
@@ -360,6 +409,21 @@ export async function bootstrap(
   }
   const language = packLanguage.toLowerCase();
 
+  // How often this company files. Unlike the currency and the language, the
+  // column is nullable and nothing downstream breaks when it is empty, so the
+  // absence of an answer is itself an answer and is recorded as one. What is
+  // refused is an answer the country's own form does not accept.
+  const vatPeriod = options.vatPeriod ?? (await countryVatPeriod(db, country));
+  if (vatPeriod !== undefined) {
+    const accepted = await countryVatPeriods(db, country);
+    if (accepted.length > 0 && !accepted.includes(vatPeriod)) {
+      throw new Error(
+        `unknown_vat_period: the ${country} periodic return is filed ${accepted.join(' or ')}, ` +
+          `not ${vatPeriod}.`,
+      );
+    }
+  }
+
   const existingCompany = await first<{ id: string; currency_code: string }>(
     db,
     'select id, currency_code from companies where name = $1 order by created_at limit 1',
@@ -369,10 +433,10 @@ export async function bootstrap(
   if (existingCompany === undefined) {
     const created = await first<{ id: string }>(
       db,
-      `insert into companies (name, country, fiscal_country, currency_code, language)
-       values ($1, $2, $2, $3, $4)
+      `insert into companies (name, country, fiscal_country, currency_code, language, vat_period)
+       values ($1, $2, $2, $3, $4, $5::declaration_period)
        returning id`,
-      [options.company, country, currencyCode, language],
+      [options.company, country, currencyCode, language, vatPeriod ?? null],
     );
     if (created === undefined) throw new Error('company_insert_failed: no row returned');
     companyId = created.id;
@@ -491,6 +555,7 @@ export async function bootstrap(
     fiscalYearEnd: end,
     currencyCode,
     language,
+    vatPeriod,
     packVersion: copied?.version,
     chartCode: copied?.chart_code,
     bankAccountId,

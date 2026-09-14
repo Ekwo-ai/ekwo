@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.5.1, do not edit.
+-- Generated from packs/be at version 1.6.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -26,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.5.1', date '2026-09-14', '20260913075903', 'maintained', null, null, 'ccbfc4c4a5b8892c791c81fc7815c38ae1499628d6a6d9ed278d3854cc692dd0')
+  ('BE', 'Belgium', '1.6.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '94a65104afbd1ff778b9f5f7a76f0f710c1eb7aec2df251a082a54c0de4c1b31')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -940,12 +940,12 @@ on conflict (tax_template_id, document_kind, posting_type, sequence) do update s
   report_code        = excluded.report_code;
 
 insert into tax_report_templates
-  (country, code, name, period, valid_from, valid_to, legal_reference, is_periodic_return)
+  (country, code, name, periods, valid_from, valid_to, legal_reference, is_periodic_return)
 values
-  ('BE', 'BE-VAT-PERIODIC', 'Déclaration périodique à la TVA', 'month_or_quarter', date '2024-01-01', null, 'AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI', true)
+  ('BE', 'BE-VAT-PERIODIC', 'Déclaration périodique à la TVA', array['month', 'quarter']::declaration_period[], date '2024-01-01', null, 'AR n. 1 du 29 décembre 1992, art. 18 — formulaire Intervat, cadres II à VI. Cadence : Code de la TVA, art. 53, §1er, alinéa 1er, 2° (déclaration mensuelle) et AR n. 1, art. 18, §2 (déclaration trimestrielle en dessous des seuils de chiffre d''affaires)', true)
 on conflict (country, code) do update set
   name               = excluded.name,
-  period             = excluded.period,
+  periods            = excluded.periods,
   valid_from         = excluded.valid_from,
   valid_to           = excluded.valid_to,
   legal_reference    = excluded.legal_reference,
@@ -1152,9 +1152,10 @@ insert into country_defaults
    current_year_result_loss_code, retained_earnings_loss_code, opening_journal_code,
    rounding_method, cash_rounding_unit, fx_gain_code, fx_loss_code,
    asset_disposal_gain_code, asset_disposal_loss_code,
-   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label)
+   asset_disposal_proceeds_code, asset_disposal_value_code, opening_entry_label,
+   vat_period_default)
 values
-  ('BE', 'Belgium', '{"de":"Belgien","en":"Belgium","nl":"België"}'::jsonb, array['fr', 'nl', 'de', 'en']::text[], 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000', '763000', '663000', null, null, null)
+  ('BE', 'Belgium', '{"de":"Belgien","en":"Belgium","nl":"België"}'::jsonb, array['fr', 'nl', 'de', 'en']::text[], 'EUR', '400000', '440000', '499000', '664000', '140000', '700000', '610000', '550000', '570000', 'SAL', 'PUR', 'MISC', 'fr', 'appropriation_accounts', '693000', '793000', '141000', 'OPN', 'half_up', default, '754000', '654000', '763000', '663000', null, null, null, null)
 on conflict (country) do update set
   name                   = excluded.name,
   name_i18n              = excluded.name_i18n,
@@ -1186,7 +1187,8 @@ on conflict (country) do update set
   asset_disposal_loss_code        = excluded.asset_disposal_loss_code,
   asset_disposal_proceeds_code    = excluded.asset_disposal_proceeds_code,
   asset_disposal_value_code       = excluded.asset_disposal_value_code,
-  opening_entry_label             = excluded.opening_entry_label;
+  opening_entry_label             = excluded.opening_entry_label,
+  vat_period_default              = excluded.vat_period_default;
 
 update country_defaults set
   numbering_gapless       = true,

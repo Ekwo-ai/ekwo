@@ -122,6 +122,33 @@ somewhere has already run it.
   The `ekwo://companies/{id}/chart` resource is unchanged and still carries
   everything.
 
+- **How often a company files its VAT return is data, and the return reads it.**
+  `vat_return()` takes two dates, which is right, but nothing held how often
+  the company files at all, so a quarterly filer could be handed a July return
+  and nothing said so. Three columns, each where the answer belongs:
+  **`tax_report_templates.periods`** is what the form accepts — a list, because
+  one set of boxes may be filed on more than one cadence;
+  **`companies.vat_period`** is what this company files, nullable and with no
+  default; **`country_defaults.vat_period_default`** is what the pack proposes.
+  The vocabulary is an enum, `month | quarter | year`, and
+  `month_or_quarter` — never a cadence anybody files on — is read as the two it
+  names, so a pack written before the list keeps working.
+  **`vat_return()` refuses a period the company does not file on**, by name,
+  and only when the refusal is certain: the form offers the recorded cadence,
+  the dates are themselves a whole cadence of that form, and the two differ. A
+  fortnight, a half-year and the annual form a quarterly filer also files go
+  through, because the function is a control query as often as a filing.
+  **`ekwo init` asks** when the country's form offers several and the pack
+  proposes none, `--vat-period` answers outside a terminal, and a company that
+  has not decided is recorded as not having decided. **`ekwo status` prints
+  it.** **Estonia is the only pack here that proposes a cadence** — the
+  taxable period is the calendar month for everybody, käibemaksuseadus § 27
+  lõige 1. Belgium, France and Luxembourg all make it follow turnover, so each
+  cites the article that says so on its form and leaves the proposal empty.
+  Migration `20260914163943`; packs `be` 1.6.0, `fr` 1.7.0, `lu` 1.1.0,
+  `ee` 1.1.0 — one bump each, covering this and the `seed_sequence` field the
+  Estonian pack added to the three manifests without bumping them.
+
 - **Luxembourg, as `packs/lu/`.** The third country pack, and the first
   contributed from published sources rather than from books somebody keeps.
   It carries the **plan comptable normalisé** of the *règlement grand-ducal du
@@ -350,6 +377,13 @@ somewhere has already run it.
   name rather than moving a used account between statements. That difference
   was already a `review`, which is the rule that exists for a person to look.
 
+- **`tax_report_templates.period` is now `periods`, a list, with no default.**
+  The column defaulted to `month_or_quarter`, so a pack that had never
+  considered its own cadence filed on Belgium's and France's, silently, in a
+  column a reader would take for data. There is no default now, and
+  `ekwo pack check` refuses a form that names none. `tax_report.json` accepts
+  either the list or the single word it used to take.
+
 - **The real-project end-to-end run times every step.** `npm run e2e:supabase`
   printed a pass/fail table; it now prints how long each step took and the
   total beside it. Over a pooler and a hosted PostgREST what matters about a
@@ -359,6 +393,18 @@ somewhere has already run it.
   worth asking before the tag, not after.
 
 ### Fixed
+
+- **`ekwo pack check` refuses a sign on a statement line computed from other
+  lines.** `sign: -1` is how a scheme prints a credit balance as a positive
+  figure, and `financial_statement()` applies it when it sums the line from the
+  ledger. A total is worked out from lines that already read that way, and the
+  evaluator then multiplied the total by the total's own sign as well — so a
+  scheme that flipped a credit line and flipped the subtotal above it got the
+  figure back the way it started, silently. It cost the Luxembourg pack a wrong
+  set of golden figures, caught by somebody reading them. The two are refused
+  together, the explicit `1` included; `minus` is how a total subtracts. The
+  evaluator is unchanged and no pack combined the two, so no golden figure
+  moved.
 
 - **`ekwo pack upgrade` left a company on the old version when the release
   changed nothing the difference compares.**

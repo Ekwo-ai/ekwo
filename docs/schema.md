@@ -511,6 +511,7 @@ Legal entities kept in this instance. One instance may hold several.
 | `activity_scheme` | `text` | Which register activity_code belongs to. A code without its scheme cannot be looked up. |
 | `default_bank_account_id` | `uuid` | The account a customer is asked to pay into. It fills documents.payee_iban (BT-84) when a sales document names none. |
 | `document_template` | `text` | A code the renderer interprets. The core never reads it: what a document looks like is not an accounting question. |
+| `vat_period` | `declaration_period` | How often this company files its periodic return. Null means it has not been recorded, which is not an error and not a cadence: the books are kept the same either way, vat_return() imposes nothing, and `ekwo status` says "not recorded" rather than naming a cadence nobody chose. |
 
 Constraints:
 
@@ -697,6 +698,7 @@ Which template account plays which role, per country.
 | `name_i18n` | `jsonb` | not null — The country's own name by language, from packs/<cc>/i18n/. `name` holds it in English, which is what a country pack manifest is written in. |
 | `languages` | `text[]` | not null — Languages this country pack publishes every label in, the language of the pack itself first. An installer offers them; nothing in the schema restricts a company to them. |
 | `opening_entry_label` | `text` | Wording the computed opening lines of an export carry, from the pack, in the language the administration of this country reads. Null falls back to a neutral English label: the format fixes no wording, so there is no wrong answer to guess at. |
+| `vat_period_default` | `declaration_period` | Cadence a company of this country files on unless it says otherwise, from the pack. Null wherever the law makes the cadence depend on a fact about the company — turnover in Belgium, France and Luxembourg — because a pack proposing one of two lawful answers there would be choosing a filing deadline for somebody it knows nothing about. Set where the law gives one answer for everybody, as in Estonia. Read at install; never read by the return. |
 
 Constraints:
 
@@ -1390,7 +1392,7 @@ Declaration forms per country, from packs/<cc>/tax_report.json. Reference data: 
 | `code` | `text` | not null — BE-VAT-PERIODIC, FR-CA3. Immutable once published; a new version of a form is a new code with its own validity. |
 | `name` | `text` | not null |
 | `name_i18n` | `jsonb` | not null — Label by language. The pack format has no key for it yet, so it stays empty until i18n/ carries one. |
-| `period` | `text` | not null |
+| `periods` | `declaration_period[]` | not null — Cadences this form is filed on, from packs/<cc>/tax_report.json. A list because one set of boxes may be filed monthly, quarterly or annually depending on turnover. No default: a pack that names none is refused by `ekwo pack check`. |
 | `valid_from` | `date` | not null |
 | `valid_to` | `date` |  |
 | `legal_reference` | `text` |  |
@@ -1399,7 +1401,7 @@ Declaration forms per country, from packs/<cc>/tax_report.json. Reference data: 
 Constraints:
 
 - `CHECK ((country ~ '^[A-Z]{2}$'::text))`
-- `CHECK ((period = ANY (ARRAY['month'::text, 'quarter'::text, 'month_or_quarter'::text, 'year'::text])))`
+- `CHECK ((cardinality(periods) >= 1))`
 - `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
 - `PRIMARY KEY (country, code)`
 
@@ -1528,6 +1530,7 @@ Constraints:
 | `currency_of_company()` | Fills currency_code from the company when the caller named none. The one place the question is answered for a table that belongs to a company. |
 | `currency_unit(p_rounding money_rounding)` | The smallest amount a currency has: a cent in the euro, a yen in the yen. A tolerance is written as a fraction of this rather than as a fraction of a cent. |
 | `current_api_key()` | The key presented in this transaction, or nothing. What a client reads back to know what it may do. |
+| `declaration_period_of(p_from date, p_to date)` | The cadence a pair of dates is a whole one of — month, quarter, year — or null when the two dates are not a filing period at all. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. Needs company.write. |
 | `document_lines_amount_untaxed()` | Derives a line's amount from its quantity, price and discount, rounded once at the decimals of the document's currency. What the generated column used to do, minus the assumption that every currency has cents. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
@@ -1596,7 +1599,7 @@ Constraints:
 | `unreconcile(p_reconciliation_id uuid)` | Undoes a matching, and with it what the matching had booked: the exchange difference it realised and the share of a cash-basis tax it had made due. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `use_api_key(p_secret text)` | Presents a machine key for the current transaction: has_capability() answers for it until the transaction ends. Refuses a key that is unknown, withdrawn or expired. |
-| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. No country rule lives in this function. |
+| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. Refuses a period the company does not file on, when it has recorded one. No country rule lives in this function. |
 
 ---
 
