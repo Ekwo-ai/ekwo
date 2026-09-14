@@ -2556,6 +2556,13 @@ each an order of magnitude more text for a diff that would move on every
 Postgres upgrade. `docs/schema.md` carries the constraints for a human reader
 today, and an inventory that nobody reads the diff of is worth nothing.
 
+Grants came back the same day: the entry below gave the schema its own
+privileges, which made them a thing the migrations state rather than a thing
+the project happens to hold — and a statement is exactly what an inventory can
+check. They are a `grants` section of this file and a `grants` check of the
+doctor, kept apart from the categories above because missing, extra and
+changed do not mean the same thing about a privilege.
+
 
 ## The country pack is finished as a taxonomy, and is written down (14 September 2026)
 

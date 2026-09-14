@@ -110,25 +110,50 @@ The same is true of the financial year: a pack that declares no usual opening
 month makes `--fiscal-year-start` required. Both packs shipped here open on the
 calendar year, so it rarely comes up.
 
-## A limitation worth knowing: where table access comes from
+## Where table access comes from
 
-**Nothing in `supabase/migrations` grants table access to `anon` or
-`authenticated`.** Row level security is written in the migrations, in full, and
-the underlying `GRANT` is not: on a Supabase project it comes from that
-project's own default privileges on the `public` schema, which are there before
-Ekwo is.
+**The schema grants its own rights.** Every table, view and function of Ekwo
+names the roles that may reach it — `anon`, `authenticated`, `service_role` —
+in the migration that creates it. `ekwo doctor` reads the privileges of a live
+database and reports a grant that is missing, a grant wider than the release
+declares, and a table `anon` can reach at all.
 
-It matters in exactly one situation, and it is worth naming because the symptom
-points elsewhere. Drop and recreate the `public` schema without restoring those
-default privileges, and the reinstall succeeds, `ekwo doctor` reports a healthy
-installation, and the first read through PostgREST answers `permission denied
-for table companies`. Nothing is wrong with the schema; the grant that was never
-in it is missing.
+Two rules follow, and both are worth knowing before you change anything by
+hand.
 
-So: do not drop `public` on a project you intend to keep, and if you do, put the
-default privileges back. This is a known gap and not a promise of a change —
-whether the migrations should be self-contained on this point is an open
-question, recorded in [`docs/decisions.md`](../../docs/decisions.md).
+**`anon` holds no privilege on any table.** The anonymous role — the one behind
+the publishable key your front end ships — may execute the ten helper functions
+row level security calls on its behalf, and nothing else. An anonymous request
+to a table is refused at the privilege, before any policy is read. If part of
+your application reads a table without signing a user in, it will stop working,
+and that is the intended answer: sign the user in, or grant a function
+deliberately.
+
+**`authenticated` may attempt exactly the verbs a policy of that table is
+prepared to judge.** A grant and a policy are two halves of one sentence: a
+grant says which verbs may be attempted, a policy says on which rows they
+succeed. The reference tables a country pack fills, the tables written only by
+a `security definer` function, and the audit trail are readable and not
+writable — by privilege as well as by policy.
+
+**It was not always so, and the history explains a symptom you may still meet
+on an installation nobody has migrated.** Until the migration of 14 September
+2026, nothing in `supabase/migrations` granted table access at all. Row level
+security was written in the migrations in full and the underlying `GRANT` was
+not: on a Supabase project it came from that project's own default privileges
+on the `public` schema, which are there before Ekwo is. Those privileges live
+in `pg_default_acl`, keyed by the schema, so dropping and recreating `public`
+took them away — and then the reinstall succeeded, `ekwo doctor` reported a
+healthy installation, and the first read through PostgREST answered
+`permission denied for table companies`. Nothing was wrong with the schema; the
+grant that had never been in it was missing.
+
+On an installation that has run `ekwo migrate` since, that cannot happen: the
+migrations put the privileges back themselves, and they take away the blanket
+table access the project's defaults had handed `anon`. Dropping `public` is
+still not something to do on a project you intend to keep — it takes your books
+with it. The decision and what it changed are in
+[`docs/decisions.md`](../../docs/decisions.md).
 
 ## Before you go live: four things on your project
 
@@ -221,7 +246,7 @@ instead if the account already exists, and no key is needed.
 | `ekwo init` | The whole installation, interactive or not. |
 | `ekwo migrate` | Applies the migrations this release adds, after showing the gap — the socle's, then the modules'. Re-applies the reference seeds, which are idempotent. `--no-modules` leaves the modules alone. |
 | `ekwo status` | Schema version installed against available, pending migrations, the instance, its administrators, the country packs it holds and, per company, the pack version it copied. Exits 1 when something is pending. |
-| `ekwo doctor` | Every object this release defines, against what the database holds; row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
+| `ekwo doctor` | Every object this release defines and every privilege it grants, against what the database holds; row level security on every table, a policy on every protected table, no pending migration, no membership pointing at a deleted user, every company with a bank account, statements that tie to their lines, posted entries that balance. Exits 1 on a problem, 0 on warnings. |
 | `ekwo register` | Opt in to security advisories and release notes. Also the retry when the announcement did not go through. |
 | `ekwo unregister` | Opt back out. Clears the address and the date on the instance row. |
 | `ekwo demo` | Loads the sample company. Fictional data, explicit request only. |
@@ -306,9 +331,20 @@ it: the question it answers is "is the object there, and is it still that
 shape". `docs/schema.md` lists the constraints for a human reader, and the
 argument against putting them in the inventory is that each is an order of
 magnitude more text for a diff that would move on every Postgres upgrade — and
-an inventory whose diff nobody reads is worth nothing. Grants are not covered
-either; see "A limitation worth knowing" above for why the migrations do not
-carry them.
+an inventory whose diff nobody reads is worth nothing.
+
+**The `grants` check compares the privileges**, from the same inventory: the
+`grants` section of each schema says which of `anon`, `authenticated` and
+`service_role` may reach each table, view and function, and with which verbs.
+Its own check rather than a category of `catalogue`, because the rule is not
+the same.
+
+| Finding | What it means | Severity |
+|---|---|---|
+| A privilege the release grants and the database does not hold | Nothing else notices it, and it reaches a client as `permission denied for table companies`. | Problem |
+| Any privilege `anon` holds beyond what the release grants | The anonymous role reaches the ten policy helpers and no table. One more is a surface nobody reviewed. | Problem |
+| A privilege `authenticated` or `service_role` holds and the release does not grant | Usually a local customisation. Row level security is then the only thing refusing a verb the schema meant to withhold. | Warning |
+| A default privilege still standing on a schema | A privilege that comes from there comes from something no migration wrote, and a recreated schema takes it away. | Warning |
 
 In a checkout, `npm run inventory` regenerates the inventory from the
 migrations; the CI regenerates it and fails on any difference, the way it does

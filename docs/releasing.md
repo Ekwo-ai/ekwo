@@ -138,13 +138,16 @@ that is not cut.
    once.
 
    **`--reset` empties the project so a failed run can be replayed.** It drops
-   the module schemas, `public` and `supabase_migrations`, and puts back the
-   schema and the default privileges a Supabase project has — which matters:
-   nothing in `supabase/migrations` grants table access to `anon` or
-   `authenticated`, because on a real project those come from the project's own
-   default privileges on `public`. Drop the schema without restoring them and
-   the reinstall succeeds, `ekwo doctor` is content, and the first read through
-   PostgREST answers `permission denied for table companies`.
+   the module schemas, `public` and `supabase_migrations`, and recreates the
+   schema with the default privileges a Supabase project has. Since
+   `20260914151207` the migrations no longer need that — they grant their own
+   rights, by name — and the reset restores the defaults anyway, on purpose: a
+   real project has them, and a reset that left them out would be a reset that
+   quietly stopped exercising what that migration does about them. What the run
+   should then find is the revoke working, which is the step named "the
+   anonymous role reaches no table". Before all this, a reset that forgot the
+   defaults left an installation `ekwo doctor` called healthy and PostgREST
+   answered `permission denied for table companies` on.
 
    ```sh
    npm run e2e:supabase -- --reset

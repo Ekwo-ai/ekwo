@@ -57,6 +57,12 @@ somewhere has already run it.
   `freshDatabase` used to grant the three roles everything, which made the
   whole suite pass against privileges no installation was guaranteed to have.
   Every test file is now also a test of the grants.
+  **The installation guide says the new answer and keeps the old symptom.**
+  `packages/cli/README.md` described where table access comes from as a known
+  gap; it now says that the schema grants its own rights, what that means for
+  an application that reads a table without signing a user in, and why an
+  installation nobody has migrated can still answer `permission denied for
+  table companies`.
 
 ### Added
 
@@ -189,13 +195,14 @@ somewhere has already run it.
   else: **`ekwo init` refuses to pick a country, a chart of accounts or a
   language for you** outside a terminal, and names the flag; the four reference
   seeds are named, in the order they are applied; and the catalogue check of
-  `ekwo doctor` says what it does **not** cover — constraints, indexes,
-  function bodies and grants. **Where table access comes from is written down
-  as a known gap**: nothing in `supabase/migrations` grants it to `anon` or
-  `authenticated`, it comes from the project's own default privileges on
-  `public`, and dropping that schema without restoring them leaves an
-  installation the doctor calls healthy and PostgREST answers `permission
-  denied for table companies` on.
+  `ekwo doctor` says what it does **not** cover — constraints, indexes and
+  function bodies. **Where table access comes from is written down**: it was a
+  known gap when this guide was written, and the entry above closed it in the
+  same release, so the section says what the schema grants and keeps the
+  history that explains the symptom — an installation nobody has migrated,
+  whose `public` schema was recreated without the project's default
+  privileges, is one the doctor calls healthy and PostgREST answers
+  `permission denied for table companies` on.
   Two examples in that guide were broken and are corrected: the non-interactive
   `ekwo init` one-liner and the scratch-project procedure both omitted
   `--chart` and `--language`, which the Belgian pack has made mandatory since it
