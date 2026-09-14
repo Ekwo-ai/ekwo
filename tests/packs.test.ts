@@ -16,6 +16,7 @@ import {
   validate,
 } from '../packages/cli/src/index.js';
 import { freshDatabase, repoRoot, rows } from './helpers/db.js';
+import { allPacks, certificationStatuses, defaultChartOf, somePack } from './helpers/packs.js';
 
 // The country packs replaced four hand-written seeds. The point of this file
 // is that the replacement changed nothing: the same template rows, from a
@@ -175,14 +176,31 @@ describe('the compiled packs against the seeds they replace', () => {
   it('load the counts the packs claim', async () => {
     const right = await templateRows(after);
     const accounts = right['account_templates'] ?? [];
-    expect(accounts.filter((a) => a['country'] === 'BE')).toHaveLength(353);
-    expect(accounts.filter((a) => a['country'] === 'EE')).toHaveLength(120);
-    expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(394);
-    expect(accounts.filter((a) => a['country'] === 'LU')).toHaveLength(1026);
-    expect(right['tax_templates']).toHaveLength(110);
-    expect(right['tax_posting_templates']).toHaveLength(382);
-    expect(right['journal_templates']).toHaveLength(24);
-    expect(right['country_defaults']).toHaveLength(4);
+    // The query above reads the default chart only, which is the chart the
+    // hand-written seeds knew. Every count is the pack's own.
+    for (const pack of allPacks) {
+      expect(accounts.filter((a) => a['country'] === pack.manifest.country), pack.slug).toHaveLength(
+        defaultChartOf(pack).accounts.length,
+      );
+    }
+    expect(right['tax_templates']).toHaveLength(
+      allPacks.reduce((n, pack) => n + pack.taxes.length, 0),
+    );
+    expect(right['tax_posting_templates']).toHaveLength(
+      allPacks.reduce(
+        (n, pack) =>
+          n +
+          pack.taxes.reduce(
+            (m, tax) => m + tax.postings.invoice.length + tax.postings.credit_note.length,
+            0,
+          ),
+        0,
+      ),
+    );
+    expect(right['journal_templates']).toHaveLength(
+      allPacks.reduce((n, pack) => n + pack.manifest.journals.length, 0),
+    );
+    expect(right['country_defaults']).toHaveLength(allPacks.length);
   });
 });
 
@@ -294,9 +312,8 @@ describe('pack, seed, database, pack again', () => {
 describe('the committed seeds', () => {
   it('are the exact output of their pack — what `ekwo pack check` runs in CI', async () => {
     const slugs = await listPacks(packs);
-    const declared = await declaredSeedSequences(packs);
-    expect(slugs).toContain('be');
-    expect(slugs).toContain('fr');
+    expect(slugs, 'this repository ships no pack at all').not.toHaveLength(0);
+    expect(slugs).toEqual([...slugs].sort());
     for (const slug of slugs) {
       const pack = await readPack(slug, packs);
       const file = seedFileName(slug, slugs, declared);
@@ -362,6 +379,12 @@ describe('the committed seeds', () => {
 });
 
 describe('the pack format', () => {
+  // The refusals below are about the reader and the schema, not about a
+  // country: they break a pack in a temporary directory and read the message
+  // back. `somePack` is whichever pack comes first, so a failure is reproducible.
+  const sampleDir = join(packs, somePack.slug);
+  const manifestPath = join(sampleDir, 'pack.json');
+
   it('validates the packs of this repository against the published schema', async () => {
     // readPack throws on the first problem; this states what it checked.
     for (const slug of await listPacks(packs)) {
@@ -371,7 +394,10 @@ describe('the pack format', () => {
       // not an accountant reading it against the law. `maintained` is what the
       // maintainers keep current, `community` what was contributed and nobody
       // has read; neither names a person.
-      expect(['maintained', 'community']).toContain(pack.manifest.certification?.status);
+      expect(certificationStatuses).toContain(pack.manifest.certification?.status);
+      expect(pack.manifest.certification?.status, 'no pack here has been reviewed').not.toBe(
+        'reviewed',
+      );
       expect(pack.manifest.certification?.by, 'only a review names someone').toBeUndefined();
       expect((pack.manifest.certification?.sources ?? []).length).toBeGreaterThan(0);
       expect(pack.accounts.length).toBeGreaterThan(100);
@@ -380,7 +406,7 @@ describe('the pack format', () => {
 
   it('refuses a manifest with a field nobody defined', async () => {
     const schema = await readSchema(packs);
-    const manifest = JSON.parse(await readFile(join(packs, 'be', 'pack.json'), 'utf8')) as Record<string, unknown>;
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
     expect(validate(manifest, schema)).toEqual([]);
     expect(validate({ ...manifest, script: 'rm -rf /' }, schema)).toEqual([
       { path: '(root)', message: 'unknown field "script"' },
@@ -389,11 +415,12 @@ describe('the pack format', () => {
 
   it('refuses a rate that is not a number and a country that is not two letters', async () => {
     const schema = await readSchema(packs);
-    const manifest = JSON.parse(await readFile(join(packs, 'be', 'pack.json'), 'utf8')) as Record<string, unknown>;
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+    // Three letters, which is not an ISO 3166-1 alpha-2 code whatever it says.
     expect(validate({ ...manifest, country: 'BEL' }, schema)).toHaveLength(1);
 
     const taxes = (schema['$defs'] as Record<string, Record<string, unknown>>)['taxes']!;
-    const one = JSON.parse(await readFile(join(packs, 'be', 'taxes.json'), 'utf8')) as Record<string, unknown>[];
+    const one = JSON.parse(await readFile(join(sampleDir, 'taxes.json'), 'utf8')) as Record<string, unknown>[];
     expect(validate(one, taxes, schema)).toEqual([]);
     expect(validate([{ ...one[0], rate: '21' }], taxes, schema)).toHaveLength(1);
   });
@@ -455,17 +482,17 @@ describe('the pack format', () => {
   it('refuses a pack that carries no golden and gives no reason', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
-    await rm(join(dir, 'be', 'golden'), { recursive: true });
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    await rm(join(dir, somePack.slug, 'golden'), { recursive: true });
 
-    await expect(readPack('be', dir)).rejects.toThrow(/carries no golden\/scenario\.json/);
+    await expect(readPack(somePack.slug, dir)).rejects.toThrow(/carries no golden\/scenario\.json/);
 
     // And the way out is a sentence somebody wrote, not a silence.
-    const manifestPath = join(dir, 'be', 'pack.json');
-    const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as Record<string, unknown>;
+    const broken = join(dir, somePack.slug, 'pack.json');
+    const manifest = JSON.parse(await readFile(broken, 'utf8')) as Record<string, unknown>;
     manifest['golden'] = { exempt: 'A fixture that exists for the length of one test.' };
-    await writeFile(manifestPath, JSON.stringify(manifest), 'utf8');
-    const exempt = await readPack('be', dir);
+    await writeFile(broken, JSON.stringify(manifest), 'utf8');
+    const exempt = await readPack(somePack.slug, dir);
     expect(exempt.golden).toBeNull();
     expect(exempt.goldenExemption).toMatch(/length of one test/);
   });
@@ -473,19 +500,21 @@ describe('the pack format', () => {
   it('refuses a golden that names a tax, an account or a document it does not carry', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
-    const path = join(dir, 'be', 'golden', 'scenario.json');
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    const path = join(dir, somePack.slug, 'golden', 'scenario.json');
     const scenario = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
 
     const documents = scenario['documents'] as Record<string, unknown>[];
     const lines = documents[0]!['lines'] as Record<string, unknown>[];
-    lines[0]!['tax'] = 'BE-S-99';
+    // A tax code shaped like the pack's own and carried by no pack.
+    const absentTax = `${somePack.manifest.country}-S-99`;
+    lines[0]!['tax'] = absentTax;
     lines[0]!['account'] = '999999';
     (scenario['payments'] as Record<string, unknown>[])[0]!['match'] = 'nothing';
     await writeFile(path, JSON.stringify(scenario), 'utf8');
 
-    const error = await readPack('be', dir).catch((e: Error) => e.message);
-    expect(error).toMatch(/tax BE-S-99 is not a tax of this pack/);
+    const error = await readPack(somePack.slug, dir).catch((e: Error) => e.message);
+    expect(error).toMatch(new RegExp(`tax ${absentTax} is not a tax of this pack`));
     expect(error).toMatch(/account 999999 is not in chart default/);
     expect(error).toMatch(/is not a document of this scenario/);
   });
@@ -493,13 +522,13 @@ describe('the pack format', () => {
   it('refuses a golden of fewer than ten documents', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-golden-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
-    const path = join(dir, 'be', 'golden', 'scenario.json');
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    const path = join(dir, somePack.slug, 'golden', 'scenario.json');
     const scenario = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
     scenario['documents'] = (scenario['documents'] as unknown[]).slice(0, 4);
     await writeFile(path, JSON.stringify(scenario), 'utf8');
 
-    await expect(readPack('be', dir)).rejects.toThrow(/needs at least 10 item\(s\)/);
+    await expect(readPack(somePack.slug, dir)).rejects.toThrow(/needs at least 10 item\(s\)/);
   });
 
   it('asks every tax and every declaration box where it comes from', async () => {
@@ -518,13 +547,13 @@ describe('the pack format', () => {
     const schema = await readSchema(packs);
     const defs = schema['$defs'] as Record<string, Record<string, unknown>>;
 
-    const taxes = JSON.parse(await readFile(join(packs, 'be', 'taxes.json'), 'utf8')) as Record<string, unknown>[];
+    const taxes = JSON.parse(await readFile(join(sampleDir, 'taxes.json'), 'utf8')) as Record<string, unknown>[];
     const { legal_reference: _dropped, ...silent } = taxes[0]!;
     expect(validate([silent], defs['taxes']!, schema)).toEqual([
       { path: '[0]', message: 'missing "legal_reference"' },
     ]);
 
-    const report = JSON.parse(await readFile(join(packs, 'be', 'tax_report.json'), 'utf8')) as Record<string, unknown>;
+    const report = JSON.parse(await readFile(join(sampleDir, 'tax_report.json'), 'utf8')) as Record<string, unknown>;
     const boxes = report['boxes'] as Record<string, unknown>[];
     const { legal_reference: _also, ...quiet } = boxes[0]!;
     expect(validate({ ...report, boxes: [quiet] }, defs['tax_report']!, schema)).toEqual([
@@ -539,8 +568,14 @@ describe('the pack format', () => {
     const properties = tax['properties'] as Record<string, unknown>;
     expect(properties['group']).toBeDefined();
 
-    const taxes = JSON.parse(await readFile(join(packs, 'be', 'taxes.json'), 'utf8')) as Record<string, unknown>[];
-    const grouped = [{ ...taxes[0], code: 'BE-GROUP', group: ['BE-S-21', 'BE-S-06'] }];
+    const taxes = JSON.parse(await readFile(join(sampleDir, 'taxes.json'), 'utf8')) as Record<string, unknown>[];
+    const grouped = [
+      {
+        ...taxes[0],
+        code: `${somePack.manifest.country}-GROUP`,
+        group: somePack.taxes.slice(0, 2).map((tax) => tax.code),
+      },
+    ];
     expect(validate(grouped, defs['taxes']!, schema)).toEqual([]); // the schema accepts it
   });
 });
