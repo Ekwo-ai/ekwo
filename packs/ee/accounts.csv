@@ -1,0 +1,121 @@
+code,parent,type,reconcilable,name,sequence
+1000,,asset_cash,false,Kassa,10
+1010,,asset_cash,false,Arvelduskonto pangas,20
+1020,,asset_cash,false,Arvelduskonto pangas välisvaluutas,30
+1080,,asset_cash,false,Raha teel,40
+1100,,asset_current,false,Lühiajalised finantsinvesteeringud,50
+1200,,asset_receivable,true,Nõuded ostjate vastu,60
+1208,,asset_current,false,Ebatõenäoliselt laekuvad nõuded,70
+1210,,asset_current,false,Maksude ettemaksed ja tagasinõuded,80
+1220,,asset_current,false,Nõuded seotud osapoolte vastu,90
+1230,,asset_current,false,Lühiajalised laenunõuded,100
+1240,,asset_current,false,Muud lühiajalised nõuded,110
+1250,,asset_prepayments,false,Ettemaksed tarnijatele,120
+1260,,asset_prepayments,false,Tulevaste perioodide kulud,130
+1300,,asset_current,false,Tooraine ja materjal,140
+1310,,asset_current,false,Lõpetamata toodang,150
+1320,,asset_current,false,Valmistoodang,160
+1330,,asset_current,false,Müügiks ostetud kaubad,170
+1340,,asset_prepayments,false,Ettemaksed varude eest,180
+1500,,asset_non_current,false,Tütarettevõtjate aktsiad ja osad,190
+1510,,asset_non_current,false,Sidusettevõtjate aktsiad ja osad,200
+1600,,asset_non_current,false,Pikaajalised finantsinvesteeringud,210
+1650,,asset_non_current,false,Pikaajalised nõuded ja ettemaksed,220
+1700,,asset_fixed,false,Kinnisvarainvesteeringud,230
+1750,,asset_fixed,false,Maa,240
+1760,,asset_fixed,false,Ehitised,250
+1765,,asset_fixed,false,Ehitiste akumuleeritud kulum,260
+1770,,asset_fixed,false,Masinad ja seadmed,270
+1775,,asset_fixed,false,Masinate ja seadmete akumuleeritud kulum,280
+1780,,asset_fixed,false,Muu materiaalne põhivara,290
+1785,,asset_fixed,false,Muu materiaalse põhivara akumuleeritud kulum,300
+1790,,asset_fixed,false,Lõpetamata projektid ja ettemaksed põhivara eest,310
+1900,,asset_fixed,false,Arenguväljaminekud,320
+1905,,asset_fixed,false,Arenguväljaminekute akumuleeritud kulum,330
+1910,,asset_fixed,false,Tarkvara ja litsentsid,340
+1915,,asset_fixed,false,Tarkvara ja litsentside akumuleeritud kulum,350
+1950,,asset_fixed,false,Firmaväärtus,360
+1955,,asset_fixed,false,Firmaväärtuse akumuleeritud kulum,370
+2000,,liability_current,false,Lühiajalised laenukohustised,380
+2010,,liability_current,false,Pikaajaliste laenukohustiste lühiajaline osa,390
+2020,,liability_current,false,Kapitalirendikohustise lühiajaline osa,400
+2100,,liability_payable,true,Võlad tarnijatele,410
+2200,,liability_current,false,Palgavõlg,420
+2210,,liability_current,false,Puhkusetasu kohustis,430
+2310,,liability_current,false,Müügi käibemaks,440
+2311,,asset_current,false,Sisendkäibemaks,450
+2320,,liability_current,false,Sotsiaalmaksu kohustis,460
+2330,,liability_current,false,Kinnipeetud tulumaksu kohustis,470
+2340,,liability_current,false,Töötuskindlustusmakse kohustis,480
+2350,,liability_current,false,Kogumispensioni makse kohustis,490
+2360,,liability_current,false,Tulumaksukohustis,500
+2400,,liability_current,false,Muud lühiajalised võlad,510
+2410,,liability_current,false,Võlad seotud osapooltele,520
+2490,,liability_current,false,Selgitamata maksed,530
+2500,,liability_current,false,Ostjate ettemaksed,540
+2510,,liability_current,false,Tulevaste perioodide tulud,550
+2600,,liability_current,false,Lühiajalised eraldised,560
+2700,,liability_current,false,Lühiajaline sihtfinantseerimine,570
+2750,,liability_non_current,false,Pikaajalised laenukohustised,580
+2760,,liability_non_current,false,Muud pikaajalised võlad,590
+2770,,liability_non_current,false,Pikaajalised eraldised,600
+2780,,liability_non_current,false,Pikaajaline sihtfinantseerimine,610
+2900,,equity,false,Osakapital nimiväärtuses,620
+2905,,equity,false,Registreerimata osakapital,630
+2910,,equity,false,Sissemaksmata osakapital,640
+2920,,equity,false,Ülekurss,650
+2930,,equity,false,Oma aktsiad või osad,660
+2940,,equity,false,Kohustuslik reservkapital,670
+2950,,equity,false,Muud reservid,680
+2960,,equity,false,Muu omakapital,690
+2970,,equity_retained,false,Eelmiste perioodide jaotamata kasum (kahjum),700
+2980,,equity_retained,false,Aruandeaasta kasum (kahjum),710
+3000,,income,false,Kauba müük Eestis,720
+3010,,income,false,Teenuse müük Eestis,730
+3020,,income,false,Kauba müük Euroopa Liitu,740
+3030,,income,false,Teenuse müük Euroopa Liitu,750
+3040,,income,false,Kauba eksport,760
+3050,,income,false,Teenuse eksport,770
+3060,,income,false,Majutusteenuse müük,780
+3070,,income,false,Maksuvaba käive,790
+3100,,income_other,false,Muud äritulud,800
+3110,,income_other,false,Kasum põhivara müügist,810
+3200,,income_other,false,Valmis- ja lõpetamata toodangu varude jääkide muutus,820
+3250,,income_other,false,Kapitaliseeritud väljaminekud oma tarbeks põhivarade valmistamisel,830
+3800,,income_other,false,Intressitulud,840
+3810,,income_other,false,Kasum (kahjum) finantsinvesteeringutelt,850
+3820,,income_other,false,Muud finantstulud,860
+3830,,income_other,false,Kasum (kahjum) tütarettevõtjatelt,870
+3840,,income_other,false,Kasum (kahjum) sidusettevõtjatelt,880
+3850,,income_other,false,Valuutakursi kasum,890
+4000,,expense_direct_cost,false,Müüdud kaupade kulu,900
+4010,,expense_direct_cost,false,Tooraine ja materjali kulu,910
+4020,,expense_direct_cost,false,Ostetud teenused,920
+4100,,expense,false,Ruumide kulud,930
+4110,,expense,false,Energia,940
+4120,,expense,false,Side- ja infotehnoloogiakulud,950
+4130,,expense,false,Sõidukikulud,960
+4140,,expense,false,Lähetuskulud,970
+4150,,expense,false,Reklaami- ja turunduskulud,980
+4160,,expense,false,Bürookulud,990
+4170,,expense,false,Konsultatsiooni- ja õigusabikulud,1000
+4180,,expense,false,Koolituskulud,1010
+4190,,expense,false,Kindlustus,1020
+4200,,expense,false,Pangateenused,1030
+4210,,expense,false,Esinduskulud,1040
+4220,,expense,false,Muud mitmesugused tegevuskulud,1050
+4700,,expense,false,Palgakulu,1060
+4710,,expense,false,Sotsiaalmaks,1070
+4720,,expense,false,Töötuskindlustusmakse (tööandja),1080
+4730,,expense,false,Erisoodustused,1090
+4740,,expense,false,Erisoodustuste maksud,1100
+4800,,expense_depreciation,false,Põhivarade kulum,1110
+4810,,expense_depreciation,false,Põhivarade väärtuse langus,1120
+4850,,expense,false,Olulised käibevara allahindlused,1130
+4900,,expense,false,Muud ärikulud,1140
+4910,,expense,false,Kahjum põhivara müügist,1150
+4920,,expense,false,Ümardamise vahed,1160
+4950,,expense,false,Intressikulud,1170
+4960,,expense,false,Muud finantskulud,1180
+4970,,expense,false,Valuutakursi kahjum,1190
+4990,,expense,false,Tulumaks,1200

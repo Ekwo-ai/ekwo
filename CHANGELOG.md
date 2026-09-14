@@ -95,6 +95,42 @@ somewhere has already run it.
   reviewer should look at first. Out of scope in v1 and said so: the XML of an
   eCDF deposit, the FAIA audit file, the annual VAT return, the franchise and
   group regimes, and corporate income tax.
+- **Estonia, as `packs/ee/`, a pack written from the outside in.**
+  **`packs/ee/`** carries an original chart of 120 accounts, 29 taxes, form KMD
+  and the two statements of the annual report, and it compiles to
+  `supabase/seed/11_pack_ee.sql`. Nothing in the core changed for it: no
+  migration, no function, no column, and `tests/golden.test.ts` replayed its
+  fourteen documents without knowing that Estonia exists.
+  **The rate history is in the pack, because a code is a rate at a date.** The
+  standard rate is there three times — 20 % to the end of 2023, 22 % to 30 June
+  2025, 24 % since — so a document dated in 2024 books at the rate of 2024 and
+  a credit note correcting it lands in the box today's form keeps for it. The
+  24 % carries no end date: the reversion to 22 % in 2029 was enacted and then
+  repealed with the Act that carried it.
+  **The chart is written, not copied.** Estonia prescribes none, so this one
+  follows the convention Estonian practice shares — four digits, four classes,
+  equity inside class 2 — and is blocked so that each range of codes maps onto
+  one line of the statutory balance sheet or income statement.
+  **Form KMD nests, and the pack says how it handled that.** A tax reports its
+  base to one box; the form asks for the same amount in a box, in the memo box
+  inside it, and sometimes in a third. The pack posts to the innermost box and
+  rebuilds every printed parent as a total, which takes six boxes the form does
+  not print, all marked `hidden`. `packs/ee/README.md` lists them.
+  **Status `community`**, and it stays there until an Estonian accountant has
+  read it and put their name in the manifest. Every rate, box and mention cites
+  its article; six things the core could not express are recorded in
+  [`docs/international.md`](docs/international.md) with a proposed fix, and none
+  of them was patched into the core for one country.
+- **A pack declares the number its compiled seed carries, and a published
+  number never changes.**
+  It was the pack's rank in the alphabetical list of slugs, so inserting a
+  country in the middle of the alphabet renamed the seed of every country after
+  it — a release renaming a file that installations already hold. **`seed_sequence`
+  is now a required field of the manifest**: Belgium 10, France 11, Luxembourg
+  12, Estonia 13, and nothing sorts anything. `ekwo pack check` refuses a pack
+  that declares no number and `ekwo pack build` refuses two packs claiming one.
+  The three published seeds keep their names; each gains one changed line, the
+  checksum of a manifest that now carries the field.
 
 - **`ekwo doctor` compares the database to an inventory of what the release
   defines.**

@@ -45,10 +45,12 @@ export {
   frameworkSeedFileName,
   moduleSeedFileName,
   seedFileName,
+  seedFileNames,
 } from './pack/compile.js';
 export {
   DEFAULT_CHART,
   GENERIC_PACK,
+  declaredSeedSequences,
   listPacks,
   packsDir,
   parseCsv,

@@ -5,12 +5,14 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   compilePack,
+  declaredSeedSequences,
   listPacks,
   packsDir,
   parseCsv,
   readPack,
   readSchema,
   seedFileName,
+  seedFileNames,
   validate,
 } from '../packages/cli/src/index.js';
 import { freshDatabase, repoRoot, rows } from './helpers/db.js';
@@ -174,12 +176,13 @@ describe('the compiled packs against the seeds they replace', () => {
     const right = await templateRows(after);
     const accounts = right['account_templates'] ?? [];
     expect(accounts.filter((a) => a['country'] === 'BE')).toHaveLength(353);
+    expect(accounts.filter((a) => a['country'] === 'EE')).toHaveLength(120);
     expect(accounts.filter((a) => a['country'] === 'FR')).toHaveLength(394);
     expect(accounts.filter((a) => a['country'] === 'LU')).toHaveLength(1026);
-    expect(right['tax_templates']).toHaveLength(81);
-    expect(right['tax_posting_templates']).toHaveLength(290);
-    expect(right['journal_templates']).toHaveLength(18);
-    expect(right['country_defaults']).toHaveLength(3);
+    expect(right['tax_templates']).toHaveLength(110);
+    expect(right['tax_posting_templates']).toHaveLength(382);
+    expect(right['journal_templates']).toHaveLength(24);
+    expect(right['country_defaults']).toHaveLength(4);
   });
 });
 
@@ -291,11 +294,12 @@ describe('pack, seed, database, pack again', () => {
 describe('the committed seeds', () => {
   it('are the exact output of their pack — what `ekwo pack check` runs in CI', async () => {
     const slugs = await listPacks(packs);
+    const declared = await declaredSeedSequences(packs);
     expect(slugs).toContain('be');
     expect(slugs).toContain('fr');
     for (const slug of slugs) {
       const pack = await readPack(slug, packs);
-      const file = seedFileName(slug, slugs);
+      const file = seedFileName(slug, slugs, declared);
       const committed = await readFile(join(seedDir, file), 'utf8');
       expect(committed, `${file} is stale: run \`ekwo pack build --all\``).toBe(compilePack(pack));
     }
@@ -304,10 +308,56 @@ describe('the committed seeds', () => {
   it('are the only country seeds `supabase db push` applies', async () => {
     const config = await readFile(join(repoRoot, 'supabase', 'config.toml'), 'utf8');
     const slugs = await listPacks(packs);
+    const declared = await declaredSeedSequences(packs);
     for (const slug of slugs) {
-      expect(config).toContain(`./seed/${seedFileName(slug, slugs)}`);
+      expect(config).toContain(`./seed/${seedFileName(slug, slugs, declared)}`);
     }
     expect(config).not.toContain('chart_be');
+  });
+
+  // The numbers that shipped in v0.2.0 and in the release after it. A pack
+  // renamed here is a file an installation already holds, renamed by a
+  // release — which the seeds survive, because they upsert, and which nobody
+  // reading `supabase/config.toml` a year later would understand.
+  it('keep the number they shipped with, whatever is added beside them', async () => {
+    const slugs = await listPacks(packs);
+    const declared = await declaredSeedSequences(packs);
+    expect(seedFileName('be', slugs, declared)).toBe('10_pack_be.sql');
+    expect(seedFileName('fr', slugs, declared)).toBe('11_pack_fr.sql');
+    expect(seedFileName('lu', slugs, declared)).toBe('12_pack_lu.sql');
+  });
+
+  it('take the number the pack declares, and nothing else', () => {
+    // Not the alphabetical rank: `zz` sorts last and carries 10.
+    expect(
+      seedFileNames(
+        ['aa', 'zz'],
+        new Map([
+          ['aa', 42],
+          ['zz', 10],
+        ]),
+      ),
+    ).toEqual(
+      new Map([
+        ['aa', '42_pack_aa.sql'],
+        ['zz', '10_pack_zz.sql'],
+      ]),
+    );
+  });
+
+  it('refuse a pack that declares no number, and two that declare one', () => {
+    expect(() => seedFileNames(['aa', 'zz'], new Map([['aa', 10]]))).toThrow(
+      /seed_sequence_missing: packs\/zz/,
+    );
+    expect(() =>
+      seedFileNames(
+        ['aa', 'zz'],
+        new Map([
+          ['aa', 12],
+          ['zz', 12],
+        ]),
+      ),
+    ).toThrow(/seed_sequence_conflict/);
   });
 });
 
@@ -324,7 +374,7 @@ describe('the pack format', () => {
       expect(['maintained', 'community']).toContain(pack.manifest.certification?.status);
       expect(pack.manifest.certification?.by, 'only a review names someone').toBeUndefined();
       expect((pack.manifest.certification?.sources ?? []).length).toBeGreaterThan(0);
-      expect(pack.accounts.length).toBeGreaterThan(300);
+      expect(pack.accounts.length).toBeGreaterThan(100);
     }
   });
 

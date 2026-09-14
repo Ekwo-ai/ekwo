@@ -26,7 +26,15 @@ import {
   frameworkSeedFileName,
   seedFileName,
 } from '../pack/compile.js';
-import { GENERIC_PACK, listPacks, packsDir, readFrameworkPack, readPack, seedOutputDir } from '../pack/read.js';
+import {
+  GENERIC_PACK,
+  declaredSeedSequences,
+  listPacks,
+  packsDir,
+  readFrameworkPack,
+  readPack,
+  seedOutputDir,
+} from '../pack/read.js';
 import { bold, dim, fail, heading, line, note, pairs, skipped, step, warn, yellow } from '../ui.js';
 
 export const PACK_FLAGS = [...CONNECTION_FLAGS, 'all', 'yes', 'apply', 'country', 'json'] as const;
@@ -92,6 +100,10 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
   }
 
   const wanted = selection(args, available);
+  // The number a pack's seed carries is the pack's own, and a number that has
+  // shipped never moves — so it is read from every manifest of the checkout
+  // before any file is named, and nothing sorts anything.
+  const declared = await declaredSeedSequences(dir);
   const seedDir = seedOutputDir();
   let stale = 0;
 
@@ -121,7 +133,7 @@ export async function packCommand(args: ParsedArgs): Promise<number> {
 
   for (const slug of wanted.filter((s) => s !== GENERIC_PACK)) {
     const pack = await readPack(slug, dir);
-    const file = seedFileName(slug, available);
+    const file = seedFileName(slug, available, declared);
     const sql = compilePack(pack);
     const path = join(seedDir, file);
     const current = await readFile(path, 'utf8').catch(() => undefined);

@@ -82,6 +82,22 @@ describe('the statements the packs carry', () => {
       { code: 'BE-BNB-ABBR-AF', country: 'BE', chart_code: 'default', kind: 'allocation', lines: 6, rules: 7 },
       { code: 'BE-BNB-ABBR-BS', country: 'BE', chart_code: 'default', kind: 'balance_sheet', lines: 31, rules: 26 },
       { code: 'BE-BNB-ABBR-IS', country: 'BE', chart_code: 'default', kind: 'income_statement', lines: 16, rules: 14 },
+      {
+        code: 'EE-RPS-BS',
+        country: 'EE',
+        chart_code: 'default',
+        kind: 'balance_sheet',
+        lines: 50,
+        rules: 46,
+      },
+      {
+        code: 'EE-RPS-IS1',
+        country: 'EE',
+        chart_code: 'default',
+        kind: 'income_statement',
+        lines: 22,
+        rules: 21,
+      },
       { code: 'FR-2050', country: 'FR', chart_code: 'default', kind: 'balance_sheet', lines: 63, rules: 100 },
       { code: 'FR-2052', country: 'FR', chart_code: 'default', kind: 'income_statement', lines: 49, rules: 51 },
       { code: 'IFRS-SME-BS', country: null, chart_code: null, kind: 'balance_sheet', lines: 18, rules: 17 },
@@ -759,7 +775,7 @@ describe('replaying the seeds', () => {
       return out;
     };
     const before = await snapshot();
-    for (const file of ['05_framework_generic.sql', '10_pack_be.sql', '11_pack_fr.sql']) {
+    for (const file of ['05_framework_generic.sql', '10_pack_be.sql', '11_pack_fr.sql', '13_pack_ee.sql']) {
       await db.exec(await readFile(join(repoRoot, 'supabase', 'seed', file), 'utf8'));
     }
     expect(await snapshot()).toEqual(before);

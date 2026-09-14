@@ -353,6 +353,7 @@ export interface Manifest {
   name: string;
   version: string;
   schema_min: string;
+  seed_sequence: number;
   released_at?: string;
   certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
   defaults: {
@@ -451,6 +452,25 @@ export function packsDir(root = repoRootDir()): string {
 
 export function seedOutputDir(root = repoRootDir()): string {
   return join(root, 'supabase', 'seed');
+}
+
+/**
+ * The seed number each pack of a checkout declares, by slug.
+ *
+ * Read on its own, one field out of each manifest, rather than through
+ * `readPack`: naming the seed file of a pack must not depend on every other
+ * pack in the checkout being valid, or `ekwo pack build be` would fail because
+ * somebody's work in progress next door does not compile yet.
+ */
+export async function declaredSeedSequences(dir = packsDir()): Promise<Map<string, number>> {
+  const declared = new Map<string, number>();
+  for (const slug of await listPacks(dir)) {
+    const path = join(dir, slug, 'pack.json');
+    if (!existsSync(path)) continue;
+    const manifest = (await readJson(path)) as { seed_sequence?: unknown };
+    if (typeof manifest.seed_sequence === 'number') declared.set(slug, manifest.seed_sequence);
+  }
+  return declared;
 }
 
 /** The packs of this repository, by directory name, alphabetically. */

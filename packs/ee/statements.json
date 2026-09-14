@@ -1,0 +1,1066 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/statements",
+  "statements": [
+    {
+      "code": "EE-RPS-BS",
+      "kind": "balance_sheet",
+      "framework": "EE-GAAP",
+      "name": "Bilanss",
+      "valid_from": "2025-07-01",
+      "legal_reference": "Raamatupidamise seadus, lisa 1 — bilansiskeem, Riigikogu 18.09.2024 seaduse sõnastuses, kehtiv alates 01.07.2025; Raamatupidamise Toimkonna juhend RTJ 2 punktid 10–20",
+      "lines": [
+        {
+          "code": "1",
+          "name": "Kokku käibevarad",
+          "sequence": 10,
+          "is_total": true,
+          "plus": [
+            "1.1",
+            "1.2",
+            "1.3",
+            "1.4",
+            "1.5"
+          ]
+        },
+        {
+          "code": "1.1",
+          "parent": "1",
+          "name": "Raha",
+          "sequence": 20,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1000",
+              "code_to": "1099"
+            }
+          ]
+        },
+        {
+          "code": "1.2",
+          "parent": "1",
+          "name": "Finantsinvesteeringud",
+          "sequence": 30,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1100",
+              "code_to": "1199"
+            }
+          ]
+        },
+        {
+          "code": "1.3",
+          "parent": "1",
+          "name": "Nõuded ja ettemaksed",
+          "sequence": 40,
+          "is_total": true,
+          "plus": [
+            "1.3.1",
+            "1.3.2",
+            "1.3.3",
+            "1.3.4",
+            "1.3.5",
+            "1.3.6"
+          ]
+        },
+        {
+          "code": "1.3.1",
+          "parent": "1.3",
+          "name": "Nõuded ostjate vastu",
+          "sequence": 50,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1200",
+              "code_to": "1209"
+            }
+          ]
+        },
+        {
+          "code": "1.3.2",
+          "parent": "1.3",
+          "name": "Nõuded seotud osapoolte vastu",
+          "sequence": 60,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1220",
+              "code_to": "1229"
+            }
+          ]
+        },
+        {
+          "code": "1.3.3",
+          "parent": "1.3",
+          "name": "Maksude ettemaksed ja tagasinõuded",
+          "sequence": 70,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1210",
+              "code_to": "1219",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2310",
+              "side": "debit",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2311",
+              "side": "debit",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "1.3.4",
+          "parent": "1.3",
+          "name": "Laenunõuded",
+          "sequence": 80,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1230",
+              "code_to": "1239"
+            }
+          ]
+        },
+        {
+          "code": "1.3.5",
+          "parent": "1.3",
+          "name": "Muud nõuded",
+          "sequence": 90,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1240",
+              "code_to": "1249",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2490",
+              "side": "debit",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "1.3.6",
+          "parent": "1.3",
+          "name": "Ettemaksed",
+          "sequence": 100,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1250",
+              "code_to": "1269"
+            }
+          ]
+        },
+        {
+          "code": "1.4",
+          "parent": "1",
+          "name": "Varud",
+          "sequence": 110,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1300",
+              "code_to": "1399"
+            }
+          ]
+        },
+        {
+          "code": "1.5",
+          "parent": "1",
+          "name": "Bioloogilised varad",
+          "sequence": 120,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1400",
+              "code_to": "1499"
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Kokku põhivarad",
+          "sequence": 130,
+          "is_total": true,
+          "plus": [
+            "2.1",
+            "2.2",
+            "2.3",
+            "2.4",
+            "2.5",
+            "2.6",
+            "2.7"
+          ]
+        },
+        {
+          "code": "2.1",
+          "parent": "2",
+          "name": "Investeeringud tütar- ja sidusettevõtjatesse",
+          "sequence": 140,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1500",
+              "code_to": "1549"
+            }
+          ]
+        },
+        {
+          "code": "2.2",
+          "parent": "2",
+          "name": "Finantsinvesteeringud",
+          "sequence": 150,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1600",
+              "code_to": "1649"
+            }
+          ]
+        },
+        {
+          "code": "2.3",
+          "parent": "2",
+          "name": "Nõuded ja ettemaksed",
+          "sequence": 160,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1650",
+              "code_to": "1699"
+            }
+          ]
+        },
+        {
+          "code": "2.4",
+          "parent": "2",
+          "name": "Kinnisvarainvesteeringud",
+          "sequence": 170,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1700",
+              "code_to": "1749"
+            }
+          ]
+        },
+        {
+          "code": "2.5",
+          "parent": "2",
+          "name": "Materiaalsed põhivarad",
+          "sequence": 180,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1750",
+              "code_to": "1899"
+            }
+          ]
+        },
+        {
+          "code": "2.6",
+          "parent": "2",
+          "name": "Bioloogilised varad",
+          "sequence": 190,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1860",
+              "code_to": "1869"
+            }
+          ]
+        },
+        {
+          "code": "2.7",
+          "parent": "2",
+          "name": "Immateriaalsed põhivarad",
+          "sequence": 200,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "1900",
+              "code_to": "1999"
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "KOKKU VARAD",
+          "sequence": 210,
+          "is_total": true,
+          "plus": [
+            "1",
+            "2"
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Kokku lühiajalised kohustised",
+          "sequence": 220,
+          "is_total": true,
+          "plus": [
+            "4.1",
+            "4.2",
+            "4.3",
+            "4.4"
+          ]
+        },
+        {
+          "code": "4.1",
+          "parent": "4",
+          "name": "Laenukohustised",
+          "sequence": 230,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2000",
+              "code_to": "2099"
+            }
+          ]
+        },
+        {
+          "code": "4.2",
+          "parent": "4",
+          "name": "Võlad ja ettemaksed",
+          "sequence": 240,
+          "is_total": true,
+          "plus": [
+            "4.2.1",
+            "4.2.2",
+            "4.2.3",
+            "4.2.4",
+            "4.2.5",
+            "4.2.6"
+          ]
+        },
+        {
+          "code": "4.2.1",
+          "parent": "4.2",
+          "name": "Võlad tarnijatele",
+          "sequence": 250,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2100",
+              "code_to": "2199"
+            }
+          ]
+        },
+        {
+          "code": "4.2.2",
+          "parent": "4.2",
+          "name": "Võlad töövõtjatele",
+          "sequence": 260,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2200",
+              "code_to": "2299"
+            }
+          ]
+        },
+        {
+          "code": "4.2.3",
+          "parent": "4.2",
+          "name": "Maksuvõlad",
+          "sequence": 270,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2320",
+              "code_to": "2399",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2310",
+              "side": "credit",
+              "sequence": 20
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2311",
+              "side": "credit",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "4.2.4",
+          "parent": "4.2",
+          "name": "Muud võlad",
+          "sequence": 280,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2400",
+              "code_to": "2489",
+              "sequence": 10
+            },
+            {
+              "kind": "account_code",
+              "code_from": "2490",
+              "side": "credit",
+              "sequence": 20
+            }
+          ]
+        },
+        {
+          "code": "4.2.5",
+          "parent": "4.2",
+          "name": "Tulevaste perioodide tulud",
+          "sequence": 290,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2510",
+              "code_to": "2519"
+            }
+          ]
+        },
+        {
+          "code": "4.2.6",
+          "parent": "4.2",
+          "name": "Muud saadud ettemaksed",
+          "sequence": 300,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2500",
+              "code_to": "2509"
+            }
+          ]
+        },
+        {
+          "code": "4.3",
+          "parent": "4",
+          "name": "Eraldised",
+          "sequence": 310,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2600",
+              "code_to": "2699"
+            }
+          ]
+        },
+        {
+          "code": "4.4",
+          "parent": "4",
+          "name": "Sihtfinantseerimine",
+          "sequence": 320,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2700",
+              "code_to": "2749"
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Kokku pikaajalised kohustised",
+          "sequence": 330,
+          "is_total": true,
+          "plus": [
+            "5.1",
+            "5.2",
+            "5.3",
+            "5.4"
+          ]
+        },
+        {
+          "code": "5.1",
+          "parent": "5",
+          "name": "Laenukohustised",
+          "sequence": 340,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2750",
+              "code_to": "2759"
+            }
+          ]
+        },
+        {
+          "code": "5.2",
+          "parent": "5",
+          "name": "Võlad ja ettemaksed",
+          "sequence": 350,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2760",
+              "code_to": "2769"
+            }
+          ]
+        },
+        {
+          "code": "5.3",
+          "parent": "5",
+          "name": "Eraldised",
+          "sequence": 360,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2770",
+              "code_to": "2779"
+            }
+          ]
+        },
+        {
+          "code": "5.4",
+          "parent": "5",
+          "name": "Sihtfinantseerimine",
+          "sequence": 370,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2780",
+              "code_to": "2789"
+            }
+          ]
+        },
+        {
+          "code": "6",
+          "name": "Kokku kohustised",
+          "sequence": 380,
+          "is_total": true,
+          "plus": [
+            "4",
+            "5"
+          ]
+        },
+        {
+          "code": "7",
+          "name": "Kokku omakapital",
+          "sequence": 390,
+          "is_total": true,
+          "plus": [
+            "7.1",
+            "7.2",
+            "7.3",
+            "7.4",
+            "7.5",
+            "7.6",
+            "7.7",
+            "7.8",
+            "7.9",
+            "7.10"
+          ]
+        },
+        {
+          "code": "7.1",
+          "parent": "7",
+          "name": "Aktsiakapital või osakapital nimiväärtuses",
+          "sequence": 400,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2900",
+              "code_to": "2904"
+            }
+          ]
+        },
+        {
+          "code": "7.2",
+          "parent": "7",
+          "name": "Registreerimata aktsiakapital või osakapital",
+          "sequence": 410,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2905",
+              "code_to": "2909"
+            }
+          ]
+        },
+        {
+          "code": "7.3",
+          "parent": "7",
+          "name": "Sissemaksmata osakapital",
+          "sequence": 420,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2910",
+              "code_to": "2919"
+            }
+          ]
+        },
+        {
+          "code": "7.4",
+          "parent": "7",
+          "name": "Ülekurss",
+          "sequence": 430,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2920",
+              "code_to": "2929"
+            }
+          ]
+        },
+        {
+          "code": "7.5",
+          "parent": "7",
+          "name": "Oma aktsiad või osad",
+          "sequence": 440,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2930",
+              "code_to": "2939"
+            }
+          ]
+        },
+        {
+          "code": "7.6",
+          "parent": "7",
+          "name": "Kohustuslik reservkapital",
+          "sequence": 450,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2940",
+              "code_to": "2949"
+            }
+          ]
+        },
+        {
+          "code": "7.7",
+          "parent": "7",
+          "name": "Muud reservid",
+          "sequence": 460,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2950",
+              "code_to": "2959"
+            }
+          ]
+        },
+        {
+          "code": "7.8",
+          "parent": "7",
+          "name": "Muu omakapital",
+          "sequence": 470,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2960",
+              "code_to": "2969"
+            }
+          ]
+        },
+        {
+          "code": "7.9",
+          "parent": "7",
+          "name": "Eelmiste perioodide jaotamata kasum (kahjum)",
+          "sequence": 480,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2970",
+              "code_to": "2979"
+            }
+          ]
+        },
+        {
+          "code": "7.10",
+          "parent": "7",
+          "name": "Aruandeaasta kasum (kahjum)",
+          "sequence": 490,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "2980",
+              "code_to": "2989"
+            }
+          ]
+        },
+        {
+          "code": "8",
+          "name": "KOKKU KOHUSTISED JA OMAKAPITAL",
+          "sequence": 500,
+          "is_total": true,
+          "plus": [
+            "6",
+            "7"
+          ]
+        }
+      ]
+    },
+    {
+      "code": "EE-RPS-IS1",
+      "kind": "income_statement",
+      "framework": "EE-GAAP",
+      "name": "Kasumiaruanne, skeem 1",
+      "valid_from": "2025-07-01",
+      "legal_reference": "Raamatupidamise seadus, lisa 2 — kasumiaruande skeem 1, kulud liigendatud kululiikide järgi; Raamatupidamise Toimkonna juhend RTJ 2 punktid 21–33. Skeem 2 liigendab ärikulud funktsiooni järgi ja seda pakk ei kanna: RTJ 2 punkt 22 ütleb, et skeemi 1 on üldjuhul lihtsam rakendada ja väiksemad ettevõtjad kasutavad seda sageli, ning punkt 24 nõuab skeemi vahetamisel võrdlusperioodi ümberarvestamist.",
+      "lines": [
+        {
+          "code": "1",
+          "name": "Müügitulu",
+          "sequence": 10,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3000",
+              "code_to": "3099"
+            }
+          ]
+        },
+        {
+          "code": "2",
+          "name": "Muud äritulud",
+          "sequence": 20,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3100",
+              "code_to": "3149"
+            }
+          ]
+        },
+        {
+          "code": "3",
+          "name": "Põllumajandusliku toodangu varude jääkide muutus",
+          "sequence": 30,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3150",
+              "code_to": "3169"
+            }
+          ]
+        },
+        {
+          "code": "4",
+          "name": "Kasum (kahjum) bioloogilistelt varadelt",
+          "sequence": 40,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3170",
+              "code_to": "3189"
+            }
+          ]
+        },
+        {
+          "code": "5",
+          "name": "Valmis- ja lõpetamata toodangu varude jääkide muutus",
+          "sequence": 50,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3200",
+              "code_to": "3249"
+            }
+          ]
+        },
+        {
+          "code": "6",
+          "name": "Kapitaliseeritud väljaminekud oma tarbeks põhivarade valmistamisel",
+          "sequence": 60,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3250",
+              "code_to": "3299"
+            }
+          ]
+        },
+        {
+          "code": "7",
+          "name": "Kaubad, toore, materjal ja teenused",
+          "sequence": 70,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4000",
+              "code_to": "4099"
+            }
+          ]
+        },
+        {
+          "code": "8",
+          "name": "Mitmesugused tegevuskulud",
+          "sequence": 80,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4100",
+              "code_to": "4699"
+            }
+          ]
+        },
+        {
+          "code": "9",
+          "name": "Tööjõukulud",
+          "sequence": 90,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4700",
+              "code_to": "4799"
+            }
+          ]
+        },
+        {
+          "code": "10",
+          "name": "Põhivarade kulum ja väärtuse langus",
+          "sequence": 100,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4800",
+              "code_to": "4849"
+            }
+          ]
+        },
+        {
+          "code": "11",
+          "name": "Olulised käibevara allahindlused",
+          "sequence": 110,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4850",
+              "code_to": "4879"
+            }
+          ]
+        },
+        {
+          "code": "12",
+          "name": "Muud ärikulud",
+          "sequence": 120,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4900",
+              "code_to": "4949"
+            }
+          ]
+        },
+        {
+          "code": "13",
+          "name": "Kokku ärikasum (-kahjum)",
+          "sequence": 130,
+          "is_total": true,
+          "plus": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ],
+          "minus": [
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12"
+          ]
+        },
+        {
+          "code": "14",
+          "name": "Kasum (kahjum) tütarettevõtjatelt",
+          "sequence": 140,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3830",
+              "code_to": "3839"
+            }
+          ]
+        },
+        {
+          "code": "15",
+          "name": "Kasum (kahjum) sidusettevõtjatelt",
+          "sequence": 150,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3840",
+              "code_to": "3849"
+            }
+          ]
+        },
+        {
+          "code": "16",
+          "name": "Kasum (kahjum) finantsinvesteeringutelt",
+          "sequence": 160,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3810",
+              "code_to": "3819"
+            }
+          ]
+        },
+        {
+          "code": "17",
+          "name": "Intressitulud",
+          "sequence": 170,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3800",
+              "code_to": "3809"
+            }
+          ]
+        },
+        {
+          "code": "18",
+          "name": "Intressikulud",
+          "sequence": 180,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4950",
+              "code_to": "4959"
+            }
+          ]
+        },
+        {
+          "code": "19",
+          "name": "Muud finantstulud ja -kulud",
+          "sequence": 190,
+          "sign": -1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "3820",
+              "code_to": "3829",
+              "sequence": 10
+            },
+            {
+              "kind": "code_range",
+              "code_from": "3850",
+              "code_to": "3899",
+              "sequence": 20
+            },
+            {
+              "kind": "code_range",
+              "code_from": "4960",
+              "code_to": "4979",
+              "sequence": 30
+            }
+          ]
+        },
+        {
+          "code": "20",
+          "name": "Kasum (kahjum) enne tulumaksustamist",
+          "sequence": 200,
+          "is_total": true,
+          "plus": [
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "19"
+          ],
+          "minus": [
+            "18"
+          ]
+        },
+        {
+          "code": "21",
+          "name": "Tulumaks",
+          "sequence": 210,
+          "sign": 1,
+          "rules": [
+            {
+              "kind": "code_range",
+              "code_from": "4990",
+              "code_to": "4999"
+            }
+          ]
+        },
+        {
+          "code": "22",
+          "name": "Aruandeaasta kasum (kahjum)",
+          "sequence": 220,
+          "is_total": true,
+          "plus": [
+            "20"
+          ],
+          "minus": [
+            "21"
+          ]
+        }
+      ]
+    }
+  ]
+}

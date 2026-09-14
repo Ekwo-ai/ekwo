@@ -75,7 +75,10 @@ describe('the columns of the generalised engine', () => {
       db,
       `select country, code from tax_templates where not recoverable order by country, code`,
     );
-    expect(notRecoverable).toEqual([{ country: 'BE', code: 'BE-P-21-ND' }]);
+    expect(notRecoverable).toEqual([
+      { country: 'BE', code: 'BE-P-21-ND' },
+      { country: 'EE', code: 'EE-P-ND-24' },
+    ]);
   });
 
   it('carries the rounding rule of a country, which is half away from zero in both', async () => {
@@ -86,6 +89,7 @@ describe('the columns of the generalised engine', () => {
     );
     expect(defaults).toEqual([
       { country: 'BE', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
+      { country: 'EE', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
       { country: 'FR', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
       { country: 'LU', rounding_method: 'half_up', cash_rounding_unit: '0.0000' },
     ]);

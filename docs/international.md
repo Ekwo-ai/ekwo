@@ -24,10 +24,9 @@ under [`packages/formats/`](../packages/formats/), organised by format and
 never by country.
 
 **No function of the core holds a country code, and a test enforces it.**
-Belgium and France are two directories under [`packs/`](../packs/) and two
-compiled seeds, each carrying a year of books and the figures it produces. What
-the core does not yet have is a third pack — which is the point of the phases
-below, and the reason the format was settled before any of them.
+Belgium, Estonia, France and Luxembourg are four directories under
+[`packs/`](../packs/) and four compiled seeds, each carrying a year of books
+and the figures it produces.
 
 ## What an international core needs and does not have
 
@@ -181,6 +180,14 @@ The original six-item list, for the record:
 
 ### Phase 1 — first wave (first quarter of 2027)
 
+- **Estonia** — **done, 14 September 2026**, and out of order: a small VAT
+  system with a rate that moved twice in eighteen months, no legal chart of
+  accounts, and a return that nests its boxes. It was picked to test the format
+  against a country nobody designed it for, and the six gaps below are what it
+  returned. A seventh — that a seed's file name was the country's alphabetical
+  rank, so adding one renamed the seeds of every country after it — was fixed
+  rather than recorded, because leaving it would have meant shipping the
+  damage.
 - **United Kingdom and Ireland** — a Xero-style chart, VAT boxes 1 to 9,
   FRS 102 mapping, tax point; MTD VAT submission in the commercial layer.
 - **Canada and Québec** — GST, HST and QST stacked per line, PST as a
@@ -227,8 +234,34 @@ and enough contributed packs for the question to be interesting.
 | Country | Pack | Status | Out of scope, and why |
 |---|---|---|---|
 | Belgium | `packs/be/` | `maintained` | — |
+| Estonia | `packs/ee/` | `community` | KMD INF, the § 44 cash-accounting scheme, the fixed-asset rules, the XBRL fact keys of the annual report, and versions of form KMD before 1 July 2025 |
 | France | `packs/fr/` | `maintained` | — |
 | Luxembourg | `packs/lu/` | `community` | the eCDF XML of a filing, the FAIA audit file, the annual VAT return, the special regimes, and corporate income tax |
+
+### Estonia
+
+Written from the outside in, against a country nobody had designed the format
+for, and picked because it is small enough to finish and awkward enough to be
+interesting: a standard rate that moved twice in eighteen months, a reduced
+rate that went 9 %, 5 % and 9 % again, a return whose boxes nest three deep,
+and **no legal chart of accounts at all**.
+
+It carries an original chart of 120 accounts, 29 taxes with the rate history
+back to 2009, form KMD as it stands since 1 July 2025, and the balance sheet
+and income statement scheme 1 of the annual report. Three things are worth
+knowing beyond the pack's own [`README`](../packs/ee/README.md):
+
+- **The chart is written, not transcribed.** The Accounting Act obliges every
+  entity to draw up its own, so there is no text to copy. The pack follows the
+  convention Estonian practice shares — four digits, four classes, equity
+  inside class 2 — and blocks the codes so each range maps onto one line of the
+  statutory schemes.
+- **No tax provision is booked at the close, and that is the law.** Estonia
+  taxes distributed profit, not earned profit. `closing_style` is
+  `result_accounts` because the statutory balance sheet keeps the year's result
+  on a line of its own until the shareholders allocate it.
+- **It is `community`.** Nobody who files an Estonian return has read it, and
+  the pack's README ends on the four points a reviewer should look at first.
 
 ### Luxembourg
 
@@ -255,7 +288,9 @@ Three things about it are worth knowing beyond the pack's own
   notes, and the `tax` module. The first of those is a format library and not a
   pack; the rest wait for somebody who files them.
 
-## What Luxembourg showed the core could not say
+## What a new country shows the core cannot say
+
+### From Luxembourg
 
 A country pack is a test of the format as much as of the country. Four things
 the Luxembourg pack had to work around, with what would fix each. **None is
@@ -296,6 +331,73 @@ amount of a sale twice — as turnover in section I, and in the rate breakdown o
 section II. The pack expresses the second as a total computed from the first,
 which is one definition instead of two and is the better shape. The walkthrough
 in [`packs.md`](packs.md) should say so where a country meets it.
+
+### From Estonia
+
+None of these blocked the pack. Each one made it say something less precise
+than the law does, and each is a change to the core rather than to a pack.
+
+**A fact key cannot be a plain element name, and a taxonomy version cannot be a
+date.** `ekwo pack check` requires an `xbrl` key to be a metric plus at least
+one domain member, each part lower case, because the Belgian CBSO taxonomy is
+dimensional; and it requires `taxonomy` to read `<name>:<dotted number>`. The
+Estonian `et-gaap` taxonomy names the lines of its primary statements with
+plain, undimensioned concepts — `et-gaap:CashAndCashEquivalents` — and versions
+itself by date, `et-gaap_2026-01-01`. *Fix*: accept a single-part key, allow a
+hyphen in the prefix and mixed case in the local name, and widen the version to
+any sequence of letters, digits, dots and hyphens. *Until then*: the Estonian
+statements carry no fact keys at all, because a wrong key is worse than none,
+and no filing brick can read them.
+
+**A declaration form whose boxes nest cannot be expressed directly.** A tax
+carries one `base` posting per kind of document, so it reports to one box. Form
+KMD asks for the same amount in a box, in the memo box inside that one, and
+sometimes in a third: an intra-Community acquisition is box 1, box 6 and box
+6.1 at once. *Fix*: let a `base` posting name several boxes, or add a posting
+type that reports to a box and writes nothing to the ledger. *Until then*: the
+Estonian pack posts to the innermost box, adds six `hidden` leaf boxes for the
+parts the form prints only as a difference, and rebuilds every printed parent
+as a total. It is exact, and it is six boxes a reader has to be told about.
+
+**There is no treatment for a service received from outside the Union.** The
+`treatment` vocabulary has `intracom_acquisition_services` for a supplier in
+another Member State and `import` for goods, and nothing for the general
+business-to-business rule applied to a third-country supplier — which every EU
+country needs. *Fix*: add `import_services`. *Until then*: Estonia declares
+that tax `import`, which is imprecise and is flagged for the reviewer.
+
+**A country that keeps one account for both signs of the year's result has to
+name it twice.** `retained_earnings_loss` may be null and falls back to
+`retained_earnings`; `current_year_result_loss` has no such fallback, and
+`result_accounts` closing requires both. The Estonian balance sheet has one
+line, *Aruandeaasta kasum (kahjum)*, and Estonian practice one account. *Fix*:
+let `current_year_result_loss` fall back to `current_year_result_profit`, as
+its sibling already does. *Until then*: the manifest names `2980` twice.
+
+**An e-invoicing obligation that depends on the buyer cannot be said.**
+`einvoicing.mandatory_from` is a date and nothing else, so a pack can say "from
+this day everyone is bound" or say nothing. Since 1 July 2025 an Estonian
+seller must issue an e-invoice when the buyer is registered in the commercial
+register as an e-invoice recipient and asks for one; there is no day on which
+everyone is bound. *Fix*: an `obligation` field beside the date, with a closed
+vocabulary — `none`, `on_buyer_request`, `reception`, `emission`. *Until then*:
+Estonia leaves `mandatory_from` null and puts the rule in the legal reference,
+so a reader asking whether e-invoicing is obligatory there is told nothing
+rather than told wrongly.
+
+**A box of a declaration is a monetary amount.** Boxes 5.3 and 5.4 of form KMD
+each carry a number of cars beside the amount deducted. No fix is proposed
+here: a count comes from somewhere other than the ledger, and where that is
+belongs to a longer conversation than this list. *Until then*: the Estonian
+pack declares the two amounts and not the two counts, and says so.
+
+One of Luxembourg's four turned up again, which is the answer to whether it was
+a Luxembourg problem: **`sequence` on a declaration box means print order
+and evaluation order at once**. Box 1 of form KMD is printed first and is a
+total of boxes printed after it. Estonia escapes because the rule only
+constrains a total that names another total, and box 1 names base boxes — but
+it escapes by luck, and the fix Luxembourg proposes is the fix.
+
 
 ## Decisions taken with the plan
 

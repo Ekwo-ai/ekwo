@@ -4,6 +4,7 @@
   "name": "France",
   "version": "1.6.1",
   "schema_min": "20260913114535",
+  "seed_sequence": 11,
   "released_at": "2026-09-14",
   "certification": {
     "status": "maintained",

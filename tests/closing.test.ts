@@ -787,6 +787,15 @@ describe('the three functions', () => {
         opening_journal_code: 'OPN',
       },
       {
+        // Estonia keeps one balance-sheet line for the result of the year, so
+        // the pack names one account for both signs.
+        country: 'EE',
+        closing_style: 'result_accounts',
+        profit: '2980',
+        loss: '2980',
+        opening_journal_code: 'ALG',
+      },
+      {
         country: 'FR',
         closing_style: 'result_accounts',
         profit: '120000',

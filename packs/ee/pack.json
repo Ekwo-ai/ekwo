@@ -1,0 +1,166 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "country": "EE",
+  "name": "Estonia",
+  "version": "1.0.0",
+  "schema_min": "20260913114535",
+  "seed_sequence": 13,
+  "released_at": "2026-09-14",
+  "certification": {
+    "status": "community",
+    "sources": [
+      "Käibemaksuseadus (KMS) § 15 — käibemaksumäärad, konsolideeritud tekst RT I, 30.12.2025, 21",
+      "Käibemaksuseadus § 3 lõiked 4 ja 6, § 29, § 31 ja § 41¹ — pöördmaksustamine ja sisendkäibemaksu mahaarvamine",
+      "Käibemaksuseadus § 30 lõiked 1–9 — sisendkäibemaksu mahaarvamise piirangud, sõiduauto 50 protsenti",
+      "Käibemaksuseadus § 37 — arvele märgitavad andmed ja kohustuslikud märked",
+      "Käibemaksuseadus § 27 — maksustamisperiood ja käibedeklaratsioon",
+      "Rahandusministri 10.06.2014 määrus nr 17 „Käibedeklaratsiooni vorm“, lisa 1 (rahandusministri 14.05.2025 määruse nr 20 sõnastuses), kehtiv alates 01.07.2025",
+      "Raamatupidamise seadus (RPS) § 8 ja § 11 — kontoplaan ja raamatupidamise sise-eeskiri",
+      "Raamatupidamise seadus, lisa 1 — bilansiskeem (Riigikogu 18.09.2024 seaduse sõnastuses, kehtiv alates 01.07.2025)",
+      "Raamatupidamise seadus, lisa 2 — kasumiaruande skeemid, skeem 1",
+      "Raamatupidamise Toimkonna juhend RTJ 2 „Nõuded informatsiooni esitusviisile raamatupidamise aastaaruandes“",
+      "Raamatupidamise seadus § 7¹ lõige 7 — e-arve nõudmise õigus alates 01.07.2025 ja Euroopa standard EN 16931-1",
+      "Võlaõigusseadus § 82¹, § 113 ja § 113¹ — maksetähtaeg, viivis ja sissenõudmiskulude hüvitis"
+    ]
+  },
+  "defaults": {
+    "currency": "EUR",
+    "language": "et",
+    "rounding_method": "half_up",
+    "closing_style": "result_accounts",
+    "roles": {
+      "receivable": "1200",
+      "payable": "2100",
+      "suspense": "2490",
+      "rounding": "4920",
+      "retained_earnings": "2970",
+      "current_year_result_profit": "2980",
+      "current_year_result_loss": "2980",
+      "sales": "3000",
+      "purchase": "4000",
+      "bank": "1010",
+      "cash": "1000",
+      "fx_gain": "3850",
+      "fx_loss": "4970"
+    },
+    "journal_roles": {
+      "sales": "MUU",
+      "purchase": "OST",
+      "miscellaneous": "MIS",
+      "opening": "ALG"
+    },
+    "fiscal_year_default": "calendar"
+  },
+  "languages": ["en"],
+  "journals": [
+    {
+      "code": "MUU",
+      "type": "sales",
+      "name": "Müügipäevik",
+      "sequence": 10
+    },
+    {
+      "code": "OST",
+      "type": "purchase",
+      "name": "Ostupäevik",
+      "sequence": 20
+    },
+    {
+      "code": "PNK",
+      "type": "bank",
+      "name": "Pangapäevik",
+      "sequence": 30
+    },
+    {
+      "code": "KAS",
+      "type": "cash",
+      "name": "Kassapäevik",
+      "sequence": 40
+    },
+    {
+      "code": "MIS",
+      "type": "general",
+      "name": "Muud kanded",
+      "sequence": 50
+    },
+    {
+      "code": "ALG",
+      "type": "opening",
+      "name": "Algsaldode päevik",
+      "sequence": 60
+    }
+  ],
+  "charts": [
+    {
+      "code": "default",
+      "name": "Eesti väikeettevõtja kontoplaan",
+      "accounts": "accounts.csv",
+      "default": true,
+      "audience": "companies",
+      "statements": ["EE-RPS-BS", "EE-RPS-IS1"],
+      "legal_reference": "Raamatupidamise seadus § 8 — Eestis ei ole seadusega kehtestatud kontoplaani, vaid iga raamatupidamiskohustuslane koostab oma kontoplaani. Käesolev kontoplaan on originaalne ja järgib Eesti tava nelja klassi ning neljakohaliste kontonumbritega, liigendatuna raamatupidamise seaduse lisade 1 ja 2 kirjete järgi."
+    }
+  ],
+  "documents": {
+    "numbering": "sequential",
+    "number_format": "{CODE}-{YYYY}-{NNNN}",
+    "legal_payment_days": 30,
+    "late_payment_reference": "Võlaõigusseadus § 113 lõige 1 — viivis on § 94 alusel poolaastati avaldatav Euroopa Keskpanga põhirefinantseerimisoperatsioonide intressimäär, mida on suurendatud kaheksa protsendipunkti võrra; § 113¹ lõige 1 — sissenõudmiskulude hüvitis 40 eurot",
+    "tax_point": "delivery_date",
+    "mentions": [
+      {
+        "code": "reverse_charge",
+        "applies_when": "reverse_charge",
+        "text": "Pöördmaksustamine",
+        "sequence": 10,
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 — märge „pöördmaksustamine“ on seaduses sätestatud sõnastuses ja seda ei saa § 37 lõike 8¹ alusel muu märkega asendada"
+      },
+      {
+        "code": "intracom_goods",
+        "applies_when": "intra_eu_goods",
+        "text": "Kauba ühendusesisene käive, maksustatav 0% määraga — KMS § 15 lg 3 p 2; nõukogu direktiivi 2006/112/EÜ artikkel 138.",
+        "sequence": 20,
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — nullmääraga maksustatava käibe puhul viide § 15 lõike 3 vastavale punktile või direktiivi artiklile 138"
+      },
+      {
+        "code": "intracom_services",
+        "applies_when": "intra_eu_services",
+        "text": "Pöördmaksustamine — käibemaksu tasub teenuse saaja. Nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196.",
+        "sequence": 30,
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 koostoimes § 10 lõikega 1 — teenuse käibe tekkimise koht ei ole Eesti ja maksu tasub saaja"
+      },
+      {
+        "code": "exempt",
+        "applies_when": "exempt",
+        "text": "Maksuvaba käive — KMS § 16.",
+        "sequence": 40,
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — maksuvaba käibe puhul viide § 16 vastavale lõikele ja punktile"
+      },
+      {
+        "code": "small_business",
+        "applies_when": "small_business",
+        "text": "Käibemaksu ei lisata — väikeettevõtja ei ole maksukohustuslasena registreeritud (KMS § 19).",
+        "sequence": 50,
+        "legal_reference": "Käibemaksuseadus § 19 lõige 1 — registreerimiskohustus tekib, kui maksustatav käive ületab kalendriaasta algusest arvates 40 000 eurot"
+      },
+      {
+        "code": "late_payment",
+        "applies_when": "late_payment",
+        "text": "Tasumisega viivitamise korral on müüjal õigus nõuda viivist võlaõigusseaduse § 113 lõikes 1 sätestatud määras ning sissenõudmiskulude hüvitist 40 eurot.",
+        "sequence": 60,
+        "legal_reference": "Võlaõigusseadus § 113 lõige 1 ja § 113¹ lõige 1"
+      }
+    ]
+  },
+  "einvoicing": {
+    "profile": "peppol-bis-3",
+    "party_scheme": "0191",
+    "vat_scheme": "9931",
+    "legal_reference": "Raamatupidamise seadus § 7¹ lõige 7, kehtiv alates 01.07.2025 — äriregistris e-arve vastuvõtjaks märgitud raamatupidamiskohustuslane võib nõuda müüjalt e-arve esitamist, ja e-arve eeldatakse nõuetekohaseks, kui see vastab Euroopa standardile EN 16931-1; pooled võivad kokku leppida muu standardi kasutamises. Seadus ei kehtesta üldist e-arve kohustust ega ühtki tähtpäeva, mistõttu mandatory_from on tühi. Deklareeritud profiil peppol-bis-3 on EN 16931-1 kitsendus, mida Eesti operaatorid tegelikkuses vahetavad; see ei ole seadusest tulenev nõue. Riigisisene standard EVS 923 kaotas õigusliku aluse 01.07.2025, kui rahandusministri määrus „Masintöödeldava algdokumendi juhendi kehtestamine“ kehtetuks tunnistati.",
+    "mandatory_from": null
+  },
+  "bank": {
+    "statement_formats": ["camt.053", "camt.052"],
+    "payment_formats": ["pain.001"]
+  }
+}

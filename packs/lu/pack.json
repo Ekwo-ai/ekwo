@@ -4,6 +4,7 @@
   "name": "Luxembourg",
   "version": "1.0.0",
   "schema_min": "20260913114535",
+  "seed_sequence": 12,
   "released_at": "2026-09-14",
   "certification": {
     "status": "community",

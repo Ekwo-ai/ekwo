@@ -1,0 +1,205 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/golden",
+  "name": "Eesti käibemaksukohustuslasest kaubandus- ja teenindusettevõtja aasta",
+  "chart": "default",
+  "fiscal_year": { "name": "Majandusaasta 2026", "start": "2026-01-01", "end": "2026-12-31" },
+  "periods": [
+    { "code": "2026-01", "from": "2026-01-01", "to": "2026-01-31" },
+    { "code": "2026-02", "from": "2026-02-01", "to": "2026-02-28" },
+    { "code": "2026-03", "from": "2026-03-01", "to": "2026-03-31" },
+    { "code": "2026-04", "from": "2026-04-01", "to": "2026-04-30" }
+  ],
+  "statements": ["EE-RPS-BS", "EE-RPS-IS1"],
+  "contacts": [
+    { "ref": "klient-ee", "name": "Sinilille Kaubandus OÜ", "type": "customer", "country": "EE" },
+    { "ref": "klient-fi", "name": "Aurinkolahden Kauppa Oy", "type": "customer", "country": "FI" },
+    { "ref": "klient-us", "name": "Northwind Instruments Inc.", "type": "customer", "country": "US" },
+    { "ref": "tarnija-ee", "name": "Tammepuu Büroo OÜ", "type": "supplier", "country": "EE" },
+    { "ref": "tarnija-de", "name": "Nordlicht Bauteile GmbH", "type": "supplier", "country": "DE" },
+    { "ref": "tarnija-lt", "name": "Vilkas Studija UAB", "type": "supplier", "country": "LT" }
+  ],
+  "documents": [
+    {
+      "ref": "V1",
+      "type": "sale_invoice",
+      "contact": "klient-ee",
+      "date": "2026-01-15",
+      "why": "Riigisisene müük standardmääraga: lahter 1 kannab maksustatava väärtuse ja lahter 4 käibemaksu.",
+      "lines": [
+        { "name": "Kaup laost", "quantity": 10, "unit_price": 1000, "tax": "EE-S-24", "account": "3000" }
+      ]
+    },
+    {
+      "ref": "O1",
+      "type": "purchase_invoice",
+      "contact": "tarnija-ee",
+      "date": "2026-01-12",
+      "why": "Riigisisene kauba soetamine: kogu sisendkäibemaks läheb lahtrisse 5, ilma et vormil oleks ostu maksustatava väärtuse lahtrit.",
+      "lines": [
+        { "name": "Müügiks ostetud kaup", "quantity": 1, "unit_price": 3000, "tax": "EE-P-24-K", "account": "4000" }
+      ]
+    },
+    {
+      "ref": "V2",
+      "type": "sale_invoice",
+      "contact": "klient-ee",
+      "date": "2026-01-20",
+      "why": "Alandatud määr 9%: teine positiivne määr, mis eristab lahtrit 2 lahtrist 1.",
+      "lines": [
+        { "name": "Raamat", "quantity": 100, "unit_price": 12.5, "tax": "EE-S-09", "account": "3000" }
+      ]
+    },
+    {
+      "ref": "O2",
+      "type": "purchase_invoice",
+      "contact": "tarnija-de",
+      "date": "2026-01-25",
+      "why": "Kauba ühendusesisene soetamine: soetaja arvestab käibemaksu ise, nii et üks arve täidab lahtrid 6.1, 1, 4 ja 5 ning raamatupidamises tasandub.",
+      "lines": [
+        { "name": "Toorained", "quantity": 1, "unit_price": 2500, "tax": "EE-P-ICG-24", "account": "4010" }
+      ]
+    },
+    {
+      "ref": "V3",
+      "type": "sale_invoice",
+      "contact": "klient-ee",
+      "date": "2026-02-05",
+      "why": "Majutus 13%: alates 01.01.2025 oma lahter 2², mida enne kandis 9% lahter 2.",
+      "lines": [
+        { "name": "Majutus koos hommikusöögiga", "quantity": 20, "unit_price": 85, "tax": "EE-S-13-MAJ", "account": "3060" }
+      ]
+    },
+    {
+      "ref": "V4",
+      "type": "sale_invoice",
+      "contact": "klient-fi",
+      "date": "2026-02-10",
+      "why": "Kauba ühendusesisene käive 0%: lahter 3.1.1 ja selle kaudu lahtrid 3.1 ja 3.",
+      "lines": [
+        { "name": "Kaup Soome ostjale", "quantity": 1, "unit_price": 4200, "tax": "EE-S-00-ICG", "account": "3020" }
+      ]
+    },
+    {
+      "ref": "O3",
+      "type": "purchase_invoice",
+      "contact": "tarnija-lt",
+      "date": "2026-02-12",
+      "why": "Teenuse saamine teise liikmesriigi maksukohustuslaselt: pöördmaksustamise teine pool, lahtrid 6, 1, 4 ja 5.",
+      "lines": [
+        { "name": "Disainiteenus", "quantity": 1, "unit_price": 900, "tax": "EE-P-ICS-24", "account": "4020" }
+      ]
+    },
+    {
+      "ref": "V5",
+      "type": "sale_invoice",
+      "contact": "klient-fi",
+      "date": "2026-02-18",
+      "why": "Teenuse käive teise liikmesriigi maksukohustuslasele 0%: lahtri 3.1 teenuste osa, mida vorm eraldi ei trüki.",
+      "lines": [
+        { "name": "Konsultatsioon Soome ostjale", "quantity": 1, "unit_price": 1800, "tax": "EE-S-00-ICS", "account": "3030" }
+      ]
+    },
+    {
+      "ref": "O4",
+      "type": "purchase_invoice",
+      "contact": "tarnija-ee",
+      "date": "2026-02-26",
+      "why": "Osaliselt ettevõtluses kasutatava sõiduauto kulud: pool sisendkäibemaksust läheb lahtrisse 5.4 ja teine pool rea kontole kuluks.",
+      "lines": [
+        { "name": "Kütus ja hooldus", "quantity": 1, "unit_price": 400, "tax": "EE-P-SA-24-K", "account": "4130" }
+      ]
+    },
+    {
+      "ref": "V6",
+      "type": "sale_invoice",
+      "contact": "klient-us",
+      "date": "2026-03-03",
+      "why": "Kauba eksport 0%: lahter 3.2 ja selle kaudu lahter 3; arvele ei ole maksumäära alust vaja märkida.",
+      "lines": [
+        { "name": "Kaup ühendusevälisele ostjale", "quantity": 1, "unit_price": 6500, "tax": "EE-S-00-EXP", "account": "3040" }
+      ]
+    },
+    {
+      "ref": "O5",
+      "type": "purchase_invoice",
+      "contact": "tarnija-ee",
+      "date": "2026-03-10",
+      "why": "Põhivara soetamine: sisendkäibemaks läheb lahtrisse 5.2, mitte üldisesse ossa, ja rida ise bilanssi.",
+      "lines": [
+        { "name": "Seade", "quantity": 1, "unit_price": 8000, "tax": "EE-P-24-P", "account": "1770" }
+      ]
+    },
+    {
+      "ref": "V7",
+      "type": "sale_credit_note",
+      "contact": "klient-ee",
+      "date": "2026-03-20",
+      "why": "Kreeditarve standardmääraga: vähendab sama lahtrit, sest Eesti vormil ei ole kreeditarvete jaoks eraldi lahtrit.",
+      "lines": [
+        { "name": "Tagastatud kaup", "quantity": 1, "unit_price": 750, "tax": "EE-S-24", "account": "3000" }
+      ]
+    },
+    {
+      "ref": "O6",
+      "type": "purchase_invoice",
+      "contact": "tarnija-ee",
+      "date": "2026-03-25",
+      "why": "Teenuse soetamine, mis jääb aasta lõpuks tasumata: avatud kohustis, mida deklaratsioon peab taluma.",
+      "lines": [
+        { "name": "Õigusabi", "quantity": 1, "unit_price": 1200, "tax": "EE-P-24-T", "account": "4170" }
+      ]
+    },
+    {
+      "ref": "O7",
+      "type": "purchase_invoice",
+      "contact": "tarnija-ee",
+      "date": "2026-04-08",
+      "why": "Külaliste vastuvõtu kulu: mahaarvamisõigust ei ole, kogu käibemaks järgib rea kontot ja lahtrisse 5 ei jõua midagi.",
+      "lines": [
+        { "name": "Külaliste vastuvõtt", "quantity": 1, "unit_price": 250, "tax": "EE-P-ND-24", "account": "4210" }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "ref": "L1",
+      "direction": "inbound",
+      "date": "2026-02-20",
+      "amount": 12400,
+      "contact": "klient-ee",
+      "journal": "PNK",
+      "match": "V1",
+      "why": "Laekumine, mis katab arve sendi pealt."
+    },
+    {
+      "ref": "M1",
+      "direction": "outbound",
+      "date": "2026-02-24",
+      "amount": 3720,
+      "contact": "tarnija-ee",
+      "journal": "PNK",
+      "match": "O1",
+      "why": "Makse, mis sulgeb ostuarve."
+    },
+    {
+      "ref": "M2",
+      "direction": "outbound",
+      "date": "2026-03-06",
+      "amount": 496,
+      "contact": "tarnija-ee",
+      "journal": "PNK",
+      "match": "O4",
+      "why": "Sõidukikulude arve tasutakse täies ulatuses: piirang puudutab mahaarvamist, mitte tarnijale võlgnetavat summat."
+    },
+    {
+      "ref": "L2",
+      "direction": "inbound",
+      "date": "2026-03-30",
+      "amount": 2000,
+      "contact": "klient-ee",
+      "journal": "PNK",
+      "match": null,
+      "why": "Ettemaks ilma arveta: jääb avatuks, mida päris pearaamat ja sellest arvutatud deklaratsioon peavad taluma."
+    }
+  ]
+}

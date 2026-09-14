@@ -4,7 +4,7 @@
   "title": "Ekwo country pack, version 1",
   "description": "A country is data, not code. This file describes every document of packs/<cc>/: the manifest (the root of this schema), taxes.json, tax_report.json, statements.json, i18n/<lang>.json and the columns of accounts.csv. Nothing here is executable: there is no script field, and there will not be one. What a pack cannot express is a core issue, not a pack extension.",
   "type": "object",
-  "required": ["country", "name", "version", "schema_min", "defaults", "journals"],
+  "required": ["country", "name", "version", "schema_min", "seed_sequence", "defaults", "journals"],
   "additionalProperties": false,
   "properties": {
     "$schema": { "type": "string" },
@@ -21,6 +21,12 @@
       "type": "string",
       "pattern": "^[0-9]{14}$",
       "description": "Timestamp of the oldest migration this pack needs."
+    },
+    "seed_sequence": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 89,
+      "description": "The number this pack's compiled seed carries: `13` gives `supabase/seed/13_pack_ee.sql`. Immutable once published — the seeds are applied in file-name order and listed by name in supabase/config.toml, so a release that renamed one would rename a file an installation already holds. Take the first number no pack of the checkout has taken; `ekwo pack build` refuses two packs claiming one. It is declared rather than derived because the alphabetical rank it used to be moved every country after the one being added."
     },
     "released_at": { "$ref": "#/$defs/date", "description": "When this version of the pack was published. Recorded in country_packs." },
     "certification": { "$ref": "#/$defs/certification" },

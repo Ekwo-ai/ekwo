@@ -24,11 +24,54 @@
 import { describeCertification } from './certification.js';
 import type { FrameworkPack, Pack, PackStatement } from './read.js';
 
-/** `packs/be` → `10_pack_be.sql`, `packs/fr` → `11_pack_fr.sql`. */
-export function seedFileName(slug: string, allSlugs: readonly string[]): string {
-  const index = [...allSlugs].sort().indexOf(slug);
-  if (index === -1) throw new Error(`unknown_pack: ${slug}`);
-  return `${10 + index}_pack_${slug}.sql`;
+/**
+ * Which number each pack's compiled seed carries, by slug.
+ *
+ * **The number is the pack's own, and a number that has shipped never moves.**
+ * The seeds are applied in file-name order and are listed by name in
+ * `supabase/config.toml`, so a release that renamed one would rename a file an
+ * installation already holds — harmless, because the seeds upsert, and
+ * inexplicable to whoever reads the list a year later.
+ *
+ * It used to be the pack's rank in the alphabetical list of slugs, which is
+ * stable exactly until a country is added in the middle of it: inserting `ee`
+ * between `be` and `fr` moved France and Luxembourg one place each. So a pack
+ * **declares** its number, in `seed_sequence`, and nothing here sorts anything.
+ */
+export function seedFileNames(
+  allSlugs: readonly string[],
+  sequences: ReadonlyMap<string, number>,
+): Map<string, string> {
+  const names = new Map<string, string>();
+  const taken = new Map<number, string>();
+
+  for (const slug of allSlugs) {
+    const own = sequences.get(slug);
+    if (own === undefined) {
+      throw new Error(`seed_sequence_missing: packs/${slug} declares no seed_sequence`);
+    }
+    const other = taken.get(own);
+    if (other !== undefined) {
+      throw new Error(
+        `seed_sequence_conflict: packs/${other} and packs/${slug} both declare ${own}`,
+      );
+    }
+    taken.set(own, slug);
+    names.set(slug, `${own}_pack_${slug}.sql`);
+  }
+
+  return names;
+}
+
+/** `packs/be` → `10_pack_be.sql`, `packs/ee` → `13_pack_ee.sql`. */
+export function seedFileName(
+  slug: string,
+  allSlugs: readonly string[],
+  sequences: ReadonlyMap<string, number>,
+): string {
+  const file = seedFileNames(allSlugs, sequences).get(slug);
+  if (file === undefined) throw new Error(`unknown_pack: ${slug}`);
+  return file;
 }
 
 export function compilePack(pack: Pack): string {
@@ -61,11 +104,15 @@ export function compilePack(pack: Pack): string {
  * module, and a seed that half fails is a seed nobody can re-run. So the
  * module migration runner applies these, and only for the modules it installed.
  *
- * The numbering is the pack's own — `10_pack_be`, `11_pack_fr` — so the file
+ * The numbering is the pack's own — `10_pack_be`, `13_pack_ee` — so the file
  * of a country is recognisable wherever it sits.
  */
-export function moduleSeedFileName(slug: string, allSlugs: readonly string[]): string {
-  return seedFileName(slug, allSlugs);
+export function moduleSeedFileName(
+  slug: string,
+  allSlugs: readonly string[],
+  sequences: ReadonlyMap<string, number>,
+): string {
+  return seedFileName(slug, allSlugs, sequences);
 }
 
 /**

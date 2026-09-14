@@ -697,6 +697,15 @@ describe('the country data', () => {
         asset_disposal_value_code: null,
       },
       {
+        // Estonia ships no `assets.json`, so it names no disposal account of
+        // either style.
+        country: 'EE',
+        asset_disposal_gain_code: null,
+        asset_disposal_loss_code: null,
+        asset_disposal_proceeds_code: null,
+        asset_disposal_value_code: null,
+      },
+      {
         country: 'FR',
         asset_disposal_gain_code: null,
         asset_disposal_loss_code: null,

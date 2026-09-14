@@ -40,7 +40,7 @@ afterEach(async () => {
 describe('before anything is installed', () => {
   it('knows the schema is there and which countries it ships', async () => {
     expect(await schemaIsInstalled(db)).toBe(true);
-    expect(await availableCountries(db)).toEqual(['BE', 'FR', 'LU']);
+    expect(await availableCountries(db)).toEqual(['BE', 'EE', 'FR', 'LU']);
   });
 
   it('offers the packs it holds, named as the pack names itself', async () => {
@@ -48,6 +48,7 @@ describe('before anything is installed', () => {
     // is built from this, so adding a pack is what adds a choice.
     expect(await installedPacks(db)).toEqual([
       { country: 'BE', name: 'Belgium' },
+      { country: 'EE', name: 'Estonia' },
       { country: 'FR', name: 'France' },
       { country: 'LU', name: 'Luxembourg' },
     ]);
@@ -183,7 +184,7 @@ describe('bootstrap', () => {
         fiscalYear: 2026,
         adminUserId: userId,
       }),
-    ).rejects.toThrow(/unknown_country.*BE, FR/s);
+    ).rejects.toThrow(/unknown_country.*BE, EE, FR/s);
   });
 
   it('will not hand the administrator seat to a second person', async () => {

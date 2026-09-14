@@ -212,7 +212,7 @@ and read by a person.
 | Step | What happens | Why it is done this way |
 |---|---|---|
 | 1 | Applies `supabase/migrations/*.sql` in order | Recorded in `supabase_migrations.schema_migrations`, the Supabase CLI's own history table, so `supabase db push` and `ekwo migrate` stay interchangeable |
-| 2 | Applies the four reference seeds, in file-name order: `00_currencies.sql`, `05_framework_generic.sql`, `10_pack_be.sql`, `11_pack_fr.sql` | The currencies, the country-less financial statements every chart falls back on, and the two country packs. They are exactly the four `supabase/config.toml` lists, so `supabase db push` installs the same set; a test compares both paths row by row. `90_demo_company.sql` is sample data and is never applied here |
+| 2 | Applies the six reference seeds, in file-name order: `00_currencies.sql`, `05_framework_generic.sql`, `10_pack_be.sql`, `11_pack_fr.sql`, `12_pack_lu.sql`, `13_pack_ee.sql` | The currencies, the country-less financial statements every chart falls back on, and the four country packs. They are exactly the six `supabase/config.toml` lists, so `supabase db push` installs the same set; a test compares both paths row by row. `90_demo_company.sql` is sample data and is never applied here |
 | 3 | Creates the first administrator through the Supabase Auth admin API | See below: a database connection cannot be a signed-in user |
 | 4 | `init_instance()`, `claim_instance_admin()`, the company, `company_members` as owner, `install_country_template()`, the first financial year, and the bank account when an IBAN was given | The six steps of the root README, in the same order, plus the one thing nobody can derive |
 | 5 | Writes `ekwo.json` | Project URL, country, schema version. Nothing else, ever |

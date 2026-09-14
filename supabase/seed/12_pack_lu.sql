@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('LU', 'Luxembourg', '1.0.0', date '2026-09-14', '20260913114535', 'community', null, null, 'f01c4c94d4ea9bb5c21a3074b8373935f4bc5f54dfa5ed8e701618bebb0e5239')
+  ('LU', 'Luxembourg', '1.0.0', date '2026-09-14', '20260913114535', 'community', null, null, '7f484bac1bdc197bd78cdeef526587f69c64b0494b7abe99d41ed859fe002811')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

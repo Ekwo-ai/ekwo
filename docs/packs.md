@@ -164,6 +164,8 @@ Packs (4)
   be  Belgium 1.5.1 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCMN — plan comptable minimum normalisé, 353 accounts, BE-BNB-ABBR-BS, BE-BNB-ABBR-IS, BE-BNB-ABBR-AF
           asbl — PCMN — associations et fondations, 349 accounts, generic statements only
+  ee  Estonia 1.0.0 · 1 chart(s), 120 accounts · 29 taxes · 2 statements · et, en · certification community · golden: 14 documents, 4 payments, 4 period(s)
+          default (default) — Eesti väikeettevõtja kontoplaan, 120 accounts, EE-RPS-BS, EE-RPS-IS1
   fr  France 1.6.1 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCG — plan comptable général, 394 accounts, FR-2050, FR-2052
   lu  Luxembourg 1.0.0 · 1 chart(s), 1026 accounts · 35 taxes · 2 statements · fr, de, en · certification community · golden: 10 documents, 3 payments, 4 period(s)
@@ -176,12 +178,26 @@ a country without the CLI ever running; the CI's *hygiene* job runs
 `ekwo pack check --all` so the two cannot drift. Never edit a generated seed:
 the next `pack build` overwrites it and the CI refuses it in the meantime.
 
+### The number a seed carries is the pack's own
+
+`seed_sequence` in the manifest. It is **required**, and it is **immutable once
+published**: the seeds are applied in file-name order and listed by name in
+`supabase/config.toml`, so a release that renamed one would rename a file an
+installation already holds — harmless, because the seeds upsert, and baffling
+to anyone reading the list a year later.
+
+It used to be the pack's rank in the alphabetical list of slugs, which is
+stable exactly until a country is added in the middle of it: inserting `ee`
+between `be` and `fr` moved France and Luxembourg one place each. Nothing sorts
+anything now. `ekwo pack check` refuses a pack that declares no number, and
+`ekwo pack build` refuses two packs claiming the same one.
+
 **Three kinds of file are generated, and `check` compares all three.**
 
 | Source | Output |
 |---|---|
 | `packs/generic/` | `supabase/seed/05_framework_generic.sql` |
-| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is 10 plus the position of the country in the sorted list of packs — `10` for `be`, `11` for `fr`, `12` for `lu` |
+| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is the number the manifest declares in `seed_index` — `10` for `be`, `11` for `fr`, `12` for `lu`, `13` for `ee`. **A number that has shipped never moves**, whatever is added beside it |
 | `packs/<cc>/assets.json`, where the pack has one | `supabase/seed/modules/assets/<n>_pack_<cc>.sql`, applied by the module migration runner and by nothing else |
 
 The compiler writes `chart_templates`, `account_templates`,
@@ -227,9 +243,11 @@ Checking
 ✗ 10_pack_be.sql is not the output of packs/be
           golden: 10 documents, 4 payments, 4 period(s) of Exercice 2026
   · modules/assets/10_pack_be.sql
-  · 11_pack_fr.sql
+  · 11_pack_ee.sql
+          golden: 14 documents, 4 payments, 4 period(s) of Majandusaasta 2026
+  · 12_pack_fr.sql
           golden: 10 documents, 4 payments, 4 period(s) of Exercice 2026
-  · modules/assets/11_pack_fr.sql
+  · modules/assets/12_pack_fr.sql
 
   Run `ekwo pack build --all` and commit the result.
 ```
@@ -887,7 +905,7 @@ pack and testing that it holds together is not reviewing it. *Certified*
 describes a professional reading a pack against the law, and nothing else. The
 value `ekwo` that used to exist is deprecated, refused by the schema, and moved
 to `maintained` by migration `20260912081015`. **Belgium and France are
-`maintained`.**
+`maintained`; Estonia is `community`.**
 
 ### What a reviewer signs
 
@@ -929,6 +947,7 @@ knows is the person who applies it.
 
 ```
 /packs/be/              @Ekwo-ai/maintainers
+/packs/ee/              @Ekwo-ai/maintainers
 /packs/fr/              @Ekwo-ai/maintainers
 /packs/schema/          @Ekwo-ai/maintainers
 ```
@@ -958,7 +977,10 @@ rm -rf packs/xx/golden packs/xx/i18n
 Open `packs/xx/pack.json` and set `country` (upper case), `name`, `version` to
 `0.1.0`, `released_at`, and `certification` to `{ "status": "community" }`.
 Leave `schema_min` where it is: it is the migration your pack needs, not a
-number you choose. Empty the `languages` array for now — a declared language is
+number you choose. Set `seed_sequence` to the **first number no pack has
+taken** — `ls supabase/seed/` shows what is in use — and **never change it
+afterwards**: a published number never changes, because it is the name of a
+file other people's installations already hold. Empty the `languages` array for now — a declared language is
 a promise that `ekwo pack check` holds you to, and you will make it in step 8.
 
 Set `defaults.currency`, and `defaults.language` to the language you are going

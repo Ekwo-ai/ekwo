@@ -40,7 +40,7 @@ describe('country_packs', () => {
       `select country, version, certification_status::text, certified_by, checksum
          from country_packs order by country`,
     );
-    expect(loaded.map((p) => p.country)).toEqual(['BE', 'FR', 'LU']);
+    expect(loaded.map((p) => p.country)).toEqual(['BE', 'EE', 'FR', 'LU']);
     for (const pack of loaded) {
       // Both packs have moved in minor steps since they were extracted —
       // taxes, a second chart, financial statements, document rules — and
@@ -49,8 +49,9 @@ describe('country_packs', () => {
       // announcing it is a pack nobody can upgrade to.
       expect(pack.version).toBe(await versionOf(pack.country));
       // `maintained` or `community`, never `ekwo`: Ekwo keeps Belgium and
-      // France current, Luxembourg was contributed, and no accountant has read
-      // any of them. Certified describes a review, or nothing.
+      // France current, Estonia and Luxembourg were contributed, and no
+      // accountant has read any of them. Certified describes a review, or
+      // nothing.
       expect(['maintained', 'community']).toContain(pack.certification_status);
       expect(pack.certified_by).toBeNull();
       expect(pack.checksum).toMatch(/^[0-9a-f]{64}$/);
@@ -290,7 +291,7 @@ describe('a seed applied again', () => {
       return out;
     };
     const before = await snapshot();
-    for (const file of ['10_pack_be.sql', '11_pack_fr.sql']) {
+    for (const file of ['10_pack_be.sql', '11_pack_fr.sql', '13_pack_ee.sql']) {
       await db.exec(await readFile(join(repoRoot, 'supabase', 'seed', file), 'utf8'));
     }
     expect(await snapshot()).toEqual(before);
@@ -315,13 +316,15 @@ describe('report_code, and the province a party sits in', () => {
          join tax_templates t on t.id = p.tax_template_id
         group by 1, 2 order by 1`,
     );
-    // 72 + 16 and 56 + 2, from the Belgian vehicle and non-deductible taxes
-    // and the French fuel tax. The two French postings with no form are the
-    // `tax_on_base` share of the fuel tax: the CA3 carries no grid for the
-    // base of a purchase, so that amount is ledger only — which is why the
+    // The postings with no form are the `tax_on_base` shares of a tax that is
+    // only partly deductible, in the two countries whose return carries no box
+    // for the base of a purchase: the French fuel tax, and the Estonian car
+    // and non-deductible taxes. That amount is ledger only — which is why the
     // test above asks for a form on a *boxed* posting and not on every one.
     expect(forms).toEqual([
       { country: 'BE', report_code: 'BE-VAT-PERIODIC', n: 88 },
+      { country: 'EE', report_code: 'EE-KMD', n: 86 },
+      { country: 'EE', report_code: null, n: 6 },
       { country: 'FR', report_code: 'FR-CA3', n: 76 },
       { country: 'FR', report_code: null, n: 2 },
       { country: 'LU', report_code: 'LU-VAT-PERIODIC', n: 124 },
@@ -409,8 +412,13 @@ describe('row level security on the two new tables', () => {
     await newCompany(db, { name: 'RLS pack SRL', ownerId });
     const strangerId = await newUser(db);
 
-    const seen = await asUser(db, ownerId, () => rows(db, 'select country from country_packs'));
-    expect(seen.map((r) => (r as { country: string }).country)).toEqual(['BE', 'FR', 'LU']);
+    // Ordered here, not left to the order the seeds happen to be applied in:
+    // a seed's number is the pack's own since `seed_sequence`, so file-name order
+    // is no longer alphabetical order.
+    const seen = await asUser(db, ownerId, () =>
+      rows(db, 'select country from country_packs order by country'),
+    );
+    expect(seen.map((r) => (r as { country: string }).country)).toEqual(['BE', 'EE', 'FR', 'LU']);
 
     const nothing = await asUser(db, strangerId, () => rows(db, 'select country from country_packs'));
     expect(nothing).toEqual([]);

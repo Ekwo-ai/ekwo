@@ -56,6 +56,14 @@ describe('the charts the packs carry', () => {
         accounts: 353,
       },
       {
+        country: 'EE',
+        code: 'default',
+        name: 'Eesti väikeettevõtja kontoplaan',
+        is_default: true,
+        audience: 'companies',
+        accounts: 120,
+      },
+      {
         country: 'FR',
         code: 'default',
         name: 'PCG — plan comptable général',
@@ -218,7 +226,7 @@ describe('chart_templates under row level security', () => {
     const { ownerId } = await newCompany(db, { country: 'BE', name: 'Lectrice de plans SRL' });
     await asUser(db, ownerId, async () => {
       const seen = await one<{ n: number }>(db, 'select count(*)::int as n from chart_templates');
-      expect(seen.n).toBe(4);
+      expect(seen.n).toBe(5);
 
       const message = await expectError(
         db,
