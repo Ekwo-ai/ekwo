@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
+import { allPacks, packWhere, packsRoot } from './helpers/packs.js';
 import { newCompany } from './helpers/factory.js';
 
 // A country has charts of accounts, not one chart. The key
@@ -38,74 +39,77 @@ describe('the charts the packs carry', () => {
                 where a.country = c.country and a.chart_code = c.code) as accounts
          from chart_templates c order by c.country, c.code`,
     );
-    expect(charts).toEqual([
-      {
-        country: 'BE',
-        code: 'asbl',
-        name: 'PCMN — associations et fondations',
-        is_default: false,
-        audience: 'nonprofits',
-        accounts: 349,
-      },
-      {
-        country: 'BE',
-        code: 'default',
-        name: 'PCMN — plan comptable minimum normalisé',
-        is_default: true,
-        audience: 'companies',
-        accounts: 353,
-      },
-      {
-        country: 'EE',
-        code: 'default',
-        name: 'Eesti väikeettevõtja kontoplaan',
-        is_default: true,
-        audience: 'companies',
-        accounts: 120,
-      },
-      {
-        country: 'FR',
-        code: 'default',
-        name: 'PCG — plan comptable général',
-        is_default: true,
-        audience: 'companies',
-        accounts: 394,
-      },
-      {
-        country: 'LU',
-        code: 'default',
-        name: 'PCN — plan comptable normalisé',
-        is_default: true,
-        audience: 'companies',
-        accounts: 1026,
-      },
-    ]);
+    // Every chart of every pack, with the name and the audience the pack gives
+    // it and the accounts its own CSV holds. A country that adds a second chart
+    // is in this list without a line being added to it.
+    expect(charts).toEqual(
+      allPacks
+        .flatMap((pack) =>
+          pack.charts.map((chart) => ({
+            country: pack.manifest.country,
+            code: chart.code,
+            name: chart.name,
+            is_default: chart.is_default,
+            audience: chart.audience,
+            accounts: chart.accounts.length,
+          })),
+        )
+        .sort((a, b) => (`${a.country}${a.code}` < `${b.country}${b.code}` ? -1 : 1)),
+    );
+    // Exactly one chart of each pack is the one a company gets by default.
+    for (const pack of allPacks) {
+      expect(pack.charts.filter((chart) => chart.is_default), pack.slug).toHaveLength(1);
+    }
   });
 
   it('carry a certification of their own only where it differs from the pack', async () => {
-    // The Belgian association chart is contributed, not maintained: the pack
-    // says so on the chart rather than dragging the whole country down to it.
-    const seen = await rows<{ code: string; status: string | null }>(
-      db,
-      `select code, certification_status::text as status
-         from chart_templates where country = 'BE' order by code`,
-    );
-    expect(seen).toEqual([
-      { code: 'asbl', status: 'community' },
-      { code: 'default', status: null },
-    ]);
+    // A chart contributed to a maintained pack says so on the chart rather
+    // than dragging the whole country down to it, and a chart that says
+    // nothing carries null — the pack's own status answers for it.
+    for (const pack of allPacks) {
+      const seen = await rows<{ code: string; status: string | null }>(
+        db,
+        `select code, certification_status::text as status
+           from chart_templates where country = $1 order by code`,
+        [pack.manifest.country],
+      );
+      expect(seen, pack.slug).toEqual(
+        [...pack.charts]
+          .sort((a, b) => (a.code < b.code ? -1 : 1))
+          .map((chart) => ({ code: chart.code, status: chart.certification?.status ?? null })),
+      );
+    }
   });
 
   it('let one country hold the same code twice, which is the whole point', async () => {
+    // A pack with two charts gives the same account code two meanings, and
+    // both are loaded under the chart that gives it.
+    const several = packWhere('carries more than one chart', (pack) => pack.charts.length > 1);
+    const shared = several.charts[0]!.accounts
+      .map((account) => account.code)
+      .filter((code) => several.charts.every((chart) => chart.accounts.some((a) => a.code === code)))
+      .find((code) => {
+        const names = new Set(
+          several.charts.map((chart) => chart.accounts.find((a) => a.code === code)!.name),
+        );
+        return names.size === several.charts.length;
+      })!;
+    expect(shared, `${several.slug} names no account differently in two charts`).toBeDefined();
+
     const both = await rows<{ chart_code: string; name: string }>(
       db,
       `select chart_code, name from account_templates
-        where country = 'BE' and code = '100000' order by chart_code`,
+        where country = $1 and code = $2 order by chart_code`,
+      [several.manifest.country, shared],
     );
-    expect(both).toEqual([
-      { chart_code: 'asbl', name: 'Patrimoine de départ' },
-      { chart_code: 'default', name: 'Capital souscrit' },
-    ]);
+    expect(both).toEqual(
+      [...several.charts]
+        .sort((a, b) => (a.code < b.code ? -1 : 1))
+        .map((chart) => ({
+          chart_code: chart.code,
+          name: chart.accounts.find((a) => a.code === shared)!.name,
+        })),
+    );
   });
 
   it('refuse an account pointing at a chart that does not exist', async () => {
@@ -226,7 +230,7 @@ describe('chart_templates under row level security', () => {
     const { ownerId } = await newCompany(db, { country: 'BE', name: 'Lectrice de plans SRL' });
     await asUser(db, ownerId, async () => {
       const seen = await one<{ n: number }>(db, 'select count(*)::int as n from chart_templates');
-      expect(seen.n).toBe(5);
+      expect(seen.n).toBe(allPacks.reduce((n, pack) => n + pack.charts.length, 0));
 
       const message = await expectError(
         db,
@@ -256,26 +260,33 @@ describe('chart_templates under row level security', () => {
 });
 
 describe('what `ekwo pack check` refuses about charts', () => {
-  const packs = join(repoRoot, 'packs');
+  const packs = packsRoot;
 
-  /** `packs/be` in a temporary directory, with its manifest edited. */
+  // A pack that declares several charts is what these refusals need: the rules
+  // they break are about the set of charts, so a pack with one would prove
+  // nothing. Which pack that is comes from the packs themselves.
+  const several = packWhere('declares more than one chart', (pack) => pack.charts.length > 1);
+
+  /** A copy of that pack in a temporary directory, with its manifest edited. */
   async function packWith(edit: (manifest: Record<string, unknown>) => void): Promise<void> {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-chart-'));
     await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packs, 'be'), join(dir, 'be'), { recursive: true });
-    const manifest = JSON.parse(await readFile(join(packs, 'be', 'pack.json'), 'utf8')) as Record<
-      string,
-      unknown
-    >;
+    await cp(join(packs, several.slug), join(dir, several.slug), { recursive: true });
+    const manifest = JSON.parse(
+      await readFile(join(packs, several.slug, 'pack.json'), 'utf8'),
+    ) as Record<string, unknown>;
     edit(manifest);
-    await writeFile(join(dir, 'be', 'pack.json'), JSON.stringify(manifest), 'utf8');
-    await readPack('be', dir);
+    await writeFile(join(dir, several.slug, 'pack.json'), JSON.stringify(manifest), 'utf8');
+    await readPack(several.slug, dir);
   }
 
   it('accepts the packs of this repository as they are', async () => {
-    const be = await readPack('be', packs);
-    expect(be.charts.map((c) => c.code)).toEqual(['default', 'asbl']);
-    expect(be.accounts).toHaveLength(353);
+    for (const pack of allPacks) {
+      // The default chart comes first, and `accounts` is that chart's accounts.
+      expect(pack.charts[0]!.is_default, pack.slug).toBe(true);
+      expect(pack.accounts, pack.slug).toEqual(pack.charts[0]!.accounts);
+      expect(pack.accounts.length, pack.slug).toBeGreaterThan(0);
+    }
   });
 
   it('refuses a pack with no default chart', async () => {
