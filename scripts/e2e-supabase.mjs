@@ -52,7 +52,10 @@
  *                                 EKWO_E2E_PREVIOUS=/tmp/prev/packages/cli/dist/bin.js
  *
  *                               — or an npm spec such as `ekwo@0.2.0` once
- *                               they are
+ *                               they are. They are not today — `npm view ekwo`
+ *                               answers 404 — so the path is the only form
+ *                               that works, and will be until the packages are
+ *                               published
  *
  *   npm run build && npm run e2e:supabase
  *
@@ -132,13 +135,18 @@ async function step(name, fn) {
     results.push({ name, outcome: 'skipped', detail: 'an earlier step failed' });
     return undefined;
   }
+  // Each step is timed, because over a pooler and a hosted PostgREST what
+  // matters about a release is not the total but which step holds it: a
+  // migration set that doubled, a first query waiting on a cold project, a
+  // close that got slower as the ledger grew.
+  const started = Date.now();
   try {
     const detail = await fn();
-    results.push({ name, outcome: 'pass', detail: detail ?? '' });
+    results.push({ name, outcome: 'pass', detail: detail ?? '', ms: Date.now() - started });
     return detail;
   } catch (error) {
     failed += 1;
-    results.push({ name, outcome: 'FAIL', detail: error.message });
+    results.push({ name, outcome: 'FAIL', detail: error.message, ms: Date.now() - started });
     return undefined;
   }
 }
@@ -244,6 +252,7 @@ async function main() {
     }
 
     if (reset) {
+      const startedReset = Date.now();
       const dropped = [];
       if (installed[0]?.n > 0) {
         const modules = await db.query(
@@ -284,6 +293,7 @@ async function main() {
         name: '--reset emptied the project',
         outcome: 'pass',
         detail: `dropped ${dropped.join(', ')}`,
+        ms: Date.now() - startedReset,
       });
     }
   } finally {
@@ -665,13 +675,18 @@ async function main() {
 function report() {
   const width = Math.max(...results.map((r) => r.name.length));
   process.stdout.write('\n');
+  let total = 0;
   for (const row of results) {
     const mark = row.outcome === 'pass' ? 'pass   ' : row.outcome === 'FAIL' ? 'FAIL   ' : 'skipped';
-    process.stdout.write(`${mark} ${row.name.padEnd(width)}  ${row.detail}\n`);
+    total += row.ms ?? 0;
+    const time = row.ms === undefined ? '      ' : `${(row.ms / 1000).toFixed(1)}s`.padStart(6);
+    process.stdout.write(`${mark} ${time}  ${row.name.padEnd(width)}  ${row.detail}\n`);
   }
   const passed = results.filter((r) => r.outcome === 'pass').length;
   const skipped = results.filter((r) => r.outcome === 'skipped').length;
-  process.stdout.write(`\n${passed} passed, ${failed} failed, ${skipped} skipped\n`);
+  process.stdout.write(
+    `\n${passed} passed, ${failed} failed, ${skipped} skipped, ${(total / 1000).toFixed(1)}s\n`,
+  );
   process.exitCode = failed > 0 ? 1 : 0;
 }
 

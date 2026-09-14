@@ -115,7 +115,16 @@ that is not cut.
    EKWO_E2E_PREVIOUS=/tmp/prev/packages/cli/dist/bin.js npm run e2e:supabase
    ```
 
-   Once they are published, `ekwo@<x.y.z>` works in the same variable.
+   Once they are published, `ekwo@<x.y.z>` works in the same variable. They are
+   not today — `npm view ekwo` answers 404 — so the path is the only form that
+   works.
+
+   **Read the times, not only the marks.** Every step of the table carries how
+   long it took and the run carries its total. What is worth noticing is which
+   step holds the release: a migration set that doubled since the last tag, a
+   first query waiting on a cold project, a close that got slower as the ledger
+   grew. A number that moved between two releases is the question; the total on
+   its own answers nothing.
 
    **The project has to be empty, and has to be one nobody minds losing.** The
    script installs an instance, an administrator and a company, books into them

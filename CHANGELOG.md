@@ -80,6 +80,16 @@ somewhere has already run it.
   run by hand before a release is tagged, never by the CI, and it refuses a
   database that already holds an `instance` row.
 
+### Changed
+
+- **The real-project end-to-end run times every step.** `npm run e2e:supabase`
+  printed a pass/fail table; it now prints how long each step took and the
+  total beside it. Over a pooler and a hosted PostgREST what matters about a
+  release is not the total but which step holds it — a migration set that
+  doubled, a first query waiting on a cold project, a close that got slower as
+  the ledger grew — and a number that moved between two releases is a question
+  worth asking before the tag, not after.
+
 ### Fixed
 
 - **`ekwo pack upgrade` left a company on the old version when the release
