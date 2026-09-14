@@ -146,7 +146,7 @@ checks before it acts, so running it twice creates nothing twice.
 
 Ekwo does not create the project and does not pay for it. Your books are on
 your account from the first row, which is the only version of "you own your
-data" that survives us going away. Full flags, environment variables and the
+data" that survives the maintainer going away. Full flags, environment variables and the
 non-interactive form are in [`packages/cli`](packages/cli/).
 
 ### What it does underneath
