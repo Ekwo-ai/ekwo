@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { compilePack, packsDir, readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, rows } from './helpers/db.js';
+import { allPacks, packWhere, packsWhere, roleOf } from './helpers/packs.js';
 import {
   accountId,
   newCompany,
@@ -712,28 +713,40 @@ describe('the packs', () => {
       db,
       `select country, fx_gain_code, fx_loss_code from country_defaults order by country`,
     );
-    expect(defaults).toEqual([
-      { country: 'BE', fx_gain_code: '754000', fx_loss_code: '654000' },
-      { country: 'EE', fx_gain_code: '3850', fx_loss_code: '4970' },
-      { country: 'FR', fx_gain_code: '766000', fx_loss_code: '666000' },
-      { country: 'LU', fx_gain_code: '7562', fx_loss_code: '6562' },
-    ]);
+    // Two roles of the manifest, in every pack: a country that says where an
+    // exchange difference lands says it once, in its own file.
+    expect(defaults).toEqual(
+      allPacks
+        .map((pack) => ({
+          country: pack.manifest.country,
+          fx_gain_code: roleOf(pack, 'fx_gain'),
+          fx_loss_code: roleOf(pack, 'fx_loss'),
+        }))
+        .sort((a, b) => (a.country < b.country ? -1 : 1)),
+    );
   });
 
-  it('put the French services on collection and leave the goods on the debits', async () => {
+  it('put the taxes that wait on collection, and leave the others on the debits', async () => {
     const cash = await rows<{ country: string; code: string; account: string }>(
       db,
       `select country, code, cash_basis_transition_account_code as account
          from tax_templates where cash_basis order by country, code`,
     );
-    expect(cash).toEqual([
-      { country: 'FR', code: 'FR-P-055-ENC', account: '445860' },
-      { country: 'FR', code: 'FR-P-10-ENC', account: '445860' },
-      { country: 'FR', code: 'FR-P-20-ENC', account: '445860' },
-      { country: 'FR', code: 'FR-S-055-ENC', account: '445870' },
-      { country: 'FR', code: 'FR-S-10-ENC', account: '445870' },
-      { country: 'FR', code: 'FR-S-20-ENC', account: '445870' },
-    ]);
+    // Which taxes wait, and on which account, is what each pack declares. A
+    // country with none contributes nothing and is not a hole in the list.
+    const expected = allPacks
+      .flatMap((pack) =>
+        pack.taxes
+          .filter((tax) => tax.cash_basis)
+          .map((tax) => ({
+            country: pack.manifest.country,
+            code: tax.code,
+            account: tax.cash_basis_transition_account!,
+          })),
+      )
+      .sort((a, b) => (`${a.country}${a.code}` < `${b.country}${b.code}` ? -1 : 1));
+    expect(cash).toEqual(expected);
+    expect(expected.length, 'no pack taxes on collection').toBeGreaterThan(0);
   });
 
   it('make the column the document rules expose on a document line say something true', async () => {
@@ -751,47 +764,63 @@ describe('the packs', () => {
     expect(seen).toEqual([{ tax_cash_basis: true }]);
   });
 
-  it('cite the article that makes a service fall due on collection', async () => {
-    const row = await one<{ legal_reference: string }>(
-      db,
-      `select legal_reference from tax_templates where country = 'FR' and code = 'FR-S-20-ENC'`,
-    );
-    expect(row.legal_reference).toMatch(/269-2-c/);
+  it('cite the article that makes a tax fall due on collection', async () => {
+    // A tax that waits is a legal exception, so every one of them says which
+    // text allows it — and the seed carries the citation, not just the pack.
+    for (const pack of packsWhere('taxes on collection', (p) => p.taxes.some((t) => t.cash_basis))) {
+      for (const tax of pack.taxes.filter((t) => t.cash_basis)) {
+        const row = await one<{ legal_reference: string | null }>(
+          db,
+          `select legal_reference from tax_templates where country = $1 and code = $2`,
+          [pack.manifest.country, tax.code],
+        );
+        expect(row.legal_reference, `${pack.slug} ${tax.code}`).toBe(tax.legal_reference);
+        expect(row.legal_reference, `${pack.slug} ${tax.code}`).toBeTruthy();
+      }
+    }
   });
 });
 
 describe('what `ekwo pack check` refuses about a tax that waits', () => {
-  /** `packs/fr` in a temporary directory, with `taxes.json` edited. */
+  // Whichever pack taxes on collection: the refusals are about the reader, and
+  // the tax they break is the first one that pack declares as waiting.
+  const waiting = packWhere('taxes on collection', (pack) => pack.taxes.some((t) => t.cash_basis));
+  const waitingTax = waiting.taxes.find((tax) => tax.cash_basis)!.code;
+
+  /** A copy of that pack in a temporary directory, with `taxes.json` edited. */
   async function packWith(edit: (taxes: Record<string, unknown>[]) => void): Promise<void> {
     const dir = await mkdtemp(join(tmpdir(), 'ekwo-cash-'));
     await cp(join(packsDir(), 'schema'), join(dir, 'schema'), { recursive: true });
-    await cp(join(packsDir(), 'fr'), join(dir, 'fr'), { recursive: true });
-    const taxes = JSON.parse(await readFile(join(packsDir(), 'fr', 'taxes.json'), 'utf8')) as Record<
-      string,
-      unknown
-    >[];
+    await cp(join(packsDir(), waiting.slug), join(dir, waiting.slug), { recursive: true });
+    const taxes = JSON.parse(
+      await readFile(join(packsDir(), waiting.slug, 'taxes.json'), 'utf8'),
+    ) as Record<string, unknown>[];
     edit(taxes);
-    await writeFile(join(dir, 'fr', 'taxes.json'), JSON.stringify(taxes), 'utf8');
-    await readPack('fr', dir);
+    await writeFile(join(dir, waiting.slug, 'taxes.json'), JSON.stringify(taxes), 'utf8');
+    await readPack(waiting.slug, dir);
   }
 
   it('accepts the packs of this repository as they are', async () => {
-    // `readPack` runs the rules and throws on the first issue, so reading
-    // both packs is the assertion. What is read back is what cash-basis VAT added.
-    for (const slug of ['be', 'fr']) {
-      const pack = await readPack(slug, packsDir());
-      expect(pack.manifest.defaults.roles['fx_gain'], slug).toMatch(/^\d+$/);
-      expect(pack.manifest.defaults.roles['fx_loss'], slug).toMatch(/^\d+$/);
+    // `readPack` runs the rules and throws on the first issue, so reading every
+    // pack is the assertion. What is read back is what cash-basis VAT added.
+    for (const pack of allPacks) {
+      expect(roleOf(pack, 'fx_gain'), pack.slug).toMatch(/^\d+$/);
+      expect(roleOf(pack, 'fx_loss'), pack.slug).toMatch(/^\d+$/);
+      // A tax that waits names the account it waits on; one that does not, does not.
+      for (const tax of pack.taxes) {
+        expect(tax.cash_basis_transition_account !== null, `${pack.slug} ${tax.code}`).toBe(
+          tax.cash_basis,
+        );
+      }
     }
-    const fr = await readPack('fr', packsDir());
-    expect(fr.taxes.filter((t) => t.cash_basis)).toHaveLength(6);
+    expect(waiting.taxes.filter((t) => t.cash_basis).length).toBeGreaterThan(0);
   });
 
   it('refuses one that names no account to wait on', async () => {
     await expect(
       packWith((taxes) => {
         for (const tax of taxes) {
-          if (tax['code'] === 'FR-S-20-ENC') tax['cash_basis_transition_account'] = null;
+          if (tax['code'] === waitingTax) tax['cash_basis_transition_account'] = null;
         }
       }),
     ).rejects.toThrow(/has to name the account it waits on/);
@@ -801,7 +830,7 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
     await expect(
       packWith((taxes) => {
         for (const tax of taxes) {
-          if (tax['code'] !== 'FR-S-20-ENC') continue;
+          if (tax['code'] !== waitingTax) continue;
           const postings = (tax['postings'] as Record<string, unknown[]>)['invoice']!;
           postings.push({ ...(postings[1] as Record<string, unknown>), sequence: 30 });
         }
@@ -813,7 +842,7 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
     await expect(
       packWith((taxes) => {
         for (const tax of taxes) {
-          if (tax['code'] !== 'FR-S-20-ENC') continue;
+          if (tax['code'] !== waitingTax) continue;
           const postings = (tax['postings'] as Record<string, unknown[]>)['invoice']!;
           postings.push({ type: 'tax_on_base', factor: 20, sequence: 40 });
         }
@@ -829,7 +858,7 @@ describe('what `ekwo pack check` refuses about a tax that waits', () => {
     await expect(
       packWith((taxes) => {
         for (const tax of taxes) {
-          if (tax['code'] !== 'FR-S-20-ENC') continue;
+          if (tax['code'] !== waitingTax) continue;
           const postings = (tax['postings'] as Record<string, Record<string, unknown>[]>)['invoice']!;
           for (const posting of postings) {
             if (posting['type'] === 'tax') delete posting['box'];
@@ -849,8 +878,13 @@ describe('the migration of this change', () => {
       return sql.slice(at, sql.indexOf('on conflict (country)', at));
     };
 
-    const pack = await readPack('fr', packsDir());
-    expect(countryDefaults(compilePack(pack))).toContain("'766000', '666000'");
+    const pack = packWhere('names both exchange accounts', (p) => {
+      const roles = p.manifest.defaults.roles;
+      return typeof roles['fx_gain'] === 'string' && typeof roles['fx_loss'] === 'string';
+    });
+    expect(countryDefaults(compilePack(pack))).toContain(
+      `'${roleOf(pack, 'fx_gain')}', '${roleOf(pack, 'fx_loss')}'`,
+    );
 
     const roles = { ...pack.manifest.defaults.roles };
     delete (roles as Record<string, unknown>)['fx_gain'];
@@ -859,8 +893,8 @@ describe('the migration of this change', () => {
       ...pack,
       manifest: { ...pack.manifest, defaults: { ...pack.manifest.defaults, roles } },
     });
-    expect(countryDefaults(sql)).not.toContain("'766000'");
-    expect(countryDefaults(sql)).not.toContain("'666000'");
+    expect(countryDefaults(sql)).not.toContain(`'${roleOf(pack, 'fx_gain')}'`);
+    expect(countryDefaults(sql)).not.toContain(`'${roleOf(pack, 'fx_loss')}'`);
   });
 
   it('is closed to the anonymous role', async () => {
