@@ -425,20 +425,25 @@ Found while teaching `ekwo pack check` to compare a tax's treatment with its
 category and its exemption reason. Neither blocked that work; both are about
 the same two columns, and both are a change to the core rather than to a pack.
 
-**A VAT category comes back padded with a space.** `taxes.vat_category`,
-`tax_templates.vat_category` and `document_lines.vat_category` are `char(2)`,
-and every category of EN 16931 but `AE` is one character — so the database
-answers `S `, `K `, `E `, `G `, `Z `, `O `, and has done since the column was
-created. `document_line_items` and `document_tax_summary` publish it that way
-as BT-151, which is not a code of UNCL5305: a renderer writing it straight
-into an invoice emits one that fails validation, and a reader comparing it to
-`'S'` finds nothing. Nothing in this repository noticed, because the only test
-that compared the column compared two databases that pad identically.
-*Fix*: a migration widening the three columns to `text`, which means dropping
-and recreating the two views that select them, and a check constraint if the
-width was ever the point. *Until then*: every reader trims, and
-`tests/packs.test.ts` pads its expectation on purpose with a comment pointing
-here.
+~~**A VAT category comes back padded with a space.**~~ **Closed, 15 September
+2026.** `taxes.vat_category`, `tax_templates.vat_category` and
+`document_lines.vat_category` were `char(2)`, and every category of EN 16931
+but `AE` is one character — so the database answered `S `, `K `, `E `, `G `,
+`Z `, `O `, and had done since the column was created. `document_line_items`
+and `document_tax_summary` published that as BT-151, which is not a code of
+UNCL5305: a renderer writing it straight into an invoice emits one that fails
+validation, a reader comparing it to `'S'` finds nothing, and since
+`shared_document()` reads both views it reached whoever held the link to an
+invoice. Nothing here noticed, because the only test that compared the column
+compared two databases that pad identically and trimmed before it looked.
+The three columns are `text`, under a check constraint that accepts one or two
+capitals and nothing else, so the column now refuses what it used to
+manufacture; the two views were dropped and recreated unchanged but for
+existing, with their comments and their grants. No pack moved: a pack never
+wrote the space, the column added it — the golden files are identical and the
+seeds are untouched. `tests/vat_category.test.ts` follows one pack's category
+from the manifest to the payload an anonymous reader receives, and
+`tests/packs.test.ts` has dropped the expectation it used to pad on purpose.
 
 **A legal mention cannot tell a domestic reverse charge from a foreign one.**
 `applies_when` is a closed vocabulary of nine conditions, and

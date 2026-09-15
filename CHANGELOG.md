@@ -9,6 +9,26 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A VAT category came back padded with a space.** `taxes.vat_category`,
+  `tax_templates.vat_category` and `document_lines.vat_category` were
+  `char(2)`, and `char(n)` pads to width on write; every category of EN 16931
+  but `AE` is one character, so the database answered `S `, `K `, `E `, and had
+  done since the columns were created. `document_line_items` and
+  `document_tax_summary` published that as BT-151, and `shared_document()`
+  reads both views — so a renderer writing it straight into an invoice emitted
+  one that fails validation, a reader comparing it to `'S'` found nothing, and
+  the padded code reached whoever held the link to a shared document. The three
+  columns are now `text`, under a check constraint that accepts one or two
+  capitals, so the column refuses what it used to manufacture; the existing
+  values are trimmed by the conversion and a column holding nothing but padding
+  becomes the null it always meant. The two views were dropped and recreated
+  unchanged but for existing, with the same columns in the same order, the same
+  `security_invoker`, the same comments and the same grants. No pack moved: a
+  pack never wrote the space, the column added it, so every golden figure and
+  every compiled seed is identical.
+
 ## [0.3.0] — 2026-09-15
 
 ### Added

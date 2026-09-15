@@ -108,11 +108,7 @@ function asCorrected(row: TemplateRow): TemplateRow {
   const reserved = category === null ? null : (CATEGORY_CODES[category]?.exemption ?? undefined);
   return {
     ...row,
-    // Padded, because the column is `char(2)` and every EN 16931 category but
-    // `AE` is one character — so the database hands back `S `, `K `, `E `.
-    // That is a defect and not an expectation; it is written up in
-    // `docs/international.md`, and this line is what it looks like from here.
-    vat_category: category === null ? null : category.padEnd(2),
+    vat_category: category,
     // `undefined` is the article-based case: the pack picks the reason, so
     // whatever the seed wrote is what is expected back.
     exemption_code: reserved === undefined ? row['exemption_code'] : reserved,
@@ -344,7 +340,7 @@ describe('pack, seed, database, pack again', () => {
         expect(loaded!.applies_to).toBe(tax.scope);
         expect(loaded!.treatment).toBe(tax.treatment);
         expect(loaded!.valid_from).toBe(tax.valid_from);
-        expect((loaded!.vat_category ?? '').trim() || null).toBe(tax.vat_category);
+        expect(loaded!.vat_category).toBe(tax.vat_category);
 
         for (const kind of ['invoice', 'credit_note'] as const) {
           const postings = await rows<{ posting_type: string; factor_percent: string; account_code: string | null; declaration_box: string | null; box_factor_percent: string; report_code: string | null; sequence: number }>(

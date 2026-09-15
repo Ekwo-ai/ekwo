@@ -790,7 +790,7 @@ Document lines in a table, not JSON: EN 16931 needs a VAT category per line and 
 | `discount_percent` | `numeric(7,4)` | not null |
 | `tax_id` | `uuid` |  |
 | `account_id` | `uuid` |  |
-| `vat_category` | `character(2)` |  |
+| `vat_category` | `text` | EN 16931 BT-151 as the line carries it, snapshotted from the tax when the line was written so a later rate change cannot rewrite history. |
 | `vat_rate` | `numeric(7,4)` |  |
 | `amount_untaxed` | `numeric(16,2)` | quantity x unit_price less the discount, rounded once at the decimals of the document's currency. Written by a trigger on every insert and update, so it is derived and never keyed in. |
 | `created_at` | `timestamp with time zone` | not null |
@@ -802,6 +802,7 @@ Constraints:
 
 - `CHECK (((discount_percent >= (0)::numeric) AND (discount_percent < (100)::numeric)))`
 - `CHECK (((line_type <> 'product'::document_line_type) OR (account_id IS NOT NULL)))`
+- `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
 
 ### `document_shares`
@@ -1455,7 +1456,7 @@ Reference taxes per country, with their period of validity.
 | `valid_from` | `date` | not null |
 | `valid_to` | `date` |  |
 | `legal_reference` | `text` |  |
-| `vat_category` | `character(2)` |  |
+| `vat_category` | `text` | EN 16931 BT-118 / BT-151 category code the pack declares for this tax, as UNCL5305 writes it. |
 | `exemption_code` | `text` |  |
 | `sequence` | `integer` | not null |
 | `tax_kind` | `tax_kind` | not null — vat, gst, sales_tax, withholding, other. A label for the reports, never an input to the calculation. |
@@ -1469,6 +1470,7 @@ Reference taxes per country, with their period of validity.
 
 Constraints:
 
+- `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
 - `UNIQUE (country, code)`
 
@@ -1491,7 +1493,7 @@ VAT and similar taxes, with temporal validity and a legal reference.
 | `valid_from` | `date` | not null |
 | `valid_to` | `date` |  |
 | `legal_reference` | `text` |  |
-| `vat_category` | `character(2)` | EN 16931 BT-118 / BT-151 category code. |
+| `vat_category` | `text` | EN 16931 BT-118 / BT-151 category code, as UNCL5305 writes it: S, Z, E, AE, K, G, O, L, M. One or two capitals, never padded. |
 | `exemption_code` | `text` |  |
 | `price_include` | `boolean` | not null |
 | `sequence` | `integer` | not null |
@@ -1509,6 +1511,7 @@ Constraints:
 
 - `CHECK (((country IS NULL) OR (country ~ '^[A-Z]{2}$'::text)))`
 - `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
+- `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, code)`
 

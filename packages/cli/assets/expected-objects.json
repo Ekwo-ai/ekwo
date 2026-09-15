@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.3.0",
-  "migration": "20260915170500",
+  "migration": "20260915174500",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1399,7 +1399,7 @@
           },
           {
             "name": "vat_category",
-            "type": "character(2)"
+            "type": "text"
           },
           {
             "name": "vat_rate",
@@ -2789,7 +2789,7 @@
           },
           {
             "name": "vat_category",
-            "type": "character(2)"
+            "type": "text"
           }
         ]
       },
@@ -2898,7 +2898,7 @@
           },
           {
             "name": "vat_category",
-            "type": "character(2)"
+            "type": "text"
           }
         ]
       },
