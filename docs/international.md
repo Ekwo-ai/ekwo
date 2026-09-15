@@ -714,28 +714,38 @@ the treatment on the line is the only place the difference is recorded.
 
 Publishing an invoice behind a link (`20260915153000`) put a reader in front of
 it who has no session, no preferences and no membership, and that reader found
-two things the core cannot say.
+two things the core could not say. Both are closed by `20260915191200`, and
+they turned out to be one thing: a chain that was re-walked on every read, from
+a starting point only a session could supply.
 
-**A document does not record the language it was written in.** `documents` has
-no `language` column: the language is re-derived, every time, from the
-contact's, then the company's, then the one the country pack declares. So an
-invoice reprinted after the customer switched to another language comes out in
-a language it was never sent in — which is wrong on a document whose legal
-mentions are part of what the law requires. *Fix*: `documents.language`,
-written from that same chain when the document is created, snapshotted like
-`document_lines.vat_category` and `vat_rate` already are, for the same reason.
-*Until then*: `shared_document()` resolves the chain on every read and a link
-follows the contact.
+~~**A document does not record the language it was written in.**~~ **Closed,
+15 September 2026.** `documents` had no `language` column: the language was
+re-derived, every time, from the contact's, then the company's, then the one
+the country pack declares. So an invoice reprinted after the customer switched
+to another language came out in a language it was never sent in — wrong on a
+document whose legal mentions are part of what the law requires.
+`documents.language` is now a column of the table, filled from that same chain
+when the document is created and frozen the moment it is posted, which is what
+`document_lines.vat_category` and `vat_rate` already are and for the same
+reason. A draft keeps following the chain — it carries no number, no entry, and
+the customer on it may still change — and a posted document refuses the move
+by name, `document_language_frozen`. The documents that were already here were
+filled from the chain once, in the migration, which is the best that can be
+said about a document somebody has already sent.
 
-**`preferred_languages()` cannot serve a reader who is not signed in.** It
-starts at `user_preferences` for `auth.uid()`, which is null for `anon`, so the
-one published way of choosing a language is unavailable to the one reader who
-is outside the installation. `shared_document()` therefore resolves the chain
-itself — the customer's language, then the company's — and that is a second
-place a language is chosen. *Fix*: a `document_language(document_id)` that
-answers for a document rather than for a user, with `preferred_languages()`
-keeping its own chain for a person reading their own books. *Until then*: the
-chain is two columns inside `shared_document()`, and it is the only copy.
+~~**`preferred_languages()` cannot serve a reader who is not signed in.**~~
+**Closed, 15 September 2026.** It started at `user_preferences` for
+`auth.uid()`, which is null for `anon`, so the one published way of choosing a
+language was unavailable to the one reader who is outside the installation, and
+`shared_document()` resolved the chain itself — a second place a language was
+chosen. The chain was never about a *user*, only about where it starts:
+`preferred_languages(language, company)` takes the starting point explicitly,
+and `preferred_languages(company)` is now one line on top of it, supplying the
+signed-in reader's preference. `document_legal_mentions` walks the chain from
+`documents.language`, `shared_document()` reads the column and the view, and
+neither writes a chain of its own. `anon` gains nothing: the overload is
+granted to `authenticated` and `service_role`, and the public door is still one
+`security definer` function.
 
 ### From the recapitulative statement
 

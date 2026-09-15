@@ -122,10 +122,14 @@ link and sees that it is settled. `tax_amount` in the breakdown is what the
 other party actually pays — zero where the tax self-assesses — so the breakdown
 adds up to `totals.amount_tax`.
 
-**The legal mentions come out in the document's own language**: the customer's,
-else the company's, else the one the country pack is written in. They are the
-sentences `document_legal_mentions` produces, which is what a printed invoice
-carries, so a link and a PDF cannot come to disagree.
+**The legal mentions come out in the document's own language**, which is
+`documents.language` — taken from the customer, else the company, else the
+country pack when the document was created, and frozen when it was posted. It
+is what `document.language` in the object above reports. A customer who
+switches language afterwards switches what they are sent next: the link keeps
+showing the invoice as it was sent, sentences included. They are the sentences
+`document_legal_mentions` produces, which is what a printed invoice carries, so
+a link and a PDF cannot come to disagree.
 
 ## The same answer for every kind of no
 

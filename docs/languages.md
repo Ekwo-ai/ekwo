@@ -90,6 +90,56 @@ The expression used to be written out wherever it was needed —
 `coalesce(nullif(x.name_i18n ->> lang, ''), x.name)` — and a formula written
 twice is a formula that will one day disagree with itself.
 
+## The chain starts where the caller says
+
+There is a second form, and it is the general one:
+
+```sql
+select label_for(text, text_i18n, preferred_languages(:language, :company));
+```
+
+`preferred_languages(language, company)` takes the first link explicitly and
+falls back to the company and then to the pack exactly as above.
+`preferred_languages(company)` is one line on top of it, supplying the
+signed-in reader's preference as that first link.
+
+The distinction matters the moment a reader has no session. Somebody holding
+the link to an invoice has no `user_preferences` row and no membership, so a
+chain that begins at `auth.uid()` begins at null for them — and the one
+published way of choosing a language was unavailable to the one reader who is
+outside the installation. The chain was never about a *user*; it was about
+where it starts. A person reading their own books starts at their preference,
+and a document being rendered starts at its own language.
+
+## A document knows what it was written in
+
+`documents.language` is a column of the document, and that is the difference
+between a language and a preference. It is filled when the document is created,
+from the customer's language, then the company's, then the pack's — the same
+chain, walked once — and it is frozen the moment the document is posted, the
+way `document_lines.vat_category` and `vat_rate` are frozen against a later
+rate change.
+
+While a document is a draft it keeps following the chain: it carries no number
+and no entry, the customer on it may still change, and so may that customer's
+own language. A draft may also be given a language by hand. Once it is posted,
+an update that moves it is refused by name:
+
+```
+document_language_frozen: FAC-2026-0007 was sent in nl, so it stays in nl.
+```
+
+The reason is the legal mentions. A customer who switches to another language
+switches what they are sent next, not what they were sent: an invoice reprinted
+in a language it was never written in is a different document on the one part
+of it a country actually legislates.
+
+`document_legal_mentions` reads that column. Each row carries `language` — the
+one the document was written in — and `text` already in it, with `text_i18n`
+beside it for a renderer printing a second language. `document_header` carries
+`language` too, so the three reads a renderer makes agree by construction
+rather than by each of them re-deriving a chain.
+
 ## What a pack must provide
 
 A country pack declares the languages it publishes, and that declaration is a

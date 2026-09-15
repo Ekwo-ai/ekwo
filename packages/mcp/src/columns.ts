@@ -115,6 +115,7 @@ export const DOCUMENT = [
   'accounting_date::text',
   'due_date::text',
   'currency_code',
+  'language',
   'amount_untaxed::text',
   'amount_tax::text',
   'amount_total::text',
@@ -126,12 +127,14 @@ export const DOCUMENT = [
 
 /**
  * The mentions the law of a country puts on one document, from the view that
- * decides which of them apply. `text_i18n` crosses as it is: a renderer picks
- * the language, and the server has no business choosing one.
+ * decides which of them apply. `text` is the sentence in the language the
+ * document was written in and `language` says which one that is; `text_i18n`
+ * crosses as it is, for a renderer printing a second language beside it.
  */
 export const DOCUMENT_LEGAL_MENTION = [
   'code',
   'applies_when',
+  'language',
   'text',
   'text_i18n',
   'sequence',
@@ -222,6 +225,7 @@ export const DOCUMENT_HEADER = [
   'buyer_city',
   'buyer_country',
   'buyer_email',
+  'language',
   'country',
   'number_format',
   'numbering_gapless',

@@ -347,13 +347,18 @@ describe('a visitor who holds the link', () => {
     }
   });
 
-  it('reads a document written for a customer in another language in that language', async () => {
-    // A pack publishes its labels in more than one language, and the customer
-    // is the one who reads the invoice: their language wins over the books'.
+  it('stays in the language it was sent in when the customer changes theirs', async () => {
+    // The link is onto a document that was posted, and a posted document
+    // records the language it was written in. A customer who switches
+    // afterwards switches what they are sent next — not what they were sent.
     const other = (pack.manifest.languages ?? []).find(
       (code) => code !== (pack.manifest.defaults.language ?? null),
     );
     if (other === undefined) throw new Error(`packs/${pack.slug} publishes only one language`);
+
+    const sent = (await readAsVisitor(share.token)) as SharedDocument;
+    const written = sent.document['language'] as string;
+    expect(written).not.toBe(other);
 
     const contactId = await one<{ contact_id: string }>(
       db,
@@ -366,10 +371,10 @@ describe('a visitor who holds the link', () => {
     ]);
 
     const seen = (await readAsVisitor(share.token)) as SharedDocument;
-    expect(seen.document['language']).toBe(other);
+    expect(seen.document['language']).toBe(written);
     for (const mention of seen.legal_mentions) {
       const fromPack = pack.documents.mentions.find((m) => m.code === mention.code);
-      expect(mention.text, mention.code).toBe(fromPack?.text_i18n[other] ?? fromPack?.text);
+      expect(mention.text, mention.code).toBe(fromPack?.text_i18n[written] ?? fromPack?.text);
     }
 
     await db.query(`update contacts set language = null where id = $1`, [contactId.contact_id]);

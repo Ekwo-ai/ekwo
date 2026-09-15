@@ -176,6 +176,29 @@ somewhere has already run it.
   `security_invoker`, the same comments and the same grants. No pack moved: a
   pack never wrote the space, the column added it, so every golden figure and
   every compiled seed is identical.
+
+- **A document was reprinted in a language it was never sent in.** The language
+  of an invoice was re-derived on every read — the customer's, else the
+  company's, else the one the country pack declares — so a customer who
+  switched language rewrote every invoice ever addressed to them, legal
+  mentions included. That is wrong on the one part of a document a country
+  actually legislates. `documents.language` records it: filled from that same
+  chain when the document is created, kept in step while it is a draft, and
+  frozen the moment it is posted, which is what `document_lines.vat_category`
+  and `vat_rate` already are and for the same reason. A posted document that
+  somebody tries to move refuses by name, `document_language_frozen`; the
+  documents already in the database were filled from the chain once, in the
+  migration, which is the best that can be said of a document already sent.
+  `preferred_languages(language, company)` is the chain from a starting point
+  the caller names, and `preferred_languages(company)` is now one line on top
+  of it that supplies the signed-in reader's preference — so the reader of a
+  shared link, who has no session at all, reaches the published chain instead
+  of a second copy of it written inside `shared_document()`.
+  `document_legal_mentions` answers in the document's language and publishes
+  which one it used; `document_header` carries it too. `anon` gains nothing:
+  the overload is granted to `authenticated` and `service_role`, and the public
+  door is still one `security definer` function. No pack moved — every golden
+  figure and every compiled seed is identical.
 ||||||| parent of 5d6ff05 (feat(schema): the territories of the common system of VAT, and a word for a triangular supply)
 
 ## [0.3.0] — 2026-09-15

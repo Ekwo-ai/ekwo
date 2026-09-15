@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.3.0",
-  "migration": "20260915182500",
+  "migration": "20260915191200",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1592,6 +1592,10 @@
             "type": "uuid"
           },
           {
+            "name": "language",
+            "type": "character(2)"
+          },
+          {
             "name": "note",
             "type": "text"
           },
@@ -3137,6 +3141,10 @@
         "arguments": "p_company_id uuid"
       },
       {
+        "name": "contacts_language_reaches_drafts",
+        "arguments": ""
+      },
+      {
         "name": "create_api_key",
         "arguments": "p_company_id uuid, p_name text, p_capabilities jsonb, p_expires_at timestamp with time zone"
       },
@@ -3186,6 +3194,10 @@
       },
       {
         "name": "documents_default_payee_iban",
+        "arguments": ""
+      },
+      {
+        "name": "documents_guard_language",
         "arguments": ""
       },
       {
@@ -3403,6 +3415,10 @@
       {
         "name": "preferred_languages",
         "arguments": "p_company_id uuid"
+      },
+      {
+        "name": "preferred_languages",
+        "arguments": "p_language text, p_company_id uuid"
       },
       {
         "name": "purge_audit_log",
@@ -4045,6 +4061,10 @@
       },
       {
         "table": "contacts",
+        "name": "contacts_language_reaches_drafts"
+      },
+      {
+        "table": "contacts",
         "name": "contacts_set_updated_at"
       },
       {
@@ -4090,6 +4110,10 @@
       {
         "table": "documents",
         "name": "documents_default_payee_iban"
+      },
+      {
+        "table": "documents",
+        "name": "documents_guard_language"
       },
       {
         "table": "documents",
@@ -5583,6 +5607,14 @@
           ]
         },
         {
+          "name": "contacts_language_reaches_drafts",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
           "name": "create_api_key",
           "arguments": "p_company_id uuid, p_name text, p_capabilities jsonb, p_expires_at timestamp with time zone",
           "anon": [],
@@ -5701,6 +5733,14 @@
         },
         {
           "name": "documents_default_payee_iban",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
+        },
+        {
+          "name": "documents_guard_language",
           "arguments": "",
           "trigger": true,
           "anon": [],
@@ -6280,6 +6320,17 @@
         {
           "name": "preferred_languages",
           "arguments": "p_company_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "preferred_languages",
+          "arguments": "p_language text, p_company_id uuid",
           "anon": [],
           "authenticated": [
             "execute"
