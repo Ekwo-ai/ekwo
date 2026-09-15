@@ -146,6 +146,7 @@ export const TAX_TREATMENTS = [
   'domestic_reverse_charge',
   'intracom_goods',
   'intracom_services',
+  'intracom_triangular',
   'intracom_acquisition_goods',
   'intracom_acquisition_services',
   'foreign_services_received',

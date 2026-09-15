@@ -211,18 +211,21 @@ git clone https://github.com/Ekwo-ai/ekwo-os.git && cd ekwo-os
 supabase link --project-ref <your-project-ref>
 supabase db push                       # applies supabase/migrations in order
 psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
+psql "$DATABASE_URL" -f supabase/seed/00_territories.sql
 psql "$DATABASE_URL" -f supabase/seed/05_framework_generic.sql
 psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql, 12_pack_lu.sql, 13_pack_ee.sql
 ```
 
-Those five files are the ones `config.toml` lists under `[db.seed]`, which is
+Those six files are the ones `config.toml` lists under `[db.seed]`, which is
 what `supabase db reset` applies on a local project — and the same set
 `ekwo init` loads. Leave `05_framework_generic.sql` out and the installation
 has a chart of accounts but no financial statements for a chart that declares
-none of its own.
+none of its own; leave `00_territories.sql` out and the recapitulative
+statement refuses to run at all, by name, rather than reporting every customer
+as outside the Union.
 
 Skip `supabase/seed/90_demo_company.sql` unless you want the sample data, and
-then run the six statements above as a signed-in user. The two routes are
+then run the seven statements above as a signed-in user. The two routes are
 interchangeable: `ekwo migrate` and `supabase db push` read and write the same
 `supabase_migrations.schema_migrations`.
 

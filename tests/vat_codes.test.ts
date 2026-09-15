@@ -157,6 +157,34 @@ describe('what the check refuses', () => {
     ).toContain('reserves VATEX-EU-IC');
   });
 
+  it('the reverse-charge category on the middle supply of a triangular arrangement', () => {
+    // AE is the guidance's case for a reverse charge *within* one Member
+    // State. A triangular supply is the opposite shape — the goods leave the
+    // seller's State and article 197 puts the tax on a customer in a third —
+    // so what the line is, is K.
+    expect(
+      refusalFor({
+        treatment: 'intracom_triangular',
+        vat_category: 'AE',
+        exemption_code: 'VATEX-EU-AE',
+      }),
+    ).toContain('expected K');
+    expect(
+      refusalFor({
+        treatment: 'intracom_triangular',
+        scope: 'purchase',
+      }),
+    ).toContain('is a sale operation');
+    // And the pair the VATEX list reserves passes.
+    expect(
+      refusalFor({
+        treatment: 'intracom_triangular',
+        vat_category: 'K',
+        exemption_code: 'VATEX-EU-IC',
+      }),
+    ).toBe('');
+  });
+
   it('an exemption reason on a line that is taxed', () => {
     expect(
       refusalFor({ vat_category: 'S', rate: 21, exemption_code: 'VATEX-EU-132' }),

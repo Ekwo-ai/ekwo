@@ -440,6 +440,7 @@ opinion:
 | `domestic_reverse_charge` | either | `AE` | `VATEX-EU-AE` |
 | `intracom_goods` | sale | `K` | `VATEX-EU-IC` |
 | `intracom_services` | sale | `K` | `VATEX-EU-IC` |
+| `intracom_triangular` | sale | `K` | `VATEX-EU-IC` |
 | `intracom_acquisition_goods` | purchase | `K`, or none | `VATEX-EU-IC` |
 | `intracom_acquisition_services` | purchase | `K`, or none | `VATEX-EU-IC` |
 | `foreign_services_received` | purchase | none | none |
@@ -448,7 +449,7 @@ opinion:
 | `exempt` | either | `E` | the article claimed, from the VATEX list |
 | `not_subject` | either | `O` | `VATEX-EU-O` |
 
-Two things in that table are decisions, and both are worth reading before
+Three things in that table are decisions, and all three are worth reading before
 filling a column in.
 
 **A category is a term of the invoice, so on a purchase it is the
@@ -470,6 +471,23 @@ does not govern. There is no seller's category to record, so `import` and
 `foreign_services_received` carry none. `S` there would claim the supplier
 levied the standard rate, which is the one thing that certainly did not
 happen.
+
+**A triangular supply is `K`, not `AE`.** `intracom_triangular` is the middle
+supply of a triangular arrangement — A sells to B, B sells to C, the goods go
+straight from A to C — that is, B's sale to C, relieved by article 141 of
+Directive 2006/112/EC and reverse-charged to C by article 197. A's supply is an
+ordinary `intracom_goods` and C's purchase an ordinary
+`intracom_acquisition_goods`, so there is one value to add and not three. `AE`
+is the guidance's case for a reverse charge *within* one Member State, where
+the supplier is established in the buyer's country; this is the opposite shape,
+the goods leaving the seller's State, and what the line is — in the words of
+UNCL5305 — is *VAT exempt for EEA intra-community supply of goods and
+services*. On the invoice it is the **reverse-charge** sentence that comes out
+and not the intra-Union exemption: the supply is not exempt under article 138,
+and article 226(11a) requires the mention that says the customer owes the tax.
+A pack that declares such a tax gets `triangular` out of `ec_sales_list()` for
+free, and the four recapitulative-statement bricks already have a column and a
+code for it.
 
 `foreign_services_received` is the treatment for a service bought from a
 supplier who is not established in the buyer's country and charges no tax on
@@ -693,7 +711,7 @@ condition would be a pack that executes.
 | `applies_when` | Applies when |
 |---|---|
 | `always` | every document of the country |
-| `reverse_charge` | a line carries a tax treated as a domestic reverse charge |
+| `reverse_charge` | a line carries a tax the **customer** owes: a domestic reverse charge, a service received from a supplier who is not established here, or the middle supply of a triangular arrangement — three articles behind one sentence |
 | `intra_eu_goods` | a line carries an intra-Union supply or acquisition of goods |
 | `intra_eu_services` | the same, for services |
 | `export` | a line carries a supply outside the Union |

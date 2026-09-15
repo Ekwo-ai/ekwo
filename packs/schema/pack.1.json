@@ -416,10 +416,10 @@
         "treatment": {
           "enum": [
             "domestic", "domestic_reverse_charge", "intracom_goods", "intracom_services",
-            "intracom_acquisition_goods", "intracom_acquisition_services",
+            "intracom_triangular", "intracom_acquisition_goods", "intracom_acquisition_services",
             "foreign_services_received", "export", "import", "exempt", "not_subject"
           ],
-          "description": "What the operation is. It drives nothing in the ledger — the postings do that — and it decides the legal mention the invoice carries and the EN 16931 category the two fields below have to agree with. foreign_services_received is a service bought from a supplier who is not established here and charges no tax on it, the buyer accounting for it themselves under the general business-to-business rule (articles 44 and 196 of Directive 2006/112/EC); import is goods declared to customs, which is a different mechanism behind a different document."
+          "description": "What the operation is. It drives nothing in the ledger — the postings do that — and it decides the legal mention the invoice carries and the EN 16931 category the two fields below have to agree with. foreign_services_received is a service bought from a supplier who is not established here and charges no tax on it, the buyer accounting for it themselves under the general business-to-business rule (articles 44 and 196 of Directive 2006/112/EC); intracom_triangular is the middle supply of a triangular arrangement, the one the intermediate operator makes to the final customer, relieved by article 141 of Directive 2006/112/EC and reverse-charged to that customer by article 197; import is goods declared to customs, which is a different mechanism behind a different document."
         },
         "valid_from": { "$ref": "#/$defs/date" },
         "valid_to": { "type": ["string", "null"], "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },

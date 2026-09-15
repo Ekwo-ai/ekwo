@@ -183,6 +183,7 @@ the return say the same thing, because they are the same rows.
 | [`tax_report_templates`](#tax_report_templates) | Declaration forms per country, from packs/<cc>/tax_report.json. Reference data: a form is not customisable, so it is never copied into a company. |
 | [`tax_templates`](#tax_templates) | Reference taxes per country, with their period of validity. |
 | [`taxes`](#taxes) | VAT and similar taxes, with temporal validity and a legal reference. |
+| [`territories`](#territories) | The territories of the common system of value added tax: the Member States with the day each became bound, the United Kingdom with the day it stopped being, Northern Ireland, and the territories articles 6 and 7 of Directive 2006/112/EC take out of the system or put into it. Framework data filled by the release, like currencies — no company owns a row and no country pack writes one. A territory this table does not carry is outside the common system, which is the answer for every third country. |
 | [`user_preferences`](#user_preferences) | What one person prefers, across every company they are a member of. Every column is nullable and none has a default: null means "take the company's answer, then the pack's". |
 
 ### `account_templates`
@@ -1523,6 +1524,31 @@ Constraints:
 - `PRIMARY KEY (id)`
 - `UNIQUE (company_id, code)`
 
+### `territories`
+
+The territories of the common system of value added tax: the Member States with the day each became bound, the United Kingdom with the day it stopped being, Northern Ireland, and the territories articles 6 and 7 of Directive 2006/112/EC take out of the system or put into it. Framework data filled by the release, like currencies — no company owns a row and no country pack writes one. A territory this table does not carry is outside the common system, which is the answer for every third country.
+
+| Column | Type | Notes |
+|---|---|---|
+| `code` | `text` | not null — ISO 3166-1 alpha-2 where the territory has one, ISO 3166-2 where only a subdivision code exists, XI for Northern Ireland, and a name of this table for the five territories of article 6 that no register codes. code_source says which. |
+| `code_source` | `territory_code_source` | not null |
+| `name` | `text` | not null |
+| `parent_code` | `text` | The Member State this territory hangs off: the one it is part of, excluded from, or treated as part of. |
+| `eu_vat_scope` | `eu_vat_scope` | not null — How much of the common system applied during the window below: all of it, supplies of goods only, or none. |
+| `eu_vat_from` | `date` | First day the common system of VAT reached this territory. Null where it never did. |
+| `eu_vat_to` | `date` | Last day it did. Null while it still does. A VAT date, not a membership one: the United Kingdom left the Union on 31 January 2020 and left the common system on 31 December 2020. |
+| `vat_prefix` | `character(2)` | The prefix this territory's VAT identification numbers carry, when it differs from the code: EL for Greece, FR for Monaco, GB for the Isle of Man. Null when the two are the same. |
+| `legal_reference` | `text` | not null — The text that puts this territory where it is — an accession treaty, an article of Directive 2006/112/EC, the Withdrawal Agreement. |
+
+Constraints:
+
+- `CHECK ((code ~ '^[A-Z]{2}(-[A-Z0-9]{1,12})?$'::text))`
+- `CHECK (((parent_code IS NULL) OR (parent_code <> code)))`
+- `CHECK (((vat_prefix IS NULL) OR (vat_prefix ~ '^[A-Z]{2}$'::text)))`
+- `CHECK (((eu_vat_scope = 'none'::eu_vat_scope) = (eu_vat_from IS NULL)))`
+- `CHECK (((eu_vat_to IS NULL) OR ((eu_vat_from IS NOT NULL) AND (eu_vat_from <= eu_vat_to))))`
+- `PRIMARY KEY (code)`
+
 ### `user_preferences`
 
 What one person prefers, across every company they are a member of. Every column is nullable and none has a default: null means "take the company's answer, then the pack's".
@@ -1580,11 +1606,12 @@ Constraints:
 | `document_share_refusal(p_document documents)` | Why this document may not be shared, or null when it may. Sales only, never cancelled, never an unposted invoice, always numbered. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
-| `ec_sales_list(p_company_id uuid, p_from date, p_to date)` | The recapitulative statement of intra-Community supplies for a period: one line per customer VAT number and per nature — goods, services, and whatever the treatment vocabulary gains next — summed from the posted ledger in the company's currency, credit notes deducted. A supply that cannot be declared comes back with the reason in `issue` rather than being left out. No country rule lives in this function, and it refuses no period: how often a statement is filed is not what companies.vat_period records. |
+| `ec_sales_list(p_company_id uuid, p_from date, p_to date)` | The recapitulative statement of intra-Community supplies for a period: one line per customer VAT identification number and per nature — goods, services, and whatever the treatment vocabulary gains next — summed from the posted ledger in the company's currency, credit notes deducted. The country of a line is the prefix the customer's numbers carry, read from `territories`, so a Greek customer is listed under EL. A supply that cannot be declared comes back with the reason in `issue` rather than being left out, including a supply to a territory the common system of VAT did not cover on the day it was made. No country rule lives in this function, and it refuses no period: how often a statement is filed is not what companies.vat_period records. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
 | `enable_module(p_company_id uuid, p_code text, p_settings jsonb)` | Enables a module on a company, and updates its settings when it is already enabled. Needs company.write, checked here because the table has no write policy. |
 | `entries_guard_kind()` | Keeps entries.kind on `normal` outside the three functions that open and close a year. A label any client may set is a label a statement cannot be built on. |
 | `entries_guard_module()` | Keeps the module tag of an entry honest: a module the company holds, never posted on insert, never moved afterwards. |
+| `eu_vat_scope_of(p_code text, p_on date)` | How much of the common system of VAT applied to a territory on a day: all of it, supplies of goods only, or none. A territory this table does not carry answers none, which is the right answer for every third country. |
 | `evaluate_totals(p_values jsonb, p_formulas jsonb, p_rounding money_rounding, p_keep_zero boolean)` | Works out the totals of a declaration form or a statement from the figures below them, rounding each at the decimals of the currency it is stated in. |
 | `fec_lines(p_company_id uuid, p_from date, p_to date)` | The eighteen columns of the French FEC for a period: the opening balances of the financial year first, computed and never posted, then its movements in chronological order. The entries the close wrote are left out — the file carries the income statement in its ordinary lines, and the result reaches the balance sheet in the opening lines of the year that follows. |
 | `financial_statement(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | One financial statement of a company for a period: each line summed from the accounts its rules catch, then the totals evaluated in the order the scheme declares them. No country rule lives in this function. |
@@ -1600,6 +1627,7 @@ Constraints:
 | `invite_member(p_company_id uuid, p_email text, p_role member_role, p_capabilities jsonb, p_valid_for interval)` | Invites an address into a company and returns the token once. Only the hash is stored; re-inviting the same address revokes the pending invitation. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_company_owner(p_company_id uuid)` | Whether the current user is on the owner preset of a company. False, never NULL, for somebody who is not a member — a guard written as `if not is_company_owner(…)` has to fire for a stranger. |
+| `is_eu_member(p_code text, p_on date)` | True when the whole of the common system of VAT applied to the territory on that day: every Member State, and Monaco, whose transactions article 7(1) treats as French. False for Northern Ireland, which is inside the system for goods alone, and false for a State from the day it left. |
 | `is_installer()` | Whether the caller is the installation itself — the migration runner, the seeds, the CLI — rather than a person or a machine key. Set by the runner on its own connection; a session or a key can never be it. |
 | `is_instance_admin()` | Whether the current user administers this installation. |
 | `label_for(p_name text, p_i18n jsonb, p_languages text[])` | The label in the first language of the list that has one, and the row's own name when none of them does. The only place a translated label is chosen. |
@@ -1642,12 +1670,14 @@ Constraints:
 | `shared_document(p_token text)` | One document, read by whoever holds its link: the header, the lines, the tax breakdown, the totals, the legal mentions in the document's own language, and what is still owed today. Returns null — the same null, in the same shape — for a token that is unknown, withdrawn, expired, or onto a document that may no longer be shared. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
+| `territory_of(p_code text)` | The territory a code or a VAT prefix names, or null when this table carries none. A code wins over a prefix, so FR is France and not the Monaco row that identifies under it. |
 | `touch_api_key(p_api_key_id uuid)` | Records that a key was used just now. A key that has never been used, and one that has not been used for a year, are both things an operator should be able to see. |
 | `trial_balance(p_company_id uuid, p_from date, p_to date)` | Opening balance, movements of the period and closing balance per account, posted entries only. |
 | `unmapped_accounts(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Accounts this statement is answerable for that carry a balance and that no rule of it catches. Empty is what makes the statement tie out; a row is an account somebody opened outside the pack. |
 | `unreconcile(p_reconciliation_id uuid)` | Undoes a matching, and with it what the matching had booked: the exchange difference it realised and the share of a cash-basis tax it had made due. |
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `use_api_key(p_secret text)` | Presents a machine key for the current transaction: has_capability() answers for it until the transaction ends. Refuses a key that is unknown, withdrawn or expired. |
+| `vat_prefix_of(p_code text)` | The two letters a territory's VAT identification numbers carry: EL for Greece, FR for Monaco, GB for the Isle of Man, and the code itself everywhere else — including for a territory this table does not carry, whose own two letters come back unchanged. Null when what it resolves to is not two letters, which is a territory that identifies under nobody. |
 | `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. Refuses a period the company does not file on, when it has recorded one. No country rule lives in this function. |
 
 ---

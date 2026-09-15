@@ -25,6 +25,57 @@ somewhere has already run it.
   beside the rule each belongs to. `ekwo pack check` refuses a declared rule
   that cites no article on a `reviewed` pack and warns about one on any other,
   and refuses a key the pack's register does not carry.
+||||||| parent of feaa972 (feat(schema): the territories of the common system of VAT, and a word for a triangular supply)
+- **The core can say where the common system of VAT applies, and under which
+  two letters.** `ec_sales_list()` shipped with two holes `docs/international.md`
+  recorded: it could not tell a Member State from a third country — its only
+  check was that the customer was not in the company's own — and it read a
+  customer's VAT country off their ISO code, so a Greek customer recorded
+  without a prefix was listed under `GR`, which every one of the four
+  administrations refuses. Both are answered by `territories`, a reference
+  table of the framework beside `currencies`: 49 rows seeded by
+  `supabase/seed/00_territories.sql` — the 27 Member States with the day each
+  became bound, the United Kingdom with the day it stopped being, Northern
+  Ireland, and the territories articles 6 and 7 of Directive 2006/112/EC take
+  out of the common system or put into it — each carrying the text it comes
+  from. `territory_of()`, `is_eu_member(code, on)`, `eu_vat_scope_of(code, on)`
+  and `vat_prefix_of()` read it; nothing branches on a code and adding a State
+  is a row.
+  The statement asks it **as at the entry date of the line**, so a period in
+  2020 still reports supplies to the United Kingdom and one in 2021 does not,
+  and a supply the system does not reach comes back as
+  `vat_country_outside_the_union` instead of being filed. Northern Ireland is a
+  row of its own with a parent and an `eu_vat_scope` of `goods`, not a flag on
+  the United Kingdom: goods supplied there belong on the statement and services
+  do not, which is `vat_country_outside_the_union_for_this_supply`. The columns
+  are named for VAT rather than for membership because the two dates differ —
+  the United Kingdom left the Union on 31 January 2020 and the common system on
+  31 December 2020 — and the row says so. `vat_prefix` holds a difference and
+  never a copy (`EL` for Greece, `FR` for Monaco, `GB` for the Isle of Man),
+  which also fixed a defect no Belgian or French filer could have seen: the
+  company's own country was compared raw, so a Greek company would never have
+  caught a domestic supply listed as an intra-Community one. A database with
+  the table and without the seed is refused by name, `no_territories`, rather
+  than reporting every customer in the world as outside the Union. The four
+  format bricks receive a prefix already resolved and did not change.
+- **`intracom_triangular`.** The middle supply of a triangular arrangement —
+  B's sale to C, relieved by article 141 of Directive 2006/112/EC and
+  reverse-charged to C by article 197 — had no word in `tax_treatment`, so it
+  was declared as ordinary goods although all four recapitulative statements
+  print it as a category of its own. The value costs nothing else:
+  `ec_sales_list()` derives the nature by taking `intracom_` off the treatment
+  and returns `triangular` unchanged, and the four bricks, published before the
+  value existed, already write `T` on the Belgian listing, the `TVA_LICT` form
+  of the Luxembourg envelope and the `kolmnurktehing` column of the Estonian
+  form VD — while the French DES says by name that a supply of goods belongs on
+  another file. On the invoice it resolves to the **reverse-charge** mention
+  and not to the intra-Union one: the supply is not exempt under article 138,
+  it takes place where the goods arrive, and article 226(11a) requires the
+  sentence saying the customer owes the tax. Its EN 16931 category is `K` with
+  `VATEX-EU-IC`, not `AE`, which the guidance reserves for a reverse charge
+  within one Member State. **No pack declares such a tax**: the path is proved
+  on a fixture rather than on a country, because an invented tax in `packs/` is
+  a rule nobody can review.
 
 ### Fixed
 
@@ -45,6 +96,7 @@ somewhere has already run it.
   `security_invoker`, the same comments and the same grants. No pack moved: a
   pack never wrote the space, the column added it, so every golden figure and
   every compiled seed is identical.
+||||||| parent of 5d6ff05 (feat(schema): the territories of the common system of VAT, and a word for a triangular supply)
 
 ## [0.3.0] — 2026-09-15
 

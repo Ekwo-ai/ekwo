@@ -1,0 +1,53 @@
+-- Ekwo OS — the supply in the middle of a triangular arrangement.
+--
+-- Three businesses in three Member States: A sells to B, B sells to C, and the
+-- goods go straight from A to C. Without a rule, B would have to register for
+-- VAT in C's Member State, because B makes an intra-Community acquisition
+-- there and then a domestic supply. Article 141 of Directive 2006/112/EC
+-- relieves B of that, and article 197 makes C liable for the tax on B's
+-- supply. It is the simplification every Member State applies, and it is old:
+-- it came in with the internal market in 1993.
+--
+-- The `tax_treatment` vocabulary had no word for B's supply. It had
+-- `intracom_goods` and `intracom_services` and nothing between them, so a
+-- pack describing B's side had to call it an ordinary intra-Community supply
+-- of goods — which is what `docs/international.md` recorded as a gap when
+-- `ec_sales_list()` was written, because all four recapitulative statements
+-- print a triangular supply as a category of its own: code `T` on the Belgian
+-- listing, its own table in the Luxembourg `LIC`, the *kolmnurktehing* column
+-- of the Estonian form VD, and the *opérations triangulaires* line of the
+-- French DES.
+--
+-- So the value is added here, and nothing else in the core has to move for it.
+--
+--   * `ec_sales_list()` derives the nature by taking `intracom_` off the
+--     treatment, so a tax treated this way comes out as `triangular` with not
+--     one line of that function changing. It was written that way on purpose
+--     and this is the migration that proves it.
+--   * All four format bricks already hold a column and a code for
+--     `triangular`, and they were published before the value existed. Nothing
+--     under `packages/formats/` changes either.
+--   * Nothing in the ledger branches on a treatment. What a tax *does* is said
+--     by its postings, and a pack that declares a triangular tax declares its
+--     postings the way it declares any other.
+--
+-- **A is unaffected.** A makes an ordinary exempt intra-Community supply of
+-- goods to B and declares it as one. This value is B's side and only B's, and
+-- the acquisition C makes is C's own `intracom_acquisition_goods` — there is
+-- no fourth value to add, and no pack in this repository has a triangular tax
+-- to declare, because writing one for a country nobody asked would be
+-- inventing a rule rather than transcribing one.
+--
+-- The value is placed beside `intracom_services` rather than at the end, so
+-- that the four intra-Community supplies read together in the enum, in the
+-- database, in `TAX_TREATMENTS` and in the pack schema — which is the one
+-- ordering `tests/vat_codes.test.ts` compares across the three.
+--
+-- A value added to an enum cannot be used in the transaction that adds it.
+-- The runner applies each file as one transaction, so the value is added alone
+-- here and read by the file that comes after.
+
+alter type tax_treatment add value 'intracom_triangular' after 'intracom_services';
+
+-- No object is created, so there is nothing to grant. The type itself is
+-- reachable by everyone who can already read the column that uses it.

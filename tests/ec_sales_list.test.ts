@@ -267,27 +267,78 @@ for (const pack of withSupplies) {
 // ---------------------------------------------------------------------------
 
 /**
- * A pack that supplies goods to another Member State, and the tax, account and
- * year its own golden scenario uses to do it. Everything below is booked from
- * those, so nothing here names a country, a code or a rate.
+ * A pack that supplies both goods and services to another Member State, and
+ * the taxes, accounts and year its own golden scenario uses to do it.
+ * Everything below is booked from those, so nothing here names a country, a
+ * code or a rate.
  */
-const supplier = packWhere('a tax on an intra-Community supply of goods', (pack) =>
-  pack.golden !== null && pack.taxes.some((t) => t.treatment === 'intracom_goods'),
+const supplier = packWhere(
+  'taxes on an intra-Community supply of goods and of services',
+  (pack) =>
+    pack.golden !== null &&
+    pack.taxes.some((t) => t.treatment === 'intracom_goods') &&
+    pack.taxes.some((t) => t.treatment === 'intracom_services'),
 );
 
-const supplyTax = supplier.taxes.find((t) => t.treatment === 'intracom_goods') as PackTax;
-const supplyLine = (supplier.golden?.documents ?? [])
-  .flatMap((document) => document.lines)
-  .find((line) => line.tax === supplyTax.code);
+/** The tax of a treatment, and the account its own golden scenario posts it to. */
+function supplyOf(treatment: string): { tax: PackTax; account: string } {
+  const tax = supplier.taxes.find((t) => t.treatment === treatment) as PackTax;
+  const line = (supplier.golden?.documents ?? [])
+    .flatMap((document) => document.lines)
+    .find((l) => l.tax === tax.code);
+  if (line === undefined) {
+    throw new Error(`packs/${supplier.slug} books no ${treatment} in its golden scenario`);
+  }
+  return { tax, account: line.account as string };
+}
+
+const goodsSupply = supplyOf('intracom_goods');
+const servicesSupply = supplyOf('intracom_services');
+const supplyTax = goodsSupply.tax;
+const supplyLine = { account: goodsSupply.account };
+
+/**
+ * A territory the table answers a question about, picked by the property under
+ * test rather than by name.
+ *
+ * Every country in this file comes from here. `territories` is framework data
+ * the release seeds, so the Member State a supply is made to, the prefix a
+ * customer identifies under and the State that left the Union are all read
+ * from the database that is being tested — which is also why a new accession
+ * changes nothing in this file.
+ */
+interface Territory {
+  code: string;
+  prefix: string | null;
+  parent: string | null;
+}
+
+async function territory(
+  db: PGlite,
+  what: string,
+  where: string,
+  params: unknown[] = [],
+): Promise<Territory> {
+  const found = await rows<Territory>(
+    db,
+    `select code, vat_prefix_of(code) as prefix, parent_code as parent
+       from territories where ${where} order by code limit 1`,
+    params,
+  );
+  if (found.length === 0) throw new Error(`no territory ${what}`);
+  return found[0] as Territory;
+}
 
 describe(`${supplier.slug} — a supply that cannot be declared comes back`, () => {
   let db: PGlite;
   let companyId: string;
   let ownerId: string;
+  /** A Member State that is not the company's own: where a supply may go. */
+  let abroad: Territory;
   const year = supplier.golden?.fiscalYear as { start: string; end: string };
   const on = year.start;
 
-  async function supply(contactId: string, amount: number): Promise<void> {
+  async function supply(contactId: string, amount: number, of = goodsSupply): Promise<void> {
     const id = await newDocument(db, companyId, {
       docType: 'sale_invoice',
       contactId,
@@ -295,8 +346,8 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
       lines: [
         {
           unitPrice: amount,
-          taxCode: supplyTax.code,
-          accountCode: supplyLine?.account as string,
+          taxCode: of.tax.code,
+          accountCode: of.account,
         },
       ],
     });
@@ -321,6 +372,12 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
       fiscalYear: supplier.golden?.fiscalYear,
     });
     companyId = fixture.companyId;
+    abroad = await territory(
+      db,
+      'that is a Member State other than the company\'s own',
+      `is_eu_member(code, $1::date) and vat_prefix_of(code) is distinct from vat_prefix_of($2)`,
+      [on, supplier.manifest.country],
+    );
   }, 300_000);
 
   afterAll(async () => {
@@ -330,7 +387,7 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
   it('says no_vat_number, with the customer and the amount, rather than dropping the line', async () => {
     const contact = await newContact(db, companyId, {
       name: 'Customer with no number',
-      country: 'ZZ',
+      country: abroad.code,
       vat: null,
     });
     await supply(contact, 1000);
@@ -361,36 +418,40 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
   it('reads a number typed with spaces and dots as the one an administration compares', async () => {
     const contact = await newContact(db, companyId, {
       name: 'Customer who types loosely',
-      country: 'ZZ',
-      vat: ' zz 99.99 99 ',
+      country: abroad.code,
+      vat: ` ${(abroad.prefix as string).toLowerCase()} 99.99 99 `,
     });
     await supply(contact, 3000);
 
     const line = (await list()).find((row) => row.vat_number === '999999');
     expect(line).toBeDefined();
-    expect(line?.vat_country).toBe('ZZ');
+    expect(line?.vat_country).toBe(abroad.prefix);
     expect(line?.issue).toBeNull();
   });
 
   it('takes the country of the contact when the number was recorded without one', async () => {
     const contact = await newContact(db, companyId, {
       name: 'Customer whose number carries no prefix',
-      country: 'YY',
+      country: abroad.code,
       vat: '123456789',
     });
     await supply(contact, 4000);
 
     const line = (await list()).find((row) => row.vat_number === '123456789');
-    expect(line?.vat_country).toBe('YY');
+    expect(line?.vat_country).toBe(abroad.prefix);
     expect(line?.issue).toBeNull();
   });
 
   it('puts two contacts sharing one VAT number on the single line the form wants', async () => {
-    const site = await newContact(db, companyId, { name: 'Branch', country: 'XX', vat: 'XX4242' });
+    const site = await newContact(db, companyId, {
+      name: 'Branch',
+      country: abroad.code,
+      vat: `${abroad.prefix}4242`,
+    });
     const head = await newContact(db, companyId, {
       name: 'Head office',
-      country: 'XX',
-      vat: 'xx-42-42',
+      country: abroad.code,
+      vat: `${(abroad.prefix as string).toLowerCase()}-42-42`,
     });
     await supply(site, 500);
     await supply(head, 700);
@@ -403,7 +464,11 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
   });
 
   it('deducts a credit note from the customer it was issued to', async () => {
-    const contact = await newContact(db, companyId, { name: 'Returned some', country: 'XX', vat: 'XX7777' });
+    const contact = await newContact(db, companyId, {
+      name: 'Returned some',
+      country: abroad.code,
+      vat: `${abroad.prefix}7777`,
+    });
     await supply(contact, 5000);
     const credit = await newDocument(db, companyId, {
       docType: 'sale_credit_note',
@@ -420,7 +485,11 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
   });
 
   it('leaves out a customer whose supplies and credit notes cancel out', async () => {
-    const contact = await newContact(db, companyId, { name: 'Cancelled', country: 'XX', vat: 'XX1111' });
+    const contact = await newContact(db, companyId, {
+      name: 'Cancelled',
+      country: abroad.code,
+      vat: `${abroad.prefix}1111`,
+    });
     await supply(contact, 800);
     const credit = await newDocument(db, companyId, {
       docType: 'sale_credit_note',
@@ -433,6 +502,106 @@ describe(`${supplier.slug} — a supply that cannot be declared comes back`, () 
     await db.query(`select post_document($1)`, [credit]);
 
     expect((await list()).find((row) => row.vat_number === '1111')).toBeUndefined();
+  });
+
+  it('lists a customer under the prefix their numbers carry, not under their ISO code', async () => {
+    // The gap docs/international.md called "a VAT identification prefix is not
+    // always the ISO country code". Which territory this is, and what its
+    // prefix is, are read from the table rather than written down: the test
+    // asks for a Member State whose two identifiers differ and then insists
+    // the statement uses the right one of them.
+    const under = await territory(
+      db,
+      'that is a Member State identifying under a prefix other than its code',
+      `is_eu_member(code, $1::date) and vat_prefix is not null and vat_prefix <> code`,
+      [on],
+    );
+    expect(under.prefix).not.toBe(under.code);
+
+    const contact = await newContact(db, companyId, {
+      name: 'Customer who identifies under another prefix',
+      country: under.code,
+      vat: '700700700',
+    });
+    await supply(contact, 6000);
+
+    const line = (await list()).find((row) => row.vat_number === '700700700');
+    expect(line?.vat_country).toBe(under.prefix);
+    expect(line?.vat_country).not.toBe(under.code);
+    expect(line?.issue).toBeNull();
+  });
+
+  it('says vat_country_outside_the_union for a territory the common system does not reach', async () => {
+    // A territory of a Member State that article 6 of the Directive takes out
+    // of the VAT territory of the Union. Nothing about the customer is wrong
+    // except where they are, which is what the reason has to say.
+    const outside = await territory(
+      db,
+      'excluded from the VAT territory of the Union and coded in two letters',
+      `eu_vat_scope = 'none' and code ~ '^[A-Z]{2}$'`,
+    );
+
+    const contact = await newContact(db, companyId, {
+      name: 'Customer outside the VAT territory',
+      country: outside.code,
+      vat: `${outside.code}555555`,
+    });
+    await supply(contact, 7000);
+
+    const line = (await list()).find((row) => row.vat_number === '555555');
+    expect(line?.issue).toBe('vat_country_outside_the_union');
+    expect(Number(line?.amount)).toBe(7000);
+  });
+
+  it('says vat_country_outside_the_union for a State that has left it', async () => {
+    const left = await territory(
+      db,
+      'that was inside the common system and no longer is',
+      `code ~ '^[A-Z]{2}$' and eu_vat_to is not null and eu_vat_to < $1::date`,
+      [on],
+    );
+
+    const contact = await newContact(db, companyId, {
+      name: 'Customer in a State that left',
+      country: left.code,
+      vat: `${left.prefix}666666`,
+    });
+    await supply(contact, 8000);
+
+    const line = (await list()).find((row) => row.vat_number === '666666');
+    expect(line?.issue).toBe('vat_country_outside_the_union');
+  });
+
+  it('lists goods to a territory inside the system for goods, and refuses services there', async () => {
+    // Northern Ireland, and the reason `eu_vat_scope` has three values rather
+    // than two: the Protocol keeps the Union's rules on goods and drops its
+    // rules on services, so one customer produces a declarable line and an
+    // undeclarable one out of the same books.
+    const partly = await territory(
+      db,
+      'inside the common system for goods alone',
+      `eu_vat_scope = 'goods' and eu_vat_from <= $1::date`,
+      [on],
+    );
+
+    const contact = await newContact(db, companyId, {
+      name: 'Customer inside for goods only',
+      country: partly.parent ?? partly.code,
+      vat: `${partly.prefix}888888`,
+    });
+    await supply(contact, 900);
+    await supply(contact, 300, servicesSupply);
+
+    const listed = (await list()).filter((row) => row.vat_number === '888888');
+    expect(listed).toHaveLength(2);
+    expect(
+      listed.map((row) => [row.nature, row.vat_country, row.issue]).sort(),
+    ).toEqual(
+      [
+        ['goods', partly.prefix, null],
+        ['services', partly.prefix, 'vat_country_outside_the_union_for_this_supply'],
+      ].sort(),
+    );
   });
 
   it('refuses a company it does not know, by name', async () => {

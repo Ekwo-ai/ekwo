@@ -1,15 +1,17 @@
 # `supabase/seed/` — reference data
 
 Rows, not code. Everything here is plain SQL and safe to apply twice: the
-currencies insert `on conflict do nothing`, and every row a country pack writes
-upserts on its natural key, so re-applying a seed is how a correction reaches an
-installation that already exists.
+currencies insert `on conflict do nothing`, and every other row here — the
+territories and everything a country pack writes — upserts on its natural key,
+so re-applying a seed is how a correction reaches an installation that already
+exists.
 
 ## What is here
 
 | File | Content | Applied by default |
 |---|---|---|
 | `00_currencies.sql` | 11 ISO 4217 currencies — CAD, CHF, CZK, DKK, EUR, GBP, JPY, NOK, PLN, SEK, USD — with the number of decimals each is rounded at | yes |
+| `00_territories.sql` | The territories of the common system of VAT: the 27 Member States with the day each became bound, the United Kingdom with the day it stopped being, Northern Ireland, the territories articles 6 and 7 of Directive 2006/112/EC take out of the system or put into it, and the VAT prefixes that are not ISO codes. Read by `ec_sales_list()`, which refuses to write a statement when the file has not been applied | yes |
 | `05_framework_generic.sql` | **Generated from `packs/generic`.** Two country-less financial statements, `IFRS-SME-BS` and `IFRS-SME-IS`, whose rules are all account types: they fit any chart of any country, and they are the fallback for a chart that names no statement of its own | yes |
 | `10_pack_be.sql` | **Generated from `packs/be`.** Two charts — the PCMN, 353 accounts, and an association chart of 349 — 6 journals, 22 taxes with their postings, the 31 boxes of `BE-VAT-PERIODIC`, the three abbreviated NBB schemes, the legal mentions, the account roles, and labels in Dutch, German and English | yes |
 | `11_pack_fr.sql` | **Generated from `packs/fr`.** The PCG, 394 accounts, 6 journals, 24 taxes with their postings, the 22 lines of `FR-CA3`, the 2050 and 2052 statements, the legal mentions, the account roles, and labels in English | yes |
@@ -20,15 +22,17 @@ installation that already exists.
 
 ## The order they are applied in, and by whom
 
-The six files applied by default are applied **in file-name order**, and the
+The seven files applied by default are applied **in file-name order**, and the
 order matters twice: the currencies exist before a pack names one, and the
-generic framework exists before a chart falls back to it.
+generic framework exists before a chart falls back to it. The territories
+answer to nobody in this folder and are read only at run time, so where they
+sit is a matter of reading order and not of dependency.
 
 | Who | What it applies |
 |---|---|
-| `ekwo init` and `ekwo migrate` | the six default files, in order. `90_demo_company.sql` never, unless `--demo` or `ekwo demo` asks for it |
-| `supabase db push` / `supabase start` | the same six: `config.toml` lists exactly them under `[db.seed].sql_paths` |
-| by hand | `psql "$DATABASE_URL" -f supabase/seed/<file>` for each of the six, in order |
+| `ekwo init` and `ekwo migrate` | the seven default files, in order. `90_demo_company.sql` never, unless `--demo` or `ekwo demo` asks for it |
+| `supabase db push` / `supabase start` | the same seven: `config.toml` lists exactly them under `[db.seed].sql_paths` |
+| by hand | `psql "$DATABASE_URL" -f supabase/seed/<file>` for each of the seven, in order |
 | `ekwo migrate` and `ekwo module migrate` | the files under `modules/`, and only for the modules that installation carries |
 
 `modules/` is deliberately out of `config.toml`, and out of the flat read this
@@ -65,7 +69,9 @@ and the generated pair into another and compares every template row.
 
 ## What the generated files fill
 
-The *template* tables, and nothing that belongs to a company:
+The *template* tables, and nothing that belongs to a company — plus the two
+reference tables of the framework, `currencies` and `territories`, which no
+pack writes and no company owns:
 `chart_templates`, `account_templates`, `journal_templates`, `tax_templates`,
 `tax_posting_templates`, `country_defaults`, `country_packs` and
 `legal_mention_templates`; the two declaration-form tables,

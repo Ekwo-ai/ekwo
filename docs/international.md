@@ -457,6 +457,19 @@ condition, `foreign_reverse_charge`, beside the one that exists. *Until then*:
 no pack here needs the distinction, and a pack that does will be the argument
 for adding it.
 
+**And it cannot name the simplification a triangular supply is relieved
+under.** `intracom_triangular` joined the same condition on 15 September 2026,
+for the same reason — the mechanism is the customer owing the tax and the
+sentence is *Reverse charge*, which is what article 226(11a) requires. But
+article 226(11) also wants a reference to the provision that relieves the
+supply, and several Member States ask a triangular invoice to name article 141
+itself. A pack that wants that sentence has today to fold it into its
+reverse-charge wording, where it would also print on a domestic reverse charge
+that has nothing to do with article 141. *Fix*: the same tenth condition
+generalised, or an eleventh — three articles behind one sentence is one too
+many. *Until then*: three treatments share `reverse_charge`, and the value of
+the treatment on the line is the only place the difference is recorded.
+
 
 ### From a document read by its recipient
 
@@ -507,26 +520,41 @@ company does not file on. Borrowing the return's guard would have refused a
 lawful monthly statement from a quarterly Belgian filer, which is the ordinary
 case.
 
-**The core cannot say whether a country is a Member State.** Every one of these
-four forms carries supplies to the Union and nothing else, and the only check
-this engine can make is that the customer's country is not the company's own.
-A list of Member States in a function would be a country literal, and in a pack
-it would be wrong: membership is the Union's law and not any one country's.
-*Fix*: a small reference table of territories beside `currencies` — which is
-already framework data rather than pack data — carrying membership with its
-validity dates, so a supply to a country that left the Union is reported as a
-supply to a third country from the day it left. *Until then*: each format brick
-reports what its own administration's schema refuses, which catches a good deal
-of it and catches it late.
+~~**The core cannot say whether a country is a Member State.**~~ **Closed, 15
+September 2026**, and by the fix this note proposed: `territories`, a reference
+table of the framework beside `currencies`, seeded by
+`supabase/seed/00_territories.sql` and read by `is_eu_member(code, on)`,
+`eu_vat_scope_of(code, on)` and `territory_of(code)`. It carries 49 rows — the
+27 Member States with the day each became bound, the United Kingdom with the
+day it stopped being, Northern Ireland, and the territories articles 6 and 7 of
+Directive 2006/112/EC take out of the common system or put into it — each with
+the text it comes from. `ec_sales_list()` asks it **as at the entry date of the
+line**, so a statement for a period in 2020 still reports supplies to the
+United Kingdom and one for 2021 does not, and a supply to a territory the
+system did not reach comes back as `vat_country_outside_the_union` instead of
+being listed. Two decisions are worth knowing: the columns are named for VAT
+and not for membership — the United Kingdom left the Union on 31 January 2020
+and the common system on 31 December 2020, and the reader of this table is VAT
+code — and Northern Ireland is a **row of its own** with a parent rather than a
+flag on the United Kingdom, with an `eu_vat_scope` of `goods`, because it is
+inside the system for supplies of goods and outside it for supplies of
+services. A statement of services to an `XI` customer therefore comes back as
+`vat_country_outside_the_union_for_this_supply`, which nothing could have said
+before.
 
-**A VAT identification prefix is not always the ISO country code.** Greece
-identifies under `EL` and Northern Ireland under `XI`; `contacts.country` is
-ISO 3166-1 and `contacts.vat_number` may carry either, depending on who typed
-it. *Fix*: the same reference table, mapping a territory to the prefix its
-numbers carry. *Until then*: the prefix is read from the number where the
-number carries one, and falls back to the contact's ISO country where it does
-not — so a Greek customer recorded without a prefix is listed under `GR`, which
-every one of these four administrations refuses.
+~~**A VAT identification prefix is not always the ISO country code.**~~
+**Closed, 15 September 2026**, by the same table: `vat_prefix_of(code)` answers
+the two letters a territory's numbers carry, and `territories.vat_prefix` holds
+that answer only where it differs from the code — `EL` for Greece, `FR` for
+Monaco, `GB` for the Isle of Man — so the column is a difference and never a
+copy. Both paths into `ec_sales_list()` go through it, the prefix read off the
+number and the contact's ISO country alike, which means a number typed `GR…` is
+corrected as readily as one typed with none. It also fixed a defect nobody in
+Belgium or France could have seen: the company's own country was compared raw,
+so `vat_country_is_the_company_country` would never have fired for a Greek
+filer and a domestic supply would have been listed as an intra-Community one.
+A territory the table does not carry keeps its own two letters, so a third
+country is still readable on the statement that then refuses it.
 
 **A ledger line does not say which posting wrote it.** `entry_lines` carries
 `tax_id` and `tax_line`, so a `base` line and a `tax_on_base` line of the same
@@ -538,14 +566,23 @@ then*: `ec_sales_list()` reads the lines of a tax that are not tax lines, which
 is exact because an intra-Community supply is exempt and has no tax to
 capitalise — and would stop being exact the day a pack said otherwise.
 
-**There is no treatment for a triangular operation.** All four forms print it
-as a category of its own: `T` on the Belgian listing, state II of the
-Luxembourg one, column 4 of the Estonian form. `tax_treatment` has
-`intracom_goods` and `intracom_services` and nothing between them, so a
-supply under a triangular arrangement is declared as ordinary goods. *Fix*: add
-`intracom_triangular`. *Until then*: nothing else has to move — the engine
-derives the nature by taking `intracom_` off the treatment, and all four bricks
-already have a column for it, so the value alone would light the whole path up.
+~~**There is no treatment for a triangular operation.**~~ **Closed, 15 September
+2026**, and it cost exactly what this note predicted: the value
+`intracom_triangular`, and nothing else. `ec_sales_list()` returns the nature
+`triangular` without a line of it changing, and the four bricks — published
+before the value existed — write `T` on the Belgian listing, the `TVA_LICT`
+form of the Luxembourg envelope and the `kolmnurktehing` column of the Estonian
+form VD, while the French DES says by name that a supply of goods belongs on
+another file. It is the middle supply of the arrangement — B's sale to C,
+relieved by article 141 of Directive 2006/112/EC and reverse-charged to C by
+article 197 — and not A's, which is an ordinary intra-Community supply. On the
+invoice it resolves to the **reverse-charge** mention and not to the
+intra-Community one, which is the sentence article 226(11a) requires: the
+supply is not exempt under article 138, it takes place where the goods arrive
+and the customer owes the tax. **No pack of this repository declares a
+triangular tax**, and a test insists on that — the path is proved on a fixture,
+a company's own tax with its treatment changed, because writing an invented tax
+into `packs/<cc>/` is writing a rule nobody can review.
 
 
 ## The same rule, next: the One-Stop Shop
@@ -566,16 +603,25 @@ function of the core with a flat row shape and a brick per file, and the second
 is the same three pieces: a treatment the pack declares, an aggregation the
 core computes, a format package per administration.
 
-Two things the second one will need that the first did not, and both are on the
-list above. It needs to know which country a customer is in **and whether that
-country is in the Union**, because the scheme applies to consumers and not to
-identified businesses, so the VAT number is not the key. And it needs a rate
-per Member State of consumption, which is not the seller's pack: a French
-company selling into Germany charges German rates, and today the only place a
-German rate lives is the German pack that company does not hold. That is the
-one genuinely new question, and it is worth answering before any code — either a
-company holds several packs, or the rates of the scheme are framework data like
-the currencies. Neither is decided here.
+Two things the second one will need that the first did not. **One of them now
+exists.** It needs to know which country a customer is in *and whether that
+country is in the Union*, because the scheme applies to consumers and not to
+identified businesses, so the VAT number is not the key — and that is
+`territories`, asked as at a date, which is what `ec_sales_list()` already does
+line by line. A consumer in a territory the system does not reach is not a
+One-Stop Shop supply at all, and the table says so for the Canary Islands and
+for Northern Ireland's services as readily as for Switzerland.
+
+What it does **not** give is a rate per Member State of consumption, which is
+the genuinely new question and is unchanged by any of this. A French company
+selling into Germany charges German rates, and today the only place a German
+rate lives is the German pack that company does not hold. Adding rates to
+`territories` would be the wrong answer twice over: a rate has a validity and a
+category and an exemption reason, which is a tax and not a territory, and a tax
+is what a pack carries. So the choice stays the one this paragraph always
+named — either a company holds several packs, or the rates of the scheme are
+framework data of their own — and the table below it settles only where the
+system applies, not what it charges.
 
 ### From the register of sources
 

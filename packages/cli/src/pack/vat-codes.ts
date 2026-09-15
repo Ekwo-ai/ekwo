@@ -31,7 +31,7 @@
  *   `VATEX-EU-IC` with `K`, `VATEX-EU-G` with `G`, `VATEX-EU-O` with `O`, and
  *   `VATEX-EU-D`, `-F`, `-I`, `-J` with `E`.
  *
- * Two decisions were taken where the sources leave a choice, and both are
+ * Three decisions were taken where the sources leave a choice, and all three are
  * written up in `docs/packs.md`.
  *
  * **A category is a term of the invoice, so on a purchase it is the
@@ -51,6 +51,18 @@
  * record, so `import` and `foreign_services_received` carry none: `S` there
  * would claim the supplier levied the standard rate, which is the one thing
  * that certainly did not happen.
+ *
+ * **A triangular supply is `K`, not `AE`.** The guidance gives `AE` for a
+ * reverse charge *within* one Member State, where the supplier is established
+ * in the buyer's country and national law moves the liability. The middle
+ * supply of a triangular arrangement is the opposite shape: the goods leave
+ * the seller's State, article 141 of Directive 2006/112/EC relieves the seller
+ * of registering where they arrive, and article 197 puts the tax on a customer
+ * in a third State. What the line is, in the words of UNCL5305, is *VAT exempt
+ * for EEA intra-community supply of goods and services* — `K`, with
+ * `VATEX-EU-IC`, which the VATEX list reserves for it. That the *sentence* on
+ * that invoice is the reverse-charge one is a different question in a different
+ * vocabulary, and it is answered by `applies_when`.
  *
  * The rate is checked on the sale side only. On a sale the pack's `rate` is
  * the BT-152 the seller prints, and the business rules of EN 16931 fix it per
@@ -117,6 +129,16 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
     because:
       `K is VAT exempt for EEA intra-community supply of goods and services (${UNCL5305}); ` +
       `AE is the case of a reverse charge within one Member State (${GUIDANCE}, use case 3)`,
+  },
+  intracom_triangular: {
+    scopes: ['sale'],
+    categories: ['K'],
+    because:
+      'the middle supply of a triangular arrangement is an exempt supply of goods between two ' +
+      `Member States, which is what K names — VAT exempt for EEA intra-community supply (${UNCL5305}); ` +
+      `AE is reserved for a reverse charge within one Member State (${GUIDANCE}, use case 3), and this ` +
+      "one is not: the goods leave the seller's State and article 197 of Directive 2006/112/EC puts " +
+      'the tax on a customer in a third',
   },
   intracom_acquisition_goods: {
     scopes: ['purchase'],
