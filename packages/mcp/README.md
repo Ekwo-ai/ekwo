@@ -120,6 +120,7 @@ Every write names its company explicitly.
 | `get_preferences` | What you prefer, and the language chain to read labels with |
 | `list_invitations` | Who has been invited into a company and not yet joined |
 | `list_api_keys` | The machine keys of a company, and what each may do |
+| `describe_pack` | Which country packs this installation holds: their version, how much anyone has read them, and the register of texts each was built from — title, official publisher, link and the day it was opened |
 | `status` | Schema version, instance, connection, companies |
 | `create_contact` | A customer, supplier or other third party |
 | `create_product` | A catalogue row: code, name, unit, price, account, tax |
