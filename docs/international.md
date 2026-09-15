@@ -197,8 +197,9 @@ The original six-item list, for the record:
   prices quoted with the tax in them, an exemption the European code lists have
   no code for, and a nine-box return that prints one amount in two boxes at
   once. A British-style chart mapped onto the statutory small-company formats,
-  the nine boxes of the VAT Return, FRS 102 for the fixed assets, and the six
-  gaps under "From the United Kingdom" are what it returned. Northern Ireland,
+  the nine boxes of the VAT Return, FRS 102 for the fixed assets, and the gaps
+  listed under "From the United Kingdom" are what it returned — the first two
+  of them closed the same week. Northern Ireland,
   Making Tax Digital submission and the VAT schemes are out of its scope.
 - **Ireland** — a chart of accounts and form VAT 3; the pack format has
   everything it needs since the United Kingdom landed.
@@ -337,8 +338,10 @@ asset under FRS 102. Four things are worth knowing beyond the pack's own
   declared and empty; see the last gap below for why the pack could not carry
   them.
 - **It is `community`.** Nobody who files a British return has read it, and the
-  pack's README ends on the nine points a reviewer should look at first — the
-  first of which is a code this pack invented because the check demanded one.
+  pack's README ends on the points a reviewer should look at first. The first
+  two of them were the exemption reason code this pack had to invent and the
+  Union's export code it had to borrow; both are gone with pack version 0.1.1,
+  which leaves no `exemption_code` on any British tax.
 
 ## What a new country shows the core cannot say
 
@@ -471,43 +474,58 @@ it escapes by luck, and the fix Luxembourg proposes is the fix.
 Seven things the first pack outside the Union could not say precisely. Four of
 them are about the same assumption — that a country's VAT is the Union's VAT —
 and the other three are about what a price, a rounding rule and a filing cadence
-belong to. None blocked the pack. None was patched for its sake.
+belong to. None blocked the pack. None was patched for its sake: the first two
+were closed afterwards, on their own, with the pack already landed and its own
+README naming them as the things a reviewer should refuse first.
 
 An eighth is of a different kind and is recorded at the end: ten assertions of
 the test suite that had never been contradicted, and that were fixed rather than
 worked around, because a test reading the pack is what this repository asks for
 in as many words.
 
-**A VAT exemption outside the Union has no reason code, and one is required.**
-`ekwo pack check` demands an `exemption_code` as soon as `vat_category` is `E`,
-and checks its shape against `VATEX-EU-<article>` or `VATEX-<country>-<article>`.
-The VATEX list is European: its own codes name articles of Directive
-2006/112/EC, and its national codes — `VATEX-FR-CGI261-1` and the rest — belong
-to Member States that publish them. A British exemption is Schedule 9 to the
-Value Added Tax Act 1994 and no published list carries a code for it, because
-no administration that would publish one has any reason to. The rule that
-produced this is right for a Member State and has no answer for a third
-country. *Fix*: make the reason required only where an invoice governed by
-EN 16931 exists — the test the check already applies to `import` and
-`foreign_services_received`, which carry no category for exactly that reason —
-and let a pack outside the Union state the article in its `legal_reference` and
-leave the column null. *Until then*: `packs/gb/` writes `VATEX-GB-SCH9`, a code
-that is shaped like a national one and that nobody publishes, and its README
-names it as the first thing a reviewer should refuse.
+~~**A VAT exemption outside the Union has no reason code, and one is
+required.**~~ **Closed, 15 September 2026.** `ekwo pack check` demanded an
+`exemption_code` as soon as `vat_category` was `E`, and checked its shape
+against `VATEX-EU-<article>` or `VATEX-<country>-<article>`. The VATEX list is
+European: its own codes name articles of Directive 2006/112/EC, and its
+national codes — `VATEX-FR-CGI261-1` and the rest — belong to Member States
+that publish them. A British exemption is Schedule 9 to the Value Added Tax Act
+1994 and no published list carries a code for it, because no administration
+that would publish one has any reason to. The rule was right for a Member State
+and had no answer for a third country.
+The fix is the one proposed, generalised: the last column of the table under
+"What a tax says on the invoice" now applies where the Union's VAT does, and
+nowhere else. For a pack whose country the common system does not reach,
+`exemption_code` stays null, the article goes in `legal_reference` where it was
+going anyway, a `VATEX-*` code is refused by name, and the five `intracom_*`
+treatments are refused outright. The categories are untouched, because UNCL5305
+is a UN/CEFACT list and `E`, `G`, `O` and `AE` mean there what they mean
+anywhere. Which side of the line a pack is on is read from `territories` — the
+`eu_vat_scope` of its country at the manifest's `released_at` — and nothing
+about it is written into the code: `pack check` has no database, so it parses
+`supabase/seed/00_territories.sql`, and `tests/vat_codes.test.ts` holds its
+answer against `eu_vat_scope_of()` for every territory on every date the table
+carries. Should a third country ever publish reason codes of its own, the
+column takes them where the pack's register declares that list with
+`kind: standard`; the field is provided for and the content is not, because
+nobody has published one. `packs/gb/` 0.1.1 drops `VATEX-GB-SCH9` and the three
+Union codes it had borrowed, and its README's first two review points are gone
+with them.
 
-**`G` and `VATEX-EU-G` say "export outside the EU", and a third country's
-export is not that.** The pairing is fixed by rule BR-G-10 and by the list's own
-remark, and `ekwo pack check` enforces it, so a British export is declared with
-a code whose published name describes the Union's border rather than the United
-Kingdom's. For a seller in a Member State the code is exact; for this one it is
-false in the respect that matters, because a supply to a Member State *is* an
-export from Great Britain. Nothing can be fixed in the code lists, which are
-what they are. *Fix*: the honest place is the check — either let `export` carry
-no reason code, since BR-G-10 binds the code to the category and not the
-category to a code, or say in the refusal message that `G` is what the standard
-offers a seller outside the Union and that its name describes the Union's own
-case. *Until then*: `GB-S-EXPORT` carries `G` and `VATEX-EU-G`, which is the
-least wrong pair available.
+~~**`G` and `VATEX-EU-G` say "export outside the EU", and a third country's
+export is not that.**~~ **Closed, 15 September 2026**, as the same change and
+by reading the standard more carefully. The claim that `G` describes the
+Union's border came from use case 4 of the Commission's technical guidance,
+which is written for a seller established in a Member State. UNCL5305 itself
+says of `G` *free export item, VAT not charged*: the goods leave the territory
+of whoever levies the tax, and a supply from Great Britain to a Member State is
+one. So the category was never wrong for a British export and the refusal
+message was — it now says what UNCL5305 says, with the guidance's use case
+named as the Member State's case of it, and `docs/packs.md` reads the same way.
+The code was the wrong half: `VATEX-EU-G` names article 146 of a Directive that
+does not bind the seller, and it is refused outside the Union along with the
+rest of the list. `GB-S-EXPORT` carries `G` and nothing else, with s. 30(6) of
+the Value Added Tax Act 1994 in its `legal_reference`.
 
 **One taxable amount, two printed boxes that are siblings and not nested.**
 Estonia recorded this for a form whose boxes contain one another, and proposed

@@ -1,5 +1,5 @@
 /**
- * What a treatment obliges a tax to say on an invoice.
+ * What a treatment obliges a tax to say on an invoice, and where.
  *
  * A tax carries three things that are three tellings of one fact: its
  * `treatment`, which is Ekwo's own word for what the operation is; its
@@ -24,15 +24,35 @@
  *   dated 1 July 2024), whose six use cases give the pair to use for each
  *   case: exemption in general `E` + a VATEX code, intra-Community supply
  *   between Member States `K` + `VATEX-EU-IC`, reverse charge **within** a
- *   Member State `AE` + `VATEX-EU-AE`, export outside the Union `G` +
- *   `VATEX-EU-G`.
+ *   Member State `AE` + `VATEX-EU-AE`, and the case it calls export outside the
+ *   Union `G` + `VATEX-EU-G` — which is the Union's border because the seller
+ *   the guidance addresses is established in a Member State. What UNCL5305
+ *   itself says of `G` is *free export item, VAT not charged*: the goods leave
+ *   the territory of whoever levies the tax.
  * - **The VATEX code list itself**, which carries the pairing as a remark on
  *   eight of its codes: `VATEX-EU-AE` *only use with category code AE*,
  *   `VATEX-EU-IC` with `K`, `VATEX-EU-G` with `G`, `VATEX-EU-O` with `O`, and
  *   `VATEX-EU-D`, `-F`, `-I`, `-J` with `E`.
  *
- * Three decisions were taken where the sources leave a choice, and all three are
+ * Four decisions were taken where the sources leave a choice, and all four are
  * written up in `docs/packs.md`.
+ *
+ * **The table above is the Union's, and it applies where the Union's VAT
+ * does.** EN 16931 is a European standard and the VATEX list is published by
+ * the European Commission: its own codes name articles of Directive
+ * 2006/112/EC and its national codes belong to Member States that publish
+ * them. A pack for a country the common system does not reach may therefore
+ * carry no code from it — `VATEX-EU-G` on an export from a third country
+ * claims an article of the Directive that does not bind the seller — and what
+ * an exempt line states there is its own article, in `legal_reference`, with
+ * BT-121 left empty. The categories are unaffected: UNCL5305 is a UN/CEFACT
+ * list, `E`, `G`, `O` and `AE` keep their meanings, and a pack outside the
+ * Union goes on being held to them. The treatments of the common system
+ * itself — the five `intracom_*` values — are refused there outright, because
+ * an intra-Community supply is an operation of a system the country is not in.
+ * Whether it is in it is not a fact this file holds: it is a row of
+ * `territories`, read through `./territories.js`, on the day the pack's
+ * manifest says it speaks of.
  *
  * **A category is a term of the invoice, so on a purchase it is the
  * supplier's.** An Ekwo purchase tax describes how the buyer books and
@@ -77,6 +97,15 @@
  * a code this file has not heard of is not a contradiction — it is a code this
  * file has not heard of. So an exemption code is checked for its shape, and
  * for the pairings the list itself states.
+ *
+ * The same limit applies to the other end. No country outside the Union
+ * publishes a list of exemption reason codes today; one may, and PINT is where
+ * it would surface. So the field is provided for and the content is not: a pack
+ * outside the common system may carry a reason code that is not a VATEX one,
+ * on the condition that its register declares a published list — an entry of
+ * `certification.sources` whose `kind` is `standard`. What is checked is that a
+ * list is named, not that the code is in it, which is exactly what is checked
+ * of a VATEX code inside the Union.
  */
 
 /** A source, quoted in the refusal so a reader can go and check it. */
@@ -98,6 +127,13 @@ export interface TreatmentCodes {
   categories: string[];
   /** Why, in the words of the source, for the message. */
   because: string;
+  /**
+   * True where the treatment is an operation of the common system of VAT and
+   * exists nowhere else — the five `intracom_*` values, which name a supply
+   * between two Member States. A pack for a country the system does not reach
+   * is refused one of these before anything else about it is looked at.
+   */
+  commonSystem?: true;
 }
 
 /**
@@ -119,11 +155,13 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
     because: `a reverse charge within one Member State is AE (${GUIDANCE}, use case 3)`,
   },
   intracom_goods: {
+    commonSystem: true,
     scopes: ['sale'],
     categories: ['K'],
     because: `an intra-Community supply is K (${GUIDANCE}, use case 2, and rule BR-IC-10)`,
   },
   intracom_services: {
+    commonSystem: true,
     scopes: ['sale'],
     categories: ['K'],
     because:
@@ -131,6 +169,7 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
       `AE is the case of a reverse charge within one Member State (${GUIDANCE}, use case 3)`,
   },
   intracom_triangular: {
+    commonSystem: true,
     scopes: ['sale'],
     categories: ['K'],
     because:
@@ -141,6 +180,7 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
       'the tax on a customer in a third',
   },
   intracom_acquisition_goods: {
+    commonSystem: true,
     scopes: ['purchase'],
     categories: ['K'],
     because:
@@ -148,6 +188,7 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
       `made an intra-Community supply, which is K (${GUIDANCE}, use case 2)`,
   },
   intracom_acquisition_services: {
+    commonSystem: true,
     scopes: ['purchase'],
     categories: ['K'],
     because:
@@ -164,7 +205,10 @@ export const TREATMENT_CODES: Record<string, TreatmentCodes> = {
   export: {
     scopes: ['sale'],
     categories: ['G'],
-    because: `an export outside the Union is G (${GUIDANCE}, use case 4)`,
+    because:
+      `G is free export item, VAT not charged (${UNCL5305}) — goods leaving the territory of ` +
+      `whoever levies the tax, which for a seller in a Member State is the Union's border ` +
+      `(${GUIDANCE}, use case 4) and for a seller outside it is that country's own`,
   },
   import: {
     scopes: ['purchase'],
@@ -224,6 +268,15 @@ export const CATEGORY_CODES: Record<string, CategoryCodes> = {
  */
 const EXEMPTION_SHAPE = /^VATEX-(?:EU|[A-Z]{2})-[0-9A-Z][0-9A-Z-]*$/;
 
+/**
+ * Anything that looks like a code rather than a sentence.
+ *
+ * All that can be said about a reason code from a list nobody has published
+ * yet. It keeps `legal_reference` and `exemption_code` from being written into
+ * each other, which is the mistake this column actually attracts.
+ */
+const CODE_SHAPE = /^[0-9A-Z][0-9A-Z._/-]*$/;
+
 /** The categories another category's reserved code may not be borrowed by. */
 const RESERVED: Map<string, string> = new Map(
   Object.entries(CATEGORY_CODES)
@@ -240,7 +293,47 @@ export interface TaxCodes {
   treatment: string;
   vat_category: string | null;
   exemption_code: string | null;
+  /**
+   * The article the tax claims. Outside the common system it is what an exempt
+   * line has instead of a reason code, so the check reads it there.
+   */
+  legal_reference?: string | null;
 }
+
+/**
+ * Which VAT a pack's country levies, as far as these three lists are concerned.
+ *
+ * Resolved by the caller, because the answer is a row of `territories` and a
+ * date out of the manifest, and neither belongs in a table of code lists.
+ * `because` is quoted verbatim in every refusal that turns on it, so a reader
+ * of the message is told the country, the day and the scope rather than being
+ * left to guess why a code they read in the standard was refused.
+ */
+export interface VatRegime {
+  /** Whether the common system of VAT reached the country on the day the pack speaks of. */
+  commonSystem: boolean;
+  /** Said in the words of the table, for the message. */
+  because: string;
+  /**
+   * The published list of reason codes the pack's register declares — the
+   * title of an entry of `certification.sources` whose `kind` is `standard`.
+   * Null where it declares none, which outside the Union means BT-121 has no
+   * list to come from and stays empty.
+   */
+  reasonList: string | null;
+}
+
+/**
+ * The regime every pack was held to until a country outside the Union arrived.
+ *
+ * The default of `taxCodes`, so that a caller with no opinion gets the table as
+ * the European Commission publishes it. `readPack` always has an opinion.
+ */
+export const COMMON_SYSTEM: VatRegime = {
+  commonSystem: true,
+  because: 'the common system of VAT applies here',
+  reasonList: null,
+};
 
 /** A problem, in the shape `readPack` collects. */
 export interface CodeIssue {
@@ -259,19 +352,121 @@ function isSale(scope: string): boolean {
 }
 
 /**
+ * What BT-121 may say on a tax of a country the common system does not reach.
+ *
+ * Three answers, and the first is the one every pack will use: nothing, with
+ * the article in `legal_reference`. The second is a VATEX code, which is
+ * refused by name — the list belongs to a system this country is not in. The
+ * third is a code from some other published list, which is provided for and
+ * has no content yet: it is accepted where the pack's register declares the
+ * list, and refused with the way to declare it where it does not.
+ */
+function reasonOutside(
+  where: string,
+  category: string,
+  rules: CategoryCodes,
+  tax: TaxCodes,
+  regime: VatRegime,
+): CodeIssue[] {
+  const reason = tax.exemption_code;
+
+  if (reason === null) {
+    // The article is what the invoice states, so it has to be there.
+    const article = (tax.legal_reference ?? '').trim();
+    if (rules.needsReason && article === '') {
+      return [
+        {
+          path: where,
+          message:
+            `vat_category ${category} names no exemption_code and no legal_reference; ` +
+            `${regime.because}, so ${VATEX_LIST} does not reach this tax and the article it is ` +
+            'exempt under is what the invoice has instead',
+        },
+      ];
+    }
+    return [];
+  }
+
+  if (!rules.needsReason) {
+    return [
+      {
+        path: where,
+        message:
+          `vat_category ${category} carries exemption_code ${reason}; a line that is taxed is ` +
+          'exempt under nothing',
+      },
+    ];
+  }
+
+  if (reason.startsWith('VATEX-')) {
+    return [
+      {
+        path: where,
+        message:
+          `exemption_code ${reason} is a code of ${VATEX_LIST}, whose codes name articles of ` +
+          'Directive 2006/112/EC and whose national codes are published by Member States; ' +
+          `${regime.because}. State the article in legal_reference and leave exemption_code null`,
+      },
+    ];
+  }
+
+  if (regime.reasonList === null) {
+    return [
+      {
+        path: where,
+        message:
+          `exemption_code ${reason} comes from no list this pack names; ${regime.because}, so ` +
+          'BT-121 has no code list here. Either state the article in legal_reference and leave ' +
+          'exemption_code null, or declare the list this code belongs to in ' +
+          'certification.sources with kind standard',
+      },
+    ];
+  }
+
+  if (!CODE_SHAPE.test(reason)) {
+    return [
+      {
+        path: where,
+        message:
+          `exemption_code ${reason} is not a code; ${regime.reasonList} publishes codes, and the ` +
+          'article an exemption is granted by belongs in legal_reference',
+      },
+    ];
+  }
+
+  return [];
+}
+
+/**
  * The taxes of a pack, against the three code lists.
  *
  * Every refusal names the tax, the treatment, what the tax says, what the
  * source says instead, and the source. A pack author who has never read
  * EN 16931 should be able to fix the line from the message alone.
+ *
+ * `regime` says whether the Union's own lists reach this pack at all. It
+ * defaults to the case every pack was in before a third country arrived.
  */
-export function taxCodes(taxes: TaxCodes[]): CodeIssue[] {
+export function taxCodes(taxes: TaxCodes[], regime: VatRegime = COMMON_SYSTEM): CodeIssue[] {
   const issues: CodeIssue[] = [];
 
   for (const tax of taxes) {
     const where = `taxes.json ${tax.code}`;
     const expected = TREATMENT_CODES[tax.treatment];
     if (expected === undefined) continue; // the schema already refused the value
+
+    // An operation of the common system, in a country the system does not
+    // reach. Before anything else: what the invoice says about a supply that
+    // cannot happen is not the interesting half of the mistake.
+    if (expected.commonSystem === true && !regime.commonSystem) {
+      issues.push({
+        path: where,
+        message:
+          `treatment ${tax.treatment} is an operation of the common system of VAT — a supply ` +
+          `between two Member States under Directive 2006/112/EC — and ${regime.because}`,
+      });
+      continue;
+    }
 
     // The side. A treatment that exists on one side only, declared on the
     // other, is a pack saying two different things about one operation.
@@ -343,9 +538,12 @@ export function taxCodes(taxes: TaxCodes[]): CodeIssue[] {
     const rules = CATEGORY_CODES[category];
     if (rules === undefined) continue;
 
-    // The reason code, its shape, and the pairing the VATEX list publishes.
+    // The reason code, its shape, and the pairing the VATEX list publishes —
+    // where that list is the one this country's invoices are written against.
     const reason = tax.exemption_code;
-    if (reason === null) {
+    if (!regime.commonSystem) {
+      issues.push(...reasonOutside(where, category, rules, tax, regime));
+    } else if (reason === null) {
       if (rules.needsReason) {
         issues.push({
           path: where,

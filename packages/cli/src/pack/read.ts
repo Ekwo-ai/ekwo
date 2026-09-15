@@ -12,7 +12,8 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, type Issue } from './schema.js';
-import { taxCodes } from './vat-codes.js';
+import { taxCodes, type VatRegime } from './vat-codes.js';
+import { euVatScopeOf, readTerritories, territoryOf } from './territories.js';
 
 /**
  * The chart a pack has when it declares none, and the name of the framework
@@ -70,6 +71,75 @@ export function sourcesOf(certification: PackCertification | null | undefined): 
   return (certification?.sources ?? []).filter(
     (source): source is PackSource => typeof source !== 'string',
   );
+}
+
+/**
+ * Which VAT the country of a pack levies, as the three code lists see it.
+ *
+ * Two of those lists are the Union's — EN 16931 is a European standard and the
+ * VATEX list is published by the European Commission — so whether a pack may
+ * carry a code from them is a question about its country. The answer is a row
+ * of `territories`, read from the seed the database reads, and never a country
+ * written into this repository's code.
+ *
+ * **The day is the pack's `released_at`, not today.** A pack is a transcription
+ * of a country's law, and `released_at` is the day it says that transcription
+ * is true; it is in the manifest, it is inside the pack's checksum, and asking
+ * it makes `ekwo pack check` answer the same thing about the same commit for
+ * ever. Today would not: a pack that passes in the morning and fails in the
+ * evening with nothing committed in between is the one thing a check must
+ * never be, and the day a State acceded or left is exactly when it would
+ * happen. A tax's own `valid_from` would be worse still — the taxes of a pack
+ * span decades, so one pack would speak two regimes at once and a British rate
+ * of 1994 would be asked for a VATEX code from a list that did not exist. A
+ * pack whose manifest names no day falls back on today, because a pack that
+ * does not say when it speaks of is speaking of now.
+ *
+ * **A table that says nothing is not a table saying no.** `eu_vat_scope_of()`
+ * answers `none` for a code it does not carry, which is right for its own
+ * question — a supply to a place the Union has never heard of is not an
+ * intra-Community one. It is not right for this one. Every refusal below
+ * *narrows* what a pack may say, and narrowing on the strength of a missing
+ * row would refuse a valid pack for a country somebody has not added to the
+ * reference data yet. So a country the table carries no row for is held to the
+ * table as published — the Union's — and the gap is closed where it belongs:
+ * `tests/territories.test.ts` refuses a pack of this repository whose country
+ * is not in `territories`, and the test beside it says the same of the seed the
+ * CLI reads.
+ *
+ * `full` and nothing else counts as being in the system. The third value,
+ * `goods`, is Northern Ireland: the Union's rules reach goods there and not
+ * services, so a pack for it would need half the table and no pack can have it
+ * yet — a tax cannot name a territory, which is the gap `docs/international.md`
+ * records. Until it can, such a pack is held to the rules of a country outside
+ * the system, which refuses a code rather than accepting a wrong one.
+ */
+export async function vatRegime(manifest: Manifest, root?: string): Promise<VatRegime> {
+  const territories = await readTerritories(root ?? repoRootDir());
+  const released = manifest.released_at ?? '';
+  const on = /^\d{4}-\d{2}-\d{2}$/.test(released)
+    ? released
+    : (new Date().toISOString().slice(0, 10) as string);
+  const standard = sourcesOf(manifest.certification).find((source) => source.kind === 'standard');
+  const reasonList = standard?.title ?? null;
+  const day = manifest.released_at === on ? `${on}, the day this pack speaks of` : on;
+
+  if (territoryOf(manifest.country, territories) === null) {
+    return {
+      commonSystem: true,
+      because: `territories carries no row for ${manifest.country}, so where its VAT stands is unknown`,
+      reasonList,
+    };
+  }
+
+  const scope = euVatScopeOf(manifest.country, on, territories);
+  return {
+    commonSystem: scope === 'full',
+    because:
+      `${manifest.country} is ${scope === 'full' ? 'in' : 'outside'} the common system of VAT on ` +
+      `${day} (territories gives it eu_vat_scope ${scope})`,
+    reasonList,
+  };
 }
 
 export interface PackAccount {
@@ -849,8 +919,10 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   issues.push(...crossReferences(manifest, charts, taxes));
   // The three code lists a tax tells the same fact in: its treatment, its
   // EN 16931 category and its VATEX reason. Nothing in the ledger reads the
-  // last two, so nothing else would ever notice them disagreeing.
-  issues.push(...taxCodes(taxes));
+  // last two, so nothing else would ever notice them disagreeing. Two of the
+  // three lists are the Union's, so which of them reach this pack at all is
+  // read from `territories` first.
+  issues.push(...taxCodes(taxes, await vatRegime(manifest)));
   issues.push(...reportReferences(report, taxes));
   issues.push(...proposedPeriod(manifest, report));
   issues.push(...statementReferences(statements, charts));

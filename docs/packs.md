@@ -430,7 +430,11 @@ opinion:
   services***, which settles a question the Ekwo vocabulary asks twice.
 - **Technical guidance for tax codes in EN 16931, version 1** (European
   Commission, Technical Advisory Group on Electronic Invoicing, use cases
-  dated 1 July 2024), whose six use cases give the pair for each case.
+  dated 1 July 2024), whose six use cases give the pair for each case. Its
+  fourth is "export outside the EU", which is the Union's border because the
+  seller it addresses is established in a Member State; what UNCL5305 itself
+  says of `G` is *free export item, VAT not charged*, so the border is the one
+  of whoever levies the tax.
 - **The VATEX code list itself**, which carries the pairing as a remark on
   eight of its codes: `VATEX-EU-AE` *only use with category code AE*,
   `VATEX-EU-IC` with `K`, `VATEX-EU-G` with `G`, `VATEX-EU-O` with `O`, and
@@ -451,8 +455,61 @@ opinion:
 | `exempt` | either | `E` | the article claimed, from the VATEX list |
 | `not_subject` | either | `O` | `VATEX-EU-O` |
 
-Three things in that table are decisions, and all three are worth reading before
-filling a column in.
+**That table is the Union's, and the last column applies where the Union's VAT
+does.** EN 16931 is a European standard and the VATEX list is published by the
+European Commission: its own codes name articles of Directive 2006/112/EC, and
+its national codes — `VATEX-FR-CGI261-1` and the rest — belong to Member States
+that publish them. So a pack for a country the common system of VAT does not
+reach reads the table with two changes:
+
+- **`exemption_code` is null**, and the article the line is exempt under goes in
+  `legal_reference`, where it was going to go anyway — and is required there
+  wherever the category asks for a reason, because it is what the invoice
+  states instead of a code. A VATEX code is refused by name, the national
+  spelling included: `VATEX-EU-G` on an export from a third country claims an
+  article of a Directive that does not bind the seller.
+- **The five `intracom_*` treatments are refused outright.** An intra-Community
+  supply is an operation of the common system, and a country outside it makes
+  none.
+
+Everything else holds. The categories are UNCL5305, a UN/CEFACT list: `E`, `G`,
+`O` and `AE` keep their meanings, a sale still has to name one, and the rate
+rules of EN 16931 still fix what it may be charged at.
+
+Should a country outside the Union one day publish reason codes of its own —
+none has, and PINT is where it would surface — the column takes them, on one
+condition: the pack's register declares that list, as an entry of
+`certification.sources` whose `kind` is `standard`. What is checked is that a
+list is named and that the value is a code rather than a sentence, never that
+the code is in the list. That is exactly what is checked of a VATEX code inside
+the Union, where the check holds no copy of the list either.
+
+Which side of that line a pack is on is **not** written anywhere in the code.
+It is a row of `territories`, the reference table of the framework that
+`ec_sales_list()` already reads — `eu_vat_scope` at the pack's `released_at`,
+with `full` meaning the common system reaches the country. `ekwo pack check`
+runs on a checkout with no database, so it parses
+`supabase/seed/00_territories.sql`, which is the file the database itself is
+seeded from; `tests/vat_codes.test.ts` holds its answer against
+`eu_vat_scope_of()` for every territory on every date the table names. Two
+consequences worth knowing:
+
+- **The day is `released_at`, not today.** A pack is a transcription of a law
+  and `released_at` is the day it says that transcription is true. Asking today
+  would make a pack pass in the morning and fail in the evening with nothing
+  committed in between, on the day a State acceded or left. Asking a tax's own
+  `valid_from` would be worse: the taxes of a pack span decades, so one pack
+  would speak two regimes and a British rate of 1994 would be asked for a code
+  from a list that did not exist.
+- **A country `territories` carries no row for is held to the table above.**
+  Every rule in this section narrows what a pack may say, and narrowing on a
+  missing row would refuse a valid pack for a country nobody has added to the
+  reference data yet. Silence is not a no. A pack of this repository never
+  reaches that fallback, because the test suite refuses one whose country is
+  not in the table.
+
+Three more things in that table are decisions, and all three are worth reading
+before filling a column in.
 
 **A category is a term of the invoice, so on a purchase it is the
 supplier's.** A purchase tax describes how the buyer books and declares
@@ -1071,6 +1128,19 @@ not happen on — an `import` that is a sale, an `export` that is a purchase —
 is refused in the same pass, because that is what makes the expected category
 knowable.
 
+Four more of them turn on one fact that is in `territories` and not in the
+pack: whether the common system of VAT reaches the country on the day the
+manifest's `released_at` names. Where it does not, an `exemption_code` taken
+from the VATEX list is refused, because that list belongs to a system this
+country is not in; a reason code from any other list is refused unless the
+pack's register declares that list with `kind: standard`, and refused again if
+it is a sentence rather than a code; a line whose category asks for a reason and
+that names neither a code nor a `legal_reference` is refused, because the
+article is what the invoice states there; and any of the five `intracom_*`
+treatments is refused outright. Every one of those messages names the country,
+the day and the `eu_vat_scope` the table gives it, so a reader is never left
+wondering why a code they read in the standard was turned down.
+
 A cash-basis tax has four of its own: it has to name its transition account; it
 takes exactly one `tax` posting per document kind; it takes no `tax_on_base`
 posting, because a share nobody gets back is a cost and a cost is not deferred
@@ -1502,7 +1572,10 @@ fact, and `ekwo pack check` refuses them when they disagree — so the table
 under "What a tax says on the invoice" is the fastest way to fill the last two
 in. Read the two decisions under it before you fill a purchase-side tax: the
 category there is the one the *supplier's* invoice carries, and where no
-invoice governed by EN 16931 exists there is none to record.
+invoice governed by EN 16931 exists there is none to record. And read the
+paragraph above them first if your country is not in the common system of VAT:
+there, `exemption_code` stays null on every tax, the article goes in
+`legal_reference`, and the `intracom_*` treatments do not exist.
 
 ### 5. The declaration form
 

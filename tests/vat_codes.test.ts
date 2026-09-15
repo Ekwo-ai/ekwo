@@ -19,16 +19,28 @@
  *      what `readPack` already enforces and what this states as a claim;
  *   4. the check actually refuses each way of contradicting it, asked of a
  *      copy of a pack broken on purpose.
+ *
+ * Two of the three lists are the Union's, so a fifth claim was added when a
+ * country outside it arrived: that the CLI reads where the common system
+ * applies from the same seed the database does, and gets the same answer as
+ * `eu_vat_scope_of()` for every territory on every day the table names.
  */
 
 import type { PGlite } from '@electric-sql/pglite';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   CATEGORY_CODES,
+  COMMON_SYSTEM,
   TREATMENT_CODES,
+  euVatScopeOf,
   readSchema,
+  readTerritories,
+  repoRootDir,
+  territoryOf,
   taxCodes,
+  vatRegime,
   type TaxCodes,
+  type VatRegime,
 } from '../packages/cli/src/index.js';
 import { TAX_TREATMENTS } from '../packages/core/src/types.js';
 import { freshDatabase, rows } from './helpers/db.js';
@@ -56,13 +68,33 @@ function tax(over: Partial<TaxCodes>): TaxCodes {
     treatment: 'domestic',
     vat_category: null,
     exemption_code: null,
+    legal_reference: null,
     ...over,
   };
 }
 
+/**
+ * A country the common system of VAT does not reach, and one that publishes a
+ * list of reason codes of its own.
+ *
+ * Neither names anybody. What `readPack` resolves out of `territories` and the
+ * pack's register is exactly these three fields, so a test of the rule states
+ * the three fields and no country at all.
+ */
+const OUTSIDE: VatRegime = {
+  commonSystem: false,
+  because: 'the check was asked about a country the common system of VAT does not reach',
+  reasonList: null,
+};
+
+const OUTSIDE_WITH_A_LIST: VatRegime = {
+  ...OUTSIDE,
+  reasonList: 'a published list of exemption reason codes',
+};
+
 /** The messages one tax produces, joined so a test can say what it expects to read. */
-function refusalFor(over: Partial<TaxCodes>): string {
-  return taxCodes([tax(over)])
+function refusalFor(over: Partial<TaxCodes>, regime: VatRegime = COMMON_SYSTEM): string {
+  return taxCodes([tax(over)], regime)
     .map((issue) => issue.message)
     .join(' | ');
 }
@@ -120,9 +152,9 @@ describe('the tax treatments', () => {
 });
 
 describe('the taxes of every pack', () => {
-  it('agree with their EN 16931 category and their VATEX reason', () => {
+  it('agree with their EN 16931 category and their VATEX reason', async () => {
     for (const pack of allPacks) {
-      expect(taxCodes(pack.taxes), pack.slug).toEqual([]);
+      expect(taxCodes(pack.taxes, await vatRegime(pack.manifest)), pack.slug).toEqual([]);
     }
   });
 
@@ -243,5 +275,183 @@ describe('what the check refuses', () => {
         rate: 21,
       }),
     ).toBe('');
+  });
+});
+
+describe('where the common system of VAT applies', () => {
+  let db: PGlite;
+
+  beforeAll(async () => {
+    db = await freshDatabase();
+  }, 120_000);
+
+  afterAll(async () => {
+    await db.close();
+  });
+
+  it('is read by the CLI from the seed the database reads', async () => {
+    // `ekwo pack check` runs on a checkout and has no database, so it parses
+    // `supabase/seed/00_territories.sql` itself. The claim is that the two
+    // readings never differ: every territory, on every day the table names —
+    // an accession, a withdrawal, the day of the test — asked of Postgres and
+    // asked of TypeScript.
+    const territories = await readTerritories(repoRootDir());
+    const days = [
+      ...new Set(
+        territories
+          .flatMap((territory) => [territory.eu_vat_from, territory.eu_vat_to])
+          .filter((day): day is string => day !== null),
+      ),
+      new Date().toISOString().slice(0, 10),
+    ].sort();
+    expect(days.length).toBeGreaterThan(5);
+
+    const answers = await rows<{ code: string; day: string; scope: string }>(
+      db,
+      `select t.code, d.day::text as day, eu_vat_scope_of(t.code, d.day)::text as scope
+         from territories t
+         cross join (values ${days.map((day) => `(date '${day}')`).join(', ')}) as d(day)
+        order by t.code, d.day`,
+    );
+    expect(answers.length).toBe(territories.length * days.length);
+
+    const differences = answers.filter(
+      (answer) => euVatScopeOf(answer.code, answer.day, territories) !== answer.scope,
+    );
+    expect(differences).toEqual([]);
+  });
+
+  it('carries every pack of this repository, so none falls back on not knowing', async () => {
+    // `vatRegime` holds a pack to the Union's table where `territories` has no
+    // row for its country, because a missing row is silence and not a no. That
+    // fallback must never be what a pack of this repository is judged by, and
+    // this is the CLI-side half of the invariant `tests/territories.test.ts`
+    // states against the database.
+    const territories = await readTerritories(repoRootDir());
+    for (const pack of allPacks) {
+      expect(territoryOf(pack.manifest.country, territories), pack.slug).not.toBeNull();
+    }
+  });
+
+  it('is what tells a pack which of the three code lists reach it', async () => {
+    // The regimes of the packs of this repository, and the claim that the
+    // distinction is a live one: at least one pack is in the common system and
+    // at least one is not, or the rules below are checked against nothing.
+    const regimes = await Promise.all(allPacks.map((pack) => vatRegime(pack.manifest)));
+    expect(regimes.filter((regime) => regime.commonSystem).length).toBeGreaterThan(0);
+    expect(regimes.filter((regime) => !regime.commonSystem).length).toBeGreaterThan(0);
+    for (const regime of regimes) {
+      expect(regime.because).toMatch(/eu_vat_scope/);
+    }
+  });
+
+  it('leaves BT-121 empty in a pack it does not reach, and the article in its place', async () => {
+    const regimes = await Promise.all(allPacks.map((pack) => vatRegime(pack.manifest)));
+    const outside = allPacks.filter((_, index) => !(regimes[index] as VatRegime).commonSystem);
+
+    for (const pack of outside) {
+      for (const levy of pack.taxes) {
+        expect(levy.exemption_code, `${pack.slug} ${levy.code}`).toBeNull();
+        const category = levy.vat_category;
+        if (category !== null && CATEGORY_CODES[category]?.needsReason === true) {
+          expect(levy.legal_reference, `${pack.slug} ${levy.code}`).toMatch(/\S/);
+        }
+        expect(TREATMENT_CODES[levy.treatment]?.commonSystem, `${pack.slug} ${levy.code}`).not.toBe(
+          true,
+        );
+      }
+    }
+  });
+});
+
+describe('what the check refuses outside the common system of VAT', () => {
+  it('a VATEX code, which belongs to a system the country is not in', () => {
+    for (const category of Object.keys(CATEGORY_CODES)) {
+      const reserved = CATEGORY_CODES[category]?.exemption;
+      if (reserved === null || reserved === undefined) continue;
+      expect(
+        refusalFor({ treatment: 'not_subject', vat_category: 'O', exemption_code: reserved }, OUTSIDE),
+        reserved,
+      ).toContain('is a code of');
+    }
+    // Including the national spelling, which is a Member State's extension of
+    // the same list and not a licence for anybody else to mint one.
+    expect(
+      refusalFor(
+        { treatment: 'exempt', vat_category: 'E', exemption_code: 'VATEX-XX-SCH9' },
+        OUTSIDE,
+      ),
+    ).toContain('State the article in legal_reference');
+  });
+
+  it('an exempt line with neither a code nor an article', () => {
+    expect(refusalFor({ treatment: 'exempt', vat_category: 'E' }, OUTSIDE)).toContain(
+      'names no exemption_code and no legal_reference',
+    );
+    // And the article on its own is the whole of what the line needs.
+    expect(
+      refusalFor(
+        { treatment: 'exempt', vat_category: 'E', legal_reference: 'the article that exempts it' },
+        OUTSIDE,
+      ),
+    ).toBe('');
+  });
+
+  it('an operation of the common system itself', () => {
+    const inside = Object.entries(TREATMENT_CODES).filter(
+      ([, codes]) => codes.commonSystem === true,
+    );
+    expect(inside.length).toBeGreaterThan(0);
+    for (const [treatment, codes] of inside) {
+      expect(
+        refusalFor(
+          {
+            treatment,
+            scope: codes.scopes[0] as string,
+            vat_category: codes.categories[0] as string,
+            exemption_code: null,
+            legal_reference: 'an article',
+          },
+          OUTSIDE,
+        ),
+        treatment,
+      ).toContain('is an operation of the common system of VAT');
+    }
+  });
+
+  it('a reason code from a list the pack names nowhere', () => {
+    expect(
+      refusalFor({ treatment: 'exempt', vat_category: 'E', exemption_code: 'SCH9-G10' }, OUTSIDE),
+    ).toContain('comes from no list this pack names');
+    // Declared in the register as a standard, and the field is there for it.
+    expect(
+      refusalFor(
+        { treatment: 'exempt', vat_category: 'E', exemption_code: 'SCH9-G10' },
+        OUTSIDE_WITH_A_LIST,
+      ),
+    ).toBe('');
+  });
+
+  it('an article written into the column a code belongs in', () => {
+    expect(
+      refusalFor(
+        { treatment: 'exempt', vat_category: 'E', exemption_code: 'Schedule 9, group 10' },
+        OUTSIDE_WITH_A_LIST,
+      ),
+    ).toContain('is not a code');
+  });
+
+  it('nothing it refuses inside: the categories are UNCL5305 and stay', () => {
+    expect(
+      refusalFor({ treatment: 'export', vat_category: 'S', rate: 20 }, OUTSIDE),
+    ).toContain('expected G');
+    expect(refusalFor({ vat_category: null }, OUTSIDE)).toContain('names no vat_category');
+    expect(refusalFor({ vat_category: 'S', rate: 0 }, OUTSIDE)).toContain('BR-S-05');
+    expect(
+      refusalFor({ treatment: 'import', scope: 'purchase', vat_category: 'S' }, OUTSIDE),
+    ).toContain('it carries none');
+    expect(
+      refusalFor({ vat_category: 'S', rate: 20, exemption_code: 'SCH9-G10' }, OUTSIDE),
+    ).toContain('exempt under nothing');
   });
 });

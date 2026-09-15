@@ -61,6 +61,7 @@ export {
   resolveBoxRef,
   seedOutputDir,
   sourcesOf,
+  vatRegime,
   PackError,
   type FrameworkManifest,
   type FrameworkPack,
@@ -86,12 +87,23 @@ export {
 } from './pack/read.js';
 export {
   CATEGORY_CODES,
+  COMMON_SYSTEM,
   TREATMENT_CODES,
   taxCodes,
   type CodeIssue,
   type TaxCodes,
   type TreatmentCodes,
+  type VatRegime,
 } from './pack/vat-codes.js';
+export {
+  euVatScopeOf,
+  parseTerritorySeed,
+  readTerritories,
+  territoryOf,
+  TerritoryError,
+  type EuVatScope,
+  type Territory,
+} from './pack/territories.js';
 export { validate, type Issue } from './pack/schema.js';
 export {
   packDiff,
