@@ -549,9 +549,9 @@ describe('what `ekwo pack check` refuses in a formula', () => {
 
 describe('resolveBoxRef', () => {
   const boxes = [
-    { box: '08', kind: 'base' as const, name: 'Base', sequence: 10, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null },
-    { box: '08', kind: 'tax' as const, name: 'Taxe', sequence: 20, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null },
-    { box: '19', kind: 'tax' as const, name: 'Immobilisations', sequence: 30, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null },
+    { box: '08', kind: 'base' as const, name: 'Base', sequence: 10, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null, source: null },
+    { box: '08', kind: 'tax' as const, name: 'Taxe', sequence: 20, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null, source: null },
+    { box: '19', kind: 'tax' as const, name: 'Immobilisations', sequence: 30, plus: [], minus: [], floor_zero: false, hidden: false, xml_element: null, legal_reference: null, source: null },
   ];
 
   it('takes a bare code when only one box carries it', () => {

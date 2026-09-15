@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.2.0",
-  "migration": "20260915160000",
+  "migration": "20260915161842",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1261,6 +1261,10 @@
           {
             "name": "schema_min",
             "type": "text"
+          },
+          {
+            "name": "sources",
+            "type": "jsonb"
           },
           {
             "name": "version",
@@ -2634,6 +2638,10 @@
             "type": "integer"
           },
           {
+            "name": "source_key",
+            "type": "text"
+          },
+          {
             "name": "valid_from",
             "type": "date"
           },
@@ -2758,6 +2766,10 @@
           {
             "name": "sequence",
             "type": "integer"
+          },
+          {
+            "name": "source_key",
+            "type": "text"
           },
           {
             "name": "tax_kind",

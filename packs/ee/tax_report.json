@@ -4,7 +4,7 @@
   "name": "Käibedeklaratsioon (vorm KMD)",
   "period": ["month"],
   "valid_from": "2025-07-01",
-  "legal_reference": "Käibemaksuseadus § 27 lõige 1 — maksustamisperiood on kalendrikuu ja deklaratsioon esitatakse järgneva kuu 20. kuupäevaks; vorm on rahandusministri 10.06.2014 määruse nr 17 lisa 1 rahandusministri 14.05.2025 määruse nr 20 sõnastuses, kehtiv alates 01.07.2025. Vormil on lahtrite tähiseid, mida see fail ei saa tähemärgi haaval korrata: ülaindeksiga lahtrid 1¹, 1², 2¹, 2² ja 4¹ kannavad siin tähiseid 1a, 1b, 2a, 2b ja 4a ning punktiga alamlahtrid 3.1, 3.1.1, 3.2, 3.2.1, 5.1, 5.2, 5.3, 5.4, 6.1 ja 7.1 kannavad tähiseid 31, 311, 32, 321, 51, 52, 53, 54, 61 ja 71. Iga lahtri õiguslik viide nimetab vormil trükitud tähise.",
+  "legal_reference": "Käibemaksuseadus § 27 lõige 1 — maksustamisperiood on kalendrikuu ja deklaratsioon esitatakse järgneva kuu 20. kuupäevaks; vorm on rahandusministri 10.06.2014 määruse nr 17 lisa 1 rahandusministri 14.05.2025 määruse nr 20 sõnastuses, kehtiv alates 01.07.2025. Vormil on lahtrite tähiseid, mida see fail ei saa tähemärgi haaval korrata: ülaindeksiga lahtrid 1¹, 1², 2¹, 2² ja 4¹ kannavad siin tähiseid 1a, 1b, 2a, 2b ja 4a ning punktiga alamlahtrid 3.1, 3.1.1, 3.2, 3.2.1, 5.1, 5.2, 5.3, 5.4, 6.1 ja 7.1 kannavad tähiseid 31, 311, 32, 321, 51, 52, 53, 54, 61 ja 71. Iga lahtri õiguslik viide nimetab vormil trükitud tähise.", "source": "kms",
   "boxes": [
     {
       "box": "1",
@@ -12,42 +12,48 @@
       "name": "24% määraga maksustatavad toimingud ja tehingud",
       "sequence": 10,
       "plus": ["1d", "61", "6s", "71", "7f"],
-      "legal_reference": "Vorm KMD, lahter 1 — käibemaksuseadus § 15 lõige 1. Lahter koondab 24% määraga maksustatava käibe ning maksukohustuslase enda arvestatava käibemaksu aluse: kauba ühendusesisese soetamise, teise liikmesriigi maksukohustuslaselt ja välisriigi isikult saadud teenused ning § 41¹ erikorra alusel soetatu. Ekwo liidab need alamlahtritest, sest üks maks kirjutab ühte alusesse ühe lahtri."
+      "legal_reference": "Vorm KMD, lahter 1 — käibemaksuseadus § 15 lõige 1. Lahter koondab 24% määraga maksustatava käibe ning maksukohustuslase enda arvestatava käibemaksu aluse: kauba ühendusesisese soetamise, teise liikmesriigi maksukohustuslaselt ja välisriigi isikult saadud teenused ning § 41¹ erikorra alusel soetatu. Ekwo liidab need alamlahtritest, sest üks maks kirjutab ühte alusesse ühe lahtri.",
+      "source": "kmd-vorm"
     },
     {
       "box": "1a",
       "kind": "base",
       "name": "20% määraga maksustatavad toimingud ja tehingud",
       "sequence": 20,
-      "legal_reference": "Vorm KMD, lahter 1¹ — käibemaksuseadus § 15 lõige 1 redaktsioonis, mis kehtis kuni 31.12.2023. Vormi juhendi järgi märgitakse siia maksustatava väärtuse muudatused, mis tulenevad kreeditarvetest ja §-st 29¹ ning puudutavad 20% määraga tehinguid."
+      "legal_reference": "Vorm KMD, lahter 1¹ — käibemaksuseadus § 15 lõige 1 redaktsioonis, mis kehtis kuni 31.12.2023. Vormi juhendi järgi märgitakse siia maksustatava väärtuse muudatused, mis tulenevad kreeditarvetest ja §-st 29¹ ning puudutavad 20% määraga tehinguid.",
+      "source": "kmd-vorm"
     },
     {
       "box": "1b",
       "kind": "base",
       "name": "22% määraga maksustatavad toimingud ja tehingud",
       "sequence": 30,
-      "legal_reference": "Vorm KMD, lahter 1² — käibemaksuseadus § 15 lõige 1 redaktsioonis, mis kehtis 01.01.2024–30.06.2025. Vormi juhendi järgi märgitakse siia maksustatava väärtuse muudatused, mis tulenevad kreeditarvetest ja §-st 29¹ ning puudutavad 22% määraga tehinguid."
+      "legal_reference": "Vorm KMD, lahter 1² — käibemaksuseadus § 15 lõige 1 redaktsioonis, mis kehtis 01.01.2024–30.06.2025. Vormi juhendi järgi märgitakse siia maksustatava väärtuse muudatused, mis tulenevad kreeditarvetest ja §-st 29¹ ning puudutavad 22% määraga tehinguid.",
+      "source": "kmd-vorm"
     },
     {
       "box": "2",
       "kind": "base",
       "name": "9% määraga maksustatavad toimingud ja tehingud",
       "sequence": 40,
-      "legal_reference": "Vorm KMD, lahter 2 — käibemaksuseadus § 15 lõige 2: raamat ja õppekirjandus (punkt 1), ravim, meditsiiniseade ja abivahend (punkt 2) ning ajakirjandusväljaanne (punkt 5, kehtiv alates 01.01.2025)"
+      "legal_reference": "Vorm KMD, lahter 2 — käibemaksuseadus § 15 lõige 2: raamat ja õppekirjandus (punkt 1), ravim, meditsiiniseade ja abivahend (punkt 2) ning ajakirjandusväljaanne (punkt 5, kehtiv alates 01.01.2025)",
+      "source": "kmd-vorm"
     },
     {
       "box": "2a",
       "kind": "base",
       "name": "5% määraga maksustatavad toimingud ja tehingud",
       "sequence": 50,
-      "legal_reference": "Vorm KMD, lahter 2¹ — käibemaksuseadus § 15 lõige 2¹, mis kehtis 01.08.2022–31.12.2024 ajakirjandusväljaande kohta; kassapõhise arvestuse korral kohaldatav § 46 lõike 2⁷ alusel kuni 31.12.2026"
+      "legal_reference": "Vorm KMD, lahter 2¹ — käibemaksuseadus § 15 lõige 2¹, mis kehtis 01.08.2022–31.12.2024 ajakirjandusväljaande kohta; kassapõhise arvestuse korral kohaldatav § 46 lõike 2⁷ alusel kuni 31.12.2026",
+      "source": "kmd-vorm"
     },
     {
       "box": "2b",
       "kind": "base",
       "name": "13% määraga maksustatavad toimingud ja tehingud",
       "sequence": 60,
-      "legal_reference": "Vorm KMD, lahter 2² — käibemaksuseadus § 15 lõige 1¹, kehtiv alates 01.01.2025: majutus või majutus koos hommikusöögiga"
+      "legal_reference": "Vorm KMD, lahter 2² — käibemaksuseadus § 15 lõige 1¹, kehtiv alates 01.01.2025: majutus või majutus koos hommikusöögiga",
+      "source": "kmd-vorm"
     },
     {
       "box": "3",
@@ -55,7 +61,8 @@
       "name": "0% määraga maksustatavad toimingud ja tehingud",
       "sequence": 70,
       "plus": ["311", "3s", "32e", "321"],
-      "legal_reference": "Vorm KMD, lahter 3 — käibemaksuseadus § 15 lõiked 3 ja 4. Ekwo liidab lahtri alamlahtritest; käesolev pakk kannab nullmääraga makse üksnes kauba ühendusesisese käibe, teise liikmesriigi maksukohustuslasele osutatud teenuse ja ekspordi kohta, seega peab uue nullmääraga maksu lisaja lisama selle lahtri ka siia valemisse."
+      "legal_reference": "Vorm KMD, lahter 3 — käibemaksuseadus § 15 lõiked 3 ja 4. Ekwo liidab lahtri alamlahtritest; käesolev pakk kannab nullmääraga makse üksnes kauba ühendusesisese käibe, teise liikmesriigi maksukohustuslasele osutatud teenuse ja ekspordi kohta, seega peab uue nullmääraga maksu lisaja lisama selle lahtri ka siia valemisse.",
+      "source": "kmd-vorm"
     },
     {
       "box": "31",
@@ -63,14 +70,16 @@
       "name": "Kauba ühendusesisene käive ja teise liikmesriigi maksukohustuslasele või piiratud maksukohustuslasele osutatud teenuste käive kokku",
       "sequence": 80,
       "plus": ["311", "3s"],
-      "legal_reference": "Vorm KMD, lahter 3.1 — käibemaksuseadus § 15 lõike 3 punkt 2 ja § 10 lõike 4 punkt 9. Lahtris 3 deklareeritud summas sisalduv."
+      "legal_reference": "Vorm KMD, lahter 3.1 — käibemaksuseadus § 15 lõike 3 punkt 2 ja § 10 lõike 4 punkt 9. Lahtris 3 deklareeritud summas sisalduv.",
+      "source": "kmd-vorm"
     },
     {
       "box": "311",
       "kind": "base",
       "name": "Kauba ühendusesisene käive",
       "sequence": 90,
-      "legal_reference": "Vorm KMD, lahter 3.1.1 — käibemaksuseadus § 7 lõige 1 ja § 15 lõike 3 punkt 2. Lahtris 3.1 deklareeritud summas sisalduv."
+      "legal_reference": "Vorm KMD, lahter 3.1.1 — käibemaksuseadus § 7 lõige 1 ja § 15 lõike 3 punkt 2. Lahtris 3.1 deklareeritud summas sisalduv.",
+      "source": "kmd-vorm"
     },
     {
       "box": "32",
@@ -78,28 +87,32 @@
       "name": "Kauba eksport",
       "sequence": 100,
       "plus": ["32e", "321"],
-      "legal_reference": "Vorm KMD, lahter 3.2 — käibemaksuseadus § 15 lõike 3 punkt 1. Lahtris 3 deklareeritud summas sisalduv."
+      "legal_reference": "Vorm KMD, lahter 3.2 — käibemaksuseadus § 15 lõike 3 punkt 1. Lahtris 3 deklareeritud summas sisalduv.",
+      "source": "kmd-vorm"
     },
     {
       "box": "321",
       "kind": "base",
       "name": "Käibemaksutagastusega müük reisijale",
       "sequence": 110,
-      "legal_reference": "Vorm KMD, lahter 3.2.1 — käibemaksuseadus § 5 lõiked 2 ja 4. Lahtris 3.2 deklareeritud summas sisalduv; käesolev pakk ei kanna reisijale käibemaksutagastusega müügi maksu, mistõttu lahter jääb tühjaks."
+      "legal_reference": "Vorm KMD, lahter 3.2.1 — käibemaksuseadus § 5 lõiked 2 ja 4. Lahtris 3.2 deklareeritud summas sisalduv; käesolev pakk ei kanna reisijale käibemaksutagastusega müügi maksu, mistõttu lahter jääb tühjaks.",
+      "source": "kmd-vorm"
     },
     {
       "box": "4",
       "kind": "tax",
       "name": "Käibemaks kokku",
       "sequence": 120,
-      "legal_reference": "Vorm KMD, lahter 4 — käibemaksuseadus § 29 lõige 2. Vormi juhend arvutab lahtri maksumääradega lahtritest 1, 1¹, 1², 2, 2¹ ja 2²; Ekwo liidab siia käibemaksu, mille dokumendid tegelikult raamatusse kirjutasid, sest pakk ei sisalda avaldiste keelt ja iga dokumendi maks on juba ümardatud."
+      "legal_reference": "Vorm KMD, lahter 4 — käibemaksuseadus § 29 lõige 2. Vormi juhend arvutab lahtri maksumääradega lahtritest 1, 1¹, 1², 2, 2¹ ja 2²; Ekwo liidab siia käibemaksu, mille dokumendid tegelikult raamatusse kirjutasid, sest pakk ei sisalda avaldiste keelt ja iga dokumendi maks on juba ümardatud.",
+      "source": "kmd-vorm"
     },
     {
       "box": "4a",
       "kind": "tax",
       "name": "Impordilt tasumisele kuuluv käibemaks",
       "sequence": 130,
-      "legal_reference": "Vorm KMD, lahter 4¹ — käibemaksuseadus § 38 lõiked 2¹–2³: maksuhalduri kirjalikul loal deklareeritakse kauba impordilt arvestatav käibemaks käibedeklaratsioonis tollile tasumise asemel"
+      "legal_reference": "Vorm KMD, lahter 4¹ — käibemaksuseadus § 38 lõiked 2¹–2³: maksuhalduri kirjalikul loal deklareeritakse kauba impordilt arvestatav käibemaks käibedeklaratsioonis tollile tasumise asemel",
+      "source": "kmd-vorm"
     },
     {
       "box": "5",
@@ -107,35 +120,40 @@
       "name": "Kokku sisendkäibemaksu summa, mis on seadusega lubatud maha arvata",
       "sequence": 140,
       "plus": ["5g", "51", "52", "53", "54"],
-      "legal_reference": "Vorm KMD, lahter 5 — käibemaksuseadus §§ 29, 30 ja 31. Lahter kannab juba piirangute järgset summat; Ekwo liidab selle alamlahtritest, sest lahtrid 5.1–5.4 on lahtri 5 osad."
+      "legal_reference": "Vorm KMD, lahter 5 — käibemaksuseadus §§ 29, 30 ja 31. Lahter kannab juba piirangute järgset summat; Ekwo liidab selle alamlahtritest, sest lahtrid 5.1–5.4 on lahtri 5 osad.",
+      "source": "kmd-vorm"
     },
     {
       "box": "51",
       "kind": "tax",
       "name": "Impordilt tasutud või tasumisele kuuluv käibemaks",
       "sequence": 150,
-      "legal_reference": "Vorm KMD, lahter 5.1 — käibemaksuseadus § 29 lõike 3 punkt 2 ja § 31 lõiked 4 ja 8. Lahtri 5 summas sisalduv."
+      "legal_reference": "Vorm KMD, lahter 5.1 — käibemaksuseadus § 29 lõike 3 punkt 2 ja § 31 lõiked 4 ja 8. Lahtri 5 summas sisalduv.",
+      "source": "kmd-vorm"
     },
     {
       "box": "52",
       "kind": "tax",
       "name": "Põhivara soetamiselt tasutud või tasumisele kuuluv käibemaks",
       "sequence": 160,
-      "legal_reference": "Vorm KMD, lahter 5.2 — käibemaksuseadus § 32 lõige 4. Lahtri 5 summas sisalduv."
+      "legal_reference": "Vorm KMD, lahter 5.2 — käibemaksuseadus § 32 lõige 4. Lahtri 5 summas sisalduv.",
+      "source": "kmd-vorm"
     },
     {
       "box": "53",
       "kind": "tax",
       "name": "Ettevõtluses (100%) kasutatava sõiduauto soetamiselt ja selle tarbeks kaupade ja teenuste soetamiselt tasutud käibemaks",
       "sequence": 170,
-      "legal_reference": "Vorm KMD, lahter 5.3 — käibemaksuseadus § 30 lõike 4 punktid 3–5 ja lõige 6. Lahtri 5 summas sisalduv. Vormil on lahtri kõrval ka sõiduautode arv; Ekwo ei kanna seda, sest deklaratsiooni lahter on käesolevas mudelis rahasumma."
+      "legal_reference": "Vorm KMD, lahter 5.3 — käibemaksuseadus § 30 lõike 4 punktid 3–5 ja lõige 6. Lahtri 5 summas sisalduv. Vormil on lahtri kõrval ka sõiduautode arv; Ekwo ei kanna seda, sest deklaratsiooni lahter on käesolevas mudelis rahasumma.",
+      "source": "kmd-vorm"
     },
     {
       "box": "54",
       "kind": "tax",
       "name": "Osaliselt ettevõtluses kasutatava sõiduauto soetamiselt ja selle tarbeks kaupade ja teenuste soetamiselt tasutud käibemaks",
       "sequence": 180,
-      "legal_reference": "Vorm KMD, lahter 5.4 — käibemaksuseadus § 30 lõige 3: maha arvatakse kuni 50 protsenti sisendkäibemaksust. Lahtri 5 summas sisalduv. Vormil on lahtri kõrval ka sõiduautode arv, mida Ekwo ei kanna."
+      "legal_reference": "Vorm KMD, lahter 5.4 — käibemaksuseadus § 30 lõige 3: maha arvatakse kuni 50 protsenti sisendkäibemaksust. Lahtri 5 summas sisalduv. Vormil on lahtri kõrval ka sõiduautode arv, mida Ekwo ei kanna.",
+      "source": "kmd-vorm"
     },
     {
       "box": "6",
@@ -143,14 +161,16 @@
       "name": "Kauba ühendusesisene soetamine ja teise liikmesriigi maksukohustuslaselt saadud teenused kokku",
       "sequence": 190,
       "plus": ["61", "6s"],
-      "legal_reference": "Vorm KMD, lahter 6 — käibemaksuseadus § 8 ja § 10 lõige 1. Vormi juhend nimetab lahtri sõnaselgelt informatiivseks: summa sisaldub juba lahtris 1 ja ei mõjuta ühtki kokkuvõtet."
+      "legal_reference": "Vorm KMD, lahter 6 — käibemaksuseadus § 8 ja § 10 lõige 1. Vormi juhend nimetab lahtri sõnaselgelt informatiivseks: summa sisaldub juba lahtris 1 ja ei mõjuta ühtki kokkuvõtet.",
+      "source": "kmd-vorm"
     },
     {
       "box": "61",
       "kind": "base",
       "name": "Kauba ühendusesisene soetamine",
       "sequence": 200,
-      "legal_reference": "Vorm KMD, lahter 6.1 — käibemaksuseadus § 8. Vormi juhendi järgi informatiivne lahter."
+      "legal_reference": "Vorm KMD, lahter 6.1 — käibemaksuseadus § 8. Vormi juhendi järgi informatiivne lahter.",
+      "source": "kmd-vorm"
     },
     {
       "box": "7",
@@ -158,42 +178,48 @@
       "name": "Muu kauba soetamine ja teenuse saamine, mida maksustatakse käibemaksuga",
       "sequence": 210,
       "plus": ["71", "7f"],
-      "legal_reference": "Vorm KMD, lahter 7 — käibemaksuseadus § 3 lõike 4 punktid 2 ja 5 ning § 41¹. Vormi juhendi järgi informatiivne lahter."
+      "legal_reference": "Vorm KMD, lahter 7 — käibemaksuseadus § 3 lõike 4 punktid 2 ja 5 ning § 41¹. Vormi juhendi järgi informatiivne lahter.",
+      "source": "kmd-vorm"
     },
     {
       "box": "71",
       "kind": "base",
       "name": "Erikorra alusel maksustatava kinnisasja, metallijäätmete, väärismetalli ja metalltoodete soetamine",
       "sequence": 220,
-      "legal_reference": "Vorm KMD, lahter 7.1 — käibemaksuseadus § 41¹ lõiked 1–4. Vormi juhendi järgi informatiivne lahter."
+      "legal_reference": "Vorm KMD, lahter 7.1 — käibemaksuseadus § 41¹ lõiked 1–4. Vormi juhendi järgi informatiivne lahter.",
+      "source": "kmd-vorm"
     },
     {
       "box": "8",
       "kind": "base",
       "name": "Maksuvaba käive",
       "sequence": 230,
-      "legal_reference": "Vorm KMD, lahter 8 — käibemaksuseadus § 16"
+      "legal_reference": "Vorm KMD, lahter 8 — käibemaksuseadus § 16",
+      "source": "kmd-vorm"
     },
     {
       "box": "9",
       "kind": "base",
       "name": "Erikorra alusel maksustatava kinnisasja, metallijäätmete, väärismetalli ja metalltoodete käive ning teises liikmesriigis paigaldatava või kokkupandava kauba maksustatav väärtus",
       "sequence": 240,
-      "legal_reference": "Vorm KMD, lahter 9 — käibemaksuseadus § 41¹ lõiked 1 ja 2. Vormi juhendi järgi informatiivne lahter, ja juhend ütleb sõnaselgelt, et müüja § 41¹ käivet lahtrisse 1 ei märgita."
+      "legal_reference": "Vorm KMD, lahter 9 — käibemaksuseadus § 41¹ lõiked 1 ja 2. Vormi juhendi järgi informatiivne lahter, ja juhend ütleb sõnaselgelt, et müüja § 41¹ käivet lahtrisse 1 ei märgita.",
+      "source": "kmd-vorm"
     },
     {
       "box": "10",
       "kind": "tax",
       "name": "Täpsustused (+)",
       "sequence": 250,
-      "legal_reference": "Vorm KMD, lahter 10 — käibemaksuseadus § 32 lõiked 1 ja 4, § 29 lõige 4 ja § 30 lõige 7: sisendkäibemaksu ümberarvestused. Käesolev pakk ei kanna ühtki maksu, mis sellesse lahtrisse kirjutaks; ümberarvestuse teeb raamatupidaja käsitsi."
+      "legal_reference": "Vorm KMD, lahter 10 — käibemaksuseadus § 32 lõiked 1 ja 4, § 29 lõige 4 ja § 30 lõige 7: sisendkäibemaksu ümberarvestused. Käesolev pakk ei kanna ühtki maksu, mis sellesse lahtrisse kirjutaks; ümberarvestuse teeb raamatupidaja käsitsi.",
+      "source": "kmd-vorm"
     },
     {
       "box": "11",
       "kind": "tax",
       "name": "Täpsustused (−)",
       "sequence": 260,
-      "legal_reference": "Vorm KMD, lahter 11 — samad alused kui lahtril 10. Vormi juhendi järgi ei täideta lahtreid 10 ja 11 üheaegselt."
+      "legal_reference": "Vorm KMD, lahter 11 — samad alused kui lahtril 10. Vormi juhendi järgi ei täideta lahtreid 10 ja 11 üheaegselt.",
+      "source": "kmd-vorm"
     },
     {
       "box": "1d",
@@ -201,7 +227,8 @@
       "name": "24% määraga maksustatav käive Eestis",
       "sequence": 270,
       "hidden": true,
-      "legal_reference": "Lahtri 1 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 15 lõige 1. Ekwo lisab selle, sest üks maks kirjutab dokumendiliigi kohta ühe aluse ühte lahtrisse ja lahter 1 koondab mitut allikat."
+      "legal_reference": "Lahtri 1 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 15 lõige 1. Ekwo lisab selle, sest üks maks kirjutab dokumendiliigi kohta ühe aluse ühte lahtrisse ja lahter 1 koondab mitut allikat.",
+      "source": "kmd-vorm"
     },
     {
       "box": "3s",
@@ -209,7 +236,8 @@
       "name": "Teise liikmesriigi maksukohustuslasele osutatud teenuste käive",
       "sequence": 280,
       "hidden": true,
-      "legal_reference": "Lahtri 3.1 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 3.1 − 3.1.1. Käibemaksuseadus § 10 lõike 4 punkt 9 ja § 15 lõike 4 punkt 1."
+      "legal_reference": "Lahtri 3.1 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 3.1 − 3.1.1. Käibemaksuseadus § 10 lõike 4 punkt 9 ja § 15 lõike 4 punkt 1.",
+      "source": "kmd-vorm"
     },
     {
       "box": "32e",
@@ -217,7 +245,8 @@
       "name": "Kauba eksport, välja arvatud käibemaksutagastusega müük reisijale",
       "sequence": 290,
       "hidden": true,
-      "legal_reference": "Lahtri 3.2 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 3.2 − 3.2.1. Käibemaksuseadus § 15 lõike 3 punkt 1."
+      "legal_reference": "Lahtri 3.2 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 3.2 − 3.2.1. Käibemaksuseadus § 15 lõike 3 punkt 1.",
+      "source": "kmd-vorm"
     },
     {
       "box": "5g",
@@ -225,7 +254,8 @@
       "name": "Mahaarvatav sisendkäibemaks, mida lahtrid 5.1–5.4 ei kajasta",
       "sequence": 300,
       "hidden": true,
-      "legal_reference": "Lahtri 5 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 29 lõiked 1 ja 3 ning § 31."
+      "legal_reference": "Lahtri 5 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 29 lõiked 1 ja 3 ning § 31.",
+      "source": "kmd-vorm"
     },
     {
       "box": "6s",
@@ -233,7 +263,8 @@
       "name": "Teise liikmesriigi maksukohustuslaselt saadud teenused",
       "sequence": 310,
       "hidden": true,
-      "legal_reference": "Lahtri 6 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 6 − 6.1. Käibemaksuseadus § 10 lõige 1 ja § 3 lõike 4 punkt 2."
+      "legal_reference": "Lahtri 6 osa, mida vorm eraldi ei trüki ja mille vorm annab vahena 6 − 6.1. Käibemaksuseadus § 10 lõige 1 ja § 3 lõike 4 punkt 2.",
+      "source": "kmd-vorm"
     },
     {
       "box": "7f",
@@ -241,7 +272,8 @@
       "name": "Väljaspool ühendust asuvalt välisriigi isikult saadud teenused",
       "sequence": 320,
       "hidden": true,
-      "legal_reference": "Lahtri 7 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 3 lõike 4 punkt 2 ja § 10 lõige 1."
+      "legal_reference": "Lahtri 7 osa, mida vorm eraldi ei trüki. Käibemaksuseadus § 3 lõike 4 punkt 2 ja § 10 lõige 1.",
+      "source": "kmd-vorm"
     },
     {
       "box": "12",
@@ -251,7 +283,8 @@
       "plus": ["4", "4a", "10"],
       "minus": ["5", "11"],
       "floor_zero": true,
-      "legal_reference": "Vorm KMD, lahter 12 — vormi juhend: lahter 4 + lahter 4¹ − lahter 5 + lahter 10 − lahter 11. Käibemaksuseadus § 29 lõige 1 ja § 38 lõige 1."
+      "legal_reference": "Vorm KMD, lahter 12 — vormi juhend: lahter 4 + lahter 4¹ − lahter 5 + lahter 10 − lahter 11. Käibemaksuseadus § 29 lõige 1 ja § 38 lõige 1.",
+      "source": "kmd-vorm"
     },
     {
       "box": "13",
@@ -261,7 +294,8 @@
       "plus": ["5", "11"],
       "minus": ["4", "4a", "10"],
       "floor_zero": true,
-      "legal_reference": "Vorm KMD, lahter 13 — sama valem kui lahtril 12, vastasmärgiga: vorm trükib lahtri 12 juurde + ja lahtri 13 juurde −, nii et täidetakse üks neist. Enammakse kantakse ettemaksukontole ja tagastatakse eraldi taotluse alusel."
+      "legal_reference": "Vorm KMD, lahter 13 — sama valem kui lahtril 12, vastasmärgiga: vorm trükib lahtri 12 juurde + ja lahtri 13 juurde −, nii et täidetakse üks neist. Enammakse kantakse ettemaksukontole ja tagastatakse eraldi taotluse alusel.",
+      "source": "kmd-vorm"
     }
   ]
 }

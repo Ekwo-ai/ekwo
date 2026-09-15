@@ -22,6 +22,56 @@ import { taxCodes } from './vat-codes.js';
 export const DEFAULT_CHART = 'default';
 export const GENERIC_PACK = 'generic';
 
+/**
+ * One text of a pack's source register.
+ *
+ * The register is where a link lives, and the only place: a tax, a box of the
+ * declaration or a sentence of an invoice writes the article it claims in its
+ * own `legal_reference` and names the key of the text that article is in. So a
+ * publisher that reorganises its site is one line of the pack to change, and a
+ * reviewer opening a pack has the reading list before they have read a rule.
+ *
+ * Nothing here is a copy of the text. A pack says where the law is, never what
+ * it says: a quotation ages without anybody noticing, and a country pack that
+ * carried one would be a second, unversioned edition of a statute.
+ */
+export interface PackSource {
+  /** How the rest of the pack names this text. Unique inside one register. */
+  key: string;
+  title: string;
+  /** Who publishes it officially — the half of a source a link cannot carry. */
+  publisher: string;
+  /** Absolute, https, and a permanent identifier wherever the publisher has one. */
+  url: string;
+  /** The day somebody opened it. What says how old the reading is. */
+  consulted_on: string;
+  /** law | regulation | form | standard | portal | guidance. */
+  kind: string;
+}
+
+/**
+ * What a manifest says about who stands behind a pack.
+ *
+ * `sources` holds the register above and — for a pack written before it —
+ * bare strings, which are titles with nowhere to read them. Both are accepted
+ * so that a community pack goes on compiling; `ekwo pack check` warns on the
+ * string, and a pack that is not `community` has to carry at least one entry
+ * of the register.
+ */
+export interface PackCertification {
+  status: string;
+  by?: string | null;
+  on?: string;
+  sources?: (string | PackSource)[];
+}
+
+/** The register of a pack: the entries, with the deprecated bare titles dropped. */
+export function sourcesOf(certification: PackCertification | null | undefined): PackSource[] {
+  return (certification?.sources ?? []).filter(
+    (source): source is PackSource => typeof source !== 'string',
+  );
+}
+
 export interface PackAccount {
   code: string;
   parent: string | null;
@@ -60,6 +110,8 @@ export interface PackTax {
   valid_from: string;
   valid_to: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. Null where the pack names none. */
+  source: string | null;
   vat_category: string | null;
   exemption_code: string | null;
   /** False when the buyer never gets the tax back. */
@@ -90,8 +142,10 @@ export interface PackChart {
   audience: string | null;
   /** Codes of the statements this chart reports on. */
   statements: string[];
-  certification: { status: string; by?: string | null; on?: string; sources?: string[] } | null;
+  certification: PackCertification | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
 }
 
 /** One rule bringing accounts of a chart to a line of a statement. */
@@ -123,6 +177,8 @@ export interface PackStatementLine {
   minus: string[];
   xbrl: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
   rules: PackStatementRule[];
 }
 
@@ -142,6 +198,8 @@ export interface PackStatement {
   valid_from: string;
   valid_to: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
   /** Chart this statement belongs to, or null for every chart of the country. */
   chart_code: string | null;
   lines: PackStatementLine[];
@@ -159,6 +217,8 @@ export interface PackReportBox {
   hidden: boolean;
   xml_element: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
 }
 
 /** One sentence a country requires on an invoice, and when it applies. */
@@ -172,6 +232,8 @@ export interface PackMention {
   valid_from: string;
   valid_to: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
 }
 
 /**
@@ -221,6 +283,8 @@ export interface PackReport {
   valid_from: string;
   valid_to: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
   boxes: PackReportBox[];
 }
 
@@ -306,6 +370,8 @@ export interface PackAssetCategory {
   account_type: string | null;
   sequence: number;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
 }
 
 /**
@@ -325,6 +391,8 @@ export interface PackAssets {
   declining_switch_to_linear: boolean;
   disposal_style: string | null;
   legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
   categories: PackAssetCategory[];
 }
 
@@ -364,6 +432,23 @@ export interface Pack {
   checksum: string;
   /** Sections the schema accepts and this release does not compile. */
   deferred: string[];
+  /**
+   * The source register: every text this pack was built from, with the
+   * publisher that serves it and the day somebody opened it.
+   *
+   * Only the entries. A bare title the manifest still carries is the
+   * deprecated form and reaches `warnings` instead, because a title nobody can
+   * open is not a source — it is the memory of having read one.
+   */
+  sources: PackSource[];
+  /**
+   * What a reader should know and what nothing refuses over.
+   *
+   * A pack that keeps a bare title in its register, or one this release
+   * compiles less of than the schema accepts, still builds. The difference
+   * between this and an issue is whether a figure could come out wrong.
+   */
+  warnings: string[];
 }
 
 export interface Manifest {
@@ -373,7 +458,7 @@ export interface Manifest {
   schema_min: string;
   seed_sequence: number;
   released_at?: string;
-  certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+  certification?: PackCertification;
   defaults: {
     currency: string;
     language?: string;
@@ -390,8 +475,9 @@ export interface Manifest {
     default?: boolean;
     audience?: string;
     statements?: string[];
-    certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+    certification?: PackCertification;
     legal_reference?: string | null;
+    source?: string | null;
   }[];
   [key: string]: unknown;
 }
@@ -404,7 +490,7 @@ export interface FrameworkManifest {
   schema_min: string;
   released_at?: string;
   language?: string;
-  certification?: { status: string; by?: string | null; on?: string; sources?: string[] };
+  certification?: PackCertification;
   golden?: { exempt: string };
 }
 
@@ -517,6 +603,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   const schema = await readSchema(dir);
   const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
   const issues: Issue[] = [];
+  const warnings: string[] = [];
   const deferred: string[] = [];
 
   const manifest = (await readJson(join(root, 'pack.json'))) as unknown as Manifest;
@@ -559,6 +646,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
       statements: entry.statements ?? [],
       certification: entry.certification ?? null,
       legal_reference: entry.legal_reference ?? null,
+      source: entry.source ?? null,
     });
   }
   charts.sort((a, b) => (a.is_default === b.is_default ? a.code.localeCompare(b.code) : a.is_default ? -1 : 1));
@@ -735,6 +823,13 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   issues.push(...statementReferences(statements, charts));
   issues.push(...documentReferences(documents));
 
+  // The register, and every rule that points into it. Last of the cross-checks,
+  // because a source is named by a tax, a box, a statement line and a mention,
+  // and all four have to have been read before the references can be resolved.
+  const register = sourceRegister(manifest, charts, taxes, report, statements, documents, assets);
+  issues.push(...register.issues);
+  warnings.push(...register.warnings);
+
   if (issues.length > 0) {
     // The cause before the consequence. A label problem is almost always
     // downstream of a structural one — take a box out of the declaration and
@@ -775,7 +870,166 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
     goldenExemption,
     checksum: await checksum(root),
     deferred,
+    sources: register.sources,
+    warnings,
   };
+}
+
+/**
+ * The source register, and every reference the pack makes to it.
+ *
+ * `legal_reference` says which article a rule comes from and has been required
+ * on a tax and on a box since the format existed. What it never said is where
+ * that article can be read, so a reviewer opening a pack had a citation and a
+ * search engine. The register answers that once — a key, a title, the official
+ * publisher, an absolute link and the day somebody opened it — and every rule
+ * names a key instead of repeating a URL.
+ *
+ * Four things are refused here, and one is only warned about.
+ *
+ * A **duplicate key** is refused, because a reference would resolve to
+ * whichever entry happened to come first. A **key nothing declares** is
+ * refused: it reads as a source and is a typo. A pack that is not `community`
+ * and carries **no entry at all** is refused, because `maintained` and
+ * `reviewed` are claims that somebody keeps this current, and neither is
+ * sayable about a list of titles. And on a **reviewed** pack every tax and
+ * every box has to name a key — the reviewer read something, and this is where
+ * they say what.
+ *
+ * On a `maintained` pack that last one is a warning. The register arrived
+ * after four packs did; failing them the day it landed would have made the
+ * feature the reason the repository was red, and the gap it names is a link
+ * that is missing, never a figure that is wrong.
+ *
+ * The shape of an entry — the fields, the key, the https URL, the closed
+ * vocabulary of `kind` — is the published schema's job and is checked there,
+ * so an editor validating against `pack.1.json` refuses the same things.
+ */
+function sourceRegister(
+  manifest: Manifest,
+  charts: PackChart[],
+  taxes: PackTax[],
+  report: PackReport | null,
+  statements: PackStatement[],
+  documents: PackDocumentRules,
+  assets: PackAssets | null,
+): { sources: PackSource[]; issues: Issue[]; warnings: string[] } {
+  const issues: Issue[] = [];
+  const warnings: string[] = [];
+  const status = manifest.certification?.status ?? 'community';
+
+  // A chart may say how much it in particular has been read, and name the
+  // texts that reading went through. Those texts are in the same register: a
+  // key is unique in a pack, not in a section of one.
+  const declared: { where: string; entry: string | PackSource }[] = [
+    ...(manifest.certification?.sources ?? []).map((entry) => ({ where: 'certification.sources', entry })),
+    ...charts.flatMap((chart) =>
+      (chart.certification?.sources ?? []).map((entry) => ({
+        where: `charts.${chart.code}.certification.sources`,
+        entry,
+      })),
+    ),
+  ];
+
+  const sources: PackSource[] = [];
+  const byKey = new Map<string, PackSource>();
+  for (const { where, entry } of declared) {
+    if (typeof entry === 'string') {
+      warnings.push(
+        `pack.json ${where}: "${entry}" is a title with nowhere to read it. ` +
+          'The register takes an object — key, title, publisher, url, consulted_on, kind — ' +
+          'and the bare string is deprecated; see docs/packs.md, "The register of sources".',
+      );
+      continue;
+    }
+    if (byKey.has(entry.key)) {
+      issues.push({
+        path: `pack.json ${where}`,
+        message: `two sources claim the key ${entry.key}; a reference would resolve to whichever came first`,
+      });
+      continue;
+    }
+    byKey.set(entry.key, entry);
+    sources.push(entry);
+  }
+
+  if (status !== 'community' && sources.length === 0) {
+    issues.push({
+      path: 'pack.json certification.sources',
+      message:
+        `a ${status} pack carries a register of sources: a key, a title, the publisher and an ` +
+        'absolute https link per text. Nobody can maintain or review what they cannot open.',
+    });
+  }
+
+  // Every place the format lets a legal reference name where it is read.
+  const references: { path: string; source: string | null; kind: 'tax' | 'box' | 'other' }[] = [
+    ...charts.map((chart) => ({ path: `pack.json charts.${chart.code}`, source: chart.source, kind: 'other' as const })),
+    ...taxes.map((tax) => ({ path: `taxes.json ${tax.code}`, source: tax.source, kind: 'tax' as const })),
+    ...(report === null ? [] : [{ path: `tax_report.json ${report.code}`, source: report.source, kind: 'other' as const }]),
+    ...(report?.boxes ?? []).map((box) => ({
+      path: `tax_report.json ${box.box}:${box.kind}`,
+      source: box.source,
+      kind: 'box' as const,
+    })),
+    ...statements.flatMap((statement) => [
+      { path: `statements.json ${statement.code}`, source: statement.source, kind: 'other' as const },
+      ...statement.lines.map((line) => ({
+        path: `statements.json ${statement.code}.${line.code}`,
+        source: line.source,
+        kind: 'other' as const,
+      })),
+    ]),
+    ...documents.mentions.map((mention) => ({
+      path: `pack.json documents.mentions.${mention.code}`,
+      source: mention.source,
+      kind: 'other' as const,
+    })),
+    ...(assets === null ? [] : [{ path: 'assets.json', source: assets.source, kind: 'other' as const }]),
+    ...(assets?.categories ?? []).map((category) => ({
+      path: `assets.json ${category.code}`,
+      source: category.source,
+      kind: 'other' as const,
+    })),
+  ];
+
+  for (const reference of references) {
+    if (reference.source === null) continue;
+    if (byKey.has(reference.source)) continue;
+    issues.push({
+      path: reference.path,
+      message:
+        `names the source ${reference.source}, which this pack's register does not carry. ` +
+        (sources.length === 0
+          ? 'The register is empty.'
+          : `It holds: ${sources.map((s) => s.key).join(', ')}.`),
+    });
+  }
+
+  // A reviewer read something before they put their name on a rate or a grid.
+  // Saying which text is the difference between a review and a signature.
+  const unsourced = references.filter(
+    (reference) => reference.source === null && (reference.kind === 'tax' || reference.kind === 'box'),
+  );
+  if (status === 'reviewed') {
+    for (const reference of unsourced) {
+      issues.push({
+        path: reference.path,
+        message: 'a reviewed pack says which text its legal reference is in: add "source": "<key>"',
+      });
+    }
+  } else if (status === 'maintained' && unsourced.length > 0) {
+    warnings.push(
+      `${unsourced.length} tax(es) and box(es) carry a legal reference and name no source: ` +
+        `${unsourced
+          .slice(0, 3)
+          .map((reference) => reference.path)
+          .join(', ')}${unsourced.length > 3 ? ', …' : ''}. ` +
+        'A reviewed pack is refused for this; a maintained one is told.',
+    );
+  }
+
+  return { sources, issues, warnings };
 }
 
 function normaliseAssets(raw: Record<string, unknown>): PackAssets {
@@ -799,6 +1053,10 @@ function normaliseAssets(raw: Record<string, unknown>): PackAssets {
       (depreciation['legal_reference'] as string | null | undefined) ??
       (disposal?.['legal_reference'] as string | null | undefined) ??
       null,
+    source:
+      (depreciation['source'] as string | null | undefined) ??
+      (disposal?.['source'] as string | null | undefined) ??
+      null,
     categories: categories.map((category, index) => ({
       code: String(category['code']),
       name: String(category['name']),
@@ -813,6 +1071,7 @@ function normaliseAssets(raw: Record<string, unknown>): PackAssets {
       account_type: (category['account_type'] as string | null | undefined) ?? null,
       sequence: Number(category['sequence'] ?? (index + 1) * 10),
       legal_reference: (category['legal_reference'] as string | null | undefined) ?? null,
+      source: (category['source'] as string | null | undefined) ?? null,
     })),
   };
 }
@@ -1088,6 +1347,7 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
     valid_from: String(raw['valid_from']),
     valid_to: (raw['valid_to'] as string | undefined) ?? null,
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
+    source: (raw['source'] as string | undefined) ?? null,
     vat_category: (raw['vat_category'] as string | undefined) ?? null,
     exemption_code: (raw['exemption_code'] as string | undefined) ?? null,
     recoverable: typeof raw['recoverable'] === 'boolean' ? raw['recoverable'] : true,
@@ -1140,6 +1400,7 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
     hidden: box['hidden'] === true,
     xml_element: (box['xml_element'] as string | undefined) ?? null,
     legal_reference: (box['legal_reference'] as string | undefined) ?? null,
+    source: (box['source'] as string | undefined) ?? null,
   })) satisfies PackReportBox[];
 
   return {
@@ -1149,6 +1410,7 @@ function normaliseReport(raw: Record<string, unknown>): PackReport {
     valid_from: String(raw['valid_from'] ?? '1970-01-01'),
     valid_to: (raw['valid_to'] as string | undefined) ?? null,
     legal_reference: (raw['legal_reference'] as string | undefined) ?? null,
+    source: (raw['source'] as string | undefined) ?? null,
     boxes,
   };
 }
@@ -1388,6 +1650,7 @@ function normaliseDocumentRules(manifest: Manifest): PackDocumentRules {
         valid_from: String(mention['valid_from'] ?? '1970-01-01'),
         valid_to: (mention['valid_to'] as string | undefined) ?? null,
         legal_reference: (mention['legal_reference'] as string | undefined) ?? null,
+        source: (mention['source'] as string | undefined) ?? null,
       }) satisfies PackMention,
   );
 
@@ -1518,6 +1781,7 @@ function normaliseStatements(raw: Record<string, unknown>, charts: PackChart[]):
       minus: (line['minus'] as string[] | undefined) ?? [],
       xbrl: (line['xbrl'] as string | undefined) ?? null,
       legal_reference: (line['legal_reference'] as string | undefined) ?? null,
+      source: (line['source'] as string | undefined) ?? null,
       rules: ((line['rules'] ?? []) as Record<string, unknown>[]).map((rule, position) => ({
         kind: rule['kind'] as PackStatementRule['kind'],
         code_from: (rule['code_from'] as string | undefined) ?? null,
@@ -1537,6 +1801,7 @@ function normaliseStatements(raw: Record<string, unknown>, charts: PackChart[]):
       valid_from: String(statement['valid_from'] ?? '1970-01-01'),
       valid_to: (statement['valid_to'] as string | undefined) ?? null,
       legal_reference: (statement['legal_reference'] as string | undefined) ?? null,
+      source: (statement['source'] as string | undefined) ?? null,
       chart_code: named.length === 1 ? (named[0] as string) : null,
       lines,
     } satisfies PackStatement;

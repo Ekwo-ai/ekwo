@@ -8,7 +8,7 @@
  * package in the tree of the thing that holds the secrets.
  *
  * So this walks the subset the pack schema actually uses: `$ref` inside the
- * document, `type`, `enum`, `const`, `required`, `properties`,
+ * document, `type`, `enum`, `const`, `oneOf`, `required`, `properties`,
  * `additionalProperties`, `items`, `minItems`, `minLength`, `maxLength`,
  * `pattern`, `minimum`, `maximum`. Anything else in a schema is ignored
  * rather than guessed at — a keyword this does not know must not silently
@@ -48,6 +48,29 @@ export function validate(value: unknown, schema: Schema, root: Schema = schema, 
 
   if ('const' in resolved && !same(resolved['const'], value)) {
     issues.push({ path: at, message: `must be ${JSON.stringify(resolved['const'])}` });
+  }
+
+  // `oneOf` is how the format says "the shape it has now, or the shape it had
+  // before": a declaration cadence is a list or the single string it used to
+  // be, a source of the register is an object or the bare title it used to be.
+  // Exactly one branch may match, which is what tells the two apart. The
+  // branches themselves are not reported — a reader handed both sets of
+  // failures learns nothing — so the message names what the value could have
+  // been instead.
+  const alternatives = resolved['oneOf'];
+  if (Array.isArray(alternatives) && alternatives.length > 0) {
+    const matched = alternatives.filter(
+      (option) => isSchema(option) && validate(value, option, root, path).length === 0,
+    );
+    if (matched.length !== 1) {
+      const shapes = alternatives
+        .map((option) => (isSchema(option) ? describe(option, root) : 'something'))
+        .join(' or ');
+      issues.push({
+        path: at,
+        message: matched.length === 0 ? `is neither ${shapes}` : `is ambiguous: it reads as ${shapes}`,
+      });
+    }
   }
 
   if (typeof value === 'string') {
@@ -111,6 +134,16 @@ export function validate(value: unknown, schema: Schema, root: Schema = schema, 
   }
 
   return issues;
+}
+
+/** One branch of a `oneOf`, in the words a reader would use for it. */
+function describe(schema: Schema, root: Schema): string {
+  const resolved = schema['$ref'] !== undefined ? deref(String(schema['$ref']), root) : schema;
+  const enumeration = resolved['enum'];
+  if (Array.isArray(enumeration)) return `one of ${enumeration.map((o) => JSON.stringify(o)).join(', ')}`;
+  const type = resolved['type'];
+  if (type !== undefined) return (Array.isArray(type) ? type : [type]).map(String).join(' or ');
+  return 'something';
 }
 
 function deref(pointer: string, root: Schema): Schema {

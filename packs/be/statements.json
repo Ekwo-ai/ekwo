@@ -7,7 +7,7 @@
       "framework": "BE-GAAP",
       "taxonomy": "nbb-cbso:26.0",
       "name": "Bilan — schéma abrégé",
-      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 3",
+      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 3", "source": "comptes-annuels",
       "lines": [
         {
           "code": "20",
@@ -475,7 +475,7 @@
       "framework": "BE-GAAP",
       "taxonomy": "nbb-cbso:26.0",
       "name": "Compte de résultats — schéma abrégé",
-      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 4",
+      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 4", "source": "comptes-annuels",
       "lines": [
         {
           "code": "9900",
@@ -717,7 +717,7 @@
       "framework": "BE-GAAP",
       "taxonomy": "nbb-cbso:26.0",
       "name": "Affectations et prélèvements — schéma abrégé",
-      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 5",
+      "legal_reference": "Arrêté royal du 29 avril 2019, annexe — modèle abrégé des comptes annuels, section A-cap 5", "source": "comptes-annuels",
       "lines": [
         {
           "code": "14P",

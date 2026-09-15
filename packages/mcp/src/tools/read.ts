@@ -1024,6 +1024,65 @@ export async function generateFec(
 }
 
 // ---------------------------------------------------------------------------
+// describe_pack
+// ---------------------------------------------------------------------------
+
+export const DescribePackInput = z.object({
+  country: z
+    .string()
+    .length(2)
+    .optional()
+    .describe('ISO 3166-1 alpha-2, upper case. Left out, every pack this installation holds.'),
+});
+
+/**
+ * Where a country's rules come from, and how much anyone has read them.
+ *
+ * The pack is the transcription of a régime — a chart of accounts, the taxes
+ * and the boxes of the return — and a transcription is only worth what its
+ * sources are worth. `certification_status` says whether a named professional
+ * has read it, and `sources` is the register the pack declares: the texts it
+ * was built from, each with the publisher that serves it, an absolute link and
+ * the day somebody opened it.
+ *
+ * It answers a question that used to have no answer here: shown a rate or a
+ * grid, where is the text it comes from. The article itself is on the tax and
+ * on the box — `legal_reference` — and `source_key` there names which of these
+ * entries it is in.
+ */
+export async function describePack(
+  backend: Backend,
+  args: z.infer<typeof DescribePackInput>,
+): Promise<unknown> {
+  const where: Filter[] =
+    args.country === undefined ? [] : [{ column: 'country', op: 'eq', value: args.country.toUpperCase() }];
+  const packs = await backend.select<Row>({
+    table: 'country_packs',
+    columns: columns.COUNTRY_PACK,
+    where,
+    order: [{ column: 'country' }],
+  });
+
+  if (packs.length === 0) {
+    return {
+      packs: [],
+      count: 0,
+      note:
+        args.country === undefined
+          ? 'This installation holds no country pack. Its seeds have not been applied.'
+          : `No pack is loaded for ${args.country.toUpperCase()}. A company of that country cannot be installed until its seed has run.`,
+    };
+  }
+
+  return {
+    packs,
+    count: packs.length,
+    note:
+      'certification_status is what somebody claims, not a certificate: community means nobody has read it, maintained means the maintainers keep it current and nobody has reviewed it, reviewed means the named professional in certified_by read it on certified_at. `sources` is the register the pack declares — each entry is a text, its official publisher, an absolute link and the day it was opened — and it holds no copy of the law itself. A tax and a box of the declaration each carry their own article in legal_reference and name the register entry it is in; a link that no longer answers is the register being stale, never the rule being wrong.',
+  };
+}
+
+// ---------------------------------------------------------------------------
 // status
 // ---------------------------------------------------------------------------
 

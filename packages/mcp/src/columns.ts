@@ -457,3 +457,22 @@ export const AUDIT_LOG = [
   'old_values',
   'new_values',
 ];
+
+/**
+ * `country_packs` — which pack this installation holds, and where its rules
+ * come from. `sources` is the register the pack declares: a reader that wants
+ * to check a rate rather than trust it starts there.
+ */
+export const COUNTRY_PACK = [
+  'country',
+  'name',
+  'version',
+  'released_at::text',
+  'schema_min',
+  'certification_status',
+  'certified_by',
+  'certified_at::text',
+  'checksum',
+  'sources',
+  'installed_at::text',
+];

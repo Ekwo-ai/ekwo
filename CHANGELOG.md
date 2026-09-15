@@ -11,6 +11,40 @@ somewhere has already run it.
 
 ### Added
 
+- **The sources of a pack become a register somebody can open.**
+  `legal_reference` said which article a rule claimed and never where to read
+  it, and `certification.sources` was a list of bare titles: a reviewer holding
+  *Arrêté royal n° 20, tableau A* had a citation and a search engine. It is now
+  a register — a key, a title, the official publisher, an absolute `https` URL
+  and the day somebody opened it, out of a closed vocabulary of six kinds
+  (`law`, `regulation`, `form`, `standard`, `portal`, `guidance`) — and every
+  tax, box, chart, statement, statement line, legal mention and fixed-asset
+  rule names a key beside the article it already carried. The article stays on
+  the rule and the link stays in the register, so a publisher that reorganises
+  its site is one line of a pack to change. No pack copies a word of the law:
+  a quotation ages without anybody noticing.
+  The four packs carry 53 texts between them, every URL opened on 15 September
+  2026, and 462 rules point at one — including all 110 taxes and all 243 boxes.
+  `ekwo pack check` refuses a duplicate key, a key the register does not
+  carry, an entry that is not shaped like one, a non-`community` pack whose
+  register is empty, and — on a `reviewed` pack — a tax or a box that names no
+  source, which is the substance of a review; a `maintained` pack is warned
+  instead. The bare string is still read so that a pack written before this
+  compiles, and is warned about as deprecated.
+  `ekwo pack check --links` opens every URL and names the ones that went
+  quiet. It is opt-in, the CI never runs it, and it never changes the exit
+  code: Légifrance refuses a request with no browser behind it, and a gate on
+  that would fail a contributor's pull request for something nobody in it did.
+  The register compiles into `country_packs.sources`, the key travels with the
+  rule in `tax_templates.source_key` and `tax_report_box_templates.source_key`,
+  and the MCP tool `describe_pack` returns all of it, so an application can
+  answer "where do these rules come from" without reading a pack. The
+  walkthrough in `docs/packs.md` now starts at step 0: open the consolidated
+  text, the decree, the form with its notice and the filing portal, and write
+  them down before a line of JSON.
+  No figure moved. The three golden expectation files of every pack are
+  byte-for-byte what they were.
+
 - **A treatment for a service bought from a supplier who is not established
   here, and a check that a tax's three code lists agree.**
   `tax_treatment` gains `foreign_services_received`: the general

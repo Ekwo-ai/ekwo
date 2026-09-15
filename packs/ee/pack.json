@@ -2,25 +2,93 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "EE",
   "name": "Estonia",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "schema_min": "20260914163943",
   "seed_sequence": 13,
   "released_at": "2026-09-15",
   "certification": {
     "status": "community",
     "sources": [
-      "Käibemaksuseadus (KMS) § 15 — käibemaksumäärad, konsolideeritud tekst RT I, 30.12.2025, 21",
-      "Käibemaksuseadus § 3 lõiked 4 ja 6, § 29, § 31 ja § 41¹ — pöördmaksustamine ja sisendkäibemaksu mahaarvamine",
-      "Käibemaksuseadus § 30 lõiked 1–9 — sisendkäibemaksu mahaarvamise piirangud, sõiduauto 50 protsenti",
-      "Käibemaksuseadus § 37 — arvele märgitavad andmed ja kohustuslikud märked",
-      "Käibemaksuseadus § 27 — maksustamisperiood ja käibedeklaratsioon",
-      "Rahandusministri 10.06.2014 määrus nr 17 „Käibedeklaratsiooni vorm“, lisa 1 (rahandusministri 14.05.2025 määruse nr 20 sõnastuses), kehtiv alates 01.07.2025",
-      "Raamatupidamise seadus (RPS) § 8 ja § 11 — kontoplaan ja raamatupidamise sise-eeskiri",
-      "Raamatupidamise seadus, lisa 1 — bilansiskeem (Riigikogu 18.09.2024 seaduse sõnastuses, kehtiv alates 01.07.2025)",
-      "Raamatupidamise seadus, lisa 2 — kasumiaruande skeemid, skeem 1",
-      "Raamatupidamise Toimkonna juhend RTJ 2 „Nõuded informatsiooni esitusviisile raamatupidamise aastaaruandes“",
-      "Raamatupidamise seadus § 7¹ lõige 7 — e-arve nõudmise õigus alates 01.07.2025 ja Euroopa standard EN 16931-1",
-      "Võlaõigusseadus § 82¹, § 113 ja § 113¹ — maksetähtaeg, viivis ja sissenõudmiskulude hüvitis"
+      {
+        "key": "kms",
+        "title": "Käibemaksuseadus",
+        "publisher": "Riigi Teataja",
+        "url": "https://www.riigiteataja.ee/akt/kms",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "rps",
+        "title": "Raamatupidamise seadus",
+        "publisher": "Riigi Teataja",
+        "url": "https://www.riigiteataja.ee/akt/rps",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "vos",
+        "title": "Võlaõigusseadus",
+        "publisher": "Riigi Teataja",
+        "url": "https://www.riigiteataja.ee/akt/120062026018",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "kmd-vorm",
+        "title": "Rahandusministri 10.06.2014 määrus nr 17 „Käibedeklaratsiooni vorm“, lisa 1 (vorm KMD) ja lisa 2 (vorm KMD INF)",
+        "publisher": "Riigi Teataja",
+        "url": "https://www.riigiteataja.ee/akt/130052025008",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "rtj-2",
+        "title": "Raamatupidamise Toimkonna juhend RTJ 2 „Nõuded informatsiooni esitusviisile raamatupidamise aastaaruandes“, rahandusministri 22.12.2017 määruse nr 105 lisa 2",
+        "publisher": "Riigi Teataja",
+        "url": "https://www.riigiteataja.ee/akt/119022025012",
+        "consulted_on": "2026-09-15",
+        "kind": "guidance"
+      },
+      {
+        "key": "kmd-esitamine",
+        "title": "Käibedeklaratsiooni ja aruannete esitamine — vormi KMD ja selle lisa täitmine",
+        "publisher": "Maksu- ja Tolliamet",
+        "url": "https://www.emta.ee/ariklient/maksud-ja-tasumine/kaibemaks/kaibedeklaratsiooni-ja-aruannete-esitamine",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "e-mta",
+        "title": "e-MTA — keskkond, kus käibedeklaratsioon esitatakse",
+        "publisher": "Maksu- ja Tolliamet",
+        "url": "https://maasikas.emta.ee/",
+        "consulted_on": "2026-09-15",
+        "kind": "portal"
+      },
+      {
+        "key": "en-16931",
+        "title": "EN 16931-1 — Euroopa e-arve semantiline andmemudel ja direktiivist 2014/55/EL tulenev vastavus",
+        "publisher": "Euroopa Komisjon",
+        "url": "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "uncl5305",
+        "title": "UNCL5305 — käibemaksu kategooria koodide loend (BT-118 ja BT-151), EN 16931 jaoks avaldatud alamhulk",
+        "publisher": "OpenPEPPOL — nimekirja avaldab Euroopa Komisjon",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "vatex",
+        "title": "VATEX — käibemaksuvabastuse põhjuse koodide loend (BT-121)",
+        "publisher": "OpenPEPPOL — nimekirja avaldab Euroopa Komisjon",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      }
     ]
   },
   "defaults": {
@@ -99,7 +167,8 @@
       "default": true,
       "audience": "companies",
       "statements": ["EE-RPS-BS", "EE-RPS-IS1"],
-      "legal_reference": "Raamatupidamise seadus § 8 — Eestis ei ole seadusega kehtestatud kontoplaani, vaid iga raamatupidamiskohustuslane koostab oma kontoplaani. Käesolev kontoplaan on originaalne ja järgib Eesti tava nelja klassi ning neljakohaliste kontonumbritega, liigendatuna raamatupidamise seaduse lisade 1 ja 2 kirjete järgi."
+      "legal_reference": "Raamatupidamise seadus § 8 — Eestis ei ole seadusega kehtestatud kontoplaani, vaid iga raamatupidamiskohustuslane koostab oma kontoplaani. Käesolev kontoplaan on originaalne ja järgib Eesti tava nelja klassi ning neljakohaliste kontonumbritega, liigendatuna raamatupidamise seaduse lisade 1 ja 2 kirjete järgi.",
+      "source": "rps"
     }
   ],
   "documents": {
@@ -114,42 +183,48 @@
         "applies_when": "reverse_charge",
         "text": "Pöördmaksustamine",
         "sequence": 10,
-        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 — märge „pöördmaksustamine“ on seaduses sätestatud sõnastuses ja seda ei saa § 37 lõike 8¹ alusel muu märkega asendada"
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 — märge „pöördmaksustamine“ on seaduses sätestatud sõnastuses ja seda ei saa § 37 lõike 8¹ alusel muu märkega asendada",
+        "source": "kms"
       },
       {
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Kauba ühendusesisene käive, maksustatav 0% määraga — KMS § 15 lg 3 p 2; nõukogu direktiivi 2006/112/EÜ artikkel 138.",
         "sequence": 20,
-        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — nullmääraga maksustatava käibe puhul viide § 15 lõike 3 vastavale punktile või direktiivi artiklile 138"
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — nullmääraga maksustatava käibe puhul viide § 15 lõike 3 vastavale punktile või direktiivi artiklile 138",
+        "source": "kms"
       },
       {
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Pöördmaksustamine — käibemaksu tasub teenuse saaja. Nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196.",
         "sequence": 30,
-        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 koostoimes § 10 lõikega 1 — teenuse käibe tekkimise koht ei ole Eesti ja maksu tasub saaja"
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 2 koostoimes § 10 lõikega 1 — teenuse käibe tekkimise koht ei ole Eesti ja maksu tasub saaja",
+        "source": "kms"
       },
       {
         "code": "exempt",
         "applies_when": "exempt",
         "text": "Maksuvaba käive — KMS § 16.",
         "sequence": 40,
-        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — maksuvaba käibe puhul viide § 16 vastavale lõikele ja punktile"
+        "legal_reference": "Käibemaksuseadus § 37 lõige 8 punkt 1 — maksuvaba käibe puhul viide § 16 vastavale lõikele ja punktile",
+        "source": "kms"
       },
       {
         "code": "small_business",
         "applies_when": "small_business",
         "text": "Käibemaksu ei lisata — väikeettevõtja ei ole maksukohustuslasena registreeritud (KMS § 19).",
         "sequence": 50,
-        "legal_reference": "Käibemaksuseadus § 19 lõige 1 — registreerimiskohustus tekib, kui maksustatav käive ületab kalendriaasta algusest arvates 40 000 eurot"
+        "legal_reference": "Käibemaksuseadus § 19 lõige 1 — registreerimiskohustus tekib, kui maksustatav käive ületab kalendriaasta algusest arvates 40 000 eurot",
+        "source": "kms"
       },
       {
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "Tasumisega viivitamise korral on müüjal õigus nõuda viivist võlaõigusseaduse § 113 lõikes 1 sätestatud määras ning sissenõudmiskulude hüvitist 40 eurot.",
         "sequence": 60,
-        "legal_reference": "Võlaõigusseadus § 113 lõige 1 ja § 113¹ lõige 1"
+        "legal_reference": "Võlaõigusseadus § 113 lõige 1 ja § 113¹ lõige 1",
+        "source": "vos"
       }
     ]
   },
@@ -157,7 +232,7 @@
     "profile": "peppol-bis-3",
     "party_scheme": "0191",
     "vat_scheme": "9931",
-    "legal_reference": "Raamatupidamise seadus § 7¹ lõige 7, kehtiv alates 01.07.2025 — äriregistris e-arve vastuvõtjaks märgitud raamatupidamiskohustuslane võib nõuda müüjalt e-arve esitamist, ja e-arve eeldatakse nõuetekohaseks, kui see vastab Euroopa standardile EN 16931-1; pooled võivad kokku leppida muu standardi kasutamises. Seadus ei kehtesta üldist e-arve kohustust ega ühtki tähtpäeva, mistõttu mandatory_from on tühi. Deklareeritud profiil peppol-bis-3 on EN 16931-1 kitsendus, mida Eesti operaatorid tegelikkuses vahetavad; see ei ole seadusest tulenev nõue. Riigisisene standard EVS 923 kaotas õigusliku aluse 01.07.2025, kui rahandusministri määrus „Masintöödeldava algdokumendi juhendi kehtestamine“ kehtetuks tunnistati.",
+    "legal_reference": "Raamatupidamise seadus § 7¹ lõige 7, kehtiv alates 01.07.2025 — äriregistris e-arve vastuvõtjaks märgitud raamatupidamiskohustuslane võib nõuda müüjalt e-arve esitamist, ja e-arve eeldatakse nõuetekohaseks, kui see vastab Euroopa standardile EN 16931-1; pooled võivad kokku leppida muu standardi kasutamises. Seadus ei kehtesta üldist e-arve kohustust ega ühtki tähtpäeva, mistõttu mandatory_from on tühi. Deklareeritud profiil peppol-bis-3 on EN 16931-1 kitsendus, mida Eesti operaatorid tegelikkuses vahetavad; see ei ole seadusest tulenev nõue. Riigisisene standard EVS 923 kaotas õigusliku aluse 01.07.2025, kui rahandusministri määrus „Masintöödeldava algdokumendi juhendi kehtestamine“ kehtetuks tunnistati.", "source": "rps",
     "mandatory_from": null
   },
   "bank": {

@@ -2,27 +2,117 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "schema_min": "20260914163943",
   "seed_sequence": 11,
   "released_at": "2026-09-15",
   "certification": {
     "status": "maintained",
     "sources": [
-      "Règlement ANC 2022-06 — plan comptable général",
-      "Code général des impôts, art. 278, 278 bis, 278-0 bis, 281 quater",
-      "Formulaire 3310-CA3",
-      "Code general des impots, art. 298, 4 — produits petroliers",
-      "Code général des impôts, art. 269 — fait générateur et exigibilité",
-      "Code général des impôts, art. 262, I, 262 ter, I, 283 et 293 B — exonérations, autoliquidation et franchise en base",
-      "Code général des impôts, ann. II, art. 242 nonies A — mentions obligatoires et numérotation continue",
-      "Code de commerce, art. L441-9, L441-10 et D441-5 — délais de paiement, pénalités et indemnité forfaitaire",
-      "Ordonnance n° 2021-1190 du 15 septembre 2021 et loi de finances pour 2024, art. 91 — facturation électronique",
-      "Code general des impots, art. 269-2-c — exigibilite sur les encaissements",
-      "Code general des impots, art. 271-I-2 — naissance du droit a deduction",
-      "Règlement ANC 2014-03 (plan comptable général), art. 214-1 et suivants — amortissements",
-      "Code général des impôts, art. 39 A — amortissement dégressif et ses coefficients",
-      "BOI-BIC-AMT-10-40-10 — durées d'usage admises"
+      {
+        "key": "pcg",
+        "title": "Règlement ANC n° 2014-03 du 5 juin 2014 relatif au plan comptable général, dans sa version consolidée",
+        "publisher": "Autorité des normes comptables",
+        "url": "https://www.anc.gouv.fr/pcg-reglement-ndeg-2014-03-du-5-juin-2014-relatif-au-plan-comptable-general",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "anc-2022-06",
+        "title": "Règlement ANC n° 2022-06 du 4 novembre 2022 modifiant le règlement ANC n° 2014-03 relatif au plan comptable général",
+        "publisher": "Autorité des normes comptables",
+        "url": "https://www.anc.gouv.fr/reglement-ndeg-2022-06-du-4-novembre-2022",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "cgi",
+        "title": "Code général des impôts",
+        "publisher": "Légifrance — Direction de l'information légale et administrative",
+        "url": "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000006069577",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "cgi-annexe-2",
+        "title": "Code général des impôts, annexe II",
+        "publisher": "Légifrance — Direction de l'information légale et administrative",
+        "url": "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000006069569",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "code-de-commerce",
+        "title": "Code de commerce",
+        "publisher": "Légifrance — Direction de l'information légale et administrative",
+        "url": "https://www.legifrance.gouv.fr/codes/texte_lc/LEGITEXT000005634379",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "facturation-electronique",
+        "title": "Ordonnance n° 2021-1190 du 15 septembre 2021 relative à la généralisation de la facturation électronique dans les transactions entre assujettis à la taxe sur la valeur ajoutée et à la transmission des données de transaction",
+        "publisher": "Légifrance — Direction de l'information légale et administrative",
+        "url": "https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000044044176",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "ca3",
+        "title": "Formulaire 3310-CA3-SD et sa notice 3310-NOT-CA3-SD — TVA et taxes assimilées, régime du réel normal",
+        "publisher": "DGFiP",
+        "url": "https://www.impots.gouv.fr/formulaire/3310-ca3-sd/tva-et-taxes-assimilees-regime-du-reel-normal-mini-reel",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "liasse-2050",
+        "title": "Liasse fiscale du régime réel normal en matière de BIC et d'IS, dont les tableaux 2050-SD à 2053-SD",
+        "publisher": "DGFiP",
+        "url": "https://www.impots.gouv.fr/formulaire/2050-liasse/liasse-fiscale-du-regime-reel-normal-en-matiere-de-bic-et-dis",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "boi-bic-amt",
+        "title": "BOI-BIC-AMT-10-40-10 — durée normale d'utilisation des biens amortissables",
+        "publisher": "DGFiP — Bulletin officiel des finances publiques",
+        "url": "https://bofip.impots.gouv.fr/bofip/2060-PGP.html/identifiant=BOI-BIC-AMT-10-40-10-20131216",
+        "consulted_on": "2026-09-15",
+        "kind": "guidance"
+      },
+      {
+        "key": "espace-professionnel",
+        "title": "Espace professionnel impots.gouv.fr — où la déclaration de TVA et la liasse sont déposées",
+        "publisher": "DGFiP",
+        "url": "https://cfspro-idp.impots.gouv.fr/",
+        "consulted_on": "2026-09-15",
+        "kind": "portal"
+      },
+      {
+        "key": "en-16931",
+        "title": "EN 16931-1 — modèle sémantique de la facture électronique européenne, et la conformité que la directive 2014/55/UE en attend",
+        "publisher": "Commission européenne",
+        "url": "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "uncl5305",
+        "title": "UNCL5305 — liste des codes de catégorie de TVA (BT-118 et BT-151), sous-ensemble publié pour EN 16931",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "vatex",
+        "title": "VATEX — liste des codes de motif d'exonération de TVA (BT-121)",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      }
     ]
   },
   "defaults": {
@@ -107,7 +197,8 @@
         "FR-2050",
         "FR-2052"
       ],
-      "legal_reference": "Règlement ANC 2022-06 — plan comptable général"
+      "legal_reference": "Règlement ANC 2022-06 — plan comptable général",
+      "source": "anc-2022-06"
     }
   ],
   "documents": {
@@ -122,42 +213,48 @@
         "applies_when": "reverse_charge",
         "text": "Autoliquidation — TVA due par le preneur.",
         "sequence": 10,
-        "legal_reference": "Code général des impôts, art. 283"
+        "legal_reference": "Code général des impôts, art. 283",
+        "source": "cgi"
       },
       {
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Exonération de TVA — livraison intracommunautaire.",
         "sequence": 20,
-        "legal_reference": "Code général des impôts, art. 262 ter, I"
+        "legal_reference": "Code général des impôts, art. 262 ter, I",
+        "source": "cgi"
       },
       {
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Autoliquidation — TVA due par le preneur.",
         "sequence": 30,
-        "legal_reference": "Code général des impôts, art. 283-2 ; directive 2006/112/CE, art. 44 et 196"
+        "legal_reference": "Code général des impôts, art. 283-2 ; directive 2006/112/CE, art. 44 et 196",
+        "source": "cgi"
       },
       {
         "code": "export",
         "applies_when": "export",
         "text": "Exonération de TVA — exportation hors de l'Union européenne.",
         "sequence": 40,
-        "legal_reference": "Code général des impôts, art. 262, I"
+        "legal_reference": "Code général des impôts, art. 262, I",
+        "source": "cgi"
       },
       {
         "code": "small_business",
         "applies_when": "small_business",
         "text": "TVA non applicable, art. 293 B du CGI.",
         "sequence": 50,
-        "legal_reference": "Code général des impôts, art. 293 B"
+        "legal_reference": "Code général des impôts, art. 293 B",
+        "source": "cgi"
       },
       {
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "En cas de retard de paiement, des pénalités sont exigibles sans qu'un rappel soit nécessaire, ainsi qu'une indemnité forfaitaire de 40 € pour frais de recouvrement.",
         "sequence": 60,
-        "legal_reference": "Code de commerce, art. L441-10 et D441-5"
+        "legal_reference": "Code de commerce, art. L441-10 et D441-5",
+        "source": "code-de-commerce"
       }
     ]
   },
@@ -166,7 +263,8 @@
     "mandatory_from": "2026-09-01",
     "party_scheme": "0009",
     "vat_scheme": "9957",
-    "legal_reference": "Ordonnance n° 2021-1190 du 15 septembre 2021, modifiée par la loi de finances pour 2024, art. 91 — réception obligatoire par toutes les entreprises au 1er septembre 2026 ; émission au 1er septembre 2026 pour les grandes entreprises et les entreprises de taille intermédiaire, au 1er septembre 2027 pour les petites et moyennes entreprises et les microentreprises. Le schéma de partie déclaré est le SIRET (0009), identifiant porté par les factures et par Chorus Pro ; le SIREN (0002) désigne la même entreprise sans son établissement"
+    "legal_reference": "Ordonnance n° 2021-1190 du 15 septembre 2021, modifiée par la loi de finances pour 2024, art. 91 — réception obligatoire par toutes les entreprises au 1er septembre 2026 ; émission au 1er septembre 2026 pour les grandes entreprises et les entreprises de taille intermédiaire, au 1er septembre 2027 pour les petites et moyennes entreprises et les microentreprises. Le schéma de partie déclaré est le SIRET (0009), identifiant porté par les factures et par Chorus Pro ; le SIREN (0002) désigne la même entreprise sans son établissement",
+    "source": "facturation-electronique"
   },
   "bank": {
     "statement_formats": [

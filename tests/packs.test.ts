@@ -14,11 +14,12 @@ import {
   readPack,
   readSchema,
   seedFileName,
+  sourcesOf,
   seedFileNames,
   validate,
 } from '../packages/cli/src/index.js';
 import { freshDatabase, repoRoot, rows } from './helpers/db.js';
-import { allPacks, certificationStatuses, defaultChartOf, somePack } from './helpers/packs.js';
+import { allPacks, certificationStatuses, defaultChartOf, somePack, sourceKinds } from './helpers/packs.js';
 
 // The country packs replaced four hand-written seeds. The point of this file
 // is that the replacement changed nothing: the same template rows, from a
@@ -278,6 +279,51 @@ describe('pack, seed, database, pack again', () => {
             sequence: account.sequence,
           });
         });
+      }
+    }
+  });
+
+  it('gives back the register, and the text each tax and each box is in', async () => {
+    for (const pack of allPacks) {
+      const [loaded] = await rows<{ sources: unknown }>(
+        db,
+        'select sources from country_packs where country = $1',
+        [pack.manifest.country],
+      );
+      expect(loaded, pack.slug).toBeDefined();
+      // jsonb comes back parsed on one route and as text on the other.
+      const held = (typeof loaded!.sources === 'string'
+        ? (JSON.parse(loaded!.sources) as unknown[])
+        : (loaded!.sources as unknown[])) as Record<string, string>[];
+      expect(held.map((source) => source['key']), pack.slug).toEqual(
+        sourcesOf(pack.manifest.certification).map((source) => source.key),
+      );
+      for (const source of held) {
+        expect(source['url'], `${pack.slug} ${String(source['key'])}`).toMatch(/^https:\/\//);
+      }
+
+      // The key travels with the rule, so an application showing a rate can
+      // say which of those texts it came from without reading the pack.
+      const keys = new Set(held.map((source) => source['key']));
+      const taxKeys = await rows<{ code: string; source_key: string | null }>(
+        db,
+        'select code, source_key from tax_templates where country = $1 order by code',
+        [pack.manifest.country],
+      );
+      expect(taxKeys.length, pack.slug).toBe(pack.taxes.length);
+      for (const row of taxKeys) {
+        expect(row.source_key, `${pack.slug} tax ${row.code}`).not.toBeNull();
+        expect(keys.has(row.source_key!), `${pack.slug} tax ${row.code}`).toBe(true);
+      }
+      const boxKeys = await rows<{ box: string; source_key: string | null }>(
+        db,
+        'select box, source_key from tax_report_box_templates where country = $1 order by box',
+        [pack.manifest.country],
+      );
+      expect(boxKeys.length, pack.slug).toBe((pack.report?.boxes ?? []).length);
+      for (const row of boxKeys) {
+        expect(row.source_key, `${pack.slug} box ${row.box}`).not.toBeNull();
+        expect(keys.has(row.source_key!), `${pack.slug} box ${row.box}`).toBe(true);
       }
     }
   });
@@ -603,6 +649,205 @@ describe('the pack format', () => {
     expect(validate({ ...report, boxes: [quiet] }, defs['tax_report']!, schema)).toEqual([
       { path: 'boxes[0]', message: 'missing "legal_reference"' },
     ]);
+  });
+
+  // -------------------------------------------------------------------
+  // The register of sources.
+  //
+  // `legal_reference` says which article a rule claims. The register says
+  // where that article can be read, once per text rather than once per rule,
+  // and every tax and every box names the key of the text it is in. What is
+  // tested here is that the two halves cannot drift: a key nothing declares, a
+  // key two texts claim, and a register a maintained pack does not carry.
+  // -------------------------------------------------------------------
+
+  it('gives every pack a register whose texts somebody can open', async () => {
+    for (const pack of allPacks) {
+      const register = sourcesOf(pack.manifest.certification);
+      expect(register.length, `packs/${pack.slug} declares no source anybody can open`).toBeGreaterThan(0);
+      const keys = new Set<string>();
+      for (const source of register) {
+        expect(keys.has(source.key), `packs/${pack.slug} declares ${source.key} twice`).toBe(false);
+        keys.add(source.key);
+        expect(source.url, `packs/${pack.slug} ${source.key}`).toMatch(/^https:\/\//);
+        expect(source.title.length, `packs/${pack.slug} ${source.key}`).toBeGreaterThan(0);
+        expect(source.publisher.length, `packs/${pack.slug} ${source.key}`).toBeGreaterThan(0);
+        expect(source.consulted_on, `packs/${pack.slug} ${source.key}`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(sourceKinds, `packs/${pack.slug} ${source.key}`).toContain(source.kind);
+      }
+      // A portal is the other half of a reading list: where the declaration a
+      // pack transcribes is actually filed. Every pack of this repository
+      // names one, and the walkthrough asks a new country for it first.
+      expect(
+        register.some((source) => source.kind === 'portal'),
+        `packs/${pack.slug} names no filing portal`,
+      ).toBe(true);
+    }
+  });
+
+  it('resolves every source a rule names, and links the taxes and the boxes', async () => {
+    for (const pack of allPacks) {
+      const keys = new Set(sourcesOf(pack.manifest.certification).map((source) => source.key));
+      // The chart of the pack that carries its own reading joins the same
+      // register: a key is unique in a pack, not in a section of one.
+      for (const chart of pack.charts) {
+        for (const source of sourcesOf(chart.certification)) keys.add(source.key);
+      }
+      const named: [string, string | null][] = [
+        ...pack.charts.map((chart): [string, string | null] => [`chart ${chart.code}`, chart.source]),
+        ...pack.taxes.map((tax): [string, string | null] => [`tax ${tax.code}`, tax.source]),
+        ...(pack.report?.boxes ?? []).map((box): [string, string | null] => [`box ${box.box}`, box.source]),
+        ...pack.statements.flatMap((statement): [string, string | null][] => [
+          [`statement ${statement.code}`, statement.source],
+          ...statement.lines.map((line): [string, string | null] => [
+            `line ${statement.code}.${line.code}`,
+            line.source,
+          ]),
+        ]),
+        ...pack.documents.mentions.map((mention): [string, string | null] => [
+          `mention ${mention.code}`,
+          mention.source,
+        ]),
+        ...(pack.assets?.categories ?? []).map((category): [string, string | null] => [
+          `asset ${category.code}`,
+          category.source,
+        ]),
+      ];
+      for (const [where, key] of named) {
+        if (key === null) continue;
+        expect(keys.has(key), `packs/${pack.slug} ${where} names the source ${key}`).toBe(true);
+      }
+      // The two the format is strictest about. Every tax and every box of
+      // every pack here says which text its article is in, which is what a
+      // reviewed pack is refused for leaving out.
+      for (const tax of pack.taxes) {
+        expect(tax.source, `packs/${pack.slug} tax ${tax.code}`).not.toBeNull();
+      }
+      for (const box of pack.report?.boxes ?? []) {
+        expect(box.source, `packs/${pack.slug} box ${box.box} (${box.kind})`).not.toBeNull();
+      }
+    }
+  });
+
+  it('refuses a source key the register does not carry, and two texts claiming one key', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-sources-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    const path = join(dir, somePack.slug, 'taxes.json');
+    const taxes = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>[];
+    taxes[0]!['source'] = 'a-text-nobody-declared';
+    await writeFile(path, JSON.stringify(taxes), 'utf8');
+    await expect(readPack(somePack.slug, dir)).rejects.toThrow(
+      /names the source a-text-nobody-declared, which this pack's register does not carry/,
+    );
+
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true, force: true });
+    const manifestFile = join(dir, somePack.slug, 'pack.json');
+    const manifest = JSON.parse(await readFile(manifestFile, 'utf8')) as Record<string, unknown>;
+    const certification = manifest['certification'] as Record<string, unknown>;
+    const register = certification['sources'] as Record<string, unknown>[];
+    certification['sources'] = [...register, { ...register[0] }];
+    await writeFile(manifestFile, JSON.stringify(manifest), 'utf8');
+    await expect(readPack(somePack.slug, dir)).rejects.toThrow(
+      new RegExp(`two sources claim the key ${String(register[0]!['key'])}`),
+    );
+  });
+
+  it('reads the bare title the register replaced, and says it is deprecated rather than refusing', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-sources-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    const manifestFile = join(dir, somePack.slug, 'pack.json');
+    const manifest = JSON.parse(await readFile(manifestFile, 'utf8')) as Record<string, unknown>;
+    const certification = manifest['certification'] as Record<string, unknown>;
+    const register = certification['sources'] as Record<string, unknown>[];
+    certification['sources'] = [...register, 'A text somebody read and nobody linked'];
+    await writeFile(manifestFile, JSON.stringify(manifest), 'utf8');
+
+    // It compiles — a pack written before the register still builds — and the
+    // reader is told, because a title is not somewhere anyone can go and read.
+    const read = await readPack(somePack.slug, dir);
+    expect(read.warnings.join('\n')).toMatch(/is a title with nowhere to read it/);
+    // The title reaches nothing. What the pack holds is what it held before,
+    // the manifest's entries and whichever chart declared a reading of its own.
+    const chartsOwn = somePack.charts.flatMap((chart) => sourcesOf(chart.certification));
+    expect(read.sources).toHaveLength(register.length + chartsOwn.length);
+  });
+
+  it('refuses a maintained pack with no register, and a reviewed pack whose rules name none', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-sources-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true });
+    const manifestFile = join(dir, somePack.slug, 'pack.json');
+    const manifest = JSON.parse(await readFile(manifestFile, 'utf8')) as Record<string, unknown>;
+    const certification = manifest['certification'] as Record<string, unknown>;
+
+    // `community` is the honest answer for a pack nobody has read, and it
+    // carries no such obligation. The two statuses above it do.
+    const claimed = certificationStatuses.filter((status) => status !== 'community');
+    // Every register of the pack, the manifest's and any chart's: the claim
+    // the two statuses make is that somebody can open something, and a chart
+    // that carries its own reading is part of the same register.
+    const emptied = {
+      ...manifest,
+      charts: (manifest['charts'] as Record<string, unknown>[] | undefined)?.map((chart) => {
+        const { certification: _own, ...rest } = chart;
+        return rest;
+      }),
+    };
+    for (const status of claimed) {
+      await writeFile(
+        manifestFile,
+        JSON.stringify({ ...emptied, certification: { ...certification, status, sources: [] } }),
+        'utf8',
+      );
+      await expect(readPack(somePack.slug, dir), status).rejects.toThrow(
+        new RegExp(`a ${status} pack carries a register of sources`),
+      );
+    }
+
+    // And a review says which text it read, per tax and per box.
+    await cp(sampleDir, join(dir, somePack.slug), { recursive: true, force: true });
+    const reviewed = JSON.parse(await readFile(manifestFile, 'utf8')) as Record<string, unknown>;
+    reviewed['certification'] = {
+      ...(reviewed['certification'] as Record<string, unknown>),
+      status: 'reviewed',
+      by: 'A. Example, chartered accountant',
+      on: '2026-09-15',
+    };
+    await writeFile(manifestFile, JSON.stringify(reviewed), 'utf8');
+    await expect(readPack(somePack.slug, dir)).resolves.toBeDefined();
+
+    const taxFile = join(dir, somePack.slug, 'taxes.json');
+    const taxes = JSON.parse(await readFile(taxFile, 'utf8')) as Record<string, unknown>[];
+    const code = String(taxes[0]!['code']);
+    delete taxes[0]!['source'];
+    await writeFile(taxFile, JSON.stringify(taxes), 'utf8');
+    await expect(readPack(somePack.slug, dir)).rejects.toThrow(
+      new RegExp(`taxes\\.json ${code}: a reviewed pack says which text its legal reference is in`),
+    );
+  });
+
+  it('accepts the two shapes of a source and nothing between them', async () => {
+    const schema = await readSchema(packs);
+    const defs = schema['$defs'] as Record<string, Record<string, unknown>>;
+    const source = defs['source']!;
+    const entry = {
+      key: 'a-text',
+      title: 'A consolidated statute',
+      publisher: 'The official gazette',
+      url: 'https://example.invalid/eli/1/2/3',
+      consulted_on: '2026-09-15',
+      kind: sourceKinds[0],
+    };
+    expect(validate(entry, source, schema)).toEqual([]);
+    expect(validate('A text somebody read', source, schema)).toEqual([]);
+    // Half an entry is neither, and a link that is not absolute and https is
+    // not a place anybody can be sent.
+    expect(validate({ key: 'a-text', title: 'Half of one' }, source, schema)).toHaveLength(1);
+    expect(validate({ ...entry, url: 'www.example.invalid' }, source, schema)).toHaveLength(1);
+    expect(validate({ ...entry, kind: 'a-kind-nobody-defined' }, source, schema)).toHaveLength(1);
+    expect(validate({ ...entry, note: 'a copy of what it says' }, source, schema)).toHaveLength(1);
   });
 
   it('reserves the group of taxes phase 1 will need, and refuses it until then', async () => {

@@ -308,6 +308,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'describe_pack',
+    {
+      title: 'Where a country pack comes from',
+      description:
+        "The country packs this installation holds, with their version, how much anyone has read them, and the register of texts each was built from — the title, the official publisher, an absolute link and the day somebody opened it, per text. Use it whenever you are asked where a rate, a chart of accounts or a box of the declaration comes from, and before repeating a figure a pack gave you: a community pack has not been read by an accountant, and the status says so. The article behind a single rule is on that rule itself — legal_reference on a tax or on a box — and the register is where that article can be read. It carries no copy of the law: a link that has gone quiet means the register is stale, never that the rule is wrong.",
+      inputSchema: read.DescribePackInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.describePack(backend, args)),
+  );
+
+  server.registerTool(
     'status',
     {
       title: 'Installation status',

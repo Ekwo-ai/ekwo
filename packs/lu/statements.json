@@ -7,7 +7,7 @@
       "framework": "LU-GAAP",
       "name": "Bilan abrégé (eCDF)",
       "valid_from": "2016-01-01",
-      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe II — bilan abrégé ; formulaire eCDF CA_BILANABR",
+      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe II — bilan abrégé ; formulaire eCDF CA_BILANABR", "source": "schemas-comptes-annuels",
       "lines": [
         {
           "code": "201",
@@ -47,7 +47,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.I."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.I.",
+          "source": "pcn"
         },
         {
           "code": "105",
@@ -62,7 +63,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.II."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif A.II.",
+          "source": "pcn"
         },
         {
           "code": "107",
@@ -92,7 +94,8 @@
               "sequence": 40
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif B."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif B.",
+          "source": "pcn"
         },
         {
           "code": "109",
@@ -194,7 +197,8 @@
               "sequence": 160
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.I."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.I.",
+          "source": "pcn"
         },
         {
           "code": "125",
@@ -349,7 +353,8 @@
               "sequence": 290
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.II."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.II.",
+          "source": "pcn"
         },
         {
           "code": "135",
@@ -429,7 +434,8 @@
               "sequence": 140
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.III."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif C.III.",
+          "source": "pcn"
         },
         {
           "code": "151",
@@ -537,7 +543,8 @@
               "sequence": 170
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.I."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.I.",
+          "source": "pcn"
         },
         {
           "code": "163",
@@ -778,7 +785,8 @@
               "sequence": 440
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.a)",
+          "source": "pcn"
         },
         {
           "code": "205",
@@ -883,7 +891,8 @@
               "sequence": 190
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.II.b)",
+          "source": "pcn"
         },
         {
           "code": "189",
@@ -938,7 +947,8 @@
               "sequence": 90
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.III."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.III.",
+          "source": "pcn"
         },
         {
           "code": "197",
@@ -968,7 +978,8 @@
               "sequence": 40
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.IV."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif D.IV.",
+          "source": "pcn"
         },
         {
           "code": "199",
@@ -993,7 +1004,8 @@
               "sequence": 30
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif E."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Actif E.",
+          "source": "pcn"
         },
         {
           "code": "405",
@@ -1298,7 +1310,8 @@
               "sequence": 530
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.I."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.I.",
+          "source": "pcn"
         },
         {
           "code": "305",
@@ -1333,7 +1346,8 @@
               "sequence": 50
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.II."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.II.",
+          "source": "pcn"
         },
         {
           "code": "307",
@@ -1358,7 +1372,8 @@
               "sequence": 30
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.III."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.III.",
+          "source": "pcn"
         },
         {
           "code": "309",
@@ -1413,7 +1428,8 @@
               "sequence": 90
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.IV.1., Passif A.IV.2., Passif A.IV.3., Passif A.IV.4.a), Passif A.IV.4.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.IV.1., Passif A.IV.2., Passif A.IV.3., Passif A.IV.4.a), Passif A.IV.4.b)",
+          "source": "pcn"
         },
         {
           "code": "319",
@@ -1433,7 +1449,8 @@
               "sequence": 20
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.V."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.V.",
+          "source": "pcn"
         },
         {
           "code": "321",
@@ -1448,7 +1465,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VI."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VI.",
+          "source": "pcn"
         },
         {
           "code": "323",
@@ -1463,7 +1481,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VII."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VII.",
+          "source": "pcn"
         },
         {
           "code": "325",
@@ -1513,7 +1532,8 @@
               "sequence": 80
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VIII."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif A.VIII.",
+          "source": "pcn"
         },
         {
           "code": "331",
@@ -1548,7 +1568,8 @@
               "sequence": 50
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif B."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif B.",
+          "source": "pcn"
         },
         {
           "code": "435",
@@ -1819,7 +1840,8 @@
               "sequence": 500
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.a)",
+          "source": "pcn"
         },
         {
           "code": "455",
@@ -1964,7 +1986,8 @@
               "sequence": 270
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif C.b)",
+          "source": "pcn"
         },
         {
           "code": "403",
@@ -1994,7 +2017,8 @@
               "sequence": 40
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif D."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — Passif D.",
+          "source": "pcn"
         }
       ]
     },
@@ -2004,7 +2028,7 @@
       "framework": "LU-GAAP",
       "name": "Compte de profits et pertes abrégé (eCDF)",
       "valid_from": "2016-01-01",
-      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe IV — compte de profits et pertes abrégé ; formulaire eCDF CA_COMPPABR",
+      "legal_reference": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexe IV — compte de profits et pertes abrégé ; formulaire eCDF CA_COMPPABR", "source": "schemas-comptes-annuels",
       "lines": [
         {
           "code": "669",
@@ -2910,7 +2934,8 @@
               "sequence": 1770
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 1. à 5."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 1. à 5.",
+          "source": "pcn"
         },
         {
           "code": "605",
@@ -3002,7 +3027,8 @@
               "sequence": 140
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.a)",
+          "source": "pcn"
         },
         {
           "code": "609",
@@ -3028,7 +3054,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)i)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)i)",
+          "source": "pcn"
         },
         {
           "code": "655",
@@ -3043,7 +3070,8 @@
               "sequence": 10
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)ii)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.b)ii)",
+          "source": "pcn"
         },
         {
           "code": "613",
@@ -3083,7 +3111,8 @@
               "sequence": 60
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.c)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 6.c)",
+          "source": "pcn"
         },
         {
           "code": "657",
@@ -3239,7 +3268,8 @@
               "sequence": 270
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.a)",
+          "source": "pcn"
         },
         {
           "code": "661",
@@ -3339,7 +3369,8 @@
               "sequence": 180
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 7.b)",
+          "source": "pcn"
         },
         {
           "code": "621",
@@ -3509,7 +3540,8 @@
               "sequence": 320
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 8."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 8.",
+          "source": "pcn"
         },
         {
           "code": "715",
@@ -3555,7 +3587,8 @@
               "sequence": 50
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.a)",
+          "source": "pcn"
         },
         {
           "code": "719",
@@ -3590,7 +3623,8 @@
               "sequence": 50
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 9.b)",
+          "source": "pcn"
         },
         {
           "code": "721",
@@ -3626,7 +3660,8 @@
               "sequence": 30
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.a)",
+          "source": "pcn"
         },
         {
           "code": "725",
@@ -3701,7 +3736,8 @@
               "sequence": 130
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 10.b)",
+          "source": "pcn"
         },
         {
           "code": "727",
@@ -3767,7 +3803,8 @@
               "sequence": 90
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.a)",
+          "source": "pcn"
         },
         {
           "code": "731",
@@ -3837,7 +3874,8 @@
               "sequence": 120
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 11.b)",
+          "source": "pcn"
         },
         {
           "code": "663",
@@ -3857,7 +3895,8 @@
               "sequence": 20
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 12."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 12.",
+          "source": "pcn"
         },
         {
           "code": "665",
@@ -3987,7 +4026,8 @@
               "sequence": 240
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 13."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 13.",
+          "source": "pcn"
         },
         {
           "code": "627",
@@ -4093,7 +4133,8 @@
               "sequence": 170
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.a)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.a)",
+          "source": "pcn"
         },
         {
           "code": "631",
@@ -4248,7 +4289,8 @@
               "sequence": 290
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.b)"
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 14.b)",
+          "source": "pcn"
         },
         {
           "code": "635",
@@ -4328,7 +4370,8 @@
               "sequence": 140
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 15."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 15.",
+          "source": "pcn"
         },
         {
           "code": "667",
@@ -4403,7 +4446,8 @@
               "sequence": 90
             }
           ],
-          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 17."
+          "legal_reference": "Règlement grand-ducal du 12 septembre 2019, annexe — tableau de passage du plan comptable normalisé vers les schémas abrégés — 17.",
+          "source": "pcn"
         }
       ]
     }

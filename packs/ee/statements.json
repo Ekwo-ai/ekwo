@@ -7,7 +7,7 @@
       "framework": "EE-GAAP",
       "name": "Bilanss",
       "valid_from": "2025-07-01",
-      "legal_reference": "Raamatupidamise seadus, lisa 1 — bilansiskeem, Riigikogu 18.09.2024 seaduse sõnastuses, kehtiv alates 01.07.2025; Raamatupidamise Toimkonna juhend RTJ 2 punktid 10–20",
+      "legal_reference": "Raamatupidamise seadus, lisa 1 — bilansiskeem, Riigikogu 18.09.2024 seaduse sõnastuses, kehtiv alates 01.07.2025; Raamatupidamise Toimkonna juhend RTJ 2 punktid 10–20", "source": "rps",
       "lines": [
         {
           "code": "1",
@@ -747,7 +747,7 @@
       "framework": "EE-GAAP",
       "name": "Kasumiaruanne, skeem 1",
       "valid_from": "2025-07-01",
-      "legal_reference": "Raamatupidamise seadus, lisa 2 — kasumiaruande skeem 1, kulud liigendatud kululiikide järgi; Raamatupidamise Toimkonna juhend RTJ 2 punktid 21–33. Skeem 2 liigendab ärikulud funktsiooni järgi ja seda pakk ei kanna: RTJ 2 punkt 22 ütleb, et skeemi 1 on üldjuhul lihtsam rakendada ja väiksemad ettevõtjad kasutavad seda sageli, ning punkt 24 nõuab skeemi vahetamisel võrdlusperioodi ümberarvestamist.",
+      "legal_reference": "Raamatupidamise seadus, lisa 2 — kasumiaruande skeem 1, kulud liigendatud kululiikide järgi; Raamatupidamise Toimkonna juhend RTJ 2 punktid 21–33. Skeem 2 liigendab ärikulud funktsiooni järgi ja seda pakk ei kanna: RTJ 2 punkt 22 ütleb, et skeemi 1 on üldjuhul lihtsam rakendada ja väiksemad ettevõtjad kasutavad seda sageli, ning punkt 24 nõuab skeemi vahetamisel võrdlusperioodi ümberarvestamist.", "source": "rps",
       "lines": [
         {
           "code": "1",

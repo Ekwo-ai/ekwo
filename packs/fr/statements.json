@@ -6,7 +6,7 @@
       "kind": "balance_sheet",
       "framework": "FR-PCG",
       "name": "Bilan — liasse fiscale 2050 et 2051",
-      "legal_reference": "Formulaires 2050-SD et 2051-SD, millésime 2026 ; règlement ANC 2022-06",
+      "legal_reference": "Formulaires 2050-SD et 2051-SD, millésime 2026 ; règlement ANC 2022-06", "source": "liasse-2050",
       "lines": [
         {
           "code": "AA",
@@ -1217,7 +1217,7 @@
       "kind": "income_statement",
       "framework": "FR-PCG",
       "name": "Compte de résultat — liasse fiscale 2052 et 2053",
-      "legal_reference": "Formulaires 2052-SD et 2053-SD, millésime 2026 ; règlement ANC 2022-06",
+      "legal_reference": "Formulaires 2052-SD et 2053-SD, millésime 2026 ; règlement ANC 2022-06", "source": "liasse-2050",
       "lines": [
         {
           "code": "FA",

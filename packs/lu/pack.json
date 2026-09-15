@@ -2,23 +2,125 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "LU",
   "name": "Luxembourg",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "schema_min": "20260914163943",
   "seed_sequence": 12,
   "released_at": "2026-09-15",
   "certification": {
     "status": "community",
     "sources": [
-      "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce (Mém. A n° 631 du 23 septembre 2019), et son annexe — plan comptable normalisé et tableau de passage",
-      "Loi modifiée du 12 février 1979 concernant la taxe sur la valeur ajoutée, texte coordonné publié par l'Administration de l'enregistrement, des domaines et de la TVA",
-      "Loi modifiée du 12 février 1979, art. 39, par. 3, et art. 40, par. 1er, avec ses annexes A, B et C — taux de la taxe",
-      "Loi du 26 octobre 2022 (Mém. A n° 534) — réduction temporaire des taux pour la seule année 2023",
-      "Formulaire eCDF de déclaration périodique de TVA, TVA_DECM (mensuelle) et TVA_DECT (trimestrielle), et sa liste de champs publiée en français, en allemand et en anglais",
-      "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation, annexes II et IV — bilan abrégé et compte de profits et pertes abrégé",
-      "Formulaires eCDF CA_BILANABR et CA_COMPPABR, et leurs règles de validation, qui fixent les identifiants de champ et les totaux des deux schémas abrégés",
-      "Loi modifiée du 19 décembre 2002 concernant le registre de commerce et des sociétés ainsi que la comptabilité et les comptes annuels des entreprises, art. 34, 35, 46, 47 et 75",
-      "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession, modifiée par la loi du 13 décembre 2021",
-      "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard"
+      {
+        "key": "pcn",
+        "title": "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce, et son annexe — plan comptable normalisé et tableau de passage",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/rgd/2019/09/12/a631/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "loi-tva",
+        "title": "Loi modifiée du 12 février 1979 concernant la taxe sur la valeur ajoutée",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/loi/1979/02/12/n1/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "taux-2023",
+        "title": "Loi du 26 octobre 2022 portant mise en œuvre de la baisse temporaire du taux de TVA, applicable à la seule année 2023",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/loi/2022/10/26/a534/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "schemas-comptes-annuels",
+        "title": "Règlement grand-ducal du 18 décembre 2015 déterminant la forme et le contenu des schémas de présentation du bilan et du compte de profits et pertes",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/rgd/2015/12/18/n11/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "rcs-comptabilite",
+        "title": "Loi modifiée du 19 décembre 2002 concernant le registre de commerce et des sociétés ainsi que la comptabilité et les comptes annuels des entreprises",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/loi/2002/12/19/n1/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "facturation-electronique",
+        "title": "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/loi/2019/05/16/a345/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "delais-de-paiement",
+        "title": "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard",
+        "publisher": "Legilux — Journal officiel du Grand-Duché de Luxembourg",
+        "url": "https://legilux.public.lu/eli/etat/leg/loi/2004/04/18/n8/jo",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "declaration-tva",
+        "title": "Formulaire eCDF de déclaration périodique de TVA, TVA_DECM (mensuelle), avec la liste de ses champs",
+        "publisher": "Centre des technologies de l'information de l'État — plateforme eCDF",
+        "url": "https://ecdf.b2g.etat.lu/ecdf/formdocs/2025/TVA_DECM/2025M1V002/TVA_DECM_FORMSTATIC_FR_2025M01_2025M1V002.pdf",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "bilan-abrege",
+        "title": "Formulaire eCDF CA_BILANABR — bilan abrégé : sa description, ses règles de validation et la liste de ses champs",
+        "publisher": "Centre des technologies de l'information de l'État — plateforme eCDF",
+        "url": "https://ecdf.b2g.etat.lu/ecdf/forms/popup/CA_BILAN_ABR/2016/fr/1/descr",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "comptes-pp-abrege",
+        "title": "Formulaire eCDF CA_COMPPABR — compte de profits et pertes abrégé : sa description, ses règles de validation et la liste de ses champs",
+        "publisher": "Centre des technologies de l'information de l'État — plateforme eCDF",
+        "url": "https://ecdf.b2g.etat.lu/ecdf/forms/popup/CA_COMPP_ABR/2016/fr/2/descr",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "ecdf",
+        "title": "eCDF — la plateforme par laquelle les déclarations périodiques et les comptes annuels sont déposés",
+        "publisher": "Centre des technologies de l'information de l'État — plateforme eCDF",
+        "url": "https://ecdf.b2g.etat.lu/ecdf/",
+        "consulted_on": "2026-09-15",
+        "kind": "portal"
+      },
+      {
+        "key": "en-16931",
+        "title": "EN 16931-1 — modèle sémantique de la facture électronique européenne, et la conformité que la directive 2014/55/UE en attend",
+        "publisher": "Commission européenne",
+        "url": "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "uncl5305",
+        "title": "UNCL5305 — liste des codes de catégorie de TVA (BT-118 et BT-151), sous-ensemble publié pour EN 16931",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "vatex",
+        "title": "VATEX — liste des codes de motif d'exonération de TVA (BT-121)",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      }
     ]
   },
   "defaults": {
@@ -67,7 +169,8 @@
       "default": true,
       "audience": "companies",
       "statements": ["LU-ECDF-BS-ABR", "LU-ECDF-PL-ABR"],
-      "legal_reference": "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce — applicable aux exercices commençant à partir du 1er janvier 2020"
+      "legal_reference": "Règlement grand-ducal du 12 septembre 2019 déterminant le contenu du plan comptable normalisé visé à l'article 12 du Code de commerce — applicable aux exercices commençant à partir du 1er janvier 2020",
+      "source": "pcn"
     }
   ],
   "documents": {
@@ -82,56 +185,64 @@
         "applies_when": "reverse_charge",
         "text": "Autoliquidation.",
         "sequence": 10,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° — mention « Autoliquidation » lorsque l'acquéreur ou le preneur est redevable de la TVA ; art. 61, par. 2 et 3"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° — mention « Autoliquidation » lorsque l'acquéreur ou le preneur est redevable de la TVA ; art. 61, par. 2 et 3",
+        "source": "loi-tva"
       },
       {
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Exonération de TVA — livraison intracommunautaire, art. 43, par. 1er, point d), de la loi TVA.",
         "sequence": 20,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° — référence à la disposition qui exonère ; art. 43, par. 1er, points d), e) et f)"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° — référence à la disposition qui exonère ; art. 43, par. 1er, points d), e) et f)",
+        "source": "loi-tva"
       },
       {
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Autoliquidation — TVA due par le preneur.",
         "sequence": 30,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° ; art. 17, par. 1er, point b) ; directive 2006/112/CE, art. 44 et 196"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 14° ; art. 17, par. 1er, point b) ; directive 2006/112/CE, art. 44 et 196",
+        "source": "loi-tva"
       },
       {
         "code": "export",
         "applies_when": "export",
         "text": "Exonération de TVA — exportation hors de l'Union européenne, art. 43, par. 1er, points a) et b), de la loi TVA.",
         "sequence": 40,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 43, par. 1er, points a) et b)"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 43, par. 1er, points a) et b)",
+        "source": "loi-tva"
       },
       {
         "code": "exempt",
         "applies_when": "exempt",
         "text": "Exonération de TVA, art. 44 de la loi TVA.",
         "sequence": 50,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 44"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 13° ; art. 44",
+        "source": "loi-tva"
       },
       {
         "code": "cash_basis",
         "applies_when": "cash_basis",
         "text": "Comptabilité de caisse.",
         "sequence": 60,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 8° — mention « Comptabilité de caisse » lorsque la taxe est exigible à l'encaissement du prix ; art. 25"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 63, par. 8, 8° — mention « Comptabilité de caisse » lorsque la taxe est exigible à l'encaissement du prix ; art. 25",
+        "source": "loi-tva"
       },
       {
         "code": "small_business",
         "applies_when": "small_business",
         "text": "Régime de franchise pour les petites entreprises, art. 57bis de la loi TVA — TVA non applicable.",
         "sequence": 70,
-        "legal_reference": "Loi modifiée du 12 février 1979, art. 57bis, et art. 63, par. 8, 13°"
+        "legal_reference": "Loi modifiée du 12 février 1979, art. 57bis, et art. 63, par. 8, 13°",
+        "source": "loi-tva"
       },
       {
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "À défaut de paiement à l'échéance, des intérêts de retard sont dus de plein droit, ainsi qu'une indemnité forfaitaire de 40 euros pour les frais de recouvrement.",
         "sequence": 80,
-        "legal_reference": "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard, art. 3, 4 et 5"
+        "legal_reference": "Loi modifiée du 18 avril 2004 relative aux délais de paiement et aux intérêts de retard, art. 3, 4 et 5",
+        "source": "delais-de-paiement"
       }
     ]
   },
@@ -140,7 +251,8 @@
     "mandatory_from": "2023-03-18",
     "party_scheme": "9938",
     "vat_scheme": "9938",
-    "legal_reference": "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession, modifiée par la loi du 13 décembre 2021 — les organismes publics reçoivent des factures électroniques conformes à la norme EN 16931 par le réseau Peppol depuis le 18 mai 2019 ; l'obligation d'émettre pèse sur les grandes entreprises depuis le 18 mai 2022, sur les entreprises moyennes depuis le 18 octobre 2022 et sur les petites entreprises et les entreprises nouvelles depuis le 18 mars 2023, date retenue ici parce qu'elle est celle à partir de laquelle l'obligation ne dépend plus de la taille. Le schéma déclaré est le numéro d'identification à la TVA luxembourgeois (ICD 9938, « LU:VAT »), seul identifiant que ce schéma Peppol couvre ; un opérateur luxembourgeois peut aussi être adressé par son matricule à onze chiffres du répertoire des personnes morales, qui relève d'un autre schéma"
+    "legal_reference": "Loi du 16 mai 2019 relative à la facturation électronique dans le cadre des marchés publics et des contrats de concession, modifiée par la loi du 13 décembre 2021 — les organismes publics reçoivent des factures électroniques conformes à la norme EN 16931 par le réseau Peppol depuis le 18 mai 2019 ; l'obligation d'émettre pèse sur les grandes entreprises depuis le 18 mai 2022, sur les entreprises moyennes depuis le 18 octobre 2022 et sur les petites entreprises et les entreprises nouvelles depuis le 18 mars 2023, date retenue ici parce qu'elle est celle à partir de laquelle l'obligation ne dépend plus de la taille. Le schéma déclaré est le numéro d'identification à la TVA luxembourgeois (ICD 9938, « LU:VAT »), seul identifiant que ce schéma Peppol couvre ; un opérateur luxembourgeois peut aussi être adressé par son matricule à onze chiffres du répertoire des personnes morales, qui relève d'un autre schéma",
+    "source": "facturation-electronique"
   },
   "bank": {
     "statement_formats": ["camt.053", "mt940"],

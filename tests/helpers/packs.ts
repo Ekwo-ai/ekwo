@@ -64,6 +64,26 @@ export const certificationStatuses: string[] = (() => {
 })();
 
 /**
+ * The kinds of text a source register may hold, from the published schema.
+ *
+ * Read there for the same reason as the statuses above: the vocabulary is
+ * closed so that a register reads the same across countries, and a test that
+ * restated it would stop noticing the day a kind was added.
+ */
+export const sourceKinds: string[] = (() => {
+  const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
+  const properties = (defs['source_entry']?.['properties'] ?? {}) as Record<
+    string,
+    Record<string, unknown>
+  >;
+  const values = properties['kind']?.['enum'];
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error('packs/schema/pack.1.json defines no kind of source');
+  }
+  return values as string[];
+})();
+
+/**
  * The cadences a declaration form may be filed on, from the published schema.
  *
  * Same reason as the statuses above: a test that listed `month`, `quarter` and

@@ -6,11 +6,13 @@
     "day_count": "actual",
     "declining_cap_percent": 40,
     "declining_switch_to_linear": true,
-    "legal_reference": "Code des impôts sur les revenus 1992, art. 61 — les amortissements sont admis dans la mesure où ils correspondent à une dépréciation réellement survenue ; art. 196, § 2, 1° — l'annuité de l'exercice d'acquisition est réduite au prorata de la partie de l'exercice restant à courir, pour les sociétés autres que les petites sociétés au sens de l'art. 1:24 du Code des sociétés et des associations ; art. 64 et AR/CIR 92, art. 36 à 43 — régime dégressif, annuité limitée à 40 % de la valeur d'investissement et abandon du dégressif dès que l'annuité linéaire est supérieure"
+    "legal_reference": "Code des impôts sur les revenus 1992, art. 61 — les amortissements sont admis dans la mesure où ils correspondent à une dépréciation réellement survenue ; art. 196, § 2, 1° — l'annuité de l'exercice d'acquisition est réduite au prorata de la partie de l'exercice restant à courir, pour les sociétés autres que les petites sociétés au sens de l'art. 1:24 du Code des sociétés et des associations ; art. 64 et AR/CIR 92, art. 36 à 43 — régime dégressif, annuité limitée à 40 % de la valeur d'investissement et abandon du dégressif dès que l'annuité linéaire est supérieure",
+    "source": "cir-92"
   },
   "disposal": {
     "style": "net_result",
-    "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1 — comptes 763 « Plus-values sur réalisation d'actifs immobilisés » et 663 « Moins-values sur réalisation d'actifs immobilisés »"
+    "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1 — comptes 763 « Plus-values sur réalisation d'actifs immobilisés » et 663 « Moins-values sur réalisation d'actifs immobilisés »",
+    "source": "pcmn"
   },
   "categories": [
     {
@@ -20,7 +22,8 @@
       "duration_months": 60,
       "account_type": "asset_fixed",
       "sequence": 10,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 62 — les frais d'établissement sont amortis par annuités égales, échelonnées sans interruption sur cinq ans au moins"
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 62 — les frais d'établissement sont amortis par annuités égales, échelonnées sans interruption sur cinq ans au moins",
+      "source": "cir-92"
     },
     {
       "code": "intangible-rd",
@@ -29,7 +32,8 @@
       "duration_months": 36,
       "account_type": "asset_fixed",
       "sequence": 20,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles amorties par annuités fixes sur trois ans au moins pour les investissements en recherche et développement"
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles amorties par annuités fixes sur trois ans au moins pour les investissements en recherche et développement",
+      "source": "cir-92"
     },
     {
       "code": "software",
@@ -38,7 +42,8 @@
       "duration_months": 60,
       "account_type": "asset_fixed",
       "sequence": 30,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles autres que la recherche et le développement, amorties par annuités fixes sur cinq ans au moins"
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 63 — immobilisations incorporelles autres que la recherche et le développement, amorties par annuités fixes sur cinq ans au moins",
+      "source": "cir-92"
     },
     {
       "code": "building-industrial",
@@ -47,7 +52,8 @@
       "duration_months": 240,
       "account_type": "asset_fixed",
       "sequence": 40,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment industriel — vingt ans, soit 5 % l'an. Une durée usuelle est une pratique administrative et non un texte : elle se justifie par la dépréciation réelle du bien."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment industriel — vingt ans, soit 5 % l'an. Une durée usuelle est une pratique administrative et non un texte : elle se justifie par la dépréciation réelle du bien.",
+      "source": "cir-92"
     },
     {
       "code": "building-commercial",
@@ -56,7 +62,8 @@
       "duration_months": 396,
       "account_type": "asset_fixed",
       "sequence": 50,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment commercial ou de bureaux — trente-trois ans, soit 3 % l'an. Pratique administrative, à justifier par la dépréciation réelle du bien."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise par l'administration pour un bâtiment commercial ou de bureaux — trente-trois ans, soit 3 % l'an. Pratique administrative, à justifier par la dépréciation réelle du bien.",
+      "source": "cir-92"
     },
     {
       "code": "machinery",
@@ -65,7 +72,8 @@
       "duration_months": 120,
       "account_type": "asset_fixed",
       "sequence": 60,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative.",
+      "source": "cir-92"
     },
     {
       "code": "machinery-declining",
@@ -75,7 +83,8 @@
       "coefficient": 2,
       "account_type": "asset_fixed",
       "sequence": 70,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 64 et AR/CIR 92, art. 36 à 43 — taux double du taux linéaire, annuité plafonnée à 40 % de la valeur d'investissement, retour au linéaire dès qu'il donne une annuité supérieure. Le régime est exclu pour les immobilisations incorporelles et pour les biens dont l'usage est cédé à un tiers (art. 64, al. 2)."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 64 et AR/CIR 92, art. 36 à 43 — taux double du taux linéaire, annuité plafonnée à 40 % de la valeur d'investissement, retour au linéaire dès qu'il donne une annuité supérieure. Le régime est exclu pour les immobilisations incorporelles et pour les biens dont l'usage est cédé à un tiers (art. 64, al. 2).",
+      "source": "cir-92"
     },
     {
       "code": "furniture",
@@ -84,7 +93,8 @@
       "duration_months": 120,
       "account_type": "asset_fixed",
       "sequence": 80,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — dix ans, soit 10 % l'an. Pratique administrative.",
+      "source": "cir-92"
     },
     {
       "code": "it-equipment",
@@ -93,7 +103,8 @@
       "duration_months": 36,
       "account_type": "asset_fixed",
       "sequence": 90,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise pour le matériel informatique — trois ans, soit 33 % l'an. Pratique administrative."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise pour le matériel informatique — trois ans, soit 33 % l'an. Pratique administrative.",
+      "source": "cir-92"
     },
     {
       "code": "vehicle",
@@ -102,7 +113,8 @@
       "duration_months": 60,
       "account_type": "asset_fixed",
       "sequence": 100,
-      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — cinq ans, soit 20 % l'an. Pratique administrative. La déductibilité des frais de voiture est une question distincte de la durée d'amortissement (art. 66 et 198bis)."
+      "legal_reference": "Code des impôts sur les revenus 1992, art. 61 ; durée usuellement admise — cinq ans, soit 20 % l'an. Pratique administrative. La déductibilité des frais de voiture est une question distincte de la durée d'amortissement (art. 66 et 198bis).",
+      "source": "cir-92"
     }
   ]
 }

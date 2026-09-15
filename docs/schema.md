@@ -727,6 +727,7 @@ Country packs loaded in this installation, with their version and certification.
 | `certified_at` | `date` |  |
 | `checksum` | `text` | sha256 of the pack files, so a changed pack is visible without a diff. |
 | `installed_at` | `timestamp with time zone` | not null |
+| `sources` | `jsonb` | not null — Register of the texts this pack was built from, in the pack's own order: [{key, title, publisher, url, consulted_on, kind}]. `kind` is one of law, regulation, form, standard, portal, guidance. Written by the generated seed; never a copy of the text itself. |
 
 Constraints:
 
@@ -1404,6 +1405,7 @@ The boxes of a declaration form, and the plus/minus lists a total is computed fr
 | `legal_reference` | `text` |  |
 | `valid_from` | `date` | Null means the validity of the form itself. Filled only when a box appears or disappears inside one version of a form. |
 | `valid_to` | `date` |  |
+| `source_key` | `text` | Key of the entry in country_packs.sources where this box's legal_reference can be read. Null where the pack names none. |
 
 Constraints:
 
@@ -1463,6 +1465,7 @@ Reference taxes per country, with their period of validity.
 | `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid rather than when it is issued, which is how France taxes services. post_document() books it on the transition account below and on no declaration box; reconcile() moves the settled share to the account and the box it is declared on. |
 | `cash_basis_transition_account_code` | `text` | Account the tax waits on between the invoice and its payment, by code in the chart of this country. Only read when cash_basis is true. |
 | `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. A translation of the same tax, never a different rate or a different rule. |
+| `source_key` | `text` | Key of the entry in country_packs.sources where this tax's legal_reference can be read. Null where the pack names none. |
 
 Constraints:
 

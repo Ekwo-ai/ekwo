@@ -4,119 +4,135 @@
   "name": "Déclaration périodique de TVA (eCDF)",
   "period": ["month", "quarter"],
   "valid_from": "2015-01-01",
-  "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle). Cadence : art. 64, paragraphes 1 à 3 — mensuelle au-dessus de 620 000 euros de chiffre d'affaires, trimestrielle entre 112 000 et 620 000, annuelle en dessous, la déclaration annuelle étant un formulaire distinct que ce pack ne porte pas",
+  "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle). Cadence : art. 64, paragraphes 1 à 3 — mensuelle au-dessus de 620 000 euros de chiffre d'affaires, trimestrielle entre 112 000 et 620 000, annuelle en dessous, la déclaration annuelle étant un formulaire distinct que ce pack ne porte pas", "source": "loi-tva",
   "boxes": [
     {
       "box": "471",
       "kind": "base",
       "name": "a) Ventes à distance intracommunautaires de biens et prestations de services de télécommunication, de radiodiffusion et de télévision ainsi que prestations fournies par voie électronique à des personnes non assujetties dans d'autres États membres et dont la valeur totale annuelle de 10.000 EUR n'est pas dépassée (lieu déterminé par l’article 19quater/1)",
       "sequence": 10,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « a) Ventes à distance intracommunautaires de biens et prestations de services de télécommunication, de radiodiffusion et de télévision ainsi que prestations fournies par voie électronique à des personnes non assujetties dans d'autres États membres et dont la valeur totale annuelle de 10.000 EUR n'est pas dépassée (lieu déterminé par l’article 19quater/1) » ; Loi TVA, art. 19quater/1 — ventes à distance intracommunautaires sous le seuil de 10 000 EUR"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « a) Ventes à distance intracommunautaires de biens et prestations de services de télécommunication, de radiodiffusion et de télévision ainsi que prestations fournies par voie électronique à des personnes non assujetties dans d'autres États membres et dont la valeur totale annuelle de 10.000 EUR n'est pas dépassée (lieu déterminé par l’article 19quater/1) » ; Loi TVA, art. 19quater/1 — ventes à distance intracommunautaires sous le seuil de 10 000 EUR",
+      "source": "loi-tva"
     },
     {
       "box": "455",
       "kind": "base",
       "name": "2. Prélèvements privés de biens et affectation de biens (art.13)",
       "sequence": 20,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2. Prélèvements privés de biens et affectation de biens (art.13) » ; Loi TVA, art. 13"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2. Prélèvements privés de biens et affectation de biens (art.13) » ; Loi TVA, art. 13",
+      "source": "loi-tva"
     },
     {
       "box": "456",
       "kind": "base",
       "name": "3. Utilisation privée de biens et prélèvements privés de services (art.16)",
       "sequence": 30,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 3. Utilisation privée de biens et prélèvements privés de services (art.16) » ; Loi TVA, art. 16"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 3. Utilisation privée de biens et prélèvements privés de services (art.16) » ; Loi TVA, art. 16",
+      "source": "loi-tva"
     },
     {
       "box": "457",
       "kind": "base",
       "name": "1. Livraisons intracommunautaires de biens à des personnes identifiées à la TVA dans un autre Etat membre (art.43/1/d,e et f) (3)",
       "sequence": 40,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1. Livraisons intracommunautaires de biens à des personnes identifiées à la TVA dans un autre Etat membre (art.43/1/d,e et f) (3) » ; Loi TVA, art. 43, par. 1er, points d), e) et f)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1. Livraisons intracommunautaires de biens à des personnes identifiées à la TVA dans un autre Etat membre (art.43/1/d,e et f) (3) » ; Loi TVA, art. 43, par. 1er, points d), e) et f)",
+      "source": "loi-tva"
     },
     {
       "box": "014",
       "kind": "base",
       "name": "2. Livraisons à l’exportation (art.43/1/a et b)",
       "sequence": 50,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2. Livraisons à l’exportation (art.43/1/a et b) » ; Loi TVA, art. 43, par. 1er, points a) et b)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2. Livraisons à l’exportation (art.43/1/a et b) » ; Loi TVA, art. 43, par. 1er, points a) et b)",
+      "source": "loi-tva"
     },
     {
       "box": "015",
       "kind": "base",
       "name": "3. Autres exonérations (art.43 et 60bis)",
       "sequence": 60,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 3. Autres exonérations (art.43 et 60bis) » ; Loi TVA, art. 43 et 60bis"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 3. Autres exonérations (art.43 et 60bis) » ; Loi TVA, art. 43 et 60bis",
+      "source": "loi-tva"
     },
     {
       "box": "016",
       "kind": "base",
       "name": "4. Autres exonérations (art.44 et 56quater)",
       "sequence": 70,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 4. Autres exonérations (art.44 et 56quater) » ; Loi TVA, art. 44 et 56quater"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 4. Autres exonérations (art.44 et 56quater) » ; Loi TVA, art. 44 et 56quater",
+      "source": "loi-tva"
     },
     {
       "box": "017",
       "kind": "base",
       "name": "5. Tabacs fabriqués dont la TVA a été perçue à la source respectivement à la sortie de l'entrepôt fiscal conjointement avec les accises",
       "sequence": 80,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 5. Tabacs fabriqués dont la TVA a été perçue à la source respectivement à la sortie de l'entrepôt fiscal conjointement avec les accises »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 5. Tabacs fabriqués dont la TVA a été perçue à la source respectivement à la sortie de l'entrepôt fiscal conjointement avec les accises »",
+      "source": "loi-tva"
     },
     {
       "box": "481",
       "kind": "base",
       "name": "6. Opérations réalisées dans le cadre du régime de franchise national de l'article 57bis (7)",
       "sequence": 90,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 6. Opérations réalisées dans le cadre du régime de franchise national de l'article 57bis (7) » ; Loi TVA, art. 57bis"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 6. Opérations réalisées dans le cadre du régime de franchise national de l'article 57bis (7) » ; Loi TVA, art. 57bis",
+      "source": "loi-tva"
     },
     {
       "box": "482",
       "kind": "base",
       "name": "7. Opérations réalisées dans le cadre du régime de franchise transfrontalier de l’article 57quater",
       "sequence": 100,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 7. Opérations réalisées dans le cadre du régime de franchise transfrontalier de l’article 57quater » ; Loi TVA, art. 57quater"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 7. Opérations réalisées dans le cadre du régime de franchise transfrontalier de l’article 57quater » ; Loi TVA, art. 57quater",
+      "source": "loi-tva"
     },
     {
       "box": "226",
       "kind": "base",
       "name": "8. Opérations réalisées dans le cadre de l’un des régimes particuliers visés aux articles 56quinquies, 56sexies et 56septies (guichet unique « OSS » et « IOSS »)",
       "sequence": 110,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 8. Opérations réalisées dans le cadre de l’un des régimes particuliers visés aux articles 56quinquies, 56sexies et 56septies (guichet unique « OSS » et « IOSS ») » ; Loi TVA, art. 56quinquies, 56sexies et 56septies"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 8. Opérations réalisées dans le cadre de l’un des régimes particuliers visés aux articles 56quinquies, 56sexies et 56septies (guichet unique « OSS » et « IOSS ») » ; Loi TVA, art. 56quinquies, 56sexies et 56septies",
+      "source": "loi-tva"
     },
     {
       "box": "018",
       "kind": "base",
       "name": "a) Livraisons subséquentes à des acquisitions intracommunautaires dans le cadre d'opérations triangulaires, lorsque le destinataire identifié à la TVA dans l'Etat membre de destination des biens y est le redevable de la taxe (4)",
       "sequence": 120,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « a) Livraisons subséquentes à des acquisitions intracommunautaires dans le cadre d'opérations triangulaires, lorsque le destinataire identifié à la TVA dans l'Etat membre de destination des biens y est le redevable de la taxe (4) » ; Loi TVA, art. 18ter"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « a) Livraisons subséquentes à des acquisitions intracommunautaires dans le cadre d'opérations triangulaires, lorsque le destinataire identifié à la TVA dans l'Etat membre de destination des biens y est le redevable de la taxe (4) » ; Loi TVA, art. 18ter",
+      "source": "loi-tva"
     },
     {
       "box": "423",
       "kind": "base",
       "name": "1) non exonérées dans l'Etat membre du preneur redevable (art.17/1/b) (5)",
       "sequence": 130,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1) non exonérées dans l'Etat membre du preneur redevable (art.17/1/b) (5) » ; Loi TVA, art. 17, par. 1er, point b)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1) non exonérées dans l'Etat membre du preneur redevable (art.17/1/b) (5) » ; Loi TVA, art. 17, par. 1er, point b)",
+      "source": "loi-tva"
     },
     {
       "box": "424",
       "kind": "base",
       "name": "2) exonérées dans l'Etat membre du preneur (art.17/1/b)",
       "sequence": 140,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2) exonérées dans l'Etat membre du preneur (art.17/1/b) » ; Loi TVA, art. 17, par. 1er, point b)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 2) exonérées dans l'Etat membre du preneur (art.17/1/b) » ; Loi TVA, art. 17, par. 1er, point b)",
+      "source": "loi-tva"
     },
     {
       "box": "019",
       "kind": "base",
       "name": "c) Autres opérations réalisées (imposables) à l'étranger",
       "sequence": 150,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « c) Autres opérations réalisées (imposables) à l'étranger »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « c) Autres opérations réalisées (imposables) à l'étranger »",
+      "source": "loi-tva"
     },
     {
       "box": "419",
       "kind": "base",
       "name": "10. Opérations à l'intérieur du pays pour lesquelles le preneur est le redevable",
       "sequence": 160,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 10. Opérations à l'intérieur du pays pour lesquelles le preneur est le redevable » ; Loi TVA, art. 61, par. 2 et 3"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 10. Opérations à l'intérieur du pays pour lesquelles le preneur est le redevable » ; Loi TVA, art. 61, par. 2 et 3",
+      "source": "loi-tva"
     },
     {
       "box": "472",
@@ -145,7 +161,8 @@
         "019",
         "419"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « b) Autres ventes / recettes » — total des ventes et recettes autres que les ventes à distance de la case 471"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « b) Autres ventes / recettes » — total des ventes et recettes autres que les ventes à distance de la case 471",
+      "source": "loi-tva"
     },
     {
       "box": "454",
@@ -156,7 +173,8 @@
         "471",
         "472"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1. Total des Ventes / Recettes »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « 1. Total des Ventes / Recettes »",
+      "source": "loi-tva"
     },
     {
       "box": "012",
@@ -168,7 +186,8 @@
         "455",
         "456"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « A. Chiffre d'affaires global »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « A. Chiffre d'affaires global »",
+      "source": "loi-tva"
     },
     {
       "box": "021",
@@ -190,7 +209,8 @@
         "019",
         "419"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « B. Exonérations et montants déductibles »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « B. Exonérations et montants déductibles »",
+      "source": "loi-tva"
     },
     {
       "box": "022",
@@ -203,105 +223,120 @@
       "minus": [
         "021"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « C. Chiffre d'affaires imposable (012-021) »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), I. Calcul du chiffre d’affaires imposable, « C. Chiffre d'affaires imposable (012-021) »",
+      "source": "loi-tva"
     },
     {
       "box": "701",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 17 % — base",
       "sequence": 220,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "702",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 17 % — TVA",
       "sequence": 230,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "901",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 16 % — base",
       "sequence": 240,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "902",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 16 % — TVA",
       "sequence": 250,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "703",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 14 % — base",
       "sequence": 260,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "704",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 14 % — TVA",
       "sequence": 270,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "903",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 13 % — base",
       "sequence": 280,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "904",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 13 % — TVA",
       "sequence": 290,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "705",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 8 % — base",
       "sequence": 300,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "706",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 8 % — TVA",
       "sequence": 310,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "905",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 7 % — base",
       "sequence": 320,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "906",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 7 % — TVA",
       "sequence": 330,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "031",
       "kind": "base",
       "name": "Ventilation du chiffre d’affaires imposable — 3 % — base",
       "sequence": 340,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "040",
       "kind": "tax",
       "name": "Ventilation du chiffre d’affaires imposable — 3 % — TVA",
       "sequence": 350,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "037",
@@ -317,7 +352,8 @@
         "905",
         "031"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "046",
@@ -333,119 +369,136 @@
         "906",
         "040"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.A. Ventilation du chiffre d’affaires imposable, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "711",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 17 % — base",
       "sequence": 380,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "712",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 17 % — TVA",
       "sequence": 390,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "911",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 16 % — base",
       "sequence": 400,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "912",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 16 % — TVA",
       "sequence": 410,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "713",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 14 % — base",
       "sequence": 420,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "714",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 14 % — TVA",
       "sequence": 430,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "913",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 13 % — base",
       "sequence": 440,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "914",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 13 % — TVA",
       "sequence": 450,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "715",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 8 % — base",
       "sequence": 460,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "716",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 8 % — TVA",
       "sequence": 470,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "915",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 7 % — base",
       "sequence": 480,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "916",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 7 % — TVA",
       "sequence": 490,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "049",
       "kind": "base",
       "name": "Acquisitions intracommunautaires de biens — 3 % — base",
       "sequence": 500,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "054",
       "kind": "tax",
       "name": "Acquisitions intracommunautaires de biens — 3 % — TVA",
       "sequence": 510,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "194",
       "kind": "base",
       "name": "exonérées",
       "sequence": 520,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « exonérées » ; Loi TVA, art. 43 et 44"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « exonérées » ; Loi TVA, art. 43 et 44",
+      "source": "loi-tva"
     },
     {
       "box": "719",
       "kind": "base",
       "name": "de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises",
       "sequence": 530,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises »",
+      "source": "loi-tva"
     },
     {
       "box": "051",
@@ -463,7 +516,8 @@
         "194",
         "719"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, colonne « base » ; Loi TVA, art. 2, points b) et c)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, colonne « base » ; Loi TVA, art. 2, points b) et c)",
+      "source": "loi-tva"
     },
     {
       "box": "056",
@@ -479,231 +533,264 @@
         "916",
         "054"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, colonne « TVA » ; Loi TVA, art. 61, par. 6"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, colonne « TVA » ; Loi TVA, art. 61, par. 6",
+      "source": "loi-tva"
     },
     {
       "box": "152",
       "kind": "base",
       "name": "C. Acquisitions effectuées dans le cadre d'opérations triangulaires lorsque l'acquisition a été effectuée pour les besoins d'une livraison subséquente à un acquéreur identifié à la TVA dans l'Etat membre de destination des biens et qui y est le redevable de la taxe (art. 18ter/2, al.2)",
       "sequence": 560,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « C. Acquisitions effectuées dans le cadre d'opérations triangulaires lorsque l'acquisition a été effectuée pour les besoins d'une livraison subséquente à un acquéreur identifié à la TVA dans l'Etat membre de destination des biens et qui y est le redevable de la taxe (art. 18ter/2, al.2) » ; Loi TVA, art. 18ter, par. 2, alinéa 2"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.B. Acquisitions intracommunautaires de biens, « C. Acquisitions effectuées dans le cadre d'opérations triangulaires lorsque l'acquisition a été effectuée pour les besoins d'une livraison subséquente à un acquéreur identifié à la TVA dans l'Etat membre de destination des biens et qui y est le redevable de la taxe (art. 18ter/2, al.2) » ; Loi TVA, art. 18ter, par. 2, alinéa 2",
+      "source": "loi-tva"
     },
     {
       "box": "721",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 17 % — base",
       "sequence": 570,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "722",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 17 % — TVA",
       "sequence": 580,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "921",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 16 % — base",
       "sequence": 590,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "922",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 16 % — TVA",
       "sequence": 600,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "723",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 14 % — base",
       "sequence": 610,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "724",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 14 % — TVA",
       "sequence": 620,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "923",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 13 % — base",
       "sequence": 630,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "924",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 13 % — TVA",
       "sequence": 640,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "725",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 8 % — base",
       "sequence": 650,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "726",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 8 % — TVA",
       "sequence": 660,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "925",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 7 % — base",
       "sequence": 670,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "926",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 7 % — TVA",
       "sequence": 680,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "059",
       "kind": "base",
       "name": "Importations de biens à des fins de l’entreprise — 3 % — base",
       "sequence": 690,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "068",
       "kind": "tax",
       "name": "Importations de biens à des fins de l’entreprise — 3 % — TVA",
       "sequence": 700,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "195",
       "kind": "base",
       "name": "exonérées",
       "sequence": 710,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, « exonérées » ; Loi TVA, art. 56"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, « exonérées » ; Loi TVA, art. 56",
+      "source": "loi-tva"
     },
     {
       "box": "729",
       "kind": "base",
       "name": "de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises",
       "sequence": 720,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, « de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.1. Importations de biens à des fins de l’entreprise, « de tabacs fabriqués dont la TVA est perçue à la sortie de l'entrepôt fiscal conjointement avec les accises »",
+      "source": "loi-tva"
     },
     {
       "box": "731",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 17 % — base",
       "sequence": 730,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "732",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 17 % — TVA",
       "sequence": 740,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "931",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 16 % — base",
       "sequence": 750,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "932",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 16 % — TVA",
       "sequence": 760,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "733",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 14 % — base",
       "sequence": 770,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "734",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 14 % — TVA",
       "sequence": 780,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "933",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 13 % — base",
       "sequence": 790,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "934",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 13 % — TVA",
       "sequence": 800,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "735",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 8 % — base",
       "sequence": 810,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "736",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 8 % — TVA",
       "sequence": 820,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "935",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 7 % — base",
       "sequence": 830,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "936",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 7 % — TVA",
       "sequence": 840,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "063",
       "kind": "base",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 3 % — base",
       "sequence": 850,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "073",
       "kind": "tax",
       "name": "Importations de biens à des fins étrangères à l’entreprise — 3 % — TVA",
       "sequence": 860,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "196",
       "kind": "base",
       "name": "exonérées",
       "sequence": 870,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, « exonérées » ; Loi TVA, art. 56"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.D.2. Importations de biens à des fins étrangères à l’entreprise, « exonérées » ; Loi TVA, art. 56",
+      "source": "loi-tva"
     },
     {
       "box": "065",
@@ -729,7 +816,8 @@
         "063",
         "196"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.D, colonne « base » ; Loi TVA, art. 2, point d)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.D, colonne « base » ; Loi TVA, art. 2, point d)",
+      "source": "loi-tva"
     },
     {
       "box": "407",
@@ -752,105 +840,120 @@
         "936",
         "073"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.D, colonne « TVA » ; Loi TVA, art. 61, par. 7"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.D, colonne « TVA » ; Loi TVA, art. 61, par. 7",
+      "source": "loi-tva"
     },
     {
       "box": "741",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 17 % — base",
       "sequence": 900,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "742",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 17 % — TVA",
       "sequence": 910,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "941",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 16 % — base",
       "sequence": 920,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "942",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 16 % — TVA",
       "sequence": 930,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "743",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 14 % — base",
       "sequence": 940,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "744",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 14 % — TVA",
       "sequence": 950,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "943",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 13 % — base",
       "sequence": 960,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "944",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 13 % — TVA",
       "sequence": 970,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "745",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 8 % — base",
       "sequence": 980,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "746",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 8 % — TVA",
       "sequence": 990,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "945",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 7 % — base",
       "sequence": 1000,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "946",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 7 % — TVA",
       "sequence": 1010,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "431",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 3 % — base",
       "sequence": 1020,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "432",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti d’un autre État membre, non exonérées — 3 % — TVA",
       "sequence": 1030,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "436",
@@ -866,7 +969,8 @@
         "945",
         "431"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "462",
@@ -882,119 +986,136 @@
         "946",
         "432"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, colonne « TVA » ; Loi TVA, art. 61, par. 5"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, colonne « TVA » ; Loi TVA, art. 61, par. 5",
+      "source": "loi-tva"
     },
     {
       "box": "435",
       "kind": "base",
       "name": "b) exonérées à l'intérieur du pays",
       "sequence": 1060,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, « b) exonérées à l'intérieur du pays » ; Loi TVA, art. 44"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.1.a) Prestations reçues d’un assujetti d’un autre État membre, non exonérées, « b) exonérées à l'intérieur du pays » ; Loi TVA, art. 44",
+      "source": "loi-tva"
     },
     {
       "box": "751",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 17 % — base",
       "sequence": 1070,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "752",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 17 % — TVA",
       "sequence": 1080,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "951",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 16 % — base",
       "sequence": 1090,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "952",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 16 % — TVA",
       "sequence": 1100,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "753",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 14 % — base",
       "sequence": 1110,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 14 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 14 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "754",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 14 % — TVA",
       "sequence": 1120,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 14 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 14 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "953",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 13 % — base",
       "sequence": 1130,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 13 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 13 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "954",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 13 % — TVA",
       "sequence": 1140,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 13 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 13 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "755",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 8 % — base",
       "sequence": 1150,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "756",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 8 % — TVA",
       "sequence": 1160,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "955",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 7 % — base",
       "sequence": 1170,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "956",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 7 % — TVA",
       "sequence": 1180,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "441",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 3 % — base",
       "sequence": 1190,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 3 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 3 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "442",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi hors de la Communauté — 3 % — TVA",
       "sequence": 1200,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 3 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, taux de 3 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "445",
       "kind": "base",
       "name": "exonérées",
       "sequence": 1210,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, « exonérées » ; Loi TVA, art. 44"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, « exonérées » ; Loi TVA, art. 44",
+      "source": "loi-tva"
     },
     {
       "box": "463",
@@ -1011,7 +1132,8 @@
         "441",
         "445"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "464",
@@ -1027,35 +1149,40 @@
         "956",
         "442"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, colonne « TVA » ; Loi TVA, art. 61, par. 5"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.2. Prestations reçues d’un assujetti établi hors de la Communauté, colonne « TVA » ; Loi TVA, art. 61, par. 5",
+      "source": "loi-tva"
     },
     {
       "box": "761",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi à l’intérieur du pays — 17 % — base",
       "sequence": 1240,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "762",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi à l’intérieur du pays — 17 % — TVA",
       "sequence": 1250,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "961",
       "kind": "base",
       "name": "Prestations reçues d’un assujetti établi à l’intérieur du pays — 16 % — base",
       "sequence": 1260,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 16 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 16 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "962",
       "kind": "tax",
       "name": "Prestations reçues d’un assujetti établi à l’intérieur du pays — 16 % — TVA",
       "sequence": 1270,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 16 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, taux de 16 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "765",
@@ -1066,7 +1193,8 @@
         "761",
         "961"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "766",
@@ -1077,7 +1205,8 @@
         "762",
         "962"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, colonne « TVA » ; Loi TVA, art. 61, par. 3"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.E.3. Prestations reçues d’un assujetti établi à l’intérieur du pays, colonne « TVA » ; Loi TVA, art. 61, par. 3",
+      "source": "loi-tva"
     },
     {
       "box": "409",
@@ -1090,7 +1219,8 @@
         "463",
         "765"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.E, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.E, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "410",
@@ -1102,49 +1232,56 @@
         "464",
         "766"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.E, colonne « TVA » ; Loi TVA, art. 61, par. 3 et 5"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.E, colonne « TVA » ; Loi TVA, art. 61, par. 3 et 5",
+      "source": "loi-tva"
     },
     {
       "box": "769",
       "kind": "base",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 17 % — base",
       "sequence": 1320,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 17 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 17 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "770",
       "kind": "tax",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 17 % — TVA",
       "sequence": 1330,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 17 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 17 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "763",
       "kind": "base",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 8 % — base",
       "sequence": 1340,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 8 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 8 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "764",
       "kind": "tax",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 8 % — TVA",
       "sequence": 1350,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 8 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 8 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "963",
       "kind": "base",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 7 % — base",
       "sequence": 1360,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 7 %, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 7 %, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "964",
       "kind": "tax",
       "name": "Livraisons de biens à déclarer par l’acquéreur redevable de la taxe — 7 % — TVA",
       "sequence": 1370,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 7 %, colonne « TVA »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, taux de 7 %, colonne « TVA »",
+      "source": "loi-tva"
     },
     {
       "box": "767",
@@ -1156,7 +1293,8 @@
         "763",
         "963"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, colonne « base »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, colonne « base »",
+      "source": "loi-tva"
     },
     {
       "box": "768",
@@ -1168,14 +1306,16 @@
         "764",
         "964"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, colonne « TVA » ; Loi TVA, art. 61, par. 2"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, colonne « TVA » ; Loi TVA, art. 61, par. 2",
+      "source": "loi-tva"
     },
     {
       "box": "227",
       "kind": "tax",
       "name": "G. Régime particulier suspensif: régularisation (art.60bis, par.5 et 8)",
       "sequence": 1400,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, « G. Régime particulier suspensif: régularisation (art.60bis, par.5 et 8) » ; Loi TVA, art. 60bis, par. 5 et 8"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), II.F. Livraisons de biens à déclarer par l’acquéreur redevable de la taxe, « G. Régime particulier suspensif: régularisation (art.60bis, par.5 et 8) » ; Loi TVA, art. 60bis, par. 5 et 8",
+      "source": "loi-tva"
     },
     {
       "box": "076",
@@ -1190,56 +1330,64 @@
         "768",
         "227"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.H — total de la taxe en aval"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), section II.H — total de la taxe en aval",
+      "source": "loi-tva"
     },
     {
       "box": "458",
       "kind": "tax",
       "name": "1. Achats de biens et de services à l'intérieur du pays (art.48/1/a)",
       "sequence": 1420,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 1. Achats de biens et de services à l'intérieur du pays (art.48/1/a) » ; Loi TVA, art. 48, par. 1er, point a)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 1. Achats de biens et de services à l'intérieur du pays (art.48/1/a) » ; Loi TVA, art. 48, par. 1er, point a)",
+      "source": "loi-tva"
     },
     {
       "box": "459",
       "kind": "tax",
       "name": "2. Acquisitions intracommunautaires de biens (art.48/1/b)",
       "sequence": 1430,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 2. Acquisitions intracommunautaires de biens (art.48/1/b) » ; Loi TVA, art. 48, par. 1er, point b)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 2. Acquisitions intracommunautaires de biens (art.48/1/b) » ; Loi TVA, art. 48, par. 1er, point b)",
+      "source": "loi-tva"
     },
     {
       "box": "460",
       "kind": "tax",
       "name": "3. Importations de biens (taxe déclarée ou payée) (art.48/1/c)",
       "sequence": 1440,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 3. Importations de biens (taxe déclarée ou payée) (art.48/1/c) » ; Loi TVA, art. 48, par. 1er, point c)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 3. Importations de biens (taxe déclarée ou payée) (art.48/1/c) » ; Loi TVA, art. 48, par. 1er, point c)",
+      "source": "loi-tva"
     },
     {
       "box": "090",
       "kind": "tax",
       "name": "4. Affectations de biens (art.48/1/d)",
       "sequence": 1450,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 4. Affectations de biens (art.48/1/d) » ; Loi TVA, art. 48, par. 1er, point d)"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 4. Affectations de biens (art.48/1/d) » ; Loi TVA, art. 48, par. 1er, point d)",
+      "source": "loi-tva"
     },
     {
       "box": "461",
       "kind": "tax",
       "name": "5. Taxe déclarée comme débiteur (voir points II.E et F)",
       "sequence": 1460,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 5. Taxe déclarée comme débiteur (voir points II.E et F) » ; Loi TVA, art. 61, par. 2, 3 et 5"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 5. Taxe déclarée comme débiteur (voir points II.E et F) » ; Loi TVA, art. 61, par. 2, 3 et 5",
+      "source": "loi-tva"
     },
     {
       "box": "092",
       "kind": "tax",
       "name": "6. Taxe acquittée comme caution solidaire",
       "sequence": 1470,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 6. Taxe acquittée comme caution solidaire » ; Loi TVA, art. 67"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 6. Taxe acquittée comme caution solidaire » ; Loi TVA, art. 67",
+      "source": "loi-tva"
     },
     {
       "box": "228",
       "kind": "tax",
       "name": "7. Taxe régularisée - régime particulier suspensif (art.60bis/9, al. 2)",
       "sequence": 1480,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 7. Taxe régularisée - régime particulier suspensif (art.60bis/9, al. 2) » ; Loi TVA, art. 60bis, par. 9, alinéa 2"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 7. Taxe régularisée - régime particulier suspensif (art.60bis/9, al. 2) » ; Loi TVA, art. 60bis, par. 9, alinéa 2",
+      "source": "loi-tva"
     },
     {
       "box": "093",
@@ -1255,21 +1403,24 @@
         "092",
         "228"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « A. Total de la taxe en amont » ; Loi TVA, art. 48"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « A. Total de la taxe en amont » ; Loi TVA, art. 48",
+      "source": "loi-tva"
     },
     {
       "box": "094",
       "kind": "tax",
       "name": "1. en rapport avec des opérations exonérées en vertu des art. 44, 56quater, 57bis, 57ter et 57quater",
       "sequence": 1500,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 1. en rapport avec des opérations exonérées en vertu des art. 44, 56quater, 57bis, 57ter et 57quater » ; Loi TVA, art. 49, par. 1er"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 1. en rapport avec des opérations exonérées en vertu des art. 44, 56quater, 57bis, 57ter et 57quater » ; Loi TVA, art. 49, par. 1er",
+      "source": "loi-tva"
     },
     {
       "box": "095",
       "kind": "tax",
       "name": "2. en application du prorata visé à l'article 50",
       "sequence": 1510,
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 2. en application du prorata visé à l'article 50 » ; Loi TVA, art. 50"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « 2. en application du prorata visé à l'article 50 » ; Loi TVA, art. 50",
+      "source": "loi-tva"
     },
     {
       "box": "097",
@@ -1280,7 +1431,8 @@
         "094",
         "095"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « B. Total de la taxe en amont non déductible » ; Loi TVA, art. 49 et 50"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « B. Total de la taxe en amont non déductible » ; Loi TVA, art. 49 et 50",
+      "source": "loi-tva"
     },
     {
       "box": "102",
@@ -1293,7 +1445,8 @@
       "minus": [
         "097"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « C. Total de la taxe en amont déductible (093-097) (à reporter au point IV.B) »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), III. Calcul de la taxe déductible, « C. Total de la taxe en amont déductible (093-097) (à reporter au point IV.B) »",
+      "source": "loi-tva"
     },
     {
       "box": "103",
@@ -1303,7 +1456,8 @@
       "plus": [
         "076"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « A. Total de la taxe en aval (report du point II.H.) »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « A. Total de la taxe en aval (report du point II.H.) »",
+      "source": "loi-tva"
     },
     {
       "box": "104",
@@ -1313,7 +1467,8 @@
       "plus": [
         "102"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « B. Total de la taxe en amont déductible (report du point III.C.) »"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « B. Total de la taxe en amont déductible (report du point III.C.) »",
+      "source": "loi-tva"
     },
     {
       "box": "105",
@@ -1326,7 +1481,8 @@
       "minus": [
         "104"
       ],
-      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « C. Excédent (un éventuel excédent de taxe en amont est à marquer d'un signe négatif) (103-104) » ; Loi TVA, art. 61bis"
+      "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 64 — formulaire eCDF de déclaration périodique de TVA (TVA_DECM mensuelle, TVA_DECT trimestrielle), IV. Calcul de l’excédent, « C. Excédent (un éventuel excédent de taxe en amont est à marquer d'un signe négatif) (103-104) » ; Loi TVA, art. 61bis",
+      "source": "loi-tva"
     }
   ]
 }

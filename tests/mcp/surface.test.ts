@@ -42,6 +42,7 @@ const READ_TOOLS = [
   'financial_statement',
   'generate_fec',
   'read_audit_log',
+  'describe_pack',
   'status',
 ];
 

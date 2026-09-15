@@ -2,25 +2,133 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "schema_min": "20260914163943",
   "seed_sequence": 10,
   "released_at": "2026-09-15",
   "certification": {
     "status": "maintained",
     "sources": [
-      "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
-      "Code de la TVA, art. 37",
-      "Arrêté royal n. 20 du 20 juillet 1970",
-      "Arrêté royal n. 1 du 29 décembre 1992, art. 20",
-      "Code de la TVA, art. 45, par. 2 et par. 3 — limitation et exclusion du droit a deduction",
-      "Code de la TVA, art. 17 — exigibilité de la taxe à l'émission de la facture",
-      "Code de la TVA, art. 39, 39bis et 56bis — exonérations et régime de la franchise",
-      "Arrêté royal n° 1 du 29 décembre 1992, art. 5 — numérotation séquentielle des factures",
-      "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 4, 5 et 6",
-      "Loi du 6 février 2024 modifiant le Code de la TVA — facturation électronique structurée",
-      "Code des impôts sur les revenus 1992, art. 61 à 64 et art. 196, § 2 — amortissements, durées usuelles et régime dégressif",
-      "Arrêté royal d'exécution du CIR 92, art. 36 à 43 — modalités du régime dégressif"
+      {
+        "key": "pcmn",
+        "title": "Arrêté royal du 21 octobre 2018 portant exécution des articles III.82 à III.95 du Code de droit économique, annexe 1 — plan comptable minimum normalisé",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/2018/10/21/2018014350/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "code-tva",
+        "title": "Code de la taxe sur la valeur ajoutée, institué par la loi du 3 juillet 1969",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/loi/1969/07/03/1969070305/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "ar-20",
+        "title": "Arrêté royal n° 20 du 20 juillet 1970 fixant les taux de la taxe sur la valeur ajoutée et déterminant la répartition des biens et des services selon ces taux",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/1970/07/20/1970072012/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "ar-1",
+        "title": "Arrêté royal n° 1 du 29 décembre 1992 relatif aux mesures tendant à assurer le paiement de la taxe sur la valeur ajoutée",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/1992/12/29/1992003823/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "ar-7",
+        "title": "Arrêté royal n° 7 du 29 décembre 1992 relatif aux importations de biens pour l'application de la taxe sur la valeur ajoutée",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/1992/12/29/1992003833/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "cir-92",
+        "title": "Code des impôts sur les revenus 1992",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/loi/1992/04/10/1992041050/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "ar-cir-92",
+        "title": "Arrêté royal du 27 août 1993 d'exécution du Code des impôts sur les revenus 1992",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/1993/08/27/1993082751/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "comptes-annuels",
+        "title": "Arrêté royal du 29 avril 2019 portant exécution du Code des sociétés et des associations, dont les annexes fixent les schémas des comptes annuels",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/arrete/2019/04/29/2019011967/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "regulation"
+      },
+      {
+        "key": "retard-de-paiement",
+        "title": "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/loi/2002/08/02/2002009716/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "facturation-electronique",
+        "title": "Loi du 6 février 2024 modifiant le Code de la taxe sur la valeur ajoutée et le Code des impôts sur les revenus 1992 en ce qui concerne l'introduction de l'obligation de facturation électronique",
+        "publisher": "SPF Justice — Moniteur belge (Justel)",
+        "url": "https://www.ejustice.just.fgov.be/eli/loi/2024/02/06/2024001635/justel",
+        "consulted_on": "2026-09-15",
+        "kind": "law"
+      },
+      {
+        "key": "declaration-periodique",
+        "title": "Déclaration périodique à la TVA — formulaire 625 et sa notice détaillée pour la rédaction des déclarations",
+        "publisher": "SPF Finances",
+        "url": "https://finances.belgium.be/fr/entreprises/tva/declaration/declaration-periodique",
+        "consulted_on": "2026-09-15",
+        "kind": "form"
+      },
+      {
+        "key": "intervat",
+        "title": "Intervat — l'application par laquelle les déclarations à la TVA sont déposées",
+        "publisher": "SPF Finances",
+        "url": "https://finances.belgium.be/fr/E-services/Intervat/",
+        "consulted_on": "2026-09-15",
+        "kind": "portal"
+      },
+      {
+        "key": "en-16931",
+        "title": "EN 16931-1 — modèle sémantique de la facture électronique européenne, et la conformité que la directive 2014/55/UE en attend",
+        "publisher": "Commission européenne",
+        "url": "https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "uncl5305",
+        "title": "UNCL5305 — liste des codes de catégorie de TVA (BT-118 et BT-151), sous-ensemble publié pour EN 16931",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      },
+      {
+        "key": "vatex",
+        "title": "VATEX — liste des codes de motif d'exonération de TVA (BT-121)",
+        "publisher": "OpenPEPPOL — liste publiée par la Commission européenne",
+        "url": "https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/",
+        "consulted_on": "2026-09-15",
+        "kind": "standard"
+      }
     ]
   },
   "defaults": {
@@ -105,7 +213,8 @@
         "BE-BNB-ABBR-IS",
         "BE-BNB-ABBR-AF"
       ],
-      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1"
+      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1",
+      "source": "pcmn"
     },
     {
       "code": "asbl",
@@ -116,11 +225,18 @@
       "certification": {
         "status": "community",
         "sources": [
-          "Arrêté royal du 21 octobre 2018, annexe 1 — plan comptable minimum normalisé",
-          "Code des sociétés et des associations, livre 3"
+          {
+            "key": "csa",
+            "title": "Code des sociétés et des associations, livre 3 — les associations et les fondations",
+            "publisher": "SPF Justice — Moniteur belge (Justel)",
+            "url": "https://www.ejustice.just.fgov.be/eli/loi/2019/03/23/2019A40586/justel",
+            "consulted_on": "2026-09-15",
+            "kind": "law"
+          }
         ]
       },
-      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1, appliqué aux associations par le Code des sociétés et des associations"
+      "legal_reference": "Arrêté royal du 21 octobre 2018, annexe 1, appliqué aux associations par le Code des sociétés et des associations",
+      "source": "pcmn"
     }
   ],
   "documents": {
@@ -135,42 +251,48 @@
         "applies_when": "reverse_charge",
         "text": "Autoliquidation — taxe à acquitter par le cocontractant.",
         "sequence": 10,
-        "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20"
+        "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 20",
+        "source": "ar-1"
       },
       {
         "code": "intracom_goods",
         "applies_when": "intra_eu_goods",
         "text": "Livraison intracommunautaire exonérée — autoliquidation par l'acquéreur.",
         "sequence": 20,
-        "legal_reference": "Code de la TVA, art. 39bis"
+        "legal_reference": "Code de la TVA, art. 39bis",
+        "source": "code-tva"
       },
       {
         "code": "intracom_services",
         "applies_when": "intra_eu_services",
         "text": "Autoliquidation — TVA due par le preneur.",
         "sequence": 30,
-        "legal_reference": "Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196"
+        "legal_reference": "Code de la TVA, art. 21, § 2 ; directive 2006/112/CE, art. 44 et 196",
+        "source": "code-tva"
       },
       {
         "code": "export",
         "applies_when": "export",
         "text": "Exportation exonérée de TVA.",
         "sequence": 40,
-        "legal_reference": "Code de la TVA, art. 39"
+        "legal_reference": "Code de la TVA, art. 39",
+        "source": "code-tva"
       },
       {
         "code": "small_business",
         "applies_when": "small_business",
         "text": "Régime particulier de franchise des petites entreprises — TVA non applicable.",
         "sequence": 50,
-        "legal_reference": "Code de la TVA, art. 56bis"
+        "legal_reference": "Code de la TVA, art. 56bis",
+        "source": "code-tva"
       },
       {
         "code": "late_payment",
         "applies_when": "late_payment",
         "text": "À défaut de paiement à l'échéance, un intérêt au taux légal applicable aux transactions commerciales et une indemnité forfaitaire de 40 € pour frais de recouvrement sont dus de plein droit et sans mise en demeure.",
         "sequence": 60,
-        "legal_reference": "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 5 et 6"
+        "legal_reference": "Loi du 2 août 2002 concernant la lutte contre le retard de paiement dans les transactions commerciales, art. 5 et 6",
+        "source": "retard-de-paiement"
       }
     ]
   },
@@ -179,7 +301,8 @@
     "mandatory_from": "2026-01-01",
     "party_scheme": "0208",
     "vat_scheme": "9925",
-    "legal_reference": "Loi du 6 février 2024 modifiant le Code de la TVA, art. 53, § 2 — facturation électronique structurée entre assujettis établis en Belgique à partir du 1er janvier 2026"
+    "legal_reference": "Loi du 6 février 2024 modifiant le Code de la TVA, art. 53, § 2 — facturation électronique structurée entre assujettis établis en Belgique à partir du 1er janvier 2026",
+    "source": "facturation-electronique"
   },
   "bank": {
     "statement_formats": [
