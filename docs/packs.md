@@ -1271,6 +1271,13 @@ of the three posting types described above. Start with the plain cases in both
 directions, then the ones that are actually specific to your country: a partly
 deductible tax, a reverse charge, a tax due on collection.
 
+`treatment`, `vat_category` and `exemption_code` are three tellings of one
+fact, and `ekwo pack check` refuses them when they disagree — so the table
+under "What a tax says on the invoice" is the fastest way to fill the last two
+in. Read the two decisions under it before you fill a purchase-side tax: the
+category there is the one the *supplier's* invoice carries, and where no
+invoice governed by EN 16931 exists there is none to record.
+
 ### 5. The declaration form
 
 `tax_report.json` is one form and its boxes. A `base` or a `tax` box is summed
