@@ -540,21 +540,53 @@ hidden box `67` and rebuilds boxes 6 and 7 as totals of the period's own sales
 or purchases plus that box, which costs three hidden boxes on a nine-box form —
 and is exact. The Estonian fix covers both shapes and is still the fix.
 
-**A price that includes the tax is declared and never computed.** `price_include`
-has been a column since phase 0, and the note beside it said the gross-to-net
-computation "arrives with the country that needs it". This is that country: a
-British retail price is quoted with the VAT in it as a matter of course, and
-VAT Notice 700 publishes the fraction that takes it back out — the rate over one
-hundred plus the rate, one sixth at 20 %. `post_document` reads the column and
-does nothing with it: the unit price is treated as net and the tax is added on
-top, whichever way the flag is set. *Fix*: where the tax of a line carries
-`price_include`, take the unit price as gross and compute the base as
-`price × 100 / (100 + rate)`, with the tax still rounded once per group as
-BR-CO-14 requires. *Until then*: `GB-S-20-INC` exists and is booked in the
-golden scenario on purpose, with a `why` saying that the figures it produces are
-the ones a retailer would not file, so that the gap is visible in a number
-rather than only in a sentence. A British retailer using Ekwo today enters net
-prices.
+~~**A price that includes the tax is declared and never computed.**~~
+**Closed, 15 September 2026.** The engine takes the tax out of the gross of
+each tax group, rounds it once as BR-CO-14 requires, subtracts it to get the
+base — so `base + tax` is the price that was quoted, always — and shares that
+base back over the lines in proportion to their gross, the last line taking the
+remainder. The line keeps the gross it was quoted at and a snapshot of the flag,
+frozen when the document is posted. `GB-S-20-INC` is now booked in the golden
+scenario for what it is, a day of counter sales of 5 493,92 gross, and
+`docs/decisions.md` is where the arithmetic and the three refusals are written
+down. The shared invoice carries the two fields too, so a link says which price
+it is showing. Two narrower gaps came out of it and are below: the choice HMRC
+gives a retailer between two rounding units, and BT-146, the net unit price,
+which nothing publishes where the price was quoted gross.
+
+**A rounding *unit* is a choice a country may give a trader, and nothing can
+record it.** VAT Notice 700, §§ 17.5 and 17.6, lets a retailer work the tax out
+line by line or invoice by invoice, and both are lawful. Ekwo does it invoice by
+invoice, per tax group, because that is what EN 16931 BR-CO-14 requires of a
+structured invoice and a line-by-line figure would fail validation. That is the
+right default and it is still a choice made for the trader rather than by them.
+*Fix*: whatever records the choice belongs beside the other one on this page —
+a nullable column on `companies` overriding the country, in the shape
+`vat_period` already has — and it is a different field from
+`rounding_method`, which is the arithmetic and not the unit it applies to. No
+new vocabulary was invented for it here, on purpose: a word in the pack format
+is a word every pack has to mean something by. *Until then*: a British retailer
+who works line by line files a figure Ekwo does not produce, and is within a
+penny or two of it on any invoice with more than one line.
+
+**BT-146 is the net unit price, and nothing publishes it where the price was
+quoted gross.** `document_lines.unit_price` is the price as it was keyed, which
+on a retail line is the gross one, and `document_line_items` hands it on under
+that name. Nothing is ambiguous about it — the view and the shared payload both
+carry `unit_price_includes_tax` and `amount_incl_tax`, so a reader knows which
+price they have and what the gross was — but the net unit price itself is not
+published anywhere. Its honest definition is the base divided by the quantity,
+because BR-CO-10 wants quantity times BT-146 to be BT-131 and the group's
+remainder lands on a line. What stops it
+being a column today is the precision: it is the *price* column's six decimals
+and not the currency's, which `round_amount` does not express, and writing
+`::numeric(16, 6)` would put a second place where decimals are decided —
+exactly what `npm run check:rounding` exists to refuse, and it refuses it.
+*Fix*: a way to say "at the precision this column has" that the rounding rule
+owns, then a `unit_price_net` beside the two fields that are already there.
+*Until then*: a renderer that needs BT-146 divides `amount_untaxed` by the
+quantity itself, which is the same arithmetic done one layer out, and every
+pack here but the British retail tax prices net and is unaffected.
 
 **A rounding rule belongs to a country, and HMRC gives one to each kind of
 trader.** `country_defaults.rounding_method` is one value per country and there

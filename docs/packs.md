@@ -300,7 +300,7 @@ the money goes, per kind of document.
 |---|---|
 | `kind` | `vat`, `gst`, `sales_tax`, `withholding`, `other`. A label for the reports, never an input to the calculation. Defaults to `vat`. |
 | `recoverable` | `false` when the buyer never gets the tax back — American sales tax, Canadian PST, a wholly non-deductible VAT. |
-| `price_include` | The unit price already holds the tax (UK and Australian retail). Compiled to a column; the gross-to-net computation waits for the country that needs it. |
+| `price_include` | The unit price of a line carrying this tax already holds it (British, Australian and most retail). The engine adds the tax to the gross of the **tax group**, rounds it once as BR-CO-14 requires, takes it back off to get the base, and shares that base over the lines in proportion to their gross with the remainder on the last — so the document totals the price that was quoted, to the unit. A discount applies to the gross, before the conversion. Only a percentage tax may declare it: a fixed amount has no rate to divide by, and `ekwo pack check` refuses one. |
 | `jurisdiction` | ISO 3166-2 **with** the country prefix (`CA-QC`, `US-CA`) for a tax levied by a state. Null in Europe. |
 | `cash_basis`, `cash_basis_transition_account` | The tax falls due when the invoice is paid, not when it is issued. `post_document` books it — and the base it is computed on — on the transition account and on no declaration box; the matching moves the settled share to the account and the box it is declared on. A cash-basis tax has to name its transition account and takes **one** `tax` posting per document kind, with no `tax_on_base`: `ekwo pack check` refuses the rest. |
 

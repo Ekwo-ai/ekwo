@@ -96,9 +96,9 @@ nothing to widen. It answers with one jsonb object:
   "buyer":     { "name", "vat_number", "registration_number", "address_line1",
                  "address_line2", "postal_code", "city", "country" },
   "lines":     [ { "sequence", "type", "name", "description", "quantity",
-                   "unit_code", "unit_price", "discount_percent",
-                   "amount_untaxed", "tax_category", "tax_rate",
-                   "tax_exemption_code" } ],
+                   "unit_code", "unit_price", "unit_price_includes_tax",
+                   "discount_percent", "amount_untaxed", "amount_incl_tax",
+                   "tax_category", "tax_rate", "tax_exemption_code" } ],
   "tax_summary": [ { "name", "category", "rate", "base_amount", "tax_amount" } ],
   "totals":    { "amount_untaxed", "amount_tax", "amount_total" },
   "payment":   { "state", "amount_paid", "amount_residual", "last_payment_date" },
@@ -106,7 +106,7 @@ nothing to widen. It answers with one jsonb object:
 }
 ```
 
-Four things about that shape are deliberate.
+Five things about that shape are deliberate.
 
 **Every amount is a decimal string.** A JSON number is a double by the time it
 reaches a browser, and an invoice total that arrives as `1210.0000000000002` is
@@ -121,6 +121,16 @@ what makes a link worth keeping: a customer who paid last week opens the same
 link and sees that it is settled. `tax_amount` in the breakdown is what the
 other party actually pays — zero where the tax self-assesses — so the breakdown
 adds up to `totals.amount_tax`.
+
+**A line says which price it is showing.** `unit_price` is the price as it was
+keyed, and on a line whose tax prices with the tax in it — a retail sale in a
+country that quotes gross — that is the gross price, while `amount_untaxed` is
+net. `unit_price_includes_tax` says which world the line is in and
+`amount_incl_tax` is the gross the line was quoted at, `null` everywhere else.
+A renderer prints a till receipt from the gross or an EN 16931 invoice from the
+net, and neither has to divide anything to find out which it has. The net unit
+price itself, BT-146, is not in the object yet; `docs/international.md` says
+why.
 
 **The legal mentions come out in the document's own language**, which is
 `documents.language` — taken from the customer, else the company, else the

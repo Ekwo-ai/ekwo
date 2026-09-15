@@ -3258,3 +3258,82 @@ before a deadline. A gate on any of that fails a contributor's pull request for
 something nobody in it did, and the cheapest way to make it green is to delete
 the link, which is the opposite of what the register is for. It reports a
 reading. A maintainer decides.
+
+## A price that already holds its tax (15 September 2026)
+
+`taxes.price_include` had been a column since the tax engine landed and was
+read by nothing. A retail price in the United Kingdom, in Australia and in
+almost anything sold to a consumer is quoted with the tax already in it, and a
+line carrying such a tax was booked with the tax added *on top* of the price
+the customer had paid.
+
+**The group is the unit of the conversion, not the line.** For every tax group
+of a document quoted gross, the tax is `round(gross - gross / (1 + rate/100))`
+— rounded once, at the decimals of the document's currency, by the method of
+its country — and the base is the gross less that tax. EN 16931 BR-CO-14 asks
+for exactly that one rounding per group, and HMRC's VAT Notice 700 admits it to
+a retailer in §§ 17.5 and 17.6 as the invoice-by-invoice method, beside a
+line-by-line one. Nothing here invents a word for the choice between them:
+`rounding_method` is the *arithmetic* of a country and not the unit the
+arithmetic is applied to, and a pack declaring "per line" would be declaring an
+invoice that fails validation. Where a country really does let a trader choose,
+that is a gap, and `docs/international.md` is where it is written down.
+
+**The base is subtracted, never computed.** `gross x 100 / (100 + rate)`
+rounded on its own, beside a tax rounded on its own, misses the gross by a unit
+about one price in fifty at 20 %. Subtracting makes `base + tax = gross` true by
+construction, which is the one thing a customer holding the receipt can check.
+
+**And the tax is never re-derived from the base.** The breakdown used to
+compute every group's tax as `round(base x rate / 100)`. Applied to a base that
+came out of the subtraction, that is not always the tax that produced it: 99,99
+at 20 % gives a tax of 16,67 and a base of 83,32, and 83,32 at 20 % rounds back
+to 16,66 — a total of 99,98 against a price of 99,99. So `document_tax_summary`
+computes an inclusive group's tax from the gross it was quoted at, and every
+other group exactly as before. No figure of any pack that prices without the
+tax moves by a cent.
+
+**The base is shared over the lines, and the last one takes the remainder.**
+The same technique `post_document` uses to share a `tax_on_base` over the
+accounts it lands on, for the same reason: the shares have to add up to the
+figure that was rounded once. `document_lines.amount_untaxed` stays the truth
+and stays derived — its `before` trigger writes what one line on its own comes
+to, which is the whole answer when the group has one line, and the `after`
+trigger that refreshes the document's totals replaces it with the line's share.
+
+**The line keeps the gross and the flag.** `amount_incl_tax` is the price as it
+was quoted, which is the only figure a retailer recognises and the only one the
+conversion can be redone from; `unit_price_includes_tax` is a snapshot taken
+from the tax while the document is a draft and frozen when it is posted, the
+rule BT-151 and BT-152 already follow. A pack upgrade that turns the flag on a
+tax must not rewrite an invoice somebody has already sent.
+
+**`unit_price` is the price as it was keyed, and that is no longer BT-146.**
+`document_line_items` publishes the flag and the gross beside the base, and
+`shared_document()` carries both into the payload behind a link — it names every
+field of a line by hand, so a column added to the view does not reach it on its
+own, and a customer opening a retail invoice would otherwise have been shown a
+gross price beside a net line amount with nothing saying which is which. Neither
+publishes the net unit price. The honest definition is
+the base divided by the quantity — the only one that keeps BR-CO-10, quantity
+times BT-146 equals BT-131, true after the group's remainder has landed on a
+line — and writing it needs the precision of the *price* column rather than the
+currency's, which `round_amount` does not express and a cast would smuggle past
+the one place decimals are decided. It is a gap, and `docs/international.md`
+carries it rather than an exception to the rounding rule.
+
+**Three refusals, each as early as it can be made.** A fixed-amount tax cannot
+price with the tax in it, because there is no rate to divide by: a check
+constraint on `taxes` and on `tax_templates`, and `ekwo pack check` before a
+seed is written. A line whose price includes a tax has to name one: a check
+constraint. And a tax group cannot be half inclusive — the only way to build
+one is to change the tax between two line writes of the same draft —
+`mixed_price_include` says so where it happens rather than letting the document
+be posted with a gross line added to a net one.
+
+**What still rounds at two decimals.** `document_lines.amount_untaxed` and
+`amount_incl_tax` are `numeric(16, 2)` like every other monetary column here,
+so a currency with three decimals loses the third on the way into the column
+rather than in the rule. That gap is named above and in
+`tests/currency_rounding.test.ts`, and it is why the three-decimal case is
+asserted on the figure the view computes and not on the one the column stores.

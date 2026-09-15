@@ -447,6 +447,14 @@ export interface DocumentLine {
   vat_category: string | null;
   vat_rate: Decimal | null;
   amount_untaxed: Decimal;
+  /**
+   * The unit price was quoted with the tax in it. Snapshotted from the tax
+   * while the document is a draft and frozen when it is posted, so `unit_price`
+   * is the gross price and `amount_untaxed` the net one.
+   */
+  unit_price_includes_tax: boolean;
+  /** The gross the line was quoted at. Null where the price excludes the tax. */
+  amount_incl_tax: Decimal | null;
 }
 
 /** One row of the `document_line_items` view: a line with its EN 16931 item terms. */
@@ -473,6 +481,10 @@ export interface DocumentLineItem {
   vat_category: string | null;
   vat_rate: Decimal | null;
   account_id: Uuid | null;
+  /** The unit price above was quoted with the tax in it, so it is the gross one. */
+  unit_price_includes_tax: boolean;
+  /** The gross the line was quoted at. Null where the price excludes the tax. */
+  amount_incl_tax: Decimal | null;
 }
 
 /** One row of `trial_balance(company_id, from, to)`. */

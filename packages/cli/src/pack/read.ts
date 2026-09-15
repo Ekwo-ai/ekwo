@@ -2522,6 +2522,17 @@ function crossReferences(manifest: Manifest, charts: PackChart[], taxes: PackTax
         message: 'a tax that falls due on collection has to name the account it waits on',
       });
     }
+    // A price that holds its tax is divided by one plus the rate, and a fixed
+    // amount has no rate to divide by: "the price includes 0.50" is a discount,
+    // not a tax. The schema refuses it too, and this is the reading that says
+    // so before a seed is written.
+    if (tax.price_include && tax.amount_type !== 'percent') {
+      issues.push({
+        path: `taxes.json ${tax.code}`,
+        message:
+          'a price that already holds its tax needs a rate to take it back out, and a fixed amount is not one',
+      });
+    }
     for (const [kind, postings] of Object.entries(tax.postings)) {
       const bases = postings.filter((p) => p.type === 'base');
       if (bases.length > 1) {

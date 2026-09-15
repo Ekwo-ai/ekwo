@@ -115,9 +115,11 @@
       "type": "sale_invoice",
       "contact": "cust-uk",
       "date": "2026-07-08",
-      "why": "A retail sale priced with the VAT already in it. price_include says so and nothing in the core reads it yet, so the figures below are 20 % added on top of 24.00 rather than one sixth taken out of it — which is the gap this pack was written to show.",
+      "why": "A day of counter sales priced with the VAT already in it, which is how a British shop quotes to a consumer. The three lines are quoted gross — the third after 15 % off the marked price — and the engine takes the tax out of the group's gross, rounds it once as BR-CO-14 requires, and shares the base back over the lines: the invoice totals the 5 493.92 the customers actually paid, never a penny beside it. The three shares rounded on their own would come to a penny more than the base, so the last line carries the remainder, which is what makes this document worth keeping.",
       "lines": [
-        { "name": "Counter sales", "quantity": 300, "unit_price": 24, "tax": "GB-S-20-INC", "account": "4070" }
+        { "name": "Waxed jackets", "quantity": 100, "unit_price": 49.99, "tax": "GB-S-20-INC", "account": "4070" },
+        { "name": "Walking boots", "quantity": 4, "unit_price": 59.99, "tax": "GB-S-20-INC", "account": "4070" },
+        { "name": "Clearance rail, 15 % off the marked price", "quantity": 5, "unit_price": 59.99, "discount_percent": 15, "tax": "GB-S-20-INC", "account": "4070" }
       ]
     },
     {

@@ -11,6 +11,36 @@ somewhere has already run it.
 
 ### Added
 
+- **A price that already holds its tax.** `taxes.price_include` had been a
+  column since the tax engine landed and was read by nothing: a line carrying
+  such a tax was booked with the tax added *on top* of the price the customer
+  had already paid, so a till roll of 5 493,92 became an invoice of 6 592,70.
+  The engine now takes the tax out of the **gross of the tax group** — rounded
+  once, at the decimals of the document's currency, as EN 16931 BR-CO-14
+  requires and as VAT Notice 700 §§ 17.5 and 17.6 allow a retailer to do
+  invoice by invoice — subtracts it so that `base + tax` is the price that was
+  quoted to the unit, and shares that base back over the lines in proportion to
+  their gross with the remainder on the last, which is the technique
+  `post_document` already used for a non-deductible share. A discount applies
+  to the gross, before the conversion. The line keeps the gross it was quoted
+  at and a snapshot of the flag, frozen when the document is posted so a pack
+  upgrade cannot rewrite an invoice that has been sent; `document_line_items`
+  publishes both beside the base and `shared_document()` carries them into the
+  payload behind a link, so a customer opening a retail invoice is no longer
+  shown a gross unit price beside a net line amount with nothing saying which is
+  which. Three refusals answer by name: a fixed-amount tax has no rate to divide by, a line
+  whose price includes a tax has to name one, and a tax group cannot be half
+  inclusive. `packs/gb/` bumps to **0.2.0**, on top of the 0.1.1 below — the
+  same retail tax, its legal reference no longer describing a gap, and a golden
+  document of three counter sales quoted gross, one of them after a discount,
+  whose shares only add up because the last line takes the remainder. The four other packs do not move
+  and their golden files are unchanged to the byte. The note in
+  [`docs/international.md`](docs/international.md) is closed, the arithmetic is
+  in [`docs/decisions.md`](docs/decisions.md), and two narrower gaps opened
+  beside it: the choice HMRC gives a retailer between two rounding units, and
+  BT-146, the net unit price, which nothing publishes where the price was quoted
+  with the tax in it.
+
 - **The United Kingdom, `packs/gb/`, and the first country outside the Union.**
   Every pack before it could lean on the VAT Directive, on the
   intra-Community mechanism and on the European code lists, and nobody knew how

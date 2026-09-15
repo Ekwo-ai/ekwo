@@ -273,6 +273,8 @@ export const DOCUMENT_LINE = [
   'vat_category',
   'vat_rate::text',
   'amount_untaxed::text',
+  'unit_price_includes_tax',
+  'amount_incl_tax::text',
 ];
 
 export const ENTRY = [

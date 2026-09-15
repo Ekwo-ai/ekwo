@@ -806,10 +806,13 @@ Document lines in a table, not JSON: EN 16931 needs a VAT category per line and 
 | `updated_at` | `timestamp with time zone` | not null |
 | `product_id` | `uuid` | The catalogue row this line was filled in from, when there was one. Nullable for ever: free text is how most invoices are written. |
 | `description` | `text` | Item description, EN 16931 BT-154. `name` is BT-153. |
+| `unit_price_includes_tax` | `boolean` | not null — The unit price of this line was quoted with the tax in it. Derived from the tax while the document is a draft and frozen when it is posted, like BT-151 and BT-152, so a later change to the tax cannot rewrite an invoice that has been sent. |
+| `amount_incl_tax` | `numeric(16,2)` | quantity x unit_price less the discount, tax included, as the line was quoted. Null where the price excludes the tax, which is every line of every pack but a retail one. |
 
 Constraints:
 
 - `CHECK (((discount_percent >= (0)::numeric) AND (discount_percent < (100)::numeric)))`
+- `CHECK (((NOT unit_price_includes_tax) OR (tax_id IS NOT NULL)))`
 - `CHECK (((line_type <> 'product'::document_line_type) OR (account_id IS NOT NULL)))`
 - `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
@@ -1472,7 +1475,7 @@ Reference taxes per country, with their period of validity.
 | `tax_kind` | `tax_kind` | not null — vat, gst, sales_tax, withholding, other. A label for the reports, never an input to the calculation. |
 | `recoverable` | `boolean` | not null — False when the buyer never gets the tax back: American sales tax, Canadian PST. Where it lands is said by a tax_on_base posting. |
 | `jurisdiction` | `text` | ISO 3166-2 with the country prefix — CA-QC, US-CA — for a tax levied by a state. Null in Europe. |
-| `price_include` | `boolean` | not null — The unit price already holds the tax (UK and Australian retail). `taxes` carried this from the start and the template did not. |
+| `price_include` | `boolean` | not null — The unit price of a line carrying this tax is the gross price. Compiled from the pack and copied onto the tax a company installs. |
 | `cash_basis` | `boolean` | not null — The tax falls due when the invoice is paid rather than when it is issued, which is how France taxes services. post_document() books it on the transition account below and on no declaration box; reconcile() moves the settled share to the account and the box it is declared on. |
 | `cash_basis_transition_account_code` | `text` | Account the tax waits on between the invoice and its payment, by code in the chart of this country. Only read when cash_basis is true. |
 | `name_i18n` | `jsonb` | not null — Label by language, from packs/<cc>/i18n/. A translation of the same tax, never a different rate or a different rule. |
@@ -1480,6 +1483,7 @@ Reference taxes per country, with their period of validity.
 
 Constraints:
 
+- `CHECK (((NOT price_include) OR (amount_type = 'percent'::tax_amount_type)))`
 - `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
 - `UNIQUE (country, code)`
@@ -1505,7 +1509,7 @@ VAT and similar taxes, with temporal validity and a legal reference.
 | `legal_reference` | `text` |  |
 | `vat_category` | `text` | EN 16931 BT-118 / BT-151 category code, as UNCL5305 writes it: S, Z, E, AE, K, G, O, L, M. One or two capitals, never padded. |
 | `exemption_code` | `text` |  |
-| `price_include` | `boolean` | not null |
+| `price_include` | `boolean` | not null — The unit price of a line carrying this tax is the gross price: the engine takes the tax out of it per group rather than adding it on top. Only a percentage tax may say so. |
 | `sequence` | `integer` | not null |
 | `active` | `boolean` | not null |
 | `created_at` | `timestamp with time zone` | not null |
@@ -1520,6 +1524,7 @@ VAT and similar taxes, with temporal validity and a legal reference.
 Constraints:
 
 - `CHECK (((country IS NULL) OR (country ~ '^[A-Z]{2}$'::text)))`
+- `CHECK (((NOT price_include) OR (amount_type = 'percent'::tax_amount_type)))`
 - `CHECK (((valid_to IS NULL) OR (valid_to >= valid_from)))`
 - `CHECK (((vat_category IS NULL) OR (vat_category ~ '^[A-Z]{1,2}$'::text)))`
 - `PRIMARY KEY (id)`
@@ -1604,8 +1609,10 @@ Constraints:
 | `current_api_key()` | The key presented in this transaction, or nothing. What a client reads back to know what it may do. |
 | `declaration_period_of(p_from date, p_to date)` | The cadence a pair of dates is a whole one of — month, quarter, year — or null when the two dates are not a filing period at all. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. Needs company.write. |
-| `document_lines_amount_untaxed()` | Derives a line's amount from its quantity, price and discount, rounded once at the decimals of the document's currency. What the generated column used to do, minus the assumption that every currency has cents. |
+| `document_lines_amount_untaxed()` | Derives a line's amounts from its quantity, price and discount, rounded once at the decimals of the document's currency: the net, the gross where the price includes the tax, and the snapshot of whether it does. |
+| `document_lines_refresh_totals()` | After a line moves: shares out the base of every tax group quoted with its tax in it, then refreshes the three totals of the document. |
 | `document_share_refusal(p_document documents)` | Why this document may not be shared, or null when it may. Sales only, never cancelled, never an unposted invoice, always numbered. |
+| `documents_allocate_included_tax(p_document_id uuid)` | Turns the gross of every tax group quoted with the tax in it into a base: the tax rounded once on the group (BR-CO-14), the base the gross less that tax, shared over the lines in proportion to their gross with the remainder on the last. Refuses a group that is half inclusive, by name. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_guard_language()` | Fills documents.language from the customer, then the company, then the country pack when a document is created, keeps a draft in step with the customer it is addressed to, and refuses document_language_frozen on anything that is no longer a draft. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
@@ -1671,7 +1678,7 @@ Constraints:
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
 | `share_document(p_document_id uuid, p_expires_at timestamp with time zone)` | Publishes a sales document behind a link and returns the token once — only its hash is stored. `url` is the instance's public base plus /shared/<token>, or null where the instance has not recorded one. A share is never edited: revoke it and make another. |
-| `shared_document(p_token text)` | One document, read by whoever holds its link: the header, the lines, the tax breakdown, the totals, the legal mentions in the language the document was written in, and what is still owed today. Returns null — the same null, in the same shape — for a token that is unknown, withdrawn, expired, or onto a document that may no longer be shared. |
+| `shared_document(p_token text)` | One document, read by whoever holds its link: the header, the lines with the price as it was keyed and whether that price holds the tax, the tax breakdown, the totals, the legal mentions in the language the document was written in, and what is still owed today. Returns null — the same null, in the same shape — for a token that is unknown, withdrawn, expired, or onto a document that may no longer be shared. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `territory_of(p_code text)` | The territory a code or a VAT prefix names, or null when this table carries none. A code wins over a prefix, so FR is France and not the Monaco row that identifies under it. |

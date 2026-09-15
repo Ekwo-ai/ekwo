@@ -171,7 +171,7 @@
     "treatment": "domestic",
     "valid_from": "2011-01-04",
     "price_include": true,
-    "legal_reference": "Finance (No. 2) Act 2010, s. 3 for the rate. A retail price in the United Kingdom is quoted with the VAT in it, and VAT Notice 700 gives the fraction that takes it back out — the rate divided by one hundred plus the rate, one sixth at 20 per cent. price_include records that the unit price of a line carrying this tax is the gross price; the core has no gross-to-net computation yet, so today it adds the tax on top of that price instead of taking it out.",
+    "legal_reference": "Finance (No. 2) Act 2010, s. 3 for the rate. A retail price in the United Kingdom is quoted with the VAT in it, and VAT Notice 700 gives the fraction that takes it back out — the rate divided by one hundred plus the rate, one sixth at 20 per cent. price_include records that the unit price of a line carrying this tax is the gross price: the engine takes the tax out of the group's gross and rounds it once, as §§ 17.5 and 17.6 of the notice allow a retailer to do invoice by invoice and as BR-CO-14 requires of a structured invoice.",
     "source": "notice-700",
     "vat_category": "S",
     "postings": {

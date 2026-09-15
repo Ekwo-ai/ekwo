@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.3.0",
-  "migration": "20260915191200",
+  "migration": "20260915195000",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1366,6 +1366,10 @@
             "type": "uuid"
           },
           {
+            "name": "amount_incl_tax",
+            "type": "numeric(16,2)"
+          },
+          {
             "name": "amount_untaxed",
             "type": "numeric(16,2)"
           },
@@ -1424,6 +1428,10 @@
           {
             "name": "unit_price",
             "type": "numeric(16,6)"
+          },
+          {
+            "name": "unit_price_includes_tax",
+            "type": "boolean"
           },
           {
             "name": "updated_at",
@@ -3191,6 +3199,10 @@
       {
         "name": "document_share_refusal",
         "arguments": "p_document documents"
+      },
+      {
+        "name": "documents_allocate_included_tax",
+        "arguments": "p_document_id uuid"
       },
       {
         "name": "documents_default_payee_iban",
@@ -5723,6 +5735,17 @@
         {
           "name": "document_share_refusal",
           "arguments": "p_document documents",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "documents_allocate_included_tax",
+          "arguments": "p_document_id uuid",
           "anon": [],
           "authenticated": [
             "execute"
