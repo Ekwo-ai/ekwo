@@ -1,0 +1,132 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/tax_report",
+  "code": "GB-VAT-RETURN",
+  "name": "VAT Return",
+  "period": [
+    "month",
+    "quarter",
+    "year"
+  ],
+  "valid_from": "2021-01-01",
+  "legal_reference": "Value Added Tax Act 1994, Schedule 11, paragraph 2 and the Value Added Tax Regulations 1995, reg. 25(1) — every registered person makes a return for each prescribed accounting period, which is a period of three months unless the Commissioners allow or direct another; a month is allowed on application and a year under the annual accounting scheme, so the form is filed on three cadences although the law gives one default. This pack proposes none in defaults.vat_period and lets `ekwo init` ask, because the core judges a proposal by the number of cadences the form accepts and not by what the law says; the gap is written up in docs/international.md, and a company that has asked the Commissioners for nothing files quarterly. Nine boxes, numbered 1 to 9, and their contents are VAT Notice 700/12, whose wording each box below repeats. The version carried here is the one in force since 1 January 2021, when boxes 2, 8 and 9 stopped being about the United Kingdom and became about Northern Ireland alone.",
+  "source": "notice-700-12",
+  "boxes": [
+    {
+      "box": "1",
+      "kind": "tax",
+      "name": "VAT due in the period on sales and other outputs",
+      "sequence": 10,
+      "legal_reference": "VAT Notice 700/12, box 1 — the output tax of the period, and with it the tax the person charges themselves: the VAT due on imports accounted for through postponed VAT accounting, the VAT due on a supply on which s. 55A of the Value Added Tax Act 1994 moves the liability to the customer, and the VAT due under s. 8 on a service received from a supplier established outside the United Kingdom.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "2",
+      "kind": "tax",
+      "name": "VAT due in the period on acquisitions of goods made in Northern Ireland from EU member states",
+      "sequence": 20,
+      "legal_reference": "VAT Notice 700/12, box 2 — the acquisition tax on goods brought into Northern Ireland from a member State of the European Union since 1 January 2021. This pack carries no tax that posts here: it is the pack of one registration covering Great Britain and Northern Ireland, and only the second of the two is inside the common system of VAT, for goods, which the core's `territories` table records as `XI` with the article of the Windsor Framework behind it. Modelling that trade is out of this pack's scope. The box is declared because the form has nine boxes and a return that omitted one would not be this form.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "3",
+      "kind": "total",
+      "name": "Total VAT due (the sum of boxes 1 and 2)",
+      "sequence": 30,
+      "plus": [
+        "1",
+        "2"
+      ],
+      "legal_reference": "VAT Notice 700/12, box 3 — the total of boxes 1 and 2, which the notice states as an arithmetic and not as an amount anybody books.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "4",
+      "kind": "tax",
+      "name": "VAT reclaimed in the period on purchases and other inputs (including acquisitions in Northern Ireland from EU member states)",
+      "sequence": 40,
+      "legal_reference": "VAT Notice 700/12, box 4 — the input tax the person is entitled to deduct under ss. 24 to 26 of the Value Added Tax Act 1994, including the VAT reclaimed on imports accounted for through postponed VAT accounting and the VAT self-assessed under a reverse charge. Tax the Value Added Tax (Input Tax) Order 1992 excludes from credit never reaches this box.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "5",
+      "kind": "total",
+      "name": "Net VAT to pay to HMRC or reclaim",
+      "sequence": 50,
+      "plus": [
+        "3"
+      ],
+      "minus": [
+        "4"
+      ],
+      "legal_reference": "VAT Notice 700/12, box 5 — deduct the number in box 4 from the number in box 3 and enter the difference. The notice's own arithmetic is a subtraction and this box is written as one, so a repayment period comes out negative here where the printed form shows a positive figure and says which way it goes.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "6",
+      "kind": "total",
+      "name": "Total value of sales and all other outputs excluding any VAT",
+      "sequence": 60,
+      "plus": [
+        "6s",
+        "67"
+      ],
+      "legal_reference": "VAT Notice 700/12, box 6 — the value, excluding VAT, of everything supplied in the period: standard-rated, reduced-rated, zero-rated, exempt and outside the scope of United Kingdom VAT, and exports. The notice also puts the value of a service received from an overseas supplier in this box as well as in box 7, which is why this box is a total of two: the sales of the period, and that one value, which box 7 adds too.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "7",
+      "kind": "total",
+      "name": "Total value of purchases and all other inputs excluding any VAT",
+      "sequence": 70,
+      "plus": [
+        "7p",
+        "67"
+      ],
+      "legal_reference": "VAT Notice 700/12, box 7 — the value, excluding VAT, of everything acquired in the period, including imports of goods and the value of a supply on which the customer accounts for the tax under s. 55A. The value of a service received from an overseas supplier is in this box and in box 6 at once, which is the second half of the total.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "8",
+      "kind": "base",
+      "name": "Total value of dispatches of goods and related costs (excluding VAT) from Northern Ireland to EU member states",
+      "sequence": 80,
+      "legal_reference": "VAT Notice 700/12, box 8 — goods dispatched from Northern Ireland to a member State of the European Union, with the costs directly related to them. Nothing in this pack posts here, for the same reason as box 2: see `territories` for what `XI` is.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "9",
+      "kind": "base",
+      "name": "Total value of acquisitions of goods and related costs (excluding VAT) made in Northern Ireland from EU member states",
+      "sequence": 90,
+      "legal_reference": "VAT Notice 700/12, box 9 — the value that box 2 is the tax on. Nothing in this pack posts here, for the same reason as box 2: see `territories` for what `XI` is.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "6s",
+      "kind": "base",
+      "name": "Value of sales and other outputs, other than the services received that boxes 6 and 7 both carry",
+      "sequence": 100,
+      "hidden": true,
+      "legal_reference": "The part of box 6 the form does not print separately. A tax writes one taxable amount to one box, and VAT Notice 700/12 asks for the value of a reverse-charge service received in box 6 and in box 7 at the same time; this pack therefore posts every sale here and builds box 6 from this box and from the shared one.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "7p",
+      "kind": "base",
+      "name": "Value of purchases and other inputs, other than the services received that boxes 6 and 7 both carry",
+      "sequence": 110,
+      "hidden": true,
+      "legal_reference": "The part of box 7 the form does not print separately, and the counterpart of box 6s. Every purchase of the period is posted here, including an import of goods and a purchase of construction services under the domestic reverse charge, which VAT Notice 700/12 puts in box 7 and deliberately not in box 6.",
+      "source": "notice-700-12"
+    },
+    {
+      "box": "67",
+      "kind": "base",
+      "name": "Value of services received from a supplier established outside the United Kingdom, which box 6 and box 7 both carry",
+      "sequence": 120,
+      "hidden": true,
+      "legal_reference": "VAT Notice 700/12 — for a service on which the customer accounts for the tax under s. 8 of the Value Added Tax Act 1994, the customer completes boxes 1, 4, 6 and 7. One amount and two printed boxes: this pack defines it once here and both printed boxes add it.",
+      "source": "notice-700-12"
+    }
+  ]
+}

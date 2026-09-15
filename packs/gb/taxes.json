@@ -1,0 +1,974 @@
+[
+  {
+    "code": "GB-S-175-1994",
+    "name": "Sale, standard rate 17.5 %",
+    "description": "The standard rate from the commencement of the Act to 30 November 2008",
+    "rate": 17.5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1994-09-01",
+    "valid_to": "2008-11-30",
+    "legal_reference": "Value Added Tax Act 1994, s. 2(1) — VAT is charged at the standard rate on the value of the supply. The rate is a code and a date in this pack, so the four standard rates the Act has carried are four codes: 17.5 % to 30 November 2008, 15 % from 1 December 2008 under S.I. 2008/3020, 17.5 % again from 1 January 2010 when the Finance Act 2009, s. 9 closed that Order, and 20 % from 4 January 2011 under the Finance (No. 2) Act 2010, s. 3. This code is the rate in force when the Act came into force on 1 September 1994 (s. 101(1)).",
+    "source": "vata-1994",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 10
+  },
+  {
+    "code": "GB-S-15",
+    "name": "Sale, standard rate 15 %",
+    "description": "The temporary standard rate of 1 December 2008 to 31 December 2009",
+    "rate": 15,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2008-12-01",
+    "valid_to": "2009-12-31",
+    "legal_reference": "The Value Added Tax (Change of Rate) Order 2008 (S.I. 2008/3020), art. 2 — the standard rate is reduced to 15 per cent from 1 December 2008. The Order was to cease on 30 November 2009; the Finance Act 2009, s. 9 made it cease on 1 January 2010 instead, so the last supply taxed at 15 per cent is one made on 31 December 2009.",
+    "source": "rate-order-2008",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 20
+  },
+  {
+    "code": "GB-S-175-2010",
+    "name": "Sale, standard rate 17.5 %, second period",
+    "description": "The standard rate restored from 1 January 2010 to 3 January 2011",
+    "rate": 17.5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2010-01-01",
+    "valid_to": "2011-01-03",
+    "legal_reference": "Finance Act 2009, s. 9 — the Value Added Tax (Change of Rate) Order 2008 ceases to be in force on 1 January 2010, so s. 2(1) of the Value Added Tax Act 1994 charges 17.5 per cent again from that day until the Finance (No. 2) Act 2010, s. 3 takes effect.",
+    "source": "fa-2009-s9",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 30
+  },
+  {
+    "code": "GB-S-20",
+    "name": "Sale, standard rate 20 %",
+    "description": "The standard rate from 4 January 2011",
+    "rate": 20,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2011-01-04",
+    "legal_reference": "Finance (No. 2) Act 2010, s. 3(1) and (3) — 20 per cent is substituted in s. 2(1) of the Value Added Tax Act 1994, with effect for a supply made on or after 4 January 2011.",
+    "source": "fa2-2010-s3",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 40
+  },
+  {
+    "code": "GB-S-20-INC",
+    "name": "Retail sale, standard rate 20 %, the price includes the VAT",
+    "description": "For a price set with the tax already in it, as a retail price is",
+    "rate": 20,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2011-01-04",
+    "price_include": true,
+    "legal_reference": "Finance (No. 2) Act 2010, s. 3 for the rate. A retail price in the United Kingdom is quoted with the VAT in it, and VAT Notice 700 gives the fraction that takes it back out — the rate divided by one hundred plus the rate, one sixth at 20 per cent. price_include records that the unit price of a line carrying this tax is the gross price; the core has no gross-to-net computation yet, so today it adds the tax on top of that price instead of taking it out.",
+    "source": "notice-700",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 50
+  },
+  {
+    "code": "GB-S-05",
+    "name": "Sale, reduced rate 5 %",
+    "description": "Domestic fuel and power, mobility aids, children's car seats and the rest of Schedule 7A",
+    "rate": 5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2001-05-11",
+    "legal_reference": "Value Added Tax Act 1994, s. 29A(1) — VAT on a supply of a description for the time being specified in Schedule 7A is charged at 5 per cent. Section 29A and Schedule 7A were inserted by the Finance Act 2001, s. 99(4), in force 11 May 2001; the Treasury may add to, remove from or vary Schedule 7A, and this pack carries the rate and not the list of Groups.",
+    "source": "vata-1994",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 60
+  },
+  {
+    "code": "GB-S-05-HOSP",
+    "name": "Sale, temporary reduced rate 5 % — hospitality, holiday accommodation and attractions",
+    "rate": 5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2020-07-15",
+    "valid_to": "2021-09-30",
+    "legal_reference": "The Value Added Tax (Reduced Rate) (Hospitality and Tourism) (Coronavirus) Order 2020 (S.I. 2020/728) — Groups 14 to 16 were added to Schedule 7A, so catering, holiday accommodation and admission to attractions were charged at 5 per cent from 15 July 2020. The Finance Act 2021, s. 92 substituted 30 September 2021 for the Order's own end date.",
+    "source": "hospitality-order-2020",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 70
+  },
+  {
+    "code": "GB-S-125-HOSP",
+    "name": "Sale, temporary reduced rate 12.5 % — hospitality, holiday accommodation and attractions",
+    "rate": 12.5,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "2021-10-01",
+    "valid_to": "2022-03-31",
+    "legal_reference": "Finance Act 2021, s. 93 — the same supplies of Groups 14 to 16 of Schedule 7A are charged at 12.5 per cent for the period beginning with the day after the 5 per cent modifications cease and ending on 31 March 2022.",
+    "source": "fa-2021-s93",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 80
+  },
+  {
+    "code": "GB-S-00",
+    "name": "Sale, zero-rated",
+    "description": "Most food, books, children's clothing and the rest of Schedule 8",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic",
+    "valid_from": "1994-09-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 30(1) and (2) and Schedule 8 — a supply of a description specified in Schedule 8 is zero-rated, and no VAT is charged on it although it is a taxable supply. A zero-rated supply is not an exempt one: it carries a right to deduct the input tax attributable to it, which is why this pack keeps the two codes apart although VAT Notice 700/12 puts both values in box 6.",
+    "source": "vata-1994",
+    "vat_category": "Z",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 90
+  },
+  {
+    "code": "GB-S-EXEMPT",
+    "name": "Exempt sale",
+    "description": "Insurance, finance, health, education, betting and the rest of Schedule 9",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "exempt",
+    "valid_from": "1994-09-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 31(1) and Schedule 9 — a supply of a description specified in Schedule 9 is an exempt supply. The exemption reason code below is not a code any published list carries: the VATEX list names articles of Directive 2006/112/EC and the national codes of Member States, and the United Kingdom is neither. See the pack's README.",
+    "source": "vata-1994",
+    "vat_category": "E",
+    "exemption_code": "VATEX-GB-SCH9",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 100
+  },
+  {
+    "code": "GB-S-EXPORT",
+    "name": "Export of goods outside the United Kingdom",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "export",
+    "valid_from": "2021-01-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 30(6) — a supply of goods is zero-rated where the Commissioners are satisfied that the goods have been or are to be exported, on the conditions they impose. The code is dated from 1 January 2021 because that is the day the word changed meaning: before it, an export was a supply outside the European Union; since it, it is a supply outside the United Kingdom, and a supply to a Member State is one.",
+    "source": "vata-1994",
+    "vat_category": "G",
+    "exemption_code": "VATEX-EU-G",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 110
+  },
+  {
+    "code": "GB-S-OUTSIDE",
+    "name": "Supply outside the scope of United Kingdom VAT",
+    "description": "A supply whose place of supply is not the United Kingdom, such as a business-to-business service to an overseas customer",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "not_subject",
+    "valid_from": "1994-09-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 4(1) — VAT is charged on a supply of goods or services made in the United Kingdom; ss. 7 and 7A place a supply, and a supply placed elsewhere is outside the scope of the charge. VAT Notice 700/12 puts its value in box 6 all the same.",
+    "source": "vata-1994",
+    "vat_category": "O",
+    "exemption_code": "VATEX-EU-O",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 120
+  },
+  {
+    "code": "GB-S-DRC-CIS",
+    "name": "Sale of construction services, domestic reverse charge",
+    "description": "The supplier's side: the value is invoiced and the customer accounts for the tax",
+    "rate": 0,
+    "scope": "sale",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2021-03-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 55A, and the Value Added Tax (Section 55A) (Specified Services and Excepted Supplies) Order 2019 (S.I. 2019/892), art. 1 as amended — in force on 1 March 2021 for supplies made on or after that day. The supplier charges no VAT; VAT Notice 700/12 puts the value of the sale in box 6 and nothing in box 1.",
+    "source": "drc-order-2019",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "6s"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "6s",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 130
+  },
+  {
+    "code": "GB-P-175-1994",
+    "name": "Purchase, standard rate 17.5 %",
+    "rate": 17.5,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1994-09-01",
+    "valid_to": "2008-11-30",
+    "legal_reference": "Value Added Tax Act 1994, s. 2(1) — VAT is charged at the standard rate on the value of the supply. The rate is a code and a date in this pack, so the four standard rates the Act has carried are four codes: 17.5 % to 30 November 2008, 15 % from 1 December 2008 under S.I. 2008/3020, 17.5 % again from 1 January 2010 when the Finance Act 2009, s. 9 closed that Order, and 20 % from 4 January 2011 under the Finance (No. 2) Act 2010, s. 3. Deduction of the tax so charged is ss. 24 to 26 of the Act.",
+    "source": "vata-1994",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 140
+  },
+  {
+    "code": "GB-P-15",
+    "name": "Purchase, standard rate 15 %",
+    "rate": 15,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2008-12-01",
+    "valid_to": "2009-12-31",
+    "legal_reference": "The Value Added Tax (Change of Rate) Order 2008 (S.I. 2008/3020), art. 2, as closed on 1 January 2010 by the Finance Act 2009, s. 9. Deduction is ss. 24 to 26 of the Act.",
+    "source": "rate-order-2008",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 150
+  },
+  {
+    "code": "GB-P-175-2010",
+    "name": "Purchase, standard rate 17.5 %, second period",
+    "rate": 17.5,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2010-01-01",
+    "valid_to": "2011-01-03",
+    "legal_reference": "Finance Act 2009, s. 9 — the rate of s. 2(1) of the Value Added Tax Act 1994 applies again from 1 January 2010. Deduction is ss. 24 to 26 of the Act.",
+    "source": "fa-2009-s9",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 160
+  },
+  {
+    "code": "GB-P-20",
+    "name": "Purchase, standard rate 20 %",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2011-01-04",
+    "legal_reference": "Finance (No. 2) Act 2010, s. 3 for the rate; Value Added Tax Act 1994, ss. 24 to 26 for the credit the buyer takes for it, and s. 25(2) for the deduction of input tax from output tax in the return for the period.",
+    "source": "fa2-2010-s3",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 170
+  },
+  {
+    "code": "GB-P-05",
+    "name": "Purchase, reduced rate 5 %",
+    "rate": 5,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2001-05-11",
+    "legal_reference": "Value Added Tax Act 1994, s. 29A(1) and Schedule 7A for the rate; ss. 24 to 26 for the deduction.",
+    "source": "vata-1994",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 180
+  },
+  {
+    "code": "GB-P-00",
+    "name": "Purchase, zero-rated",
+    "rate": 0,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "1994-09-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 30 and Schedule 8 — no VAT is charged on the supply, so there is none to deduct; the value of the purchase is in box 7 of the return all the same.",
+    "source": "vata-1994",
+    "vat_category": "Z",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 190
+  },
+  {
+    "code": "GB-P-EXEMPT",
+    "name": "Exempt purchase",
+    "rate": 0,
+    "scope": "purchase",
+    "treatment": "exempt",
+    "valid_from": "1994-09-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 31 and Schedule 9. The exemption reason code is the one the supplier would have claimed and is not a code any published list carries — see the pack's README.",
+    "source": "vata-1994",
+    "vat_category": "E",
+    "exemption_code": "VATEX-GB-SCH9",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 200
+  },
+  {
+    "code": "GB-P-20-ENT",
+    "name": "Purchase of business entertainment, standard rate 20 % — the tax is not input tax",
+    "description": "The VAT follows the account of the line it taxes, because none of it is recoverable",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic",
+    "valid_from": "2011-01-04",
+    "legal_reference": "The Value Added Tax (Input Tax) Order 1992 (S.I. 1992/3222), art. 5 — tax charged on goods or services supplied for the purpose of business entertainment is excluded from any credit under ss. 25 and 26 of the Act, except where the entertainment is of employees or, for a body corporate, of its directors, unless that is incidental to entertaining others. A share nobody gets back is part of what the thing cost, so the whole of it lands on the accounts of the lines it taxes and box 4 stays empty.",
+    "source": "input-tax-order-1992",
+    "vat_category": "S",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax_on_base"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax_on_base"
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 210
+  },
+  {
+    "code": "GB-P-20-DRC-CIS",
+    "name": "Purchase of construction services, domestic reverse charge 20 %",
+    "description": "The customer's side: boxes 1, 4 and 7, and deliberately not box 6",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2021-03-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 55A and the Value Added Tax (Section 55A) (Specified Services and Excepted Supplies) Order 2019 (S.I. 2019/892), in force 1 March 2021 — the recipient of a specified construction service accounts for the tax as if they had made the supply. The guidance for the charge puts the tax in box 1 and, where it is deductible, in box 4, and the value of the purchase in box 7 only.",
+    "source": "drc-guidance",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 220
+  },
+  {
+    "code": "GB-P-05-DRC-CIS",
+    "name": "Purchase of construction services, domestic reverse charge 5 %",
+    "rate": 5,
+    "scope": "purchase",
+    "treatment": "domestic_reverse_charge",
+    "valid_from": "2021-03-01",
+    "legal_reference": "The same charge as GB-P-20-DRC-CIS, at the reduced rate of s. 29A and Schedule 7A of the Value Added Tax Act 1994 — a qualifying conversion or renovation of a dwelling is a specified service taxed at 5 per cent, and the reverse charge applies to a reduced-rated supply as it does to a standard-rated one.",
+    "source": "drc-guidance",
+    "vat_category": "AE",
+    "exemption_code": "VATEX-EU-AE",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 230
+  },
+  {
+    "code": "GB-P-20-PVA",
+    "name": "Import of goods, postponed VAT accounting 20 %",
+    "description": "The import VAT is declared on the return instead of being paid at the frontier",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "import",
+    "valid_from": "2021-01-01",
+    "legal_reference": "Value Added Tax Act 1994, s. 1(1)(c) and s. 15 — VAT is charged on the importation of goods into the United Kingdom. Since 1 January 2021 a VAT-registered importer may account for that tax on their return rather than pay it on entry: the guidance puts the VAT due in box 1, the VAT reclaimed in box 4 and the total value of the imported goods in box 7. The return carries no box for the customs value on its own, so the value here is the one on the supplier's invoice and not the one on the import declaration.",
+    "source": "pva-guidance",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "7p"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "7p",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 240
+  },
+  {
+    "code": "GB-P-20-RCS",
+    "name": "Service received from a supplier established outside the United Kingdom, reverse charge 20 %",
+    "rate": 20,
+    "scope": "purchase",
+    "treatment": "foreign_services_received",
+    "valid_from": "2011-01-04",
+    "legal_reference": "Value Added Tax Act 1994, s. 8 — where a relevant service is supplied by a person who belongs in a country other than the United Kingdom to a person who belongs here for the purposes of a business, the recipient is treated as having supplied it and as having received it, and accounts for the tax. The rate is the one the recipient charges themselves, which is the standard rate of the Finance (No. 2) Act 2010, s. 3. VAT Notice 700/12 asks for the value of such a service in box 6 and in box 7 at once, which is why it posts to a box of its own that both totals read.",
+    "source": "vata-1994",
+    "postings": {
+      "invoice": [
+        {
+          "type": "base",
+          "box": "67"
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4"
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1"
+        }
+      ],
+      "credit_note": [
+        {
+          "type": "base",
+          "box": "67",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "account": "1140",
+          "box": "4",
+          "box_factor": -100
+        },
+        {
+          "type": "tax",
+          "factor": -100,
+          "account": "2200",
+          "box": "1",
+          "box_factor": -100
+        }
+      ]
+    },
+    "kind": "vat",
+    "sequence": 250
+  }
+]

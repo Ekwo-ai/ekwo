@@ -1,0 +1,120 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json",
+  "depreciation": {
+    "prorata_straight_line": "months",
+    "prorata_declining": "months",
+    "day_count": "actual",
+    "declining_cap_percent": null,
+    "declining_switch_to_linear": true,
+    "legal_reference": "FRS 102 The Financial Reporting Standard applicable in the UK and Republic of Ireland, Section 17 Property, Plant and Equipment — depreciation begins when the asset is available for use, so a charge is taken from the month the asset is brought into use rather than for the whole of the first year; the standard prescribes no method, and the straight line and the reducing balance are both named among those an entity may select. Nothing in British law caps an annuity, which is why no cap is declared here.",
+    "source": "frs-102"
+  },
+  "disposal": {
+    "style": "net_result",
+    "legal_reference": "FRS 102, Section 17 — the gain or loss arising on the derecognition of an item of property, plant and equipment is the difference between the net disposal proceeds and the carrying amount, and is recognised in profit or loss. One figure, on one account, which is the net_result style; Profit and loss account Format 1 of Schedule 1 has no line for the proceeds and the carrying amount separately.",
+    "source": "frs-102"
+  },
+  "categories": [
+    {
+      "code": "goodwill",
+      "name": "Goodwill",
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 10,
+      "legal_reference": "FRS 102, Section 19 — goodwill is amortised over its useful life, and where that cannot be reliably estimated the life shall not exceed ten years. Ten years is therefore the ceiling this category starts from and not a life anybody estimated. There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "intangibles",
+      "name": "Other intangible assets, patents and licences",
+      "method": "straight_line",
+      "duration_months": 60,
+      "account_type": "asset_fixed",
+      "sequence": 20,
+      "legal_reference": "FRS 102, Section 18 — an intangible asset with a finite useful life is amortised over it, with the same ten-year ceiling where the life cannot be estimated. There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "freehold-buildings",
+      "name": "Freehold buildings",
+      "method": "straight_line",
+      "duration_months": 600,
+      "account_type": "asset_fixed",
+      "sequence": 30,
+      "legal_reference": "Land is not depreciated and the building on it is, so a freehold property is split before this category is applied to the part that has a life. There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "leasehold-improvements",
+      "name": "Leasehold property and improvements",
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 40,
+      "legal_reference": "Common practice depreciates a leasehold improvement over the shorter of its own life and the remaining term of the lease, which is a fact about the lease and not about the category. There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "plant-and-machinery",
+      "name": "Plant and machinery",
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 50,
+      "legal_reference": "There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "fixtures-and-fittings",
+      "name": "Fixtures and fittings",
+      "method": "straight_line",
+      "duration_months": 120,
+      "account_type": "asset_fixed",
+      "sequence": 60,
+      "legal_reference": "There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "office-equipment",
+      "name": "Office equipment",
+      "method": "straight_line",
+      "duration_months": 60,
+      "account_type": "asset_fixed",
+      "sequence": 70,
+      "legal_reference": "There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "computer-equipment",
+      "name": "Computer equipment",
+      "method": "straight_line",
+      "duration_months": 36,
+      "account_type": "asset_fixed",
+      "sequence": 80,
+      "legal_reference": "There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "motor-vehicles",
+      "name": "Motor vehicles, straight line",
+      "method": "straight_line",
+      "duration_months": 48,
+      "account_type": "asset_fixed",
+      "sequence": 90,
+      "legal_reference": "There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102"
+    },
+    {
+      "code": "motor-vehicles-reducing",
+      "name": "Motor vehicles, reducing balance at 25 %",
+      "method": "declining_balance",
+      "duration_months": 96,
+      "account_type": "asset_fixed",
+      "sequence": 100,
+      "legal_reference": "Twice the straight-line rate of an eight-year life is 25 per cent a year, which is the reducing-balance rate British practice applies to a car most often. There is no legal or fiscal table of useful lives in the United Kingdom. FRS 102, Section 17, paragraphs 17.16 to 17.21 require the depreciable amount of an item of property, plant and equipment to be allocated on a systematic basis over its useful life, which the entity reviews and estimates for itself; capital allowances under the capital allowances legislation are a tax computation and are never the accounting charge. The duration below is therefore common British practice and not a rule, and an asset that depreciates differently says so in its own columns.",
+      "source": "frs-102",
+      "coefficient": 2
+    }
+  ]
+}

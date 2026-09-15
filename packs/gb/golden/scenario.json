@@ -1,0 +1,195 @@
+{
+  "$schema": "https://ekwo.ai/schemas/pack/1.json#/$defs/golden",
+  "name": "A year of a VAT-registered British trading company, filing quarterly on a year to 31 March",
+  "chart": "default",
+  "fiscal_year": { "name": "Year ended 31 March 2027", "start": "2026-04-01", "end": "2027-03-31" },
+  "periods": [
+    { "code": "2026-Q1", "from": "2026-04-01", "to": "2026-06-30" },
+    { "code": "2026-Q2", "from": "2026-07-01", "to": "2026-09-30" },
+    { "code": "2026-Q3", "from": "2026-10-01", "to": "2026-12-31" },
+    { "code": "2027-Q4", "from": "2027-01-01", "to": "2027-03-31" }
+  ],
+  "statements": ["GB-CA-SMALL-BS", "GB-CA-SMALL-IS"],
+  "contacts": [
+    { "ref": "cust-uk", "name": "Harbourline Retail Ltd", "type": "customer", "country": "GB" },
+    { "ref": "cust-dev", "name": "Meridian Developments Ltd", "type": "customer", "country": "GB" },
+    { "ref": "cust-us", "name": "Cascade Instruments Inc.", "type": "customer", "country": "US" },
+    { "ref": "supp-uk", "name": "Thorneside Supplies Ltd", "type": "supplier", "country": "GB" },
+    { "ref": "supp-sub", "name": "Bramble Groundworks Ltd", "type": "supplier", "country": "GB" },
+    { "ref": "supp-de", "name": "Ostwind Komponenten GmbH", "type": "supplier", "country": "DE" },
+    { "ref": "supp-ie", "name": "Clearwater Software Ltd", "type": "supplier", "country": "IE" }
+  ],
+  "documents": [
+    {
+      "ref": "P1",
+      "type": "purchase_invoice",
+      "contact": "supp-uk",
+      "date": "2026-04-10",
+      "why": "A domestic purchase at the standard rate: box 7 takes the value and box 4 the input tax. The return has no box for the rate of a purchase, so this is the only place the 20 % shows.",
+      "lines": [
+        { "name": "Goods for resale", "quantity": 1, "unit_price": 4200, "tax": "GB-P-20", "account": "5000" }
+      ]
+    },
+    {
+      "ref": "S1",
+      "type": "sale_invoice",
+      "contact": "cust-uk",
+      "date": "2026-04-15",
+      "why": "A domestic sale at the standard rate: box 6 takes the value and box 1 the output tax.",
+      "lines": [
+        { "name": "Goods", "quantity": 10, "unit_price": 1000, "tax": "GB-S-20", "account": "4000" }
+      ]
+    },
+    {
+      "ref": "S2",
+      "type": "sale_invoice",
+      "contact": "cust-uk",
+      "date": "2026-04-22",
+      "why": "The reduced rate: a second positive rate, which boxes 1 and 6 add to the standard one because the British return carries no breakdown by rate.",
+      "lines": [
+        { "name": "Domestic fuel", "quantity": 200, "unit_price": 12.5, "tax": "GB-S-05", "account": "4020" }
+      ]
+    },
+    {
+      "ref": "S3",
+      "type": "sale_invoice",
+      "contact": "cust-uk",
+      "date": "2026-05-06",
+      "why": "A zero-rated sale: box 6 and nothing in box 1. On the return it is indistinguishable from the exempt sale below, and in the ledger the two are different codes because only one of them carries a right to deduct.",
+      "lines": [
+        { "name": "Printed books", "quantity": 1, "unit_price": 3400, "tax": "GB-S-00", "account": "4030" }
+      ]
+    },
+    {
+      "ref": "P2",
+      "type": "purchase_invoice",
+      "contact": "supp-uk",
+      "date": "2026-05-12",
+      "why": "Business entertainment: the Input Tax Order excludes the whole of the VAT from credit, so it lands on the account of the line it taxes and box 4 stays empty while box 7 still carries the value.",
+      "lines": [
+        { "name": "Customer hospitality", "quantity": 1, "unit_price": 600, "tax": "GB-P-20-ENT", "account": "7330" }
+      ]
+    },
+    {
+      "ref": "S4",
+      "type": "sale_invoice",
+      "contact": "cust-uk",
+      "date": "2026-05-20",
+      "why": "An exempt supply: the same two boxes as a zero-rated one, and the exemption reason code no published list carries.",
+      "lines": [
+        { "name": "Insurance intermediation", "quantity": 1, "unit_price": 1250, "tax": "GB-S-EXEMPT", "account": "4040" }
+      ]
+    },
+    {
+      "ref": "S5",
+      "type": "sale_invoice",
+      "contact": "cust-us",
+      "date": "2026-06-03",
+      "why": "An export of goods outside the United Kingdom: box 6 only. Since 2021 the word covers a supply to a member State of the Union too, which is the whole reason this pack carries no intra-Community tax.",
+      "lines": [
+        { "name": "Goods for export", "quantity": 1, "unit_price": 7800, "tax": "GB-S-EXPORT", "account": "4050" }
+      ]
+    },
+    {
+      "ref": "P3",
+      "type": "purchase_invoice",
+      "contact": "supp-de",
+      "date": "2026-06-09",
+      "why": "An import of goods under postponed VAT accounting: one invoice fills boxes 1, 4 and 7 and nets to nothing in the ledger, which is the mechanism that replaced the intra-Community acquisition here.",
+      "lines": [
+        { "name": "Components imported", "quantity": 1, "unit_price": 5000, "tax": "GB-P-20-PVA", "account": "5010" }
+      ]
+    },
+    {
+      "ref": "S6",
+      "type": "sale_invoice",
+      "contact": "cust-dev",
+      "date": "2026-06-17",
+      "why": "The supplier's side of the construction reverse charge: box 6 carries the value and box 1 nothing, because the customer accounts for the tax.",
+      "lines": [
+        { "name": "Groundworks, reverse charge applies", "quantity": 1, "unit_price": 9000, "tax": "GB-S-DRC-CIS", "account": "4060" }
+      ]
+    },
+    {
+      "ref": "S7",
+      "type": "sale_invoice",
+      "contact": "cust-uk",
+      "date": "2026-07-08",
+      "why": "A retail sale priced with the VAT already in it. price_include says so and nothing in the core reads it yet, so the figures below are 20 % added on top of 24.00 rather than one sixth taken out of it — which is the gap this pack was written to show.",
+      "lines": [
+        { "name": "Counter sales", "quantity": 300, "unit_price": 24, "tax": "GB-S-20-INC", "account": "4070" }
+      ]
+    },
+    {
+      "ref": "P4",
+      "type": "purchase_invoice",
+      "contact": "supp-sub",
+      "date": "2026-07-14",
+      "why": "The customer's side of the construction reverse charge: boxes 1, 4 and 7, and deliberately not box 6 — which is what distinguishes it from the service received below.",
+      "lines": [
+        { "name": "Subcontracted groundworks", "quantity": 1, "unit_price": 3600, "tax": "GB-P-20-DRC-CIS", "account": "5200" }
+      ]
+    },
+    {
+      "ref": "P5",
+      "type": "purchase_invoice",
+      "contact": "supp-ie",
+      "date": "2026-08-05",
+      "why": "A service received from a supplier established outside the United Kingdom: the one amount the return prints in box 6 and in box 7 at once, which is why the pack defines it in a box of its own that both totals read.",
+      "lines": [
+        { "name": "Software licence", "quantity": 1, "unit_price": 2400, "tax": "GB-P-20-RCS", "account": "7230" }
+      ]
+    },
+    {
+      "ref": "S8",
+      "type": "sale_credit_note",
+      "contact": "cust-uk",
+      "date": "2026-11-12",
+      "why": "A credit note on the standard-rated sale, in a later quarter than the invoice: every box the invoice filled, with the sign turned round, and no negative amount in the ledger.",
+      "lines": [
+        { "name": "Goods returned", "quantity": 2, "unit_price": 1000, "tax": "GB-S-20", "account": "4000" }
+      ]
+    },
+    {
+      "ref": "P6",
+      "type": "purchase_invoice",
+      "contact": "supp-uk",
+      "date": "2027-02-10",
+      "why": "The reduced rate on the buying side, in the last quarter of a year that does not run to 31 December: a British accounting reference date is the company's own.",
+      "lines": [
+        { "name": "Electricity and gas", "quantity": 1, "unit_price": 900, "tax": "GB-P-05", "account": "7120" }
+      ]
+    }
+  ],
+  "payments": [
+    {
+      "ref": "R1",
+      "direction": "outbound",
+      "date": "2026-05-05",
+      "amount": 5040,
+      "contact": "supp-uk",
+      "journal": "BNK",
+      "match": "P1",
+      "why": "A payment that settles the standard-rated purchase exactly, VAT included."
+    },
+    {
+      "ref": "R2",
+      "direction": "inbound",
+      "date": "2026-05-15",
+      "amount": 12000,
+      "contact": "cust-uk",
+      "journal": "BNK",
+      "match": "S1",
+      "why": "A receipt that settles its invoice exactly and closes it."
+    },
+    {
+      "ref": "R3",
+      "direction": "inbound",
+      "date": "2026-07-20",
+      "amount": 5000,
+      "contact": "cust-uk",
+      "journal": "BNK",
+      "why": "A payment on account: it leaves an open item, which is what a real ledger holds and what a return computed from matchings has to survive."
+    }
+  ]
+}

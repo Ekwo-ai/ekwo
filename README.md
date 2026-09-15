@@ -40,9 +40,9 @@ What we are building, in order:
    pull the VAT return or the FEC. Done; see [`packages/mcp`](packages/mcp/).
    A Community web application comes next.
 4. **Any country as a versioned pack of data**, with one golden test per
-   country — Belgium and France first, then the United Kingdom, Canada and
-   Québec, the Netherlands, Germany, Luxembourg. The plan is in
-   [`docs/international.md`](docs/international.md).
+   country — Belgium, France, Luxembourg, Estonia and the United Kingdom ship
+   today, and Ireland, Canada and Québec, the Netherlands and Germany come
+   next. The plan is in [`docs/international.md`](docs/international.md).
 5. **Format libraries** as independent MIT packages, in
    [`packages/formats/`](packages/formats/), organised by format and never by
    country: the [French FEC](packages/formats/fec/),
@@ -85,8 +85,10 @@ OpenAPI description, and row level security decides who sees what.
   its declaration boxes and its annual accounts in French, Dutch, German and
   English, and a company keeping its books in Dutch reads Dutch throughout.
   [`docs/languages.md`](docs/languages.md) is the mechanism.
-- **Belgium and France out of the box.** PCMN (AR du 21 octobre 2018) and PCG
-  (règlement ANC 2022-06), with their VAT codes and declaration boxes.
+- **Five countries out of the box.** PCMN (AR du 21 octobre 2018), PCG
+  (règlement ANC 2022-06), the Luxembourg PCN, an Estonian chart and a British
+  one, each with its VAT codes, its declaration boxes and its annual accounts.
+  The United Kingdom is the first that is not a Member State of the Union.
 - **The French FEC.** Eighteen columns, the arrêté du 29 juillet 2013, with
   the reconciliation letter and the sub-ledger code the format requires.
 - **Modules, one Postgres schema each.** Fixed assets and budgets ship with
@@ -213,7 +215,7 @@ supabase db push                       # applies supabase/migrations in order
 psql "$DATABASE_URL" -f supabase/seed/00_currencies.sql
 psql "$DATABASE_URL" -f supabase/seed/00_territories.sql
 psql "$DATABASE_URL" -f supabase/seed/05_framework_generic.sql
-psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql, 12_pack_lu.sql, 13_pack_ee.sql
+psql "$DATABASE_URL" -f supabase/seed/10_pack_be.sql    # or 11_pack_fr.sql, 12_pack_lu.sql, 13_pack_ee.sql, 14_pack_gb.sql
 ```
 
 Those six files are the ones `config.toml` lists under `[db.seed]`, which is

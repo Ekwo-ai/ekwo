@@ -26,9 +26,10 @@ added with `ec_sales_list()` — are MIT packages under
 country.
 
 **No function of the core holds a country code, and a test enforces it.**
-Belgium, Estonia, France and Luxembourg are four directories under
-[`packs/`](../packs/) and four compiled seeds, each carrying a year of books
-and the figures it produces.
+Belgium, Estonia, France, Luxembourg and the United Kingdom are five
+directories under [`packs/`](../packs/) and five compiled seeds, each carrying
+a year of books and the figures it produces. The fifth is the first that is not
+a Member State of the Union, which is the whole reason it was written.
 
 ## What an international core needs and does not have
 
@@ -191,8 +192,16 @@ The original six-item list, for the record:
   rank, so adding one renamed the seeds of every country after it — was fixed
   rather than recorded, because leaving it would have meant shipping the
   damage.
-- **United Kingdom and Ireland** — a Xero-style chart, VAT boxes 1 to 9,
-  FRS 102 mapping, tax point; MTD VAT submission in the commercial layer.
+- **United Kingdom** — **done, 15 September 2026**, and the first pack of a
+  country outside the Union: no intra-Community tax on either side, retail
+  prices quoted with the tax in them, an exemption the European code lists have
+  no code for, and a nine-box return that prints one amount in two boxes at
+  once. A British-style chart mapped onto the statutory small-company formats,
+  the nine boxes of the VAT Return, FRS 102 for the fixed assets, and the six
+  gaps under "From the United Kingdom" are what it returned. Northern Ireland,
+  Making Tax Digital submission and the VAT schemes are out of its scope.
+- **Ireland** — a chart of accounts and form VAT 3; the pack format has
+  everything it needs since the United Kingdom landed.
 - **Canada and Québec** — GST, HST and QST stacked per line, PST as a
   non-recoverable tax in British Columbia, Saskatchewan and Manitoba, two
   administrations (CRA and Revenu Québec), bilingual labels, a QuickBooks or
@@ -240,6 +249,7 @@ and enough contributed packs for the question to be interesting.
 | Estonia | `packs/ee/` | `community` | KMD INF, the § 44 cash-accounting scheme, the fixed-asset rules, the XBRL fact keys of the annual report, and versions of form KMD before 1 July 2025 |
 | France | `packs/fr/` | `maintained` | — |
 | Luxembourg | `packs/lu/` | `community` | the eCDF XML of the periodic return, the FAIA audit file, the annual VAT return, the special regimes, and corporate income tax |
+| United Kingdom | `packs/gb/` | `community` | Northern Ireland and the `XI` prefix, Making Tax Digital submission, the flat rate, cash accounting, annual accounting, margin and retail schemes, partial exemption, the Construction Industry Scheme return, corporation tax and capital allowances, the medium and large formats of S.I. 2008/410, and iXBRL for Companies House |
 
 ### Estonia
 
@@ -293,6 +303,42 @@ Three things about it are worth knowing beyond the pack's own
   written by [`@ekwo-ai/ecdf`](../packages/formats/ecdf/) since the
   recapitulative statement arrived, which is what the distinction looks like in
   practice: an envelope is a format, the boxes of a return are a pack.
+
+### United Kingdom
+
+The fifth pack, and the first of a country that is **not** a Member State of
+the Union. It was written for that reason: every pack before it could lean on
+the VAT Directive, on the intra-Community mechanism and on the European code
+lists, and nobody knew how much of the format silently assumed them.
+
+It carries an original chart of 190 accounts, 25 taxes with the standard rate
+back to the commencement of the Value Added Tax Act 1994, the nine boxes of the
+VAT Return as they stand since 1 January 2021, the balance sheet and the profit
+and loss account of the small companies regime, and the usual lives of a fixed
+asset under FRS 102. Four things are worth knowing beyond the pack's own
+[`README`](../packs/gb/README.md):
+
+- **There is no legal chart of accounts, and no legal statement schemes
+  either — there are legal *formats*.** Companies Act 2006, s. 396 requires the
+  accounts to comply with regulations as to their form and content, and those
+  regulations prescribe the lines of the balance sheet and of the profit and
+  loss account letter by letter. So the statements of this pack are
+  transcribed, exactly as Luxembourg's are, while the chart underneath them is
+  written: the codes are the four-digit convention a British nominal ledger
+  uses, blocked so that each range reaches one item of Schedule 1 Format 1.
+- **Nothing here is intra-Community, on either side.** Since 1 January 2021 a
+  supply from Great Britain to a Member State is an export and an arrival is an
+  import, so four of the eleven treatments never occur. What replaced them is
+  postponed VAT accounting, which the pack models as an `import` posting to
+  boxes 1, 4 and 7 that nets to nothing in the ledger.
+- **Northern Ireland is deliberately absent.** The Windsor Framework keeps it
+  inside the Union's rules for goods under one registration with Great Britain,
+  and boxes 2, 8 and 9 of the return are about that trade alone. They are
+  declared and empty; see the last gap below for why the pack could not carry
+  them.
+- **It is `community`.** Nobody who files a British return has read it, and the
+  pack's README ends on the nine points a reviewer should look at first — the
+  first of which is a code this pack invented because the check demanded one.
 
 ## What a new country shows the core cannot say
 
@@ -419,6 +465,143 @@ and evaluation order at once**. Box 1 of form KMD is printed first and is a
 total of boxes printed after it. Estonia escapes because the rule only
 constrains a total that names another total, and box 1 names base boxes — but
 it escapes by luck, and the fix Luxembourg proposes is the fix.
+
+### From the United Kingdom
+
+Seven things the first pack outside the Union could not say precisely. Four of
+them are about the same assumption — that a country's VAT is the Union's VAT —
+and the other three are about what a price, a rounding rule and a filing cadence
+belong to. None blocked the pack. None was patched for its sake.
+
+**A VAT exemption outside the Union has no reason code, and one is required.**
+`ekwo pack check` demands an `exemption_code` as soon as `vat_category` is `E`,
+and checks its shape against `VATEX-EU-<article>` or `VATEX-<country>-<article>`.
+The VATEX list is European: its own codes name articles of Directive
+2006/112/EC, and its national codes — `VATEX-FR-CGI261-1` and the rest — belong
+to Member States that publish them. A British exemption is Schedule 9 to the
+Value Added Tax Act 1994 and no published list carries a code for it, because
+no administration that would publish one has any reason to. The rule that
+produced this is right for a Member State and has no answer for a third
+country. *Fix*: make the reason required only where an invoice governed by
+EN 16931 exists — the test the check already applies to `import` and
+`foreign_services_received`, which carry no category for exactly that reason —
+and let a pack outside the Union state the article in its `legal_reference` and
+leave the column null. *Until then*: `packs/gb/` writes `VATEX-GB-SCH9`, a code
+that is shaped like a national one and that nobody publishes, and its README
+names it as the first thing a reviewer should refuse.
+
+**`G` and `VATEX-EU-G` say "export outside the EU", and a third country's
+export is not that.** The pairing is fixed by rule BR-G-10 and by the list's own
+remark, and `ekwo pack check` enforces it, so a British export is declared with
+a code whose published name describes the Union's border rather than the United
+Kingdom's. For a seller in a Member State the code is exact; for this one it is
+false in the respect that matters, because a supply to a Member State *is* an
+export from Great Britain. Nothing can be fixed in the code lists, which are
+what they are. *Fix*: the honest place is the check — either let `export` carry
+no reason code, since BR-G-10 binds the code to the category and not the
+category to a code, or say in the refusal message that `G` is what the standard
+offers a seller outside the Union and that its name describes the Union's own
+case. *Until then*: `GB-S-EXPORT` carries `G` and `VATEX-EU-G`, which is the
+least wrong pair available.
+
+**One taxable amount, two printed boxes that are siblings and not nested.**
+Estonia recorded this for a form whose boxes contain one another, and proposed
+the fix: let a `base` posting name several boxes, or add a posting type that
+reports to a box and writes nothing to the ledger. The British form shows the
+second shape of the same gap. VAT Notice 700/12 asks for the value of a service
+received from a supplier established abroad in **box 6**, which is outputs, and
+in **box 7**, which is inputs — two boxes on opposite sides of the return,
+neither containing the other. A tax carries one `base` posting per document
+kind, so it can name one of them. *Until then*: the pack posts that value to a
+hidden box `67` and rebuilds boxes 6 and 7 as totals of the period's own sales
+or purchases plus that box, which costs three hidden boxes on a nine-box form —
+and is exact. The Estonian fix covers both shapes and is still the fix.
+
+**A price that includes the tax is declared and never computed.** `price_include`
+has been a column since phase 0, and the note beside it said the gross-to-net
+computation "arrives with the country that needs it". This is that country: a
+British retail price is quoted with the VAT in it as a matter of course, and
+VAT Notice 700 publishes the fraction that takes it back out — the rate over one
+hundred plus the rate, one sixth at 20 %. `post_document` reads the column and
+does nothing with it: the unit price is treated as net and the tax is added on
+top, whichever way the flag is set. *Fix*: where the tax of a line carries
+`price_include`, take the unit price as gross and compute the base as
+`price × 100 / (100 + rate)`, with the tax still rounded once per group as
+BR-CO-14 requires. *Until then*: `GB-S-20-INC` exists and is booked in the
+golden scenario on purpose, with a `why` saying that the figures it produces are
+the ones a retailer would not file, so that the gap is visible in a number
+rather than only in a sentence. A British retailer using Ekwo today enters net
+prices.
+
+**A rounding rule belongs to a country, and HMRC gives one to each kind of
+trader.** `country_defaults.rounding_method` is one value per country and there
+is no column beside it on `companies`. HMRC's concession, recorded in
+VATREC12010 and VATREC12020, lets an **invoice trader** round the VAT payable
+*down* to a whole penny, because the rounding is neutral between the supplier's
+output tax and the customer's input tax; and it says the same concession is not
+appropriate for a **retailer**, for whom rounding down reduces the tax accounted
+for without reducing the tax charged. Two lawful methods in one country,
+chosen by what the business is. *Fix*: a nullable `rounding_method` on
+`companies` that overrides the country's, which is the shape `vat_period`
+already has — the pack proposes, the company decides, and nothing falls back on
+another country. *Until then*: `packs/gb/` declares `half_up`, which is the
+method a retailer must use and one an invoice trader may, and a company on the
+concession has nowhere to record it.
+
+**A tax cannot depend on the territory the parties are in, and one
+registration can cover two tax territories.** Half of what this note first
+proposed landed the same day, from the recapitulative statement's own list:
+`territories` is reference data of the framework, `XI` is in it with
+`eu_vat_scope = 'goods'` and the prefix VIES publishes for it, and `GB` carries
+the day it left the common system. What that buys is a **reader** — the
+statement asks the table and stops listing supplies to the United Kingdom after
+2020. What it does not buy is a **pack**. Since 1 January 2021 one VAT
+registration covers Great Britain, where the Union's rules do not apply, **and**
+Northern Ireland, where they do for goods: a Northern Irish seller identifies
+under `XI`, makes intra-Community supplies of goods, and files boxes 2, 8 and 9
+of the same nine-box return. A pack is keyed on a country and has no unit below
+it; `companies.region` and `contacts.region` exist and nothing reads them; and
+no tax may be conditioned on either. So `packs/gb/` cannot carry the Northern
+Ireland taxes without claiming they apply to a company in Manchester. *Fix*: let
+a tax name a territory the way it already names a `jurisdiction`, and let a
+company record the territory it is established in, so that one country's pack
+can carry two sets of taxes and offer each where it applies — the table that
+says which territory is which already exists. *Until then*: `packs/gb/` is Great
+Britain's return, boxes 2, 8 and 9 are declared and empty, and the pack's README
+sends a reader to `territories` for what `XI` is.
+
+**A pack may propose a filing cadence only where its form accepts exactly one,
+and the United Kingdom has a default its form does not show.**
+`tests/tax_report.test.ts` states the policy as an invariant over every pack: a
+form filed on one cadence has that cadence proposed in `defaults.vat_period`, a
+form filed on several proposes nothing. The reason given is sound for every pack
+written before this one — everywhere in Europe the cadence follows turnover, so
+the answer is a fact about the company and a pack proposing one would be
+choosing a filing deadline for somebody it knows nothing about. Regulation 25(1)
+of the Value Added Tax Regulations 1995 makes the prescribed accounting period
+three months **for everybody**, and a month or a year is something the
+Commissioners *allow or direct* on application. So the British form is filed on
+three cadences and the British law still gives one default, which is the case
+the rule cannot express: it reads the length of a list where the question is
+what the law says. *Fix*: judge the proposal against the law rather than against
+the form — keep the refusal of a proposed cadence the form is not filed on,
+which catches a real mistake, and drop the rule that a form with several may
+propose none. If the invariant is worth keeping mechanically, the manifest is
+where the distinction belongs: a cadence the law gives, and a cadence left to
+the company, are two different silences and today they are the same one. *Until
+then*: `packs/gb/` proposes nothing, `ekwo init` asks a British company what it
+files on, and the pack's README says that a company which has asked HMRC for
+nothing files quarterly.
+
+One thing the United Kingdom **confirmed** rather than found. A legal mention
+cannot tell a domestic reverse charge from a foreign one — recorded from the
+EN 16931 code lists, where no pack needed the distinction. This one does: s. 55A
+of the Value Added Tax Act 1994 moves the liability on a construction service
+supplied inside the United Kingdom, and s. 8 does it on a service received from
+a supplier established abroad. Two articles, two mechanisms, one
+`applies_when`. The pack prints one sentence and names both articles in its
+legal reference, which is the argument for the tenth condition that note
+proposed.
 
 ### From the EN 16931 code lists
 

@@ -179,7 +179,7 @@ delete the link. So it reports a reading, and a maintainer decides.
 `ekwo pack list` on this repository:
 
 ```
-Packs (4)
+Packs (6)
   generic  Generic framework 1.1.1 · 2 statements · no country · certification maintained
           no golden — A framework is not a country: this pack carries statements and nothing else …
   be  Belgium 1.6.0 · 2 chart(s), 702 accounts · 22 taxes · 3 statements · fr, nl, de, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
@@ -189,6 +189,8 @@ Packs (4)
           default (default) — Eesti väikeettevõtja kontoplaan, 120 accounts, EE-RPS-BS, EE-RPS-IS1
   fr  France 1.7.0 · 1 chart(s), 394 accounts · 24 taxes · 2 statements · fr, en · certification maintained · golden: 10 documents, 4 payments, 4 period(s)
           default (default) — PCG — plan comptable général, 394 accounts, FR-2050, FR-2052
+  gb  United Kingdom 0.1.0 · 1 chart(s), 190 accounts · 25 taxes · 2 statements · en · certification community · golden: 14 documents, 3 payments, 4 period(s)
+          default (default) — United Kingdom reference chart of accounts, 190 accounts, GB-CA-SMALL-BS, GB-CA-SMALL-IS
   lu  Luxembourg 1.1.0 · 1 chart(s), 1026 accounts · 35 taxes · 2 statements · fr, de, en · certification community · golden: 10 documents, 3 payments, 4 period(s)
           default (default) — PCN — plan comptable normalisé, 1026 accounts, LU-ECDF-BS-ABR, LU-ECDF-PL-ABR
 ```
@@ -218,7 +220,7 @@ anything now. `ekwo pack check` refuses a pack that declares no number, and
 | Source | Output |
 |---|---|
 | `packs/generic/` | `supabase/seed/05_framework_generic.sql` |
-| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is the number the manifest declares in `seed_index` — `10` for `be`, `11` for `fr`, `12` for `lu`, `13` for `ee`. **A number that has shipped never moves**, whatever is added beside it |
+| `packs/<cc>/` | `supabase/seed/<n>_pack_<cc>.sql`, where `<n>` is the number the manifest declares in `seed_index` — `10` for `be`, `11` for `fr`, `12` for `lu`, `13` for `ee`, `14` for `gb`. **A number that has shipped never moves**, whatever is added beside it |
 | `packs/<cc>/assets.json`, where the pack has one | `supabase/seed/modules/assets/<n>_pack_<cc>.sql`, applied by the module migration runner and by nothing else |
 
 The compiler writes `chart_templates`, `account_templates`,
@@ -1312,7 +1314,7 @@ pack and testing that it holds together is not reviewing it. *Certified*
 describes a professional reading a pack against the law, and nothing else. The
 value `ekwo` that used to exist is deprecated, refused by the schema, and moved
 to `maintained` by migration `20260912081015`. **Belgium and France are
-`maintained`; Estonia is `community`.**
+`maintained`; Estonia, Luxembourg and the United Kingdom are `community`.**
 
 ### What a reviewer signs
 
@@ -1356,6 +1358,7 @@ knows is the person who applies it.
 /packs/be/              @Ekwo-ai/maintainers
 /packs/ee/              @Ekwo-ai/maintainers
 /packs/fr/              @Ekwo-ai/maintainers
+/packs/gb/              @Ekwo-ai/maintainers
 /packs/schema/          @Ekwo-ai/maintainers
 ```
 
@@ -1463,7 +1466,7 @@ and `defaults.journal_roles.opening`, which must name a journal of type
 
 | Style | The result goes | Chosen when |
 |---|---|---|
-| `retained_earnings` | straight into retained earnings | the chart has no current-year result account (United Kingdom, United States) |
+| `retained_earnings` | straight into retained earnings | the chart has no current-year result account — Balance Sheet Format 1 of the British small companies regime has five items under capital and reserves and none of them is the result of the year (United Kingdom, United States) |
 | `result_accounts` | into a current-year result account on the balance sheet | the chart keeps the result of the year apart until a meeting allocates it (France: 120 and 129) |
 | `appropriation_accounts` | through an appropriation account of the income statement, then to retained earnings | the statutory income statement ends on an appropriation section (Belgium: 693 and 793, to 140 and 141) |
 

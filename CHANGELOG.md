@@ -11,6 +11,35 @@ somewhere has already run it.
 
 ### Added
 
+- **The United Kingdom, `packs/gb/`, and the first country outside the Union.**
+  Every pack before it could lean on the VAT Directive, on the
+  intra-Community mechanism and on the European code lists, and nobody knew how
+  much of the format silently assumed them. This one carries an original chart
+  of 190 accounts blocked onto the statutory formats, 25 taxes with the
+  standard rate back to 1994 — 17.5 %, 15 % from 1 December 2008, 17.5 % again
+  from 1 January 2010, 20 % from 4 January 2011, and the temporary hospitality
+  rates beside them — the nine boxes of the VAT Return as they stand since
+  1 January 2021, the balance sheet and the profit and loss account of the
+  small companies regime (S.I. 2008/409, Schedule 1, Format 1), the usual lives
+  of a fixed asset under FRS 102, and a golden year of fourteen documents on a
+  year to 31 March. No tax is intra-Community on either side: what replaced
+  them is postponed VAT accounting, the construction reverse charge of s. 55A
+  and the reverse charge on services received from abroad of s. 8. Certification
+  is `community`, 32 texts are in the register with every URL opened, and
+  Northern Ireland, Making Tax Digital submission and the VAT schemes are out of
+  scope and say so.
+  Seven gaps in the core are written up in
+  [`docs/international.md`](docs/international.md) and none of them is patched:
+  an exemption outside the Union has no VATEX code and one is required; `G` and
+  `VATEX-EU-G` describe the Union's border and not a third country's; one
+  taxable amount is printed in two boxes that are siblings rather than nested;
+  `price_include` is declared and never computed, which is what a British retail
+  price needs; a rounding rule belongs to a country where HMRC gives one to each
+  kind of trader; a tax cannot depend on a territory, so the `territories` table
+  can say what `XI` is and a pack still cannot carry its taxes, which is why
+  Northern Ireland is absent; and a pack may propose a filing cadence only where its form
+  accepts one, where the British law gives a default its form does not show.
+
 - **The document rules of a country cite the article behind them.** How an
   invoice is numbered, the payment term the law sets in the absence of an
   agreement, when the tax falls due and which structured invoice is

@@ -1,0 +1,191 @@
+code,parent,type,reconcilable,name,sequence
+0000,,asset_current,false,Called up share capital not paid,10
+0010,,asset_fixed,false,Goodwill,20
+0011,,asset_fixed,false,Goodwill — accumulated amortisation,30
+0020,,asset_fixed,false,Development costs,40
+0021,,asset_fixed,false,Development costs — accumulated amortisation,50
+0030,,asset_fixed,false,"Patents, trade marks and licences",60
+0031,,asset_fixed,false,"Patents, trade marks and licences — accumulated amortisation",70
+0040,,asset_fixed,false,Other intangible assets,80
+0041,,asset_fixed,false,Other intangible assets — accumulated amortisation,90
+0100,,asset_fixed,false,Freehold land and buildings,100
+0101,,asset_fixed,false,Freehold land and buildings — accumulated depreciation,110
+0110,,asset_fixed,false,Leasehold property and improvements,120
+0111,,asset_fixed,false,Leasehold property and improvements — accumulated depreciation,130
+0120,,asset_fixed,false,Plant and machinery,140
+0121,,asset_fixed,false,Plant and machinery — accumulated depreciation,150
+0130,,asset_fixed,false,Fixtures and fittings,160
+0131,,asset_fixed,false,Fixtures and fittings — accumulated depreciation,170
+0140,,asset_fixed,false,Office equipment,180
+0141,,asset_fixed,false,Office equipment — accumulated depreciation,190
+0150,,asset_fixed,false,Computer equipment,200
+0151,,asset_fixed,false,Computer equipment — accumulated depreciation,210
+0160,,asset_fixed,false,Motor vehicles,220
+0161,,asset_fixed,false,Motor vehicles — accumulated depreciation,230
+0200,,asset_non_current,false,Shares in group undertakings and participating interests,240
+0210,,asset_non_current,false,Loans to group undertakings and undertakings in which the company has a participating interest,250
+0220,,asset_non_current,false,Other investments other than loans,260
+0230,,asset_non_current,false,Other investments,270
+1000,,asset_current,false,Stock — raw materials and consumables,280
+1010,,asset_current,false,Stock — work in progress,290
+1020,,asset_current,false,Stock — finished goods and goods for resale,300
+1030,,asset_prepayments,false,Payments on account — stocks,310
+1100,,asset_receivable,true,Trade debtors,320
+1105,,asset_current,false,Provision for doubtful debts,330
+1110,,asset_current,false,Amounts owed by group undertakings and undertakings in which the company has a participating interest,340
+1120,,asset_current,false,Other debtors,350
+1130,,asset_current,false,Directors' loan account — debit,360
+1140,,asset_current,false,VAT recoverable — input tax,370
+1150,,asset_current,false,Corporation tax recoverable,380
+1160,,asset_current,false,Employee advances and expense claims,390
+1200,,asset_current,false,Shares in group undertakings — held as a current asset,400
+1210,,asset_current,false,Other investments — held as a current asset,410
+1300,,asset_cash,false,Bank current account,420
+1310,,asset_cash,false,Bank deposit account,430
+1320,,asset_cash,false,Bank account in a foreign currency,440
+1330,,asset_cash,false,Petty cash,450
+1340,,asset_cash,false,Cash in transit,460
+1350,,asset_cash,false,Card acquirer settlement account,470
+1400,,asset_prepayments,false,Prepayments,480
+1410,,asset_prepayments,false,Accrued income,490
+1420,,asset_prepayments,false,Payments on account to suppliers,500
+2000,,liability_current,false,Bank loans — due within one year,510
+2010,,liability_current,false,Bank overdraft,520
+2020,,liability_credit_card,false,Credit card account,530
+2100,,liability_payable,true,Trade creditors,540
+2110,,liability_current,false,Amounts owed to group undertakings and undertakings in which the company has a participating interest,550
+2200,,liability_current,false,VAT payable — output tax,560
+2210,,liability_current,false,VAT control account — net due to HMRC,570
+2220,,liability_current,false,PAYE and National Insurance payable,580
+2230,,liability_current,false,Construction Industry Scheme deductions payable,590
+2240,,liability_current,false,Pension contributions payable,600
+2250,,liability_current,false,Net wages payable,610
+2260,,liability_current,false,Directors' loan account — credit,620
+2270,,liability_current,false,Dividends payable,630
+2280,,liability_current,false,Corporation tax payable,640
+2290,,liability_current,false,Other creditors,650
+2300,,liability_current,false,Obligations under finance leases and hire purchase — due within one year,660
+2400,,liability_current,false,Suspense account,670
+3000,,liability_non_current,false,Bank loans — due after more than one year,680
+3010,,liability_non_current,false,Other loans — due after more than one year,690
+3020,,liability_non_current,false,Trade creditors — due after more than one year,700
+3030,,liability_non_current,false,Amounts owed to group undertakings and undertakings in which the company has a participating interest — due after more than one year,710
+3040,,liability_non_current,false,Obligations under finance leases and hire purchase — due after more than one year,720
+3050,,liability_non_current,false,Other creditors — due after more than one year,730
+3100,,liability_non_current,false,Provision for deferred taxation,740
+3110,,liability_non_current,false,Other provisions for liabilities,750
+3200,,liability_current,false,Accruals,760
+3210,,liability_current,false,Deferred income,770
+3300,,equity,false,Called up share capital,780
+3310,,equity,false,Share premium account,790
+3320,,equity,false,Revaluation reserve,800
+3330,,equity,false,Capital redemption reserve,810
+3340,,equity,false,Other reserves,820
+3400,,equity_retained,false,Profit and loss account,830
+3410,,equity_retained,false,Dividends paid,840
+4000,,income,false,Sales — goods,850
+4010,,income,false,Sales — services,860
+4020,,income,false,Sales — goods at the reduced rate,870
+4030,,income,false,Sales — zero-rated goods,880
+4040,,income,false,Sales — exempt supplies,890
+4050,,income,false,Sales — exports of goods,900
+4060,,income,false,Sales — construction services under the domestic reverse charge,910
+4070,,income,false,Retail takings,920
+4100,,income,false,Sales returns and allowances,930
+4110,,income,false,Discounts allowed,940
+4200,,income_other,false,Other operating income,950
+4210,,income_other,false,Rental income,960
+4220,,income_other,false,Grants receivable,970
+4230,,income_other,false,Profit on disposal of fixed assets,980
+4240,,income_other,false,Foreign exchange gains,990
+4300,,income_other,false,Income from shares in group undertakings,1000
+4310,,income_other,false,Income from participating interests,1010
+4320,,income_other,false,Income from other fixed asset investments,1020
+4330,,income_other,false,Other interest receivable and similar income,1030
+5000,,expense_direct_cost,false,Purchases — goods for resale,1040
+5010,,expense_direct_cost,false,Purchases — raw materials and consumables,1050
+5020,,expense_direct_cost,false,Carriage inwards,1060
+5030,,expense_direct_cost,false,Import duty and freight,1070
+5040,,expense_direct_cost,false,Purchase returns and allowances,1080
+5050,,expense_direct_cost,false,Discounts received,1090
+5100,,expense_direct_cost,false,Opening stock,1100
+5110,,expense_direct_cost,false,Closing stock,1110
+5200,,expense_direct_cost,false,Subcontractor costs,1120
+5210,,expense_direct_cost,false,Direct labour,1130
+5220,,expense_direct_cost,false,Direct expenses — plant and equipment hire,1140
+5230,,expense_direct_cost,false,Direct expenses — materials,1150
+5240,,expense_direct_cost,false,Direct expenses — other,1160
+6000,,expense,false,Advertising,1170
+6010,,expense,false,Marketing and promotion,1180
+6020,,expense,false,Website and online advertising,1190
+6100,,expense,false,Carriage outwards,1200
+6110,,expense,false,Packaging,1210
+6200,,expense,false,Distribution staff — wages and salaries,1220
+6210,,expense,false,Distribution staff — employer's National Insurance,1230
+6220,,expense,false,Distribution staff — employer's pension contributions,1240
+6230,,expense,false,Sales commission,1250
+6300,,expense,false,Delivery vehicle running costs,1260
+6310,,expense,false,Travelling — distribution,1270
+6400,,expense,false,Warehouse rent and business rates,1280
+6410,,expense,false,Warehouse light and heat,1290
+6420,,expense,false,Warehouse insurance,1300
+6500,,expense_depreciation,false,Depreciation — distribution assets,1310
+7000,,expense,false,Directors' remuneration,1320
+7010,,expense,false,Wages and salaries,1330
+7020,,expense,false,Employer's National Insurance,1340
+7030,,expense,false,Employer's pension contributions,1350
+7040,,expense,false,Staff training,1360
+7050,,expense,false,Staff welfare,1370
+7060,,expense,false,Recruitment costs,1380
+7070,,expense,false,Temporary and agency staff,1390
+7100,,expense,false,Rent,1400
+7110,,expense,false,Business rates,1410
+7120,,expense,false,Light and heat,1420
+7130,,expense,false,Water rates,1430
+7140,,expense,false,Insurance,1440
+7150,,expense,false,Repairs and maintenance,1450
+7160,,expense,false,Cleaning,1460
+7170,,expense,false,Security,1470
+7200,,expense,false,Telephone and internet,1480
+7210,,expense,false,Postage and carriage,1490
+7220,,expense,false,Printing and stationery,1500
+7230,,expense,false,Software and subscriptions,1510
+7240,,expense,false,Computer and IT costs,1520
+7250,,expense,false,Equipment hire,1530
+7260,,expense,false,Sundry expenses,1540
+7300,,expense,false,Motor vehicle running costs,1550
+7310,,expense,false,Motor vehicle leasing and hire,1560
+7320,,expense,false,Travel and subsistence,1570
+7330,,expense,false,Business entertainment,1580
+7400,,expense,false,Accountancy fees,1590
+7410,,expense,false,Legal and professional fees,1600
+7420,,expense,false,Consultancy fees,1610
+7430,,expense,false,Audit fee,1620
+7440,,expense,false,Bank charges,1630
+7450,,expense,false,Card processing charges,1640
+7460,,expense,false,Subscriptions to professional bodies,1650
+7470,,expense,false,Charitable donations,1660
+7500,,expense,false,Bad debts written off,1670
+7510,,expense,false,Movement in the provision for doubtful debts,1680
+7600,,expense_depreciation,false,Depreciation — freehold land and buildings,1690
+7610,,expense_depreciation,false,Depreciation — leasehold property and improvements,1700
+7620,,expense_depreciation,false,Depreciation — plant and machinery,1710
+7630,,expense_depreciation,false,Depreciation — fixtures and fittings,1720
+7640,,expense_depreciation,false,Depreciation — office equipment,1730
+7650,,expense_depreciation,false,Depreciation — computer equipment,1740
+7660,,expense_depreciation,false,Depreciation — motor vehicles,1750
+7670,,expense_depreciation,false,Amortisation of goodwill,1760
+7680,,expense_depreciation,false,Amortisation of other intangible assets,1770
+7690,,expense,false,Loss on disposal of fixed assets,1780
+7700,,expense,false,Foreign exchange losses,1790
+7710,,expense,false,Rounding differences,1800
+8000,,expense,false,Bank interest payable,1810
+8010,,expense,false,Loan interest payable,1820
+8020,,expense,false,Finance lease and hire purchase interest,1830
+8030,,expense,false,Other interest payable and similar expenses,1840
+8040,,expense,false,Statutory interest and recovery costs on late payment,1850
+8100,,expense,false,Amounts written off investments,1860
+8200,,expense,false,Corporation tax on profit or loss,1870
+8210,,expense,false,Corporation tax — adjustment in respect of prior periods,1880
+8220,,expense,false,Deferred taxation charge,1890
+8300,,expense,false,Other taxes not shown under the above items,1900

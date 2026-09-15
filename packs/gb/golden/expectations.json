@@ -1,0 +1,19 @@
+{
+  "note": "Claims about this pack that no other pack can make, and that the pack's own files cannot check themselves against. Read by the tests through tests/helpers/packs.ts. Like the rest of golden/ beside scenario.json, this file is outside the pack checksum: it is evidence about the pack, not part of it.",
+  "report_arithmetic": [
+    {
+      "box": "3",
+      "kind": "total",
+      "plus": ["1", "2"],
+      "minus": []
+    },
+    {
+      "box": "5",
+      "kind": "total",
+      "plus": ["3"],
+      "minus": ["4"]
+    }
+  ],
+  "arithmetic_note": "Two boxes of the VAT Return are an arithmetic the notice writes out rather than an amount anybody books, and they are the only two: VAT Notice 700/12 says box 3 is the total of boxes 1 and 2, and that box 5 is box 3 less box 4. Boxes 6 and 7 are also totals here, and they are deliberately not claimed: their shape is this pack's answer to a form that prints one taxable amount in two boxes at once, not an arithmetic the law states.",
+  "facts_note": "No statement_facts. Companies House takes small company accounts in iXBRL against the taxonomies the Financial Reporting Council publishes, and nothing in this pack was verified against one, so both statements leave `xbrl` and `taxonomy` null. A wrong fact key is worse than none, and the line codes of statements.json are the letters and numerals of Schedule 1 itself, so a future filing brick has a stable thing to map from."
+}
