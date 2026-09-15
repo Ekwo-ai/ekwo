@@ -18,6 +18,14 @@ export default defineConfig({
       '@ekwo-ai/xbrl-cbso': fileURLToPath(
         new URL('./packages/formats/xbrl-cbso/src/index.ts', import.meta.url),
       ),
+      '@ekwo-ai/intra-consignment': fileURLToPath(
+        new URL('./packages/formats/intra-consignment/src/index.ts', import.meta.url),
+      ),
+      '@ekwo-ai/des': fileURLToPath(new URL('./packages/formats/des/src/index.ts', import.meta.url)),
+      '@ekwo-ai/ecdf': fileURLToPath(
+        new URL('./packages/formats/ecdf/src/index.ts', import.meta.url),
+      ),
+      '@ekwo-ai/vd': fileURLToPath(new URL('./packages/formats/vd/src/index.ts', import.meta.url)),
     },
   },
   test: {

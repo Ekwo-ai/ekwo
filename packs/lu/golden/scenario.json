@@ -54,6 +54,11 @@
       "lines": [{ "name": "Marchandises exportées en Suisse", "quantity": 1, "unit_price": 3000, "tax": "LU-S-EXP", "account": "7061" }]
     },
     {
+      "ref": "V8", "type": "sale_invoice", "contact": "client-de", "date": "2026-08-18", "due_date": "2026-09-17",
+      "why": "Une prestation de services intracommunautaire : la case 423, que la livraison de biens de V6 ne remplit pas. Le Luxembourg dépose deux états récapitulatifs distincts, un par nature, et le scénario doit donc porter les deux.",
+      "lines": [{ "name": "Prestation d'ingénierie pour un preneur allemand", "quantity": 1, "unit_price": 3500, "tax": "LU-S-ICS", "account": "7033" }]
+    },
+    {
       "ref": "A1", "type": "purchase_invoice", "contact": "fourn-lu", "date": "2026-01-28", "due_date": "2026-02-27",
       "why": "Un achat à l'intérieur du pays : la déclaration luxembourgeoise ne demande aucune base à l'entrée, seulement la taxe déductible de la case 458.",
       "lines": [{ "name": "Marchandises", "quantity": 1, "unit_price": 5000, "tax": "LU-P-17", "account": "6061" }]

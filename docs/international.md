@@ -19,9 +19,11 @@ Xero, QuickBooks and Odoo; taxes, their postings and the boxes of a declaration
 as rows a pack fills; financial statements as rows too, with a country-less
 framework behind any chart that prescribes none; EN 16931 fields as columns;
 the French FEC; XBRL for the Belgian NBB; Factur-X; a REST API and an MCP
-server; row level security everywhere. The three file formats are MIT packages
-under [`packages/formats/`](../packages/formats/), organised by format and
-never by country.
+server; row level security everywhere. The seven file formats — the French FEC,
+the Belgian CBSO taxonomy, Factur-X, and the four recapitulative statements
+added with `ec_sales_list()` — are MIT packages under
+[`packages/formats/`](../packages/formats/), organised by format and never by
+country.
 
 **No function of the core holds a country code, and a test enforces it.**
 Belgium, Estonia, France and Luxembourg are four directories under
@@ -236,7 +238,7 @@ and enough contributed packs for the question to be interesting.
 | Belgium | `packs/be/` | `maintained` | — |
 | Estonia | `packs/ee/` | `community` | KMD INF, the § 44 cash-accounting scheme, the fixed-asset rules, the XBRL fact keys of the annual report, and versions of form KMD before 1 July 2025 |
 | France | `packs/fr/` | `maintained` | — |
-| Luxembourg | `packs/lu/` | `community` | the eCDF XML of a filing, the FAIA audit file, the annual VAT return, the special regimes, and corporate income tax |
+| Luxembourg | `packs/lu/` | `community` | the eCDF XML of the periodic return, the FAIA audit file, the annual VAT return, the special regimes, and corporate income tax |
 
 ### Estonia
 
@@ -282,11 +284,14 @@ Three things about it are worth knowing beyond the pack's own
   one line without anybody inferring a range.
 - **It is `community`.** Nothing here was read by a Luxembourg accountant, and
   the pack's README ends on the ten points a reviewer should look at first.
-- **Out of scope, on purpose.** Depositing the XML of an eCDF form, the FAIA
+- **Out of scope, on purpose.** The eCDF XML of the *periodic return*, the FAIA
   audit file, the annual VAT return (a different form with fields of its own),
   the franchise and VAT-group regimes, the full unabridged schemes and their
   notes, and the `tax` module. The first of those is a format library and not a
-  pack; the rest wait for somebody who files them.
+  pack; the rest wait for somebody who files them. The eCDF envelope itself is
+  written by [`@ekwo-ai/ecdf`](../packages/formats/ecdf/) since the
+  recapitulative statement arrived, which is what the distinction looks like in
+  practice: an envelope is a format, the boxes of a return are a pack.
 
 ## What a new country shows the core cannot say
 
@@ -473,6 +478,99 @@ place a language is chosen. *Fix*: a `document_language(document_id)` that
 answers for a document rather than for a user, with `preferred_languages()`
 keeping its own chain for a person reading their own books. *Until then*: the
 chain is two columns inside `shared_document()`, and it is the only copy.
+
+### From the recapitulative statement
+
+The statement of intra-Community supplies — `ec_sales_list()` and the four
+format bricks beside it — was the first thing written that is European rather
+than national: one engine, four files, no `packs/eu/`. Five things it could not
+say precisely, each a change to the core rather than to a pack.
+
+**A company records how often it files its return, and that is not how often it
+files anything else.** `companies.vat_period` holds one cadence. The
+recapitulative statement has its own, and it is a different one in three of the
+four countries read while writing this: Belgium files it monthly above a
+threshold that counts goods only, whatever the return's cadence; France files
+it monthly always; Luxembourg lets goods and services take different cadences,
+both independent of the return; only Estonia files it with the return. *Fix*: a
+cadence per declaration a company is subject to, rather than one column named
+after the return — `tax_report_templates.periods` already says what each form
+accepts, so what is missing is the company's side of it. *Until then*:
+`ec_sales_list()` refuses no period at all, where `vat_return()` refuses one the
+company does not file on. Borrowing the return's guard would have refused a
+lawful monthly statement from a quarterly Belgian filer, which is the ordinary
+case.
+
+**The core cannot say whether a country is a Member State.** Every one of these
+four forms carries supplies to the Union and nothing else, and the only check
+this engine can make is that the customer's country is not the company's own.
+A list of Member States in a function would be a country literal, and in a pack
+it would be wrong: membership is the Union's law and not any one country's.
+*Fix*: a small reference table of territories beside `currencies` — which is
+already framework data rather than pack data — carrying membership with its
+validity dates, so a supply to a country that left the Union is reported as a
+supply to a third country from the day it left. *Until then*: each format brick
+reports what its own administration's schema refuses, which catches a good deal
+of it and catches it late.
+
+**A VAT identification prefix is not always the ISO country code.** Greece
+identifies under `EL` and Northern Ireland under `XI`; `contacts.country` is
+ISO 3166-1 and `contacts.vat_number` may carry either, depending on who typed
+it. *Fix*: the same reference table, mapping a territory to the prefix its
+numbers carry. *Until then*: the prefix is read from the number where the
+number carries one, and falls back to the contact's ISO country where it does
+not — so a Greek customer recorded without a prefix is listed under `GR`, which
+every one of these four administrations refuses.
+
+**A ledger line does not say which posting wrote it.** `entry_lines` carries
+`tax_id` and `tax_line`, so a `base` line and a `tax_on_base` line of the same
+tax on the same account are indistinguishable once written. Anything reading
+the ledger by tax rather than by box has to know that one of the two cannot
+occur. *Fix*: a `posting_type` on `entry_lines`, copied from the posting that
+produced it, beside the `declaration_box` that is already copied there. *Until
+then*: `ec_sales_list()` reads the lines of a tax that are not tax lines, which
+is exact because an intra-Community supply is exempt and has no tax to
+capitalise — and would stop being exact the day a pack said otherwise.
+
+**There is no treatment for a triangular operation.** All four forms print it
+as a category of its own: `T` on the Belgian listing, state II of the
+Luxembourg one, column 4 of the Estonian form. `tax_treatment` has
+`intracom_goods` and `intracom_services` and nothing between them, so a
+supply under a triangular arrangement is declared as ordinary goods. *Fix*: add
+`intracom_triangular`. *Until then*: nothing else has to move — the engine
+derives the nature by taking `intracom_` off the treatment, and all four bricks
+already have a column for it, so the value alone would light the whole path up.
+
+
+## The same rule, next: the One-Stop Shop
+
+Nothing is coded for it here, and this paragraph exists so that the next person
+does not rediscover the shape.
+
+A recapitulative statement asks: *who, in another Member State, did I supply,
+and how much*. The One-Stop Shop asks: *in which Member State did I have to
+charge the tax, at what rate, and how much*. Both are answered from the same
+two facts — **the treatment of the tax on the line, and the country of the
+customer** — and from nothing else. The statement reads a treatment that says
+the supply is exempt in the seller's country and taxable in the buyer's, and
+groups by the buyer's VAT number; the One-Stop Shop reads a treatment that says
+the supply is taxable in the buyer's country, and groups by that country and by
+the rate applied. `ec_sales_list()` is the first of the two, written as a
+function of the core with a flat row shape and a brick per file, and the second
+is the same three pieces: a treatment the pack declares, an aggregation the
+core computes, a format package per administration.
+
+Two things the second one will need that the first did not, and both are on the
+list above. It needs to know which country a customer is in **and whether that
+country is in the Union**, because the scheme applies to consumers and not to
+identified businesses, so the VAT number is not the key. And it needs a rate
+per Member State of consumption, which is not the seller's pack: a French
+company selling into Germany charges German rates, and today the only place a
+German rate lives is the German pack that company does not hold. That is the
+one genuinely new question, and it is worth answering before any code — either a
+company holds several packs, or the rates of the scheme are framework data like
+the currencies. Neither is decided here.
+
 
 ## Decisions taken with the plan
 

@@ -260,6 +260,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'ec_sales_list',
+    {
+      title: 'Recapitulative statement of intra-Community supplies',
+      description:
+        'Who, in another Member State, was supplied without VAT over a period, and for how much: one line per customer VAT number and per nature — goods, services — read from the treatment of the tax on each sale line, with credit notes deducted. The totals tie back to the intra-Community boxes of vat_return for the same period. A line that carries an issue cannot be filed as it stands, most often because the customer has no VAT number recorded: say so rather than leaving it out of the answer. No country rule lives in this tool. It prepares a statement; it files nothing.',
+      inputSchema: read.EcSalesListInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.ecSalesList(backend, args)),
+  );
+
+  server.registerTool(
     'list_statements',
     {
       title: 'List financial statements',
@@ -790,7 +802,8 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
               '1. vat_return for the period. Report every box with its amount, and say which ones are computed from the others.',
               '2. Check that nothing is missing: list_documents with state "draft" over the period. A draft invoice is in no box, and that is usually the error.',
               '3. Tie the VAT accounts back to the ledger: general_ledger on the VAT payable and VAT recoverable accounts for the period, and compare with the boxes.',
-              '4. Say what is due or refundable, and what would have to be corrected before filing.',
+              '4. If the company supplied anything to another Member State: ec_sales_list for the period, and check its total against the intra-Community boxes of the return. Name every line it flags — a customer with no VAT number is a statement that cannot be filed.',
+              '5. Say what is due or refundable, and what would have to be corrected before filing.',
               '',
               'This prepares figures. It files nothing, and it changes nothing in the books.',
             ].join('\n'),

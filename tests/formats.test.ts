@@ -27,6 +27,10 @@ const ALLOWED_DEPENDENCIES: Record<string, readonly string[]> = {
   '@ekwo-ai/xbrl-cbso': [],
   '@ekwo-ai/fec': [],
   '@ekwo-ai/factur-x': ['pdf-lib'],
+  '@ekwo-ai/intra-consignment': [],
+  '@ekwo-ai/des': [],
+  '@ekwo-ai/ecdf': [],
+  '@ekwo-ai/vd': [],
 };
 
 interface Brick {

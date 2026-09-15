@@ -48,6 +48,11 @@
       "lines": [{ "name": "Marchandises livrées en Belgique", "quantity": 7, "unit_price": 1000, "tax": "FR-S-ICG", "account": "707000" }]
     },
     {
+      "ref": "V7", "type": "sale_invoice", "contact": "client-be", "date": "2026-08-20", "due_date": "2026-09-19",
+      "why": "Une prestation de services intracommunautaire : la ligne 05, que la livraison de biens de V6 ne remplit pas. C'est aussi la seule ligne de la CA3 que deux traitements se partagent — l'autoliquidation interne y va également — et l'état récapitulatif des services ne peut donc pas s'en déduire.",
+      "lines": [{ "name": "Prestation d'ingénierie pour un preneur belge", "quantity": 1, "unit_price": 3500, "tax": "FR-S-ICS", "account": "706000" }]
+    },
+    {
       "ref": "A1", "type": "purchase_invoice", "contact": "fourn-fr", "date": "2026-01-30", "due_date": "2026-03-01",
       "why": "Un achat de biens : la CA3 ne déclare aucune base à l'entrée, seulement la taxe déductible de la ligne 20.",
       "lines": [{ "name": "Marchandises", "quantity": 1, "unit_price": 5000, "tax": "FR-P-20", "account": "607000" }]

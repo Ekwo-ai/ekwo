@@ -13,8 +13,9 @@ Each package here:
 - **imports nothing from the core** — not `@ekwo-ai/core`, not the schema, not
   another brick;
 - reads the **flat row shapes** the core's `financial_statement()`,
-  `vat_return()`, `fec_lines()` and `document_*` views return, and declares
-  them in its own types rather than importing them from anywhere;
+  `vat_return()`, `ec_sales_list()`, `fec_lines()` and `document_*` views
+  return, and declares them in its own types rather than importing them from
+  anywhere;
 - produces the bytes, the name the administration expects and what does not add
   up — `{ file, filename, violations[] }`, under whatever names the format
   gives them;
@@ -26,4 +27,15 @@ There is no shared abstraction between them and there will not be one: no
 that look alike are two formats.
 
 `tests/formats.test.ts` enforces the licence, the isolation and the
-dependencies of every package in this directory.
+dependencies of every package in this directory, and `tests/` carries one
+end-to-end test per package: a country pack's golden year of books, through the
+real engine, into the file — which is the only place a pack and a brick meet,
+and the only test that notices when either moves.
+
+Four of them read the same rows, from `ec_sales_list()`, and write four
+different files, which is what "by format and never by country" buys. They do
+not agree on much: Belgium prints one line per customer **and per nature** with
+a letter code, Estonia prints one line per customer with three amount columns,
+Luxembourg wants the country and the number in two fields and France wants them
+joined, three of the four write decimals and two write whole euros. Two formats
+that look alike are two formats.

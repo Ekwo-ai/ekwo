@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.7.0, do not edit.
+-- Generated from packs/be at version 1.8.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -26,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.7.0', date '2026-09-14', '20260914163943', 'maintained', null, null, 'af2d947c81948ce1897f11162bfdfab619d4f378780f00114bae1cdef04cd8fa')
+  ('BE', 'Belgium', '1.8.0', date '2026-09-15', '20260914163943', 'maintained', null, null, 'a360adb8f38a1c76fd0b709e3515557f150c55a344df2dec7a07993f4ff6c538')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

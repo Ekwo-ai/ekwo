@@ -884,6 +884,31 @@ export async function vatReturn(
   };
 }
 
+export const EcSalesListInput = z.object({
+  company_id: companyId,
+  from: isoDate,
+  to: isoDate,
+});
+
+export async function ecSalesList(
+  backend: Backend,
+  args: z.infer<typeof EcSalesListInput>,
+): Promise<unknown> {
+  const rows = await backend.rpc<Record<string, unknown>>('ec_sales_list', {
+    p_company_id: args.company_id,
+    p_from: args.from,
+    p_to: args.to,
+  });
+  const undeclarable = rows.filter((row) => row['issue'] !== null);
+  return {
+    period: { from: args.from, to: args.to },
+    lines: moneyFields(rows, ['amount']),
+    undeclarable_lines: undeclarable.length,
+    note:
+      'One line per customer VAT number and per nature of supply — goods, services — summed from the posted ledger in the company currency, credit notes deducted. A line carrying an issue cannot be filed as it stands: no_vat_number means the customer has none recorded, vat_country_is_the_company_country means the number is not in another Member State. Report those separately instead of adding them into the total, and do not remove them from the figures. It prepares a statement; it files nothing.',
+  };
+}
+
 export const ListStatementsInput = z.object({
   company_id: companyId,
   at: isoDate

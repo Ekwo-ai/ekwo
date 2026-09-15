@@ -1,6 +1,6 @@
 -- Ekwo OS — Luxembourg: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/lu at version 1.2.0, do not edit.
+-- Generated from packs/lu at version 1.3.0, do not edit.
 -- Change the pack and run `ekwo pack build lu`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -24,7 +24,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('LU', 'Luxembourg', '1.2.0', date '2026-09-14', '20260914163943', 'community', null, null, '938a5e1fde75aed6eba33e9843a43a4909126f10d222fed697936f28700579e7')
+  ('LU', 'Luxembourg', '1.3.0', date '2026-09-15', '20260914163943', 'community', null, null, 'a9c33438813e84f04542d1461ef544ce26f77f9e97c2e877b8796e2788b7c6bc')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.8.0, do not edit.
+-- Generated from packs/fr at version 1.9.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -28,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.8.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '0f4969234f0be2a16b932443e4f8728e18c0360993d4d882f8f655641b663ebf')
+  ('FR', 'France', '1.9.0', date '2026-09-15', '20260914163943', 'maintained', null, null, '1f7bb9a7365d6575e9b4027beb635f46ad64cd6ad593f0ee162494d0a59060e4')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

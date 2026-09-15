@@ -63,6 +63,47 @@ somewhere has already run it.
   links per company in `ekwo status`. [`docs/sharing.md`](docs/sharing.md) is
   the reference and `docs/decisions.md` carries the reasoning.
 
+- **The recapitulative statement of intra-Community supplies, as one function
+  of the core and four format bricks.**
+  Every Member State asks a seller the same question — to whom, in another
+  Member State, did you supply goods and services without charging VAT, and for
+  how much — and then wants the answer in a file of its own shape. Nothing here
+  could answer it: the boxes of the return hold the totals and not the
+  customers, and a listing per customer cannot be read back out of them.
+  **`ec_sales_list(company, from, to)`** returns one line per customer VAT
+  number and per nature of supply, summed from the posted ledger in the
+  company's currency with credit notes deducted. The nature comes from the
+  treatment of the tax with its `intracom_` prefix removed, so the day that
+  vocabulary gains the triangular operation all four forms print, the function
+  returns it without a line changing. A supply that cannot be declared — a
+  customer with no VAT number, a number that is not in another Member State —
+  comes back with the reason in `issue` rather than being dropped, because a
+  file that balances against nothing is worse than a file with a hole in it.
+  It is exposed as an MCP tool beside `vat_return`, and the prompt that prepares
+  a return now asks for it.
+  **It refuses no period**, where `vat_return()` refuses one the company does
+  not file on. `companies.vat_period` records how often the *return* is filed,
+  and the statement has its own cadence in three of the four countries read
+  while writing this — that gap, and four more, are written down in
+  `docs/international.md` rather than patched.
+  **The files are four MIT bricks**, each written only from a specification
+  that could be read and each citing it: `@ekwo-ai/intra-consignment` for the
+  Belgian listing of Intervat, `@ekwo-ai/des` for the French déclaration
+  européenne de services, `@ekwo-ai/ecdf` for the Luxembourg interface file and
+  its four statement forms, `@ekwo-ai/vd` for the Estonian form VD. They agree
+  on almost nothing — one line per nature against one line per customer, a
+  country field apart from the number against the two joined, cents against
+  whole euros — which is what organising by format and never by country is for.
+  The French état récapitulatif TVA on goods is **not** among them: its XML is
+  the INSTAT envelope, whose habilitation number and statistical fields a set of
+  books does not hold, and `packages/formats/des/README.md` says so with the
+  documents a successor would start from.
+  Each pack's golden scenario gained the supply of services it was missing, and
+  the Belgian one a credit note on an intra-Community supply — the document that
+  proves the listing and the return do not read alike, since Belgium reports
+  that credit note positively in a box of its own and the statement deducts it
+  from the customer.
+
 ### Changed
 
 - **A test may book in a country. It may not expect one.**

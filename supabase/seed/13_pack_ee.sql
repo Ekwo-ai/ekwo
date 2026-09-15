@@ -1,6 +1,6 @@
 -- Ekwo OS — Estonia: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/ee at version 1.2.0, do not edit.
+-- Generated from packs/ee at version 1.3.0, do not edit.
 -- Change the pack and run `ekwo pack build ee`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -26,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('EE', 'Estonia', '1.2.0', date '2026-09-14', '20260914163943', 'community', null, null, '1071fb461a577aae96896b50d4d1062d0836d51008f3a259602f18edffe6ed0c')
+  ('EE', 'Estonia', '1.3.0', date '2026-09-15', '20260914163943', 'community', null, null, '57b0df452aa612663ae17df5fc1580787d6aa830ba79cf1c31e299cc86f8fdbb')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,

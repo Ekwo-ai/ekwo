@@ -12,7 +12,7 @@
   "statements": ["EE-RPS-BS", "EE-RPS-IS1"],
   "contacts": [
     { "ref": "klient-ee", "name": "Sinilille Kaubandus OÜ", "type": "customer", "country": "EE" },
-    { "ref": "klient-fi", "name": "Aurinkolahden Kauppa Oy", "type": "customer", "country": "FI" },
+    { "ref": "klient-fi", "name": "Aurinkolahden Kauppa Oy", "type": "customer", "country": "FI", "vat_number": "FI99999999" },
     { "ref": "klient-us", "name": "Northwind Instruments Inc.", "type": "customer", "country": "US" },
     { "ref": "tarnija-ee", "name": "Tammepuu Büroo OÜ", "type": "supplier", "country": "EE" },
     { "ref": "tarnija-de", "name": "Nordlicht Bauteile GmbH", "type": "supplier", "country": "DE" },

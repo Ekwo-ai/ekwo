@@ -113,6 +113,7 @@ Every write names its company explicitly.
 | `general_ledger` | Every posted line of an account, with a running balance |
 | `aged_balance` | What is still owed, bucketed by age, read from the ledger |
 | `vat_return` | The boxes for a period, summed from the ledger |
+| `ec_sales_list` | The recapitulative statement of intra-Community supplies: one line per customer VAT number and per nature |
 | `list_statements` / `financial_statement` | The schemes a company can be presented on, and one statement |
 | `generate_fec` | The French FEC as text, with its checks and its filename |
 | `read_audit_log` | Who changed what and when: the configuration of a company, and the acts that change a state. Append-only; nothing writes it |

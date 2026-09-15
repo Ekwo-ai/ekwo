@@ -1,0 +1,54 @@
+{
+  "name": "@ekwo-ai/vd",
+  "version": "0.1.0",
+  "description": "The Estonian form VD — uhendusesisese kaibe aruanne — in TypeScript: the XML the e-MTA loads, from plain statement rows. Zero dependencies.",
+  "keywords": [
+    "vd",
+    "emta",
+    "estonia",
+    "ec-sales-list",
+    "uhendusesisese-kaibe-aruanne",
+    "intra-community",
+    "vat",
+    "xml"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo-os/tree/main/packages/formats/vd#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/ekwo-os.git",
+    "directory": "packages/formats/vd"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/ekwo-os/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

@@ -18,7 +18,11 @@
     "paths": {
       "@ekwo-ai/core": ["./packages/core/src/index.ts"],
       "@ekwo-ai/fec": ["./packages/formats/fec/src/index.ts"],
-      "@ekwo-ai/xbrl-cbso": ["./packages/formats/xbrl-cbso/src/index.ts"]
+      "@ekwo-ai/xbrl-cbso": ["./packages/formats/xbrl-cbso/src/index.ts"],
+      "@ekwo-ai/intra-consignment": ["./packages/formats/intra-consignment/src/index.ts"],
+      "@ekwo-ai/des": ["./packages/formats/des/src/index.ts"],
+      "@ekwo-ai/ecdf": ["./packages/formats/ecdf/src/index.ts"],
+      "@ekwo-ai/vd": ["./packages/formats/vd/src/index.ts"]
     }
   },
   "include": [

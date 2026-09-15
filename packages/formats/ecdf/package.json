@@ -1,0 +1,55 @@
+{
+  "name": "@ekwo-ai/ecdf",
+  "version": "0.1.0",
+  "description": "The Luxembourg eCDF XML interface file (v2.0) in TypeScript, with the four recapitulative statement forms it carries. Zero dependencies.",
+  "keywords": [
+    "ecdf",
+    "b2g",
+    "luxembourg",
+    "ctie",
+    "aed",
+    "ec-sales-list",
+    "etat-recapitulatif",
+    "vat",
+    "xml"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo-os/tree/main/packages/formats/ecdf#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/ekwo-os.git",
+    "directory": "packages/formats/ecdf"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/ekwo-os/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

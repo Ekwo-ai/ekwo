@@ -274,8 +274,8 @@ the end, and the default answer is no. Community works unregistered, forever,
 and `edition` gates no feature.
 
 `post_document(id)` turns a document into an entry. `trial_balance`,
-`general_ledger`, `aged_balance`, `vat_return`, `financial_statement` and
-`fec_lines` read it back — `financial_statement` on the schemes of the country
+`general_ledger`, `aged_balance`, `vat_return`, `ec_sales_list`,
+`financial_statement` and `fec_lines` read it back — `financial_statement` on the schemes of the country
 pack, the Belgian abbreviated model or the French liasse, or on a generic
 framework by account type that fits any chart of accounts. The FEC of a
 financial year opens on its *à-nouveaux*, computed from the ledger and never

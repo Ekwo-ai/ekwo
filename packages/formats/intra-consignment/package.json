@@ -1,0 +1,55 @@
+{
+  "name": "@ekwo-ai/intra-consignment",
+  "version": "0.1.0",
+  "description": "The Belgian intra-Community sales listing for Intervat (IntraConsignment XML, schema NewICO-in v0.9) in TypeScript, from plain statement rows. Zero dependencies.",
+  "keywords": [
+    "intervat",
+    "intraconsignment",
+    "intra-community",
+    "ec-sales-list",
+    "releve-intracommunautaire",
+    "vat",
+    "belgium",
+    "spf-finances",
+    "xml"
+  ],
+  "license": "MIT",
+  "author": "Ekwo AI",
+  "homepage": "https://github.com/Ekwo-ai/ekwo-os/tree/main/packages/formats/intra-consignment#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ekwo-ai/ekwo-os.git",
+    "directory": "packages/formats/intra-consignment"
+  },
+  "bugs": {
+    "url": "https://github.com/Ekwo-ai/ekwo-os/issues"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

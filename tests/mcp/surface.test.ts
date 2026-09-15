@@ -37,6 +37,7 @@ const READ_TOOLS = [
   'general_ledger',
   'aged_balance',
   'vat_return',
+  'ec_sales_list',
   'list_statements',
   'financial_statement',
   'generate_fec',

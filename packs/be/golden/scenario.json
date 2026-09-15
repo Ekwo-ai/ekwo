@@ -43,6 +43,16 @@
       "lines": [{ "name": "Retour de marchandises", "quantity": 1, "unit_price": 1500, "tax": "BE-S-21", "account": "700000" }]
     },
     {
+      "ref": "V6", "type": "sale_invoice", "contact": "client-nl", "date": "2026-08-12", "due_date": "2026-09-11",
+      "why": "Une prestation de services intracommunautaire : la grille 44, que la livraison de biens de V4 ne remplit pas, et la seconde nature que le relevé récapitulatif doit distinguer de la première pour le même client.",
+      "lines": [{ "name": "Prestation d'ingénierie pour un preneur néerlandais", "quantity": 1, "unit_price": 3500, "tax": "BE-S-ICS", "account": "704000" }]
+    },
+    {
+      "ref": "V7", "type": "sale_credit_note", "contact": "client-nl", "date": "2026-09-21", "due_date": null,
+      "why": "Une note de crédit sur la livraison intracommunautaire V4 : la déclaration la porte en grille 48, positivement et dans une grille qui n'est pas celle de la livraison, tandis que le relevé récapitulatif la déduit du client. C'est le seul document du scénario qui prouve que les deux ne se lisent pas de la même façon.",
+      "lines": [{ "name": "Retour d'une partie des marchandises livrées aux Pays-Bas", "quantity": 1, "unit_price": 2000, "tax": "BE-S-ICG", "account": "700000" }]
+    },
+    {
       "ref": "A1", "type": "purchase_invoice", "contact": "fourn-be", "date": "2026-01-31", "due_date": "2026-03-02",
       "why": "Un achat de marchandises au taux normal : la grille 81 et la TVA déductible de la grille 59.",
       "lines": [{ "name": "Marchandises", "quantity": 1, "unit_price": 6000, "tax": "BE-P-21-G", "account": "604000" }]
