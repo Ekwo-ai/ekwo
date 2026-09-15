@@ -366,11 +366,10 @@ total on.
 ### A base is written once, and printed as often as the form likes
 
 **A tax carries one `base` posting per kind of document**, so a taxable amount
-has one definition and reaches one box. `ekwo pack check` refuses a second one,
-and there is nowhere to put it anyway: a posting compiles to a single
-`declaration_box`. A form that prints the same base twice is therefore not a
-tax with two base postings — the second appearance is a **computed line**, a
-`total` that adds the boxes the postings already wrote.
+has one definition. `ekwo pack check` refuses a second one. A form that prints
+the same base twice is therefore never a tax with two base postings, and it is
+printed twice in one of two ways: **by a total when the second place is a sum**,
+and **by the posting itself when it is not**.
 
 Luxembourg is the case to read, because the eCDF return asks for the taxable
 amount of a sale twice: as turnover in section I, and in the rate breakdown of
@@ -398,19 +397,46 @@ regimes and the operations taxed elsewhere — and `454` adds `471` and `472`,
 and `012` adds `454` to the two private-use boxes. One figure is posted, and
 every line of the form that shows it again is derived from that one.
 
-Estonia meets the same thing three deep: form KMD reports an intra-Community
-acquisition in box 6.1, in box 6 which contains it, and in box 1 which contains
-that. The pack posts to `61`, the innermost, and declares the other two as
-totals; where a printed parent carries a part no posting writes, it adds a
-`hidden` leaf box for that part and totals the two. Six such boxes are what it
-costs, and [`international.md`](international.md) records the gap that would
-remove them.
+That is the first way, and it is the one to reach for: the second place is a
+sum of things the postings already wrote, so it is written down as a sum.
 
-**When you meet it**, find the box the amount is *defined* in — usually the
-innermost, the one broken down by rate — and post there. Every further
-appearance is a `total` naming it. Two base postings would be two definitions
-of one figure, kept in step by whoever reads the pack next, and `pack check`
-refuses them before that can start.
+The second way is for a parent that is **not** a sum. Form KMD reports an
+intra-Community acquisition of goods in box 6.1, in box 6 around it and in box
+1 around that — and box 6 is not the total of the boxes printed under it,
+because the rest of box 6 is services received, which the form never prints on
+its own. The British VAT Return does the same sideways: the value of a service
+received from a supplier established abroad goes in box 6, which is outputs,
+and in box 7, which is inputs, and neither box contains the other. There is no
+total to write in either case, so the posting **names every box it prints in**:
+
+```json
+{ "code": "EE-P-ICG-24", "rate": 24, "scope": "purchase",
+  "treatment": "intracom_acquisition_goods",
+  "postings": { "invoice": [ { "type": "base", "box": ["1", "6", "61"] },
+                             { "type": "tax", "account": "2311", "box": "5" },
+                             { "type": "tax", "factor": -100, "account": "2310", "box": "4" } ] } }
+```
+
+One amount, printed in three boxes, and still one `base` posting and one
+definition. `box` takes a string or a list of strings; the first of the list is
+the box the posting is known by, and `box_factor` is the share reported — the
+same share in each, because a form that prints one figure in three places
+prints the same figure in all three. `ekwo pack check` refuses an empty list, a
+box named twice by one posting, a box the form does not carry, and a box the
+form declares a `total`: a total is added up from the boxes below it, so an
+amount written straight into one would be counted twice.
+
+**When you meet it**, ask whether the second place is a sum. If it is — the
+turnover line above a rate breakdown, the box that adds the four boxes printed
+under it — declare a `total` naming what the postings wrote. If it is not,
+name both boxes on the posting. What is never right is two base postings: two
+definitions of one figure, kept in step by whoever reads the pack next, and
+`pack check` refuses them before that can start.
+
+A `hidden` box has one use left after this, and it is the Belgian one: an
+intermediate `total` the form works out inside a formula and does not print. A
+hidden box that a posting writes into is the old workaround for exactly the
+shape above, and there is no longer a reason for one.
 
 ## What a tax says on the invoice: treatment, category and reason
 
@@ -1109,7 +1135,9 @@ the core does not carry yet. More than one `base` posting on a document kind. A
 one — those two land on the account of the line they tax, so an account on them
 is a misunderstanding worth stopping. An account, or a
 `cash_basis_transition_account`, that is missing from a chart. A posting whose
-`box` the declaration form does not carry.
+`box` the declaration form does not carry — each of them, where the posting
+names several — an empty list of them, the same box named twice by one posting,
+or a box the form declares a `total`.
 
 The three code lists a tax tells one fact in have seven of their own, all of
 them from the table under "What a tax says on the invoice", and every message
@@ -1593,7 +1621,8 @@ turns out to be wrong.
 Each tax takes **one `base` posting per kind of document**. Where your form
 prints the same taxable amount somewhere else — a turnover line above a rate
 breakdown, a memo box inside a box — that second place is a `total` naming the
-first, never a second posting: see "A base is written once, and printed as
+first where it is a sum, and one more box on the posting's own `box` list where
+it is not. Never a second posting: see "A base is written once, and printed as
 often as the form likes".
 
 ### 6. The financial statements

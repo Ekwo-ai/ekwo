@@ -3337,3 +3337,70 @@ so a currency with three decimals loses the third on the way into the column
 rather than in the rule. That gap is named above and in
 `tests/currency_rounding.test.ts`, and it is why the three-decimal case is
 asserted on the figure the view computes and not on the one the column stores.
+## A posting names its boxes, and a list is not a table (15 September 2026)
+
+A tax carries one `base` posting per kind of document. That rule is what keeps
+a taxable amount from having two definitions, and it is not what is being
+relaxed here. What it could not express is a form that prints one amount in
+boxes **no total can derive from one another** — and two of the four packs
+that carry a periodic return meet it.
+
+Form KMD reports an intra-Community acquisition of goods in box 6.1, in box 6
+around it and in box 1 around that. Box 6 looks like a sum of what is printed
+under it, and it is not: the rest of box 6 is services received from another
+Member State, which the form never prints on its own. The British VAT Return
+does the same thing sideways, with the value of a service received from a
+supplier established abroad in box 6, which is outputs, and in box 7, which is
+inputs. Until now each pack invented a leaf box, marked it `hidden`, posted
+there and rebuilt every printed parent as a total: six such boxes on a form of
+thirty, three on a form of nine. Both were exact and both were a reader's
+problem.
+
+**A posting names a list of boxes.** `box` in `taxes.json` takes a string or a
+list of strings; the amount is written to each, with the same `box_factor`,
+because a form that prints one figure in three places prints the same figure in
+all three. Nine hidden boxes disappeared and not one golden figure moved.
+
+**A `text[]` beside the column, not a junction table, and not a posting per
+box.** Three shapes were on the table.
+
+*A posting per box* was rejected first, and it is the one worth being explicit
+about, because it looks like the tidy answer. Two base postings are two
+definitions of one taxable amount, kept in step by whoever reads the pack next;
+`ekwo pack check` refuses them, and that refusal is load-bearing. A variant —
+a new posting type that reports to a box and writes nothing to the ledger —
+would have been worse in a quieter way: it puts a row on the *ledger* side of
+the format for something that is not a ledger fact at all.
+
+*A junction table* is the answer a schema review gives, and it is the right one
+when the rows have an identity. These do not. A posting has no identity of its
+own in this schema — `pack upgrade` compares the postings of a tax as one
+object and replaces them all when anything differs, because "this tax now books
+its non-deductible share somewhere else" is one fact and not four — so the rows
+of a junction would carry a primary key nothing ever names. Against that: a
+table is a policy, a grant, an inventory entry, a cascade and a second order to
+keep, for a list that is one element long in four hundred and forty of the four
+hundred and sixty-six postings of these five packs that name a box at all.
+
+*An array* is what was built. `vat_return()` reads it with one `unnest` where a
+junction is a join, and the expansion stays where it belongs — in the return,
+not in the books. The ledger still gets one line per posting, carrying one box.
+
+**`declaration_box` stays, and stays first.** It is what a posting is known by,
+what a line is read back on, and what every reader written before this change
+still sees. A check constraint holds `declaration_boxes[1] = declaration_box`,
+and a trigger fills whichever of the two a writer did not give — read from what
+*moved*, never from what is null, because a trigger that took `declaration_box
+is null` to mean "say nothing" would put the box back from the list and quietly
+undo a write that cleared it.
+
+**Duplicates are refused by `ekwo pack check` and not by the database.** A
+check constraint cannot hold a subquery, and there is no way to say "this array
+has no repeated element" without one. A duplicate changes no figure that a
+constraint could protect — `unnest` would add the same line to the same box
+twice, which is a defect in the pack — so it is refused at the moment somebody
+is writing the pack, which is where every other pack rule is refused.
+
+**What a `hidden` box means now.** One thing: an intermediate `total` the form
+works out inside a formula and does not print, which is what Belgium's two are.
+A hidden box a posting writes into was the workaround, and a test refuses one.

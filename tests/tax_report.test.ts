@@ -471,11 +471,11 @@ describe('what `ekwo pack check` refuses in a formula', () => {
       // and fifty-six in Luxembourg — and a threshold here would be a country
       // nobody named.
       const declared = new Set(pack.report!.boxes.map((box) => box.box));
+      // Every box of every posting, not just the one it is known by: a
+      // posting may print its amount in more than one, and a box named only
+      // second is a box the form still has to carry.
       const posted = new Set(
-        pack.taxes
-          .flatMap((tax) => Object.values(tax.postings).flat())
-          .map((posting) => posting.box)
-          .filter((box): box is string => box !== null),
+        pack.taxes.flatMap((tax) => Object.values(tax.postings).flat()).flatMap((posting) => posting.boxes),
       );
       expect([...posted].filter((box) => !declared.has(box)), pack.slug).toEqual([]);
       expect(posted.size, pack.slug).toBeGreaterThan(0);
@@ -879,5 +879,276 @@ describe('what `ekwo pack check` refuses about a cadence', () => {
         (pack.manifest.defaults['vat_period'] as string | undefined) ?? null,
       );
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// One posting, printed in as many boxes as the form asks for.
+//
+// A tax carries one `base` posting per kind of document, and every further
+// place the form shows that amount is a `total` naming the box it was written
+// to. That holds wherever the parent is a sum. Where it is not — form KMD
+// nests box 6.1 inside box 6 inside box 1 and prints only the innermost, the
+// British VAT Return prints a service received from abroad in box 6 and in
+// box 7 at once — the posting names every box instead, and `vat_return()`
+// sums the line into each of them.
+// ---------------------------------------------------------------------------
+
+describe('a posting that names more than one box', () => {
+  const host = packWhere('carries a periodic return', (pack) => pack.report !== null);
+
+  let own: PGlite;
+  let ownCompany: string;
+  const form = `${host.manifest.country}-FIXTURE`;
+
+  beforeAll(async () => {
+    own = await freshDatabase();
+    const fixture = await newCompany(own, { country: host.manifest.country, name: 'Two Boxes' });
+    ownCompany = fixture.companyId;
+
+    // A form of this test's own rather than a country's: three boxes, two of
+    // them printed side by side and neither the sum of the other, and a total
+    // above one of the two. It is not a periodic return, so it is asked for
+    // by name and the pack's own form is left alone.
+    await own.query(
+      `insert into tax_report_templates (country, code, name, periods, is_periodic_return)
+       values ($1, $2, 'A form of one test', array[$3]::declaration_period[], false)`,
+      [host.manifest.country, form, host.report!.periods[0]!],
+    );
+    await own.query(
+      `insert into tax_report_box_templates (country, report_code, box, kind, name, sequence)
+       values ($1, $2, 'AA', 'base', 'Outputs', 10), ($1, $2, 'BB', 'base', 'Inputs', 20)`,
+      [host.manifest.country, form],
+    );
+    await own.query(
+      `insert into tax_report_box_templates
+         (country, report_code, box, kind, name, sequence, plus_boxes)
+       values ($1, $2, 'PP', 'total', 'Outputs, totalled', 30, array['AA'])`,
+      [host.manifest.country, form],
+    );
+
+    const tax = await one<{ id: string }>(
+      own,
+      `insert into taxes (company_id, code, name, amount_type, amount, applies_to,
+                          treatment, country, valid_from)
+       values ($1, 'FIXTURE-TWO-BOX', 'Printed twice', 'percent', 0, 'sale',
+               'domestic', $2, date '2026-01-01')
+       returning id`,
+      [ownCompany, host.manifest.country],
+    );
+    await own.query(
+      `insert into tax_postings (tax_id, company_id, document_kind, posting_type,
+                                 declaration_box, declaration_boxes, report_code)
+       values ($1, $2, 'invoice', 'base', 'AA', array['AA', 'BB'], $3)`,
+      [tax.id, ownCompany, form],
+    );
+
+    const income = await one<{ code: string }>(
+      own,
+      `select code from accounts
+        where company_id = $1 and account_type = 'income' order by code limit 1`,
+      [ownCompany],
+    );
+    const customer = await newContact(own, ownCompany, {
+      name: 'A Customer',
+      country: host.manifest.country,
+    });
+    const document = await newDocument(own, ownCompany, {
+      docType: 'sale_invoice',
+      number: 'FIXTURE-1',
+      contactId: customer,
+      date: '2026-06-15',
+      lines: [{ unitPrice: 100, taxCode: 'FIXTURE-TWO-BOX', accountCode: income.code }],
+    });
+    await own.query(`select post_document($1)`, [document]);
+  }, 300_000);
+
+  afterAll(async () => {
+    await own.close();
+  });
+
+  it('writes one ledger line, carrying the box the posting is known by', async () => {
+    const lines = await rows<{ declaration_box: string | null; box_amount: string | null }>(
+      own,
+      `select l.declaration_box, l.box_amount::text as box_amount
+         from entry_lines l
+        where l.company_id = $1 and l.declaration_box is not null`,
+      [ownCompany],
+    );
+    // The expansion belongs to the return and not to the books: one amount is
+    // booked once, whatever the form does with it afterwards.
+    expect(lines).toEqual([{ declaration_box: 'AA', box_amount: '100.00' }]);
+  });
+
+  it('reports the amount in each box the posting names', async () => {
+    const boxes = await rows<Box>(
+      own,
+      `select * from vat_return($1, date '2026-01-01', date '2026-12-31', $2)`,
+      [ownCompany, form],
+    );
+    const byBox = Object.fromEntries(boxes.map((b) => [`${b.box}:${b.kind}`, n(b.amount)]));
+    expect(byBox['AA:base']).toBeCloseTo(100, 2);
+    expect(byBox['BB:base']).toBeCloseTo(100, 2);
+  });
+
+  it('gives a total above one of them that amount once, not once per box', async () => {
+    const boxes = await rows<Box>(
+      own,
+      `select * from vat_return($1, date '2026-01-01', date '2026-12-31', $2)`,
+      [ownCompany, form],
+    );
+    const parent = boxes.find((b) => b.box === 'PP');
+    expect(parent?.computed).toBe(true);
+    expect(n(parent?.amount)).toBeCloseTo(100, 2);
+  });
+
+  it('hands the list to a writer that knows only the box, and takes it back', async () => {
+    // Everything that wrote a posting before this existed names one column.
+    // Rather than make each of them learn a second, the row fills the half it
+    // was not given — and a writer that *clears* the box clears the list with
+    // it, because a trigger that put the box back from the list would be a
+    // write that does not take.
+    const posting = await one<{ id: string }>(
+      own,
+      `select id from tax_postings
+        where company_id = $1 and declaration_box is not null order by id limit 1`,
+      [ownCompany],
+    );
+    await own.query(`update tax_postings set declaration_box = 'ZZ' where id = $1`, [posting.id]);
+    const moved = await one<{ declaration_box: string; declaration_boxes: string[] }>(
+      own,
+      `select declaration_box, declaration_boxes from tax_postings where id = $1`,
+      [posting.id],
+    );
+    expect(moved).toEqual({ declaration_box: 'ZZ', declaration_boxes: ['ZZ'] });
+
+    await own.query(`update tax_postings set declaration_box = null where id = $1`, [posting.id]);
+    const cleared = await one<{ declaration_box: string | null; declaration_boxes: string[] | null }>(
+      own,
+      `select declaration_box, declaration_boxes from tax_postings where id = $1`,
+      [posting.id],
+    );
+    expect(cleared).toEqual({ declaration_box: null, declaration_boxes: null });
+
+    await own.query(
+      `update tax_postings set declaration_boxes = array['AA', 'BB'] where id = $1`,
+      [posting.id],
+    );
+    const relisted = await one<{ declaration_box: string; declaration_boxes: string[] }>(
+      own,
+      `select declaration_box, declaration_boxes from tax_postings where id = $1`,
+      [posting.id],
+    );
+    expect(relisted).toEqual({ declaration_box: 'AA', declaration_boxes: ['AA', 'BB'] });
+  });
+
+  it('refuses a list that does not start at the box the posting is known by', async () => {
+    const message = await expectError(
+      own,
+      `update tax_postings set declaration_box = 'AA', declaration_boxes = array['BB', 'AA']
+        where company_id = $1`,
+      [ownCompany],
+    );
+    expect(message).toMatch(/tax_postings_boxes_start_at_the_box/);
+  });
+});
+
+describe('what `ekwo pack check` refuses about the boxes a posting names', () => {
+  const packs = packsRoot;
+  const broken = packWhere('carries a periodic return', (pack) => pack.report !== null);
+
+  /** A copy of that pack whose first base posting names `box` instead. */
+  async function postingNaming(box: unknown): Promise<string> {
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-pack-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packs, broken.slug), join(dir, broken.slug), { recursive: true });
+    const path = join(dir, broken.slug, 'taxes.json');
+    const taxes = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>[];
+    let done = false;
+    for (const tax of taxes) {
+      const postings = (tax['postings'] ?? {}) as Record<string, Record<string, unknown>[]>;
+      for (const posting of postings['invoice'] ?? []) {
+        if (done || posting['type'] !== 'base' || posting['box'] === undefined) continue;
+        posting['box'] = box;
+        done = true;
+      }
+    }
+    expect(done, `packs/${broken.slug} has no base posting naming a box`).toBe(true);
+    await writeFile(path, JSON.stringify(taxes), 'utf8');
+    const outcome = await readPack(broken.slug, dir).catch((e: unknown) => e as PackError);
+    expect(outcome, 'the pack was accepted').toBeInstanceOf(Error);
+    return (outcome as PackError).message;
+  }
+
+  it('accepts the packs of this repository as they are', async () => {
+    for (const pack of allPacks) {
+      for (const tax of pack.taxes) {
+        for (const postings of Object.values(tax.postings)) {
+          for (const posting of postings) {
+            expect(posting.box, `${pack.slug} ${tax.code}`).toBe(posting.boxes[0] ?? null);
+          }
+        }
+      }
+    }
+  });
+
+  it('refuses a list with nothing in it', async () => {
+    // The published schema says a list of boxes has at least one, so this is
+    // refused before the structural checks run and the reader is told which
+    // posting of which file it is.
+    expect(await postingNaming([])).toMatch(/postings\.invoice\[0\]\.box: is neither/);
+  });
+
+  it('refuses the same box named twice by one posting', async () => {
+    const box = broken.taxes
+      .flatMap((tax) => tax.postings.invoice)
+      .find((posting) => posting.type === 'base' && posting.box !== null)!.box!;
+    expect(await postingNaming([box, box])).toMatch(
+      new RegExp(`box ${box} is named twice by one posting`),
+    );
+  });
+
+  it('refuses a box the form declares a total', async () => {
+    // A total is added up from the boxes below it, so an amount written
+    // straight into one would be counted twice: once by itself and once by
+    // the sum that was already going to carry it.
+    const total = broken.report!.boxes.find((b) => b.kind === 'total')!.box;
+    expect(await postingNaming([total])).toMatch(
+      new RegExp(`box ${total}:base is not a base box of this form`),
+    );
+  });
+
+  it('refuses a box the form does not carry, wherever it stands in the list', async () => {
+    const first = broken.taxes
+      .flatMap((tax) => tax.postings.invoice)
+      .find((posting) => posting.type === 'base' && posting.box !== null)!.box!;
+    expect(await postingNaming([first, 'ZZZ'])).toMatch(
+      /ZZZ:base is not a base box of this form/,
+    );
+  });
+});
+
+describe('the hidden boxes the packs still carry', () => {
+  it('are intermediate totals, and never a box a posting writes into', () => {
+    // A hidden box used to be two different things. One is a subtotal the
+    // form works out and does not print, which is a fact about the form and
+    // stays. The other was a leaf invented so that a posting reporting to one
+    // box could feed a printed parent that is not a sum — the Estonian KMD
+    // cost six of them and the British VAT Return three — and that reason is
+    // gone: a posting names every box it prints in.
+    for (const pack of allPacks) {
+      const written = new Set(
+        pack.taxes.flatMap((tax) => Object.values(tax.postings).flat()).flatMap((p) => p.boxes),
+      );
+      const wrong = (pack.report?.boxes ?? [])
+        .filter((box) => box.hidden && (box.kind !== 'total' || written.has(box.box)))
+        .map((box) => `${box.box}:${box.kind}`);
+      expect(wrong, pack.slug).toEqual([]);
+    }
+  });
+
+  it('are still exercised somewhere, so the flag is not a dead column', () => {
+    const hidden = allPacks.flatMap((pack) => (pack.report?.boxes ?? []).filter((b) => b.hidden));
+    expect(hidden.length, 'no pack carries a hidden box any more').toBeGreaterThan(0);
   });
 });

@@ -159,21 +159,17 @@ period reports a negative box 5 where the printed form shows a positive figure
 and a separate indication of which way it goes. In the golden year the third
 quarter, which carries only a credit note, comes to −400.00.
 
-**Three boxes exist in the pack and not on the form**, marked `hidden`:
-
-| Hidden box | Is | Because |
-|---|---|---|
-| `6s` | the sales of the period | box 6 is a total of this and `67` |
-| `7p` | the purchases of the period | box 7 is a total of this and `67` |
-| `67` | the value of a service received from abroad | the notice asks for it in box 6 **and** in box 7 |
-
-A tax writes one taxable amount to one box — the rule is in
+**Every box of this pack is a box of the form, and one tax names two of
+them.** VAT Notice 700/12 asks for the value of a service received from a
+supplier established abroad in box 6, which is outputs, and in box 7, which is
+inputs — one amount and two printed boxes, neither containing the other. Until
+15 September 2026 the pack answered with three boxes marked `hidden` that the
+form does not print; the posting now names `["6", "7"]` and the amount is
+reported in each. Boxes 6 and 7 are ordinary boxes summed from the ledger
+again, and no figure of the golden year moved. The rule the pack follows is in
 [`docs/packs.md`](../../docs/packs.md), "A base is written once, and printed as
-often as the form likes" — and the British form asks for one amount in two
-printed boxes at the same time. Estonia met the same rule on a form whose boxes
-*nest*; here they are siblings, which is a second shape of the same gap and is
-recorded as such. `vat_return()` returns the hidden boxes with the flag, so
-nothing is lost, and a filing brick reads the printed ones.
+often as the form likes": a second printing is a `total` where it is a sum, and
+one more box on the posting where it is not.
 
 **Box 1 is summed from the ledger and not computed.** The form derives nothing,
 and neither does the pack: what reaches box 1 is the output tax the documents
@@ -181,8 +177,8 @@ actually posted, each already rounded once, which is the closer figure to what
 a VAT account under Notice 700/21 shows.
 
 **Boxes 2, 8 and 9 are declared and empty**, for the Northern Ireland reason
-above. Box 3 is the sum the notice states; boxes 6 and 7 are totals of the
-hidden boxes; nothing else is derived.
+above. Box 3 and box 5 are the two arithmetics the notice states, and they are
+the only two: every other box of this form is summed from the ledger.
 
 **The cadence, and the one field this pack wanted and could not have.**
 Regulation 25(1) of the VAT Regulations 1995 makes the prescribed accounting

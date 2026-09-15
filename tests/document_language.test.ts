@@ -228,15 +228,22 @@ describe('a document that has been posted', () => {
 
 describe('the documents that were here before the column was', () => {
   it('are filled from the same chain, which is the best that can be said of them', async () => {
-    // A database built to the migration before this one, given a document, and
+    // A database that has everything except this column, given a document, and
     // then handed the migration. Nothing else can be said about a document
     // already sent: the chain is what produced the PDF in the customer's inbox,
     // and from here on nothing is derived twice.
+    //
+    // Every migration but this one, rather than every migration older than it:
+    // the seeds below are the output of the packs at head, so they ask of the
+    // database whatever the latest migration gives — a column on a template
+    // table, the day a pack needs one — and a database frozen at an older
+    // migration cannot take them. What the test is about is the column, not
+    // the date.
     const before = new PGlite();
     await before.waitReady;
     await before.exec(await readFile(shimPath, 'utf8'));
     for (const file of await migrationFiles()) {
-      if (file >= MIGRATION) break;
+      if (file === MIGRATION) continue;
       await before.exec(await readFile(join(repoRoot, 'supabase', 'migrations', file), 'utf8'));
     }
     for (const file of await seedFiles()) {

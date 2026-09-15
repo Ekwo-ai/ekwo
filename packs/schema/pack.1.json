@@ -65,6 +65,14 @@
       "pattern": "^[0-9A-Za-z]{1,8}$",
       "description": "Identifier of a box on a declaration form. Immutable inside a form version."
     },
+    "posting_boxes": {
+      "description": "Box or boxes of the periodic return this amount lands in. One string is one box, which is what almost every posting needs. A list is for a form that prints the same amount in boxes that cannot be worked out from one another: the Estonian KMD reports an intra-Community acquisition in box 6.1, in box 6 around it and in box 1 around that, and the British VAT Return prints a service received from a supplier established abroad in box 6, which is outputs, and in box 7, which is inputs. A box that is the sum of others stays a total and is never named here. The first of the list is the box the posting is known by — `ekwo pack check` refuses an empty list, a box named twice and a box the form declares a total.",
+      "oneOf": [
+        { "type": "null" },
+        { "$ref": "#/$defs/box" },
+        { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/$defs/box" } }
+      ]
+    },
     "box_ref": {
       "type": "string",
       "pattern": "^[0-9A-Za-z]{1,8}(:(base|tax|total))?$",
@@ -464,7 +472,7 @@
         },
         "factor": { "type": "number", "description": "Percentage of the amount that goes to the ledger \u2014 of the base on a base posting, of the tax on the two others. Default 100; -100 flips the side, which is how a self-assessed tax nets to zero." },
         "account": { "type": ["string", "null"], "description": "Code of the ledger account, from accounts.csv. Only on a tax posting: base and tax_on_base take the account of the document line." },
-        "box": { "type": ["string", "null"], "pattern": "^[0-9A-Za-z]{1,8}$", "description": "Box of the periodic return this amount lands in." },
+        "box": { "$ref": "#/$defs/posting_boxes" },
         "box_factor": { "type": "number", "description": "Percentage of the amount reported in the box. Default 100; -100 subtracts from the same line." },
         "report": { "type": ["string", "null"], "description": "Declaration form this box belongs to. Defaults to the code of tax_report.json — a box number is only unique inside one form, which matters the day a country files two at once (Canada: the federal GST/HST return and the Québec one)." },
         "sequence": { "type": "integer", "minimum": 0, "description": "Order inside the kind, and part of the natural key. Defaults to the position in the array, times ten." }

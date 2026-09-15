@@ -285,7 +285,14 @@ export interface TaxPosting {
   posting_type: TaxPostingType;
   factor_percent: Decimal;
   account_id: Uuid | null;
+  /** The box this posting is known by: the first of `declaration_boxes`. */
   declaration_box: string | null;
+  /**
+   * Every box the form prints this one amount in. Almost always the single box
+   * above; longer where the form shows one figure in boxes that are not sums
+   * of one another.
+   */
+  declaration_boxes: string[] | null;
   box_factor_percent: Decimal;
   sequence: number;
 }

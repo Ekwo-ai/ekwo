@@ -15,7 +15,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -26,7 +26,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -56,7 +56,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -67,7 +67,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -97,7 +97,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -108,7 +108,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -137,7 +137,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -148,7 +148,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -178,7 +178,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -189,7 +189,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -218,7 +218,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -229,7 +229,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -258,7 +258,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -269,7 +269,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -298,7 +298,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         },
         {
           "type": "tax",
@@ -309,7 +309,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         },
         {
@@ -338,13 +338,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         }
       ]
@@ -367,13 +367,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         }
       ]
@@ -395,13 +395,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         }
       ]
@@ -424,13 +424,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         }
       ]
@@ -453,13 +453,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": "6"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": "6",
           "box_factor": -100
         }
       ]
@@ -482,7 +482,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -493,7 +493,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -522,7 +522,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -533,7 +533,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -562,7 +562,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -573,7 +573,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -601,7 +601,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -612,7 +612,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -640,7 +640,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -651,7 +651,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -679,13 +679,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         }
       ]
@@ -707,13 +707,13 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         }
       ]
@@ -736,7 +736,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax_on_base"
@@ -745,7 +745,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -771,7 +771,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -788,7 +788,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -823,7 +823,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -840,7 +840,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -875,7 +875,7 @@
       "invoice": [
         {
           "type": "base",
-          "box": "7p"
+          "box": "7"
         },
         {
           "type": "tax",
@@ -892,7 +892,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7p",
+          "box": "7",
           "box_factor": -100
         },
         {
@@ -926,7 +926,10 @@
       "invoice": [
         {
           "type": "base",
-          "box": "67"
+          "box": [
+            "6",
+            "7"
+          ]
         },
         {
           "type": "tax",
@@ -943,7 +946,10 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "67",
+          "box": [
+            "6",
+            "7"
+          ],
           "box_factor": -100
         },
         {

@@ -108,24 +108,26 @@ So `1¹ 1² 2¹ 2² 4¹` are written `1a 1b 2a 2b 4a`, and `3.1 3.1.1 3.2 3.2.1 
 5.2 5.3 5.4 6.1 7.1` are written `31 311 32 321 51 52 53 54 61 71`. Every box
 names its printed identifier in the first words of its `legal_reference`.
 
-**Six boxes exist in the pack and not on the form**, marked `hidden`, and they
-are there because the form nests and the format does not. A tax carries one
-`base` posting per kind of document, so it can name one box; but the Estonian
-form asks for the same amount in a box, in the memo box inside it, and
-sometimes in a third one. The pack therefore posts to the innermost box and
-rebuilds the printed parents as totals:
+**Every box of this pack is a box of the form.** The form nests — it asks for
+the same amount in a box, in the memo box inside it and sometimes in a third —
+and until 15 September 2026 the pack answered with six leaf boxes marked
+`hidden` that the form does not print. A posting now names every box it prints
+in, so those six are gone and no figure moved:
 
-| Hidden box | Is the part of | That the form gives as |
+| A tax on | Names boxes | Printed identifiers |
 |---|---|---|
-| `1d` | box 1 | box 1 less the self-assessed acquisitions |
-| `3s` | box 3.1 | 3.1 − 3.1.1 |
-| `32e` | box 3.2 | 3.2 − 3.2.1 |
-| `5g` | box 5 | 5 − 5.1 − 5.2 − 5.3 − 5.4 |
-| `6s` | box 6 | 6 − 6.1 |
-| `7f` | box 7 | the part of 7 that is not § 41¹ |
+| an intra-Community acquisition of goods | `1`, `6`, `61` | 1, 6, 6.1 |
+| a service received from another Member State | `1`, `6` | 1, 6 |
+| an acquisition under the § 41¹ arrangement | `1`, `7`, `71` | 1, 7, 7.1 |
+| a service received from outside the Union | `1`, `7` | 1, 7 |
+| an intra-Community supply of goods | `3`, `31`, `311` | 3, 3.1, 3.1.1 |
+| a service supplied to another Member State | `3`, `31` | 3, 3.1 |
+| an export | `3`, `32` | 3, 3.2 |
+| input VAT on an import, a fixed asset or a car | `5` and the box for that kind | 5 and 5.1 to 5.4 |
 
-`ekwo pack check` and `vat_return()` both return them with the flag, so nothing
-is lost; a filing brick reads the printed boxes and ignores the hidden ones.
+The amount is the same in each box, which is what the form asks for: box 6 and
+box 6.1 are informative, the instructions say so in as many words, and the
+figure they show is already inside box 1.
 
 **Box 4 is summed from the ledger, not computed.** The form derives it
 arithmetically — 24 % of box 1, 9 % of box 2, and so on — and the pack format

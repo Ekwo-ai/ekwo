@@ -43,7 +43,10 @@ function natureOf(tax: PackTax): string {
 }
 
 interface BasePosting {
-  box: string;
+  /** Which posting this is, so one that prints in three boxes is counted once. */
+  id: number;
+  /** Every box the posting prints its amount in, widest to narrowest. */
+  boxes: string[];
   nature: string | null;
   /**
    * What multiplies the box to get back the statement's own sign: an invoice
@@ -63,9 +66,10 @@ function basePostings(pack: Pack): BasePosting[] {
   for (const tax of pack.taxes) {
     for (const [kind, postings] of Object.entries(tax.postings)) {
       for (const posting of postings) {
-        if (posting.type !== 'base' || posting.box === null) continue;
+        if (posting.type !== 'base' || posting.boxes.length === 0) continue;
         out.push({
-          box: posting.box,
+          id: out.length,
+          boxes: posting.boxes,
           nature: isSupply(tax) ? natureOf(tax) : null,
           correction: (kind === 'credit_note' ? -1 : 1) * Math.sign(posting.box_factor),
           whole: Math.abs(posting.box_factor) === 100,
@@ -90,16 +94,33 @@ function boxesReporting(pack: Pack, natures: string[]): Map<string, number> | nu
   const wanted = all.filter((p) => p.nature !== null && natures.includes(p.nature));
   if (wanted.length === 0) return null;
 
-  const boxes = new Map<string, number>();
-  for (const box of new Set(wanted.map((p) => p.box))) {
-    const feeding = all.filter((p) => p.box === box);
-    if (feeding.some((p) => p.nature === null || !natures.includes(p.nature) || !p.whole)) {
-      return null;
-    }
+  // A box this statement can be read straight off: everything printed in it is
+  // one of the supplies asked for, in whole, and with one sign.
+  const usable = new Map<string, { feeders: BasePosting[]; correction: number }>();
+  for (const box of [...new Set(wanted.flatMap((p) => p.boxes))].sort()) {
+    const feeding = all.filter((p) => p.boxes.includes(box));
+    if (feeding.some((p) => p.nature === null || !natures.includes(p.nature) || !p.whole)) continue;
     const corrections = new Set(feeding.map((p) => p.correction));
-    if (corrections.size !== 1) return null;
-    boxes.set(box, [...corrections][0] as number);
+    if (corrections.size !== 1) continue;
+    usable.set(box, { feeders: feeding, correction: [...corrections][0] as number });
   }
+
+  // One posting counted once. A posting may print in several boxes — Estonia
+  // reports an intra-Community supply of goods in box 3, in box 3.1 and in box
+  // 3.1.1 — so the widest usable box goes first and the boxes it already
+  // covers are not read a second time. A posting no usable box reaches is a
+  // supply this form does not print apart from something else, and the answer
+  // to that is still null.
+  const boxes = new Map<string, number>();
+  const counted = new Set<number>();
+  for (const [box, { feeders, correction }] of [...usable].sort(
+    (a, b) => b[1].feeders.length - a[1].feeders.length,
+  )) {
+    if (feeders.some((p) => counted.has(p.id))) continue;
+    for (const feeder of feeders) counted.add(feeder.id);
+    boxes.set(box, correction);
+  }
+  if (wanted.some((p) => !counted.has(p.id))) return null;
   return boxes;
 }
 

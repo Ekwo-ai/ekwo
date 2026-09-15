@@ -87,12 +87,17 @@ A tax says how much. Its postings say where.
 For each tax and each document kind (`invoice` or `credit_note`), `tax_postings`
 holds at most one `base` posting and any number of `tax` postings. Each one
 carries a `factor_percent`, a ledger account (for tax postings) and a
-`declaration_box` with its own `box_factor_percent`.
+`declaration_box` with its own `box_factor_percent` — and, beside it,
+`declaration_boxes`, every box the form prints that one amount in. It is almost
+always the single box `declaration_box` names, and it is longer on a form that
+shows one figure in boxes that are not sums of one another.
 
 `post_document()` applies them:
 
 - the base amount goes to the account of the document line, and picks up the
-  box of the base posting;
+  box of the base posting — one line and one box, whatever the form does with
+  the figure afterwards: `vat_return()` is what reads the list and sums the
+  line into each box of it;
 - for each tax posting, `round(tax x |factor| / 100, 2)` goes to that
   posting's account — on the same side as the base when `factor_percent` is
   positive, on the opposite side when it is negative;

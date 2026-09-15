@@ -109,6 +109,7 @@ An empty cell means there is no counterpart, which is itself information.
 | `tax_postings.posting_type` | `.repartition_type` | | |
 | `tax_postings.account_id` | `.account_id` | | |
 | `tax_postings.declaration_box` | `.tag_ids` → `account.account.tag` | | |
+| `tax_postings.declaration_boxes` | `.tag_ids`, where one posting carries several | | |
 | `tax_postings.box_factor_percent` | *(carried by the sign of the tag)* | | |
 | `tax_postings.document_kind` | `.document_type` | | |
 

@@ -7,13 +7,14 @@
     "scope": "sale",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 02.01.2025, 2 — standardmäär 24 protsenti alates 01.07.2025", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 02.01.2025, 2 — standardmäär 24 protsenti alates 01.07.2025",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "1d"
+          "box": "1"
         },
         {
           "type": "tax",
@@ -24,7 +25,7 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "1d",
+          "box": "1",
           "box_factor": -100
         },
         {
@@ -47,7 +48,8 @@
     "treatment": "domestic",
     "valid_from": "2024-01-01",
     "valid_to": "2025-06-30",
-    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 01.07.2023, 2 — standardmäär 22 protsenti 01.01.2024–30.06.2025; vormil KMD lahter 1²", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 01.07.2023, 2 — standardmäär 22 protsenti 01.01.2024–30.06.2025; vormil KMD lahter 1²",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -87,7 +89,8 @@
     "treatment": "domestic",
     "valid_from": "2009-07-01",
     "valid_to": "2023-12-31",
-    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I 2009, 35, 232 — standardmäär 20 protsenti 01.07.2009–31.12.2023; vormil KMD lahter 1¹", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I 2009, 35, 232 — standardmäär 20 protsenti 01.07.2009–31.12.2023; vormil KMD lahter 1¹",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -126,7 +129,8 @@
     "scope": "sale",
     "treatment": "domestic",
     "valid_from": "2009-01-01",
-    "legal_reference": "KMS § 15 lg 2 p 1, 2 ja 5 — raamat ja õppekirjandus, ravim ja meditsiiniseade ning alates 01.01.2025 ajakirjandusväljaanne", "source": "kms",
+    "legal_reference": "KMS § 15 lg 2 p 1, 2 ja 5 — raamat ja õppekirjandus, ravim ja meditsiiniseade ning alates 01.01.2025 ajakirjandusväljaanne",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -165,7 +169,8 @@
     "scope": "sale",
     "treatment": "domestic",
     "valid_from": "2025-01-01",
-    "legal_reference": "KMS § 15 lg 1¹, redaktsioon RT I, 01.07.2023, 2 — majutuse või hommikusöögiga majutuse maksumäär 13 protsenti alates 01.01.2025, välja arvatud teenusega kaasnev kaup või teenus", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1¹, redaktsioon RT I, 01.07.2023, 2 — majutuse või hommikusöögiga majutuse maksumäär 13 protsenti alates 01.01.2025, välja arvatud teenusega kaasnev kaup või teenus",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -205,7 +210,8 @@
     "treatment": "domestic",
     "valid_from": "2009-01-01",
     "valid_to": "2024-12-31",
-    "legal_reference": "KMS § 15 lg 2 p 4, kehtetu alates 01.01.2025 — majutuse maksumäär 9 protsenti kuni 31.12.2024", "source": "kms",
+    "legal_reference": "KMS § 15 lg 2 p 4, kehtetu alates 01.01.2025 — majutuse maksumäär 9 protsenti kuni 31.12.2024",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -245,7 +251,8 @@
     "treatment": "domestic",
     "valid_from": "2022-08-01",
     "valid_to": "2024-12-31",
-    "legal_reference": "KMS § 15 lg 2¹, redaktsioon RT I, 04.06.2022, 4, kehtetu alates 01.01.2025 — ajakirjandusväljaande maksumäär 5 protsenti; vormil KMD lahter 2¹", "source": "kms",
+    "legal_reference": "KMS § 15 lg 2¹, redaktsioon RT I, 04.06.2022, 4, kehtetu alates 01.01.2025 — ajakirjandusväljaande maksumäär 5 protsenti; vormil KMD lahter 2¹",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -284,20 +291,29 @@
     "scope": "sale",
     "treatment": "intracom_goods",
     "valid_from": "2004-05-01",
-    "legal_reference": "KMS § 15 lg 3 p 2 ja § 7 lg 1 — kauba ühendusesisene käive; § 15 lg 3¹ seab tingimuseks soetaja kehtiva maksukohustuslasena registreerimise numbri ja ühendusesisese käibe aruandes kajastamise", "source": "kms",
+    "legal_reference": "KMS § 15 lg 3 p 2 ja § 7 lg 1 — kauba ühendusesisene käive; § 15 lg 3¹ seab tingimuseks soetaja kehtiva maksukohustuslasena registreerimise numbri ja ühendusesisese käibe aruandes kajastamise",
+    "source": "kms",
     "vat_category": "K",
     "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "311"
+          "box": [
+            "3",
+            "31",
+            "311"
+          ]
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "311",
+          "box": [
+            "3",
+            "31",
+            "311"
+          ],
           "box_factor": -100
         }
       ]
@@ -313,20 +329,27 @@
     "scope": "sale",
     "treatment": "intracom_services",
     "valid_from": "2010-01-01",
-    "legal_reference": "KMS § 10 lg 4 p 9 ja § 15 lg 4 p 1 — teenus, mille käibe tekkimise koht ei ole Eesti; nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196", "source": "kms",
+    "legal_reference": "KMS § 10 lg 4 p 9 ja § 15 lg 4 p 1 — teenus, mille käibe tekkimise koht ei ole Eesti; nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196",
+    "source": "kms",
     "vat_category": "K",
     "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "3s"
+          "box": [
+            "3",
+            "31"
+          ]
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "3s",
+          "box": [
+            "3",
+            "31"
+          ],
           "box_factor": -100
         }
       ]
@@ -342,20 +365,27 @@
     "scope": "sale",
     "treatment": "export",
     "valid_from": "2004-05-01",
-    "legal_reference": "KMS § 15 lg 3 p 1 — kauba eksport; § 37 lg 8 p 1 viimane lause vabastab ekspordiarve maksumäära aluse viitamise kohustusest", "source": "kms",
+    "legal_reference": "KMS § 15 lg 3 p 1 — kauba eksport; § 37 lg 8 p 1 viimane lause vabastab ekspordiarve maksumäära aluse viitamise kohustusest",
+    "source": "kms",
     "vat_category": "G",
     "exemption_code": "VATEX-EU-G",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "32e"
+          "box": [
+            "3",
+            "32"
+          ]
         }
       ],
       "credit_note": [
         {
           "type": "base",
-          "box": "32e",
+          "box": [
+            "3",
+            "32"
+          ],
           "box_factor": -100
         }
       ]
@@ -371,7 +401,8 @@
     "scope": "sale",
     "treatment": "domestic_reverse_charge",
     "valid_from": "2017-01-01",
-    "legal_reference": "KMS § 41¹ lg 1, 2 ja 5 — soetaja tasub võõrandajale käibemaksuta hinna ja arvestab arvel märgitud käibemaksu; arvele märgitakse „pöördmaksustamine“. Vormi KMD juhend: käive kajastatakse lahtris 9 ja seda lahtris 1 ei kajastata.", "source": "kms",
+    "legal_reference": "KMS § 41¹ lg 1, 2 ja 5 — soetaja tasub võõrandajale käibemaksuta hinna ja arvestab arvel märgitud käibemaksu; arvele märgitakse „pöördmaksustamine“. Vormi KMD juhend: käive kajastatakse lahtris 9 ja seda lahtris 1 ei kajastata.",
+    "source": "kms",
     "vat_category": "AE",
     "exemption_code": "VATEX-EU-AE",
     "postings": {
@@ -400,7 +431,8 @@
     "scope": "sale",
     "treatment": "exempt",
     "valid_from": "2004-05-01",
-    "legal_reference": "KMS § 16 — maksuvaba käive", "source": "kms",
+    "legal_reference": "KMS § 16 — maksuvaba käive",
+    "source": "kms",
     "vat_category": "E",
     "exemption_code": "VATEX-EU-132",
     "postings": {
@@ -429,21 +461,22 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 15 lg 1 ja § 29 lg 1 — arvestatud käibemaksust arvatakse maha sisendkäibemaks", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1 ja § 29 lg 1 — arvestatud käibemaksust arvatakse maha sisendkäibemaks",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -459,21 +492,22 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 15 lg 1 ja § 29 lg 1", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1 ja § 29 lg 1",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -489,21 +523,28 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 15 lg 1 ja § 32 lg 4 — põhivara sisendkäibemaks, mida korrigeeritakse põhivara kasutusaja jooksul; vormil KMD lahter 5.2", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1 ja § 32 lg 4 — põhivara sisendkäibemaks, mida korrigeeritakse põhivara kasutusaja jooksul; vormil KMD lahter 5.2",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "52"
+          "box": [
+            "5",
+            "52"
+          ]
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "52",
+          "box": [
+            "5",
+            "52"
+          ],
           "box_factor": -100
         }
       ]
@@ -520,21 +561,22 @@
     "treatment": "domestic",
     "valid_from": "2024-01-01",
     "valid_to": "2025-06-30",
-    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 01.07.2023, 2", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I, 01.07.2023, 2",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -551,21 +593,22 @@
     "treatment": "domestic",
     "valid_from": "2009-07-01",
     "valid_to": "2023-12-31",
-    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I 2009, 35, 232", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1, redaktsioon RT I 2009, 35, 232",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -581,21 +624,22 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2009-01-01",
-    "legal_reference": "KMS § 15 lg 2 ja § 29 lg 1", "source": "kms",
+    "legal_reference": "KMS § 15 lg 2 ja § 29 lg 1",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -611,21 +655,22 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-01-01",
-    "legal_reference": "KMS § 15 lg 1¹ ja § 30 lg 2 — töölähetusega seoses saadud majutusteenuse sisendkäibemaks on mahaarvatav", "source": "kms",
+    "legal_reference": "KMS § 15 lg 1¹ ja § 30 lg 2 — töölähetusega seoses saadud majutusteenuse sisendkäibemaks on mahaarvatav",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         }
       ]
@@ -641,19 +686,24 @@
     "scope": "purchase",
     "treatment": "intracom_acquisition_goods",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 8 ja § 3 lg 4 — soetaja arvestab käibemaksu ise; § 29 lg 3 p 4 — arvestatud käibemaks on sisendkäibemaks; § 31 lg 2 — mahaarvamiseks ei ole arve nõutav", "source": "kms",
+    "legal_reference": "KMS § 8 ja § 3 lg 4 — soetaja arvestab käibemaksu ise; § 29 lg 3 p 4 — arvestatud käibemaks on sisendkäibemaks; § 31 lg 2 — mahaarvamiseks ei ole arve nõutav",
+    "source": "kms",
     "vat_category": "K",
     "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "61"
+          "box": [
+            "1",
+            "6",
+            "61"
+          ]
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         },
         {
           "type": "tax",
@@ -665,13 +715,17 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "61",
+          "box": [
+            "1",
+            "6",
+            "61"
+          ],
           "box_factor": -100
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         },
         {
@@ -694,19 +748,23 @@
     "scope": "purchase",
     "treatment": "intracom_acquisition_services",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 10 lg 1 ja § 3 lg 4 p 2 — teenuse saaja arvestab käibemaksu; § 29 lg 3 p 3; § 31 lg 3 — mahaarvamiseks ei ole arve nõutav. KMS § 3 lg 7 — arvestamiskohustust ei teki, kui teise liikmesriigi müüja kohaldab väikeettevõtja erikorda ja tema number kannab lõppu „EX“.", "source": "kms",
+    "legal_reference": "KMS § 10 lg 1 ja § 3 lg 4 p 2 — teenuse saaja arvestab käibemaksu; § 29 lg 3 p 3; § 31 lg 3 — mahaarvamiseks ei ole arve nõutav. KMS § 3 lg 7 — arvestamiskohustust ei teki, kui teise liikmesriigi müüja kohaldab väikeettevõtja erikorda ja tema number kannab lõppu „EX“.",
+    "source": "kms",
     "vat_category": "K",
     "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "6s"
+          "box": [
+            "1",
+            "6"
+          ]
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         },
         {
           "type": "tax",
@@ -718,13 +776,16 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "6s",
+          "box": [
+            "1",
+            "6"
+          ],
           "box_factor": -100
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         },
         {
@@ -747,17 +808,21 @@
     "scope": "purchase",
     "treatment": "foreign_services_received",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 3 lg 4 p 2 ja § 10 lg 1 — teenuse saamine ettevõtlusega tegelevalt välisriigi isikult, kes ei ole Eestis registreeritud; § 29 lg 3 p 3. Nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196.", "source": "kms",
+    "legal_reference": "KMS § 3 lg 4 p 2 ja § 10 lg 1 — teenuse saamine ettevõtlusega tegelevalt välisriigi isikult, kes ei ole Eestis registreeritud; § 29 lg 3 p 3. Nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196.",
+    "source": "kms",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "7f"
+          "box": [
+            "1",
+            "7"
+          ]
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         },
         {
           "type": "tax",
@@ -769,13 +834,16 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "7f",
+          "box": [
+            "1",
+            "7"
+          ],
           "box_factor": -100
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         },
         {
@@ -798,19 +866,24 @@
     "scope": "purchase",
     "treatment": "domestic_reverse_charge",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 41¹ lg 3 ja 4 — soetaja kajastab maksustatava väärtuse ja käibemaksu arve saamise maksustamisperioodil ning arvab sisendkäibemaksu maha samal perioodil", "source": "kms",
+    "legal_reference": "KMS § 41¹ lg 3 ja 4 — soetaja kajastab maksustatava väärtuse ja käibemaksu arve saamise maksustamisperioodil ning arvab sisendkäibemaksu maha samal perioodil",
+    "source": "kms",
     "vat_category": "AE",
     "exemption_code": "VATEX-EU-AE",
     "postings": {
       "invoice": [
         {
           "type": "base",
-          "box": "71"
+          "box": [
+            "1",
+            "7",
+            "71"
+          ]
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g"
+          "box": "5"
         },
         {
           "type": "tax",
@@ -822,13 +895,17 @@
       "credit_note": [
         {
           "type": "base",
-          "box": "71",
+          "box": [
+            "1",
+            "7",
+            "71"
+          ],
           "box_factor": -100
         },
         {
           "type": "tax",
           "account": "2311",
-          "box": "5g",
+          "box": "5",
           "box_factor": -100
         },
         {
@@ -851,13 +928,17 @@
     "scope": "purchase",
     "treatment": "import",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 38 lg 2¹–2³ — maksuhalduri kirjalikul loal deklareeritakse impordilt arvestatav käibemaks käibedeklaratsioonis; § 29 lg 3 p 2 ja § 31 lg 4 ja 8. Vormil KMD ei ole impordi maksustatava väärtuse lahtrit: väärtus on tollideklaratsioonil.", "source": "kms",
+    "legal_reference": "KMS § 38 lg 2¹–2³ — maksuhalduri kirjalikul loal deklareeritakse impordilt arvestatav käibemaks käibedeklaratsioonis; § 29 lg 3 p 2 ja § 31 lg 4 ja 8. Vormil KMD ei ole impordi maksustatava väärtuse lahtrit: väärtus on tollideklaratsioonil.",
+    "source": "kms",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "51"
+          "box": [
+            "5",
+            "51"
+          ]
         },
         {
           "type": "tax",
@@ -870,7 +951,10 @@
         {
           "type": "tax",
           "account": "2311",
-          "box": "51",
+          "box": [
+            "5",
+            "51"
+          ],
           "box_factor": -100
         },
         {
@@ -893,7 +977,8 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 30 lg 3 — sõiduauto ettevõtluse tarbeks soetamisel arvatakse maha 50 protsenti sisendkäibemaksust; § 2 lg 12 määratleb sõiduauto; § 30 lg 4 loetleb erandid. Vormil KMD lahter 5.4.", "source": "kms",
+    "legal_reference": "KMS § 30 lg 3 — sõiduauto ettevõtluse tarbeks soetamisel arvatakse maha 50 protsenti sisendkäibemaksust; § 2 lg 12 määratleb sõiduauto; § 30 lg 4 loetleb erandid. Vormil KMD lahter 5.4.",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -901,7 +986,10 @@
           "type": "tax",
           "factor": 50,
           "account": "2311",
-          "box": "54",
+          "box": [
+            "5",
+            "54"
+          ],
           "box_factor": 50,
           "sequence": 20
         },
@@ -916,7 +1004,10 @@
           "type": "tax",
           "factor": 50,
           "account": "2311",
-          "box": "54",
+          "box": [
+            "5",
+            "54"
+          ],
           "box_factor": -50,
           "sequence": 20
         },
@@ -938,7 +1029,8 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 30 lg 3 — sama piirang sõiduauto tarbeks kaupade soetamisel ja teenuste saamisel. Vormil KMD lahter 5.4.", "source": "kms",
+    "legal_reference": "KMS § 30 lg 3 — sama piirang sõiduauto tarbeks kaupade soetamisel ja teenuste saamisel. Vormil KMD lahter 5.4.",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -946,7 +1038,10 @@
           "type": "tax",
           "factor": 50,
           "account": "2311",
-          "box": "54",
+          "box": [
+            "5",
+            "54"
+          ],
           "box_factor": 50,
           "sequence": 20
         },
@@ -961,7 +1056,10 @@
           "type": "tax",
           "factor": 50,
           "account": "2311",
-          "box": "54",
+          "box": [
+            "5",
+            "54"
+          ],
           "box_factor": -50,
           "sequence": 20
         },
@@ -983,21 +1081,28 @@
     "scope": "purchase",
     "treatment": "domestic",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 30 lg 4 p 3–5 — takso, sõiduõpe ja üksnes ettevõtluses kasutatav sõiduauto; § 30 lg 7 — kaheaastane kasutamise tingimus; § 30 lg 9 — maksukohustuslane peab tagama, et autot muul otstarbel ei kasutata. Vormil KMD lahter 5.3.", "source": "kms",
+    "legal_reference": "KMS § 30 lg 4 p 3–5 — takso, sõiduõpe ja üksnes ettevõtluses kasutatav sõiduauto; § 30 lg 7 — kaheaastane kasutamise tingimus; § 30 lg 9 — maksukohustuslane peab tagama, et autot muul otstarbel ei kasutata. Vormil KMD lahter 5.3.",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "53"
+          "box": [
+            "5",
+            "53"
+          ]
         }
       ],
       "credit_note": [
         {
           "type": "tax",
           "account": "2311",
-          "box": "53",
+          "box": [
+            "5",
+            "53"
+          ],
           "box_factor": -100
         }
       ]
@@ -1014,7 +1119,8 @@
     "treatment": "domestic",
     "recoverable": false,
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 30 lg 1 — sisendkäibemaksu ei arvata maha külaliste vastuvõtuks ning töötajate toitlustamiseks või majutamiseks soetatud kaubalt ja teenuselt", "source": "kms",
+    "legal_reference": "KMS § 30 lg 1 — sisendkäibemaksu ei arvata maha külaliste vastuvõtuks ning töötajate toitlustamiseks või majutamiseks soetatud kaubalt ja teenuselt",
+    "source": "kms",
     "vat_category": "S",
     "postings": {
       "invoice": [
@@ -1039,7 +1145,8 @@
     "scope": "purchase",
     "treatment": "exempt",
     "valid_from": "2004-05-01",
-    "legal_reference": "KMS § 16 — maksuvaba käive; soetaja arvel käibemaksu ei ole", "source": "kms",
+    "legal_reference": "KMS § 16 — maksuvaba käive; soetaja arvel käibemaksu ei ole",
+    "source": "kms",
     "vat_category": "E",
     "exemption_code": "VATEX-EU-132",
     "postings": {},

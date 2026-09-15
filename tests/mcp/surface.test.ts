@@ -236,12 +236,21 @@ describe('resources and prompts', () => {
         price_include: boolean;
         cash_basis: boolean;
         jurisdiction: string | null;
-        postings: { posting_type: string; account_id: string | null; declaration_box: string | null }[];
+        postings: {
+          posting_type: string;
+          account_id: string | null;
+          declaration_box: string | null;
+          declaration_boxes: string[] | null;
+        }[];
       }[];
     };
     const sale = payload.taxes.find((tax) => tax.code === 'BE-S-21');
     expect(sale?.amount).toBe('21.0000');
     expect(sale?.postings.some((posting) => posting.declaration_box === '54')).toBe(true);
+    // And the whole list beside it, so a client reading a form that prints one
+    // amount in two boxes does not report half of it.
+    expect(sale?.postings.every((posting) => posting.declaration_boxes?.[0] === posting.declaration_box ||
+      (posting.declaration_box === null && posting.declaration_boxes === null))).toBe(true);
     // What the tax is, not only how much: a client that has to choose one
     // should not be reading the code to find out.
     expect(sale).toMatchObject({

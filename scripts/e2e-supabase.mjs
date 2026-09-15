@@ -530,7 +530,7 @@ async function main() {
     const ids = taxes.map((t) => t.id).join(',');
     const all = await rest.select(
       `/tax_postings?tax_id=in.(${ids})&document_kind=eq.invoice` +
-        '&select=tax_id,posting_type,declaration_box,box_factor_percent,factor_percent',
+        '&select=tax_id,posting_type,declaration_box,declaration_boxes,box_factor_percent,factor_percent',
     );
     for (const tax of taxes) {
       if (tax.cash_basis === true) continue;
@@ -592,9 +592,13 @@ async function main() {
       if (posting.declaration_box === null) continue;
       const source = posting.posting_type === 'base' ? base : vat;
       const kind = posting.posting_type === 'base' ? 'base' : 'tax';
-      const key = `${posting.declaration_box}|${kind}`;
-      ledger[key] =
-        (ledger[key] ?? 0) + round((source * Number(posting.box_factor_percent)) / 100, decimals);
+      // Every box the posting prints in, which is what vat_return() sums the
+      // line into. Almost always the one box `declaration_box` names.
+      for (const box of posting.declaration_boxes ?? [posting.declaration_box]) {
+        const key = `${box}|${kind}`;
+        ledger[key] =
+          (ledger[key] ?? 0) + round((source * Number(posting.box_factor_percent)) / 100, decimals);
+      }
     }
     return { vat, documentId: document.id };
   }

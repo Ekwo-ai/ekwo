@@ -726,6 +726,10 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
           'factor_percent::text',
           'account_id',
           'declaration_box',
+          // Every box this one amount is printed in, not only the one the
+          // posting is known by: a client reading the first alone would
+          // under-report a form that prints a figure in two boxes at once.
+          'declaration_boxes',
           'box_factor_percent::text',
           'report_code',
           'sequence',

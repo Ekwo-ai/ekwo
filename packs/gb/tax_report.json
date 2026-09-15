@@ -63,26 +63,18 @@
     },
     {
       "box": "6",
-      "kind": "total",
+      "kind": "base",
       "name": "Total value of sales and all other outputs excluding any VAT",
       "sequence": 60,
-      "plus": [
-        "6s",
-        "67"
-      ],
-      "legal_reference": "VAT Notice 700/12, box 6 — the value, excluding VAT, of everything supplied in the period: standard-rated, reduced-rated, zero-rated, exempt and outside the scope of United Kingdom VAT, and exports. The notice also puts the value of a service received from an overseas supplier in this box as well as in box 7, which is why this box is a total of two: the sales of the period, and that one value, which box 7 adds too.",
+      "legal_reference": "VAT Notice 700/12, box 6 — the value, excluding VAT, of everything supplied in the period: standard-rated, reduced-rated, zero-rated, exempt and outside the scope of United Kingdom VAT, and exports. The notice also puts the value of a service received from an overseas supplier in this box as well as in box 7, so the tax on that service names both boxes and the amount is printed in each.",
       "source": "notice-700-12"
     },
     {
       "box": "7",
-      "kind": "total",
+      "kind": "base",
       "name": "Total value of purchases and all other inputs excluding any VAT",
       "sequence": 70,
-      "plus": [
-        "7p",
-        "67"
-      ],
-      "legal_reference": "VAT Notice 700/12, box 7 — the value, excluding VAT, of everything acquired in the period, including imports of goods and the value of a supply on which the customer accounts for the tax under s. 55A. The value of a service received from an overseas supplier is in this box and in box 6 at once, which is the second half of the total.",
+      "legal_reference": "VAT Notice 700/12, box 7 — the value, excluding VAT, of everything acquired in the period, including imports of goods and the value of a supply on which the customer accounts for the tax under s. 55A. The value of a service received from an overseas supplier is in this box and in box 6 at once, which is one posting naming two boxes rather than two definitions of one figure.",
       "source": "notice-700-12"
     },
     {
@@ -99,33 +91,6 @@
       "name": "Total value of acquisitions of goods and related costs (excluding VAT) made in Northern Ireland from EU member states",
       "sequence": 90,
       "legal_reference": "VAT Notice 700/12, box 9 — the value that box 2 is the tax on. Nothing in this pack posts here, for the same reason as box 2: see `territories` for what `XI` is.",
-      "source": "notice-700-12"
-    },
-    {
-      "box": "6s",
-      "kind": "base",
-      "name": "Value of sales and other outputs, other than the services received that boxes 6 and 7 both carry",
-      "sequence": 100,
-      "hidden": true,
-      "legal_reference": "The part of box 6 the form does not print separately. A tax writes one taxable amount to one box, and VAT Notice 700/12 asks for the value of a reverse-charge service received in box 6 and in box 7 at the same time; this pack therefore posts every sale here and builds box 6 from this box and from the shared one.",
-      "source": "notice-700-12"
-    },
-    {
-      "box": "7p",
-      "kind": "base",
-      "name": "Value of purchases and other inputs, other than the services received that boxes 6 and 7 both carry",
-      "sequence": 110,
-      "hidden": true,
-      "legal_reference": "The part of box 7 the form does not print separately, and the counterpart of box 6s. Every purchase of the period is posted here, including an import of goods and a purchase of construction services under the domestic reverse charge, which VAT Notice 700/12 puts in box 7 and deliberately not in box 6.",
-      "source": "notice-700-12"
-    },
-    {
-      "box": "67",
-      "kind": "base",
-      "name": "Value of services received from a supplier established outside the United Kingdom, which box 6 and box 7 both carry",
-      "sequence": 120,
-      "hidden": true,
-      "legal_reference": "VAT Notice 700/12 — for a service on which the customer accounts for the tax under s. 8 of the Value Added Tax Act 1994, the customer completes boxes 1, 4, 6 and 7. One amount and two printed boxes: this pack defines it once here and both printed boxes add it.",
       "source": "notice-700-12"
     }
   ]

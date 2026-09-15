@@ -41,6 +41,24 @@ somewhere has already run it.
   BT-146, the net unit price, which nothing publishes where the price was quoted
   with the tax in it.
 
+- **A tax posting names every box the form prints its amount in.** A tax still
+  carries one `base` posting per kind of document — one taxable amount, one
+  definition — and a second place the form shows it is still a `total` where
+  that place is a sum. Where it is not, the posting names the boxes itself:
+  `box` in `taxes.json` takes a string or a list of strings, `tax_postings` and
+  `tax_posting_templates` carry `declaration_boxes text[]` beside the
+  `declaration_box` it starts at, and `vat_return()` sums a line into every box
+  its posting names. `ekwo pack check` refuses an empty list, a box named twice
+  by one posting, and a box the form declares a total. Two forms that could not
+  be written down before now can: form KMD reports an intra-Community
+  acquisition in boxes 1, 6 and 6.1 at once, and the British VAT Return reports
+  a service received from a supplier established abroad in box 6 and box 7.
+  Nine `hidden` boxes that existed only to work around this are gone —
+  `packs/ee` 1.4.0 loses six and `packs/gb` 0.3.0 loses three, and both move
+  their `schema_min` to this migration — and not one figure of either golden
+  scenario moved. A `hidden` box now means one thing: an intermediate total the
+  form works out and does not print.
+
 - **The United Kingdom, `packs/gb/`, and the first country outside the Union.**
   Every pack before it could lean on the VAT Directive, on the
   intra-Community mechanism and on the European code lists, and nobody knew how

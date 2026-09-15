@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.3.0",
-  "migration": "20260915195000",
+  "migration": "20260915200000",
   "socle": {
     "schema": "public",
     "tables": [
@@ -2544,6 +2544,10 @@
             "type": "text"
           },
           {
+            "name": "declaration_boxes",
+            "type": "text[]"
+          },
+          {
             "name": "document_kind",
             "type": "tax_document_kind"
           },
@@ -2595,6 +2599,10 @@
           {
             "name": "declaration_box",
             "type": "text"
+          },
+          {
+            "name": "declaration_boxes",
+            "type": "text[]"
           },
           {
             "name": "document_kind",
@@ -3509,6 +3517,10 @@
         "arguments": "p_company_id uuid, p_statement_code text, p_from date, p_to date"
       },
       {
+        "name": "tax_posting_boxes_agree",
+        "arguments": ""
+      },
+      {
         "name": "tax_rate_at",
         "arguments": "p_tax_id uuid, p_date date"
       },
@@ -4256,8 +4268,16 @@
         "name": "reconciliations_refresh_lines"
       },
       {
+        "table": "tax_posting_templates",
+        "name": "tax_posting_templates_boxes_agree"
+      },
+      {
         "table": "tax_postings",
         "name": "tax_postings_audit"
+      },
+      {
+        "table": "tax_postings",
+        "name": "tax_postings_boxes_agree"
       },
       {
         "table": "tax_postings",
@@ -6564,6 +6584,14 @@
           "service_role": [
             "execute"
           ]
+        },
+        {
+          "name": "tax_posting_boxes_agree",
+          "arguments": "",
+          "trigger": true,
+          "anon": [],
+          "authenticated": [],
+          "service_role": []
         },
         {
           "name": "tax_rate_at",

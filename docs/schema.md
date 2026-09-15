@@ -87,12 +87,17 @@ A tax says how much. Its postings say where.
 For each tax and each document kind (`invoice` or `credit_note`), `tax_postings`
 holds at most one `base` posting and any number of `tax` postings. Each one
 carries a `factor_percent`, a ledger account (for tax postings) and a
-`declaration_box` with its own `box_factor_percent`.
+`declaration_box` with its own `box_factor_percent` — and, beside it,
+`declaration_boxes`, every box the form prints that one amount in. It is almost
+always the single box `declaration_box` names, and it is longer on a form that
+shows one figure in boxes that are not sums of one another.
 
 `post_document()` applies them:
 
 - the base amount goes to the account of the document line, and picks up the
-  box of the base posting;
+  box of the base posting — one line and one box, whatever the form does with
+  the figure afterwards: `vat_return()` is what reads the list and sums the
+  line into each box of it;
 - for each tax posting, `round(tax x |factor| / 100, 2)` goes to that
   posting's account — on the same side as the base when `factor_percent` is
   positive, on the opposite side when it is negative;
@@ -1359,6 +1364,7 @@ Constraints:
 | `box_factor_percent` | `numeric(7,3)` | not null |
 | `sequence` | `integer` | not null |
 | `report_code` | `text` | Declaration form the box belongs to (BE-VAT-PERIODIC, FR-CA3, CA-GST34…). Null means the periodic return of the country. |
+| `declaration_boxes` | `text[]` | Every box this one amount is printed in, from packs/<cc>/taxes.json. Almost always the single box declaration_box names, which is the first of the list; several where the form prints one figure in boxes that are not sums of one another. A box that is a sum stays a total and is never named here. |
 
 Constraints:
 
@@ -1366,6 +1372,11 @@ Constraints:
 CASE posting_type
     WHEN 'tax'::tax_posting_type THEN (account_code IS NOT NULL)
     ELSE (account_code IS NULL)
+END)`
+- `CHECK (
+CASE
+    WHEN (declaration_box IS NULL) THEN (declaration_boxes IS NULL)
+    ELSE ((declaration_boxes IS NOT NULL) AND (cardinality(declaration_boxes) >= 1) AND (declaration_boxes[1] = declaration_box))
 END)`
 - `PRIMARY KEY (id)`
 
@@ -1388,6 +1399,7 @@ Where a tax lands: ledger account and VAT-return box, per tax and per document k
 | `created_at` | `timestamp with time zone` | not null |
 | `updated_at` | `timestamp with time zone` | not null |
 | `report_code` | `text` | Declaration form the box belongs to. Copied from the template, and read by vat_return(company, from, to, report_code) to pick out the boxes of one form where a country files more than one. |
+| `declaration_boxes` | `text[]` | Every box this one amount is printed in, copied from the template. The first is declaration_box, which is what the posting is known by; vat_return() sums the line into each box of the list. |
 
 Constraints:
 
@@ -1395,6 +1407,11 @@ Constraints:
 CASE posting_type
     WHEN 'tax'::tax_posting_type THEN (account_id IS NOT NULL)
     ELSE (account_id IS NULL)
+END)`
+- `CHECK (
+CASE
+    WHEN (declaration_box IS NULL) THEN (declaration_boxes IS NULL)
+    ELSE ((declaration_boxes IS NOT NULL) AND (cardinality(declaration_boxes) >= 1) AND (declaration_boxes[1] = declaration_box))
 END)`
 - `PRIMARY KEY (id)`
 
@@ -1633,7 +1650,7 @@ Constraints:
 | `has_capability(p_company_id uuid, p_capability text)` | Whether the current caller may do one named thing in one company — a signed-in member by their preset and their adjustments, or a machine key by its own list. Revoked beats granted, and a non-member holding no key holds nothing. |
 | `has_opening_entry(p_fiscal_year_id uuid)` | Whether a fiscal year already carries an opening entry that still stands — an imported balance or the re-opening of the year before. |
 | `init_instance(p_organization_name text, p_country character, p_edition instance_edition)` | Records the installation. Called once, by the installer. Leaves the registration fields empty. |
-| `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, pins the accounts it wired, and records the pack version and the chart in company_packs. |
+| `install_country_template(p_company_id uuid, p_country character, p_language character, p_chart_code text)` | Copies one chart of a country pack into a company in one language, with the country's journals and taxes, wires the default roles, pins the accounts it wired, and records the pack version and the chart in company_packs. A tax posting is copied with every declaration box it prints in. |
 | `invite_member(p_company_id uuid, p_email text, p_role member_role, p_capabilities jsonb, p_valid_for interval)` | Invites an address into a company and returns the token once. Only the hash is stored; re-inviting the same address revokes the pending invitation. |
 | `is_any_company_member()` | Whether the current user belongs to at least one company of this installation. |
 | `is_company_owner(p_company_id uuid)` | Whether the current user is on the owner preset of a company. False, never NULL, for somebody who is not a member — a guard written as `if not is_company_owner(…)` has to fire for a stranger. |
@@ -1654,7 +1671,7 @@ Constraints:
 | `opening_balance(p_company_id uuid, p_fiscal_year_id uuid, p_lines jsonb, p_allow_result_accounts boolean)` | Posts a trial balance from a previous system as the opening entry of a fiscal year. Balance-sheet accounts only, unless the caller allows the others. |
 | `opening_journal_id(p_company_id uuid)` | The journal the opening and year-end entries go on, named by the pack of this company's country. Null when the pack names none, and the callers refuse rather than guessing at a code. |
 | `pack_upgrade(p_company_id uuid, p_country character, p_apply boolean)` | Moves a company to the country pack version this installation holds: additions copied in, closed validities applied, everything else listed and left alone unless the caller asks for it. Records what it did in the audit trail. The recorded version moves only when nothing is left waiting. Definer, because the line it records goes through audit_record(), which no client may call; the caller still needs company.write on the company. |
-| `pack_upgrade_diff(p_company_id uuid, p_country character)` | What separates a company from the country pack this installation now holds, by natural key, each difference carrying the rule that decides what an upgrade does with it. |
+| `pack_upgrade_diff(p_company_id uuid, p_country character)` | What separates a company from the country pack this installation now holds, by natural key, each difference carrying the rule that decides what an upgrade does with it. What a tax books is compared as one object, every declaration box of every posting included. |
 | `pin_referenced_accounts(p_company_id uuid)` | Pins every account this company points at by a role, a journal, a tax posting or a cash-basis transition, and returns how many accounts are pinned afterwards. Called by install_country_template(); callable again after an upgrade added a tax. |
 | `post_document(p_document_id uuid)` | Books a document: base lines, tax lines from tax_postings — the non-deductible share on the accounts of the lines, a cash-basis tax on its transition account and on no box — a counterpart that balances by construction, and the company currency in the ledger at the rate the document carries. |
 | `post_entry(p_entry_id uuid)` | Validates, numbers and posts an entry. Raises rather than warning: a swallowed error is a missing entry. Where the country forbids a hole in the sequence it refuses a number chosen by hand, unless the caller holds entries.import — and then the counter catches up to it. |
@@ -1680,6 +1697,7 @@ Constraints:
 | `share_document(p_document_id uuid, p_expires_at timestamp with time zone)` | Publishes a sales document behind a link and returns the token once — only its hash is stored. `url` is the instance's public base plus /shared/<token>, or null where the instance has not recorded one. A share is never edited: revoke it and make another. |
 | `shared_document(p_token text)` | One document, read by whoever holds its link: the header, the lines with the price as it was keyed and whether that price holds the tax, the tax breakdown, the totals, the legal mentions in the language the document was written in, and what is still owed today. Returns null — the same null, in the same shape — for a token that is unknown, withdrawn, expired, or onto a document that may no longer be shared. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
+| `tax_posting_boxes_agree()` | Keeps declaration_box and declaration_boxes in step on a tax posting: a writer that moves one is handed the other. A writer that moves both is left alone and judged by the check constraint, and a writer that clears the box clears the list with it. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `territory_of(p_code text)` | The territory a code or a VAT prefix names, or null when this table carries none. A code wins over a prefix, so FR is France and not the Monaco row that identifies under it. |
 | `touch_api_key(p_api_key_id uuid)` | Records that a key was used just now. A key that has never been used, and one that has not been used for a year, are both things an operator should be able to see. |
@@ -1689,7 +1707,7 @@ Constraints:
 | `unregister_instance()` | Undoes register_instance(). Opting in is reversible, or it is not a choice. |
 | `use_api_key(p_secret text)` | Presents a machine key for the current transaction: has_capability() answers for it until the transaction ends. Refuses a key that is unknown, withdrawn or expired. |
 | `vat_prefix_of(p_code text)` | The two letters a territory's VAT identification numbers carry: EL for Greece, FR for Monaco, GB for the Isle of Man, and the code itself everywhere else — including for a territory this table does not carry, whose own two letters come back unchanged. Null when what it resolves to is not two letters, which is a territory that identifies under nobody. |
-| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. Refuses a period the company does not file on, when it has recorded one. No country rule lives in this function. |
+| `vat_return(p_company_id uuid, p_from date, p_to date, p_report_code text)` | Declaration boxes for a period: summed from the ledger into every box the posting behind each line names, then the totals of the country's form worked out by evaluate_totals(), the same evaluator financial_statement() uses. Refuses a period the company does not file on, when it has recorded one. No country rule lives in this function. |
 
 ---
 

@@ -160,7 +160,20 @@ export interface PackPosting {
   type: 'base' | 'tax' | 'tax_on_base';
   factor: number;
   account: string | null;
+  /**
+   * The box the posting is known by: the first of `boxes`, and null when it
+   * reports to none. It is what the natural key of a posting is read on, and
+   * what a reader that knows nothing of several boxes still sees.
+   */
   box: string | null;
+  /**
+   * Every box this one amount is printed in. One box is the ordinary case;
+   * several is a form that prints the same figure in boxes no total can
+   * derive from one another — box 6.1 inside box 6 inside box 1 on the
+   * Estonian KMD, box 6 beside box 7 on the British VAT Return. `box` is
+   * `boxes[0]`, and an empty list means the posting reports nowhere.
+   */
+  boxes: string[];
   box_factor: number;
   /** Declaration form the box belongs to. Defaults to the pack's periodic return. */
   report: string | null;
@@ -911,7 +924,7 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   for (const tax of taxes) {
     for (const postings of Object.values(tax.postings)) {
       for (const posting of postings) {
-        if (posting.report === null && posting.box !== null) posting.report = reportCode;
+        if (posting.report === null && posting.boxes.length > 0) posting.report = reportCode;
       }
     }
   }
@@ -1514,6 +1527,18 @@ async function filesUnder(dir: string, prefix = ''): Promise<string[]> {
   return out.sort();
 }
 
+/**
+ * The boxes a posting names, from either shape of the field: one string, a
+ * list of them, or nothing. The order is the pack's own, because the first is
+ * the box the posting is known by and a pack that reorders its list is saying
+ * something.
+ */
+function postingBoxes(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map((b) => String(b));
+  if (typeof raw === 'string') return [raw];
+  return [];
+}
+
 function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
   const postings = (raw['postings'] ?? {}) as Record<string, Record<string, unknown>[] | undefined>;
   const kind = (name: 'invoice' | 'credit_note'): PackPosting[] =>
@@ -1521,7 +1546,8 @@ function normaliseTax(raw: Record<string, unknown>, index: number): PackTax {
       type: p['type'] as 'base' | 'tax' | 'tax_on_base',
       factor: typeof p['factor'] === 'number' ? p['factor'] : 100,
       account: (p['account'] as string | undefined) ?? null,
-      box: (p['box'] as string | undefined) ?? null,
+      box: postingBoxes(p['box'])[0] ?? null,
+      boxes: postingBoxes(p['box']),
       box_factor: typeof p['box_factor'] === 'number' ? p['box_factor'] : 100,
       report: (p['report'] as string | undefined) ?? null,
       sequence: typeof p['sequence'] === 'number' ? p['sequence'] : (position + 1) * 10,
@@ -2410,15 +2436,33 @@ function reportReferences(report: PackReport | null, taxes: PackTax[]): Issue[] 
     }
   }
 
-  // A box a tax posts to has to exist on the form the posting names, or the
-  // amount lands nowhere and the return is short without saying so.
+  // Every box a tax posts to has to exist on the form the posting names, or
+  // the amount lands nowhere and the return is short without saying so. A
+  // posting may name several — the form prints one figure in boxes that are
+  // not sums of one another — and each of them is held to the same three
+  // things: it is a box of this form, it is of the kind the posting writes,
+  // and it is named once.
   for (const tax of taxes) {
     for (const [kind, postings] of Object.entries(tax.postings)) {
       for (const posting of postings) {
-        if (posting.box === null || posting.report !== report.code) continue;
-        const target = resolveBoxRef(`${posting.box}:${declarationKind(posting.type)}`, report.boxes);
-        if (typeof target === 'string') {
-          issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: `box ${target}` });
+        if (posting.report !== report.code) continue;
+        const seen = new Set<string>();
+        for (const box of posting.boxes) {
+          if (seen.has(box)) {
+            issues.push({
+              path: `taxes.json ${tax.code}.${kind}`,
+              message: `box ${box} is named twice by one posting; a posting reports an amount to a box once`,
+            });
+            continue;
+          }
+          seen.add(box);
+          // A total is added up from the boxes below it, so a posting that
+          // wrote into one would be counted twice: once by itself and once
+          // by the sum.
+          const target = resolveBoxRef(`${box}:${declarationKind(posting.type)}`, report.boxes);
+          if (typeof target === 'string') {
+            issues.push({ path: `taxes.json ${tax.code}.${kind}`, message: `box ${target}` });
+          }
         }
       }
     }

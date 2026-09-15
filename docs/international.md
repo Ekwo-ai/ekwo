@@ -411,18 +411,20 @@ any sequence of letters, digits, dots and hyphens. *Until then*: the Estonian
 statements carry no fact keys at all, because a wrong key is worse than none,
 and no filing brick can read them.
 
-**A declaration form whose boxes nest cannot be expressed directly.** A tax
-carries one `base` posting per kind of document, so it reports to one box. Form
-KMD asks for the same amount in a box, in the memo box inside that one, and
-sometimes in a third: an intra-Community acquisition is box 1, box 6 and box
-6.1 at once. *Fix*: let a `base` posting name several boxes, or add a posting
-type that reports to a box and writes nothing to the ledger. *Until then*: the
-Estonian pack posts to the innermost box, adds six `hidden` leaf boxes for the
-parts the form prints only as a difference, and rebuilds every printed parent
-as a total. It is exact, and it is six boxes a reader has to be told about.
-That shape is the documented rule — one base posting, every further printing a
-total, in [`packs.md`](packs.md) — and the gap stays open all the same: the six
-boxes are what the rule costs on a form whose boxes nest.
+~~**A declaration form whose boxes nest cannot be expressed directly.**~~
+**Closed, 15 September 2026**, by the first of the two fixes this note
+proposed: a `base` posting names several boxes. `box` takes a string or a list
+of strings in `taxes.json`, `declaration_boxes text[]` carries the list beside
+the `declaration_box` it starts at, and `vat_return()` sums a line into every
+box the posting behind it names. The second fix — a posting type that reports
+and books nothing — was not needed and would have been worse: it would have put
+a row on the ledger side of the format for something that is not a ledger fact.
+The Estonian pack now posts an intra-Community acquisition to boxes 1, 6 and
+6.1 at once, and its six `hidden` boxes are gone, with every figure of the
+golden scenario unchanged to the cent. What is *not* closed is the rule that
+caused it: a tax still carries one `base` posting per kind of document, and a
+parent that **is** a sum is still a `total`. Only a parent that is not a sum is
+named by the posting.
 
 ~~**There is no treatment for a service received from outside the Union.**~~
 **Closed, 15 September 2026**, and not under the name this note proposed. The
@@ -527,18 +529,15 @@ does not bind the seller, and it is refused outside the Union along with the
 rest of the list. `GB-S-EXPORT` carries `G` and nothing else, with s. 30(6) of
 the Value Added Tax Act 1994 in its `legal_reference`.
 
-**One taxable amount, two printed boxes that are siblings and not nested.**
-Estonia recorded this for a form whose boxes contain one another, and proposed
-the fix: let a `base` posting name several boxes, or add a posting type that
-reports to a box and writes nothing to the ledger. The British form shows the
-second shape of the same gap. VAT Notice 700/12 asks for the value of a service
-received from a supplier established abroad in **box 6**, which is outputs, and
-in **box 7**, which is inputs — two boxes on opposite sides of the return,
-neither containing the other. A tax carries one `base` posting per document
-kind, so it can name one of them. *Until then*: the pack posts that value to a
-hidden box `67` and rebuilds boxes 6 and 7 as totals of the period's own sales
-or purchases plus that box, which costs three hidden boxes on a nine-box form —
-and is exact. The Estonian fix covers both shapes and is still the fix.
+~~**One taxable amount, two printed boxes that are siblings and not nested.**~~
+**Closed, 15 September 2026**, by the Estonian fix, which covered both shapes
+exactly as this note said it would. The value of a service received from a
+supplier established abroad is one `base` posting naming `["6", "7"]`, and
+boxes 6 and 7 are ordinary boxes summed from the ledger again rather than
+totals of a workaround. The three `hidden` boxes are gone from a nine-box form,
+and the golden scenario's figures did not move. Nothing here turned on the two
+boxes being siblings rather than nested: a posting names the boxes the form
+prints its amount in, and where they stand on the form is the form's business.
 
 ~~**A price that includes the tax is declared and never computed.**~~
 **Closed, 15 September 2026.** The engine takes the tax out of the gross of
@@ -662,7 +661,7 @@ never saw any of them, because none of them spelled a country code.
 | every pack declares at least one other language | a pack written in English has none to declare | the promise is checked for what is declared, and one assertion says the repository still has a multilingual pack |
 | `manifest.languages` is an array | it is optional and absent | `?? []` |
 | every asset category has translated labels | a pack with no i18n file has none | the column's own empty object |
-| a declaration form has more than twenty boxes | the VAT Return has nine, and twelve with the pack's hidden ones | the form carries every box the pack's taxes post to, at least one of them, and at least one total |
+| a declaration form has more than twenty boxes | the VAT Return has nine, and had twelve with the pack's hidden ones | the form carries every box the pack's taxes post to, at least one of them, and at least one total |
 | the fixed-assets module has exactly two country seeds, named | it has one per pack that says something about fixed assets | derived from `allPacks` and each manifest's `seed_sequence` |
 | `country_packs` in slug order is `allPacks` order | the first pack whose name does not sort where its slug does — United Kingdom after Luxembourg | sorted the way the query asks, by name |
 | a closing style is `appropriation_accounts` or `result_accounts` | the first pack that closes straight into retained earnings, which the schema has always allowed and `docs/packs.md` names the United Kingdom for | the enum of `packs/schema/pack.1.json`, beside the statuses and the cadences already read there |
