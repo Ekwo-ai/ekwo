@@ -245,6 +245,10 @@ in the middle of, which is not a fault. The separator is matched whole, a line
 of seven `=` and nothing else, so a Markdown heading underlined with `=` is not
 caught.
 
+`tests/conflict_markers.test.ts` runs the guard the way the hygiene job does,
+over a throwaway git repository built to carry all four markers. A guard that
+is only ever run against a clean tree is one nobody knows the shape of.
+
 ## Commits
 
 Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`.

@@ -133,6 +133,9 @@ somewhere has already run it.
   appends to. Only tracked files are read, so a marker in a working copy is a
   merge somebody is in the middle of rather than a fault, and the separator is
   matched whole so a Markdown heading underlined with `=` is not caught.
+  `tests/conflict_markers.test.ts` builds a throwaway git repository, puts the
+  four markers in a file it tracks and reads the refusal back, so the guard is
+  itself run against something faulty rather than only against a clean tree.
 
 ### Fixed
 
