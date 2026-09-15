@@ -31,6 +31,17 @@ somewhere has already run it.
   `scripts/check-no-country-literals-in-tests.mjs` runs in the CI and keeps it
   that way; `docs/packs.md` describes the two places a pack is written.
 
+- **A base is written once, and printed as often as the form likes.**
+  A tax carries one `base` posting per kind of document, so a taxable amount
+  has one definition and reaches one box — and a national form that prints that
+  base a second time gets a computed `total`, not a second posting. The rule
+  was enforced by `ekwo pack check` and written down nowhere. `docs/packs.md`
+  now carries it where the postings are defined and again in the walkthrough,
+  with the Luxembourg return as the worked example: box `472` adds the rate
+  bases of section II instead of being posted to, and the Estonian `6.1` / `6`
+  / `1` nesting is the same shape three deep. Documentation only: no pack and
+  no function changed.
+
 ### Security
 
 - **The schema grants its own rights, and the anonymous role holds none on any

@@ -334,8 +334,10 @@ One restriction turned out to be worth keeping. **A tax takes one `base`
 posting per kind of document**, and the Luxembourg return reports the taxable
 amount of a sale twice — as turnover in section I, and in the rate breakdown of
 section II. The pack expresses the second as a total computed from the first,
-which is one definition instead of two and is the better shape. The walkthrough
-in [`packs.md`](packs.md) should say so where a country meets it.
+which is one definition instead of two and is the better shape. **Documented,
+15 September 2026**, and not a change to the core: [`packs.md`](packs.md)
+carries the rule where the postings are defined and again in the walkthrough,
+with box `472` as the worked example.
 
 ### From Estonia
 
@@ -363,6 +365,9 @@ type that reports to a box and writes nothing to the ledger. *Until then*: the
 Estonian pack posts to the innermost box, adds six `hidden` leaf boxes for the
 parts the form prints only as a difference, and rebuilds every printed parent
 as a total. It is exact, and it is six boxes a reader has to be told about.
+That shape is the documented rule — one base posting, every further printing a
+total, in [`packs.md`](packs.md) — and the gap stays open all the same: the six
+boxes are what the rule costs on a form whose boxes nest.
 
 **There is no treatment for a service received from outside the Union.** The
 `treatment` vocabulary has `intracom_acquisition_services` for a supplier in

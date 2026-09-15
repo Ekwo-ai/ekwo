@@ -349,6 +349,55 @@ always its invoice with the sign flipped. `cash_rounding_unit` is still
 declared and read by nothing: the socle has no cash-payment path to round a
 total on.
 
+### A base is written once, and printed as often as the form likes
+
+**A tax carries one `base` posting per kind of document**, so a taxable amount
+has one definition and reaches one box. `ekwo pack check` refuses a second one,
+and there is nowhere to put it anyway: a posting compiles to a single
+`declaration_box`. A form that prints the same base twice is therefore not a
+tax with two base postings — the second appearance is a **computed line**, a
+`total` that adds the boxes the postings already wrote.
+
+Luxembourg is the case to read, because the eCDF return asks for the taxable
+amount of a sale twice: as turnover in section I, and in the rate breakdown of
+section II. The pack defines it in the breakdown, where the rate makes it
+unambiguous:
+
+```json
+{ "code": "LU-S-17", "rate": 17, "scope": "sale",
+  "postings": { "invoice": [ { "type": "base", "box": "701" },
+                             { "type": "tax", "account": "461411", "box": "702" } ] } }
+```
+
+Section I then reads that box instead of being posted to. `472` is declared a
+total, not a base:
+
+```json
+{ "box": "472", "kind": "total", "name": "b) Autres ventes / recettes", "sequence": 170,
+  "plus": ["701", "901", "703", "903", "705", "905", "031",
+           "457", "014", "015", "016", "017", "481", "482", "226",
+           "018", "423", "424", "019", "419"] }
+```
+
+— the seven rate bases of section II, then the exemptions, the franchise
+regimes and the operations taxed elsewhere — and `454` adds `471` and `472`,
+and `012` adds `454` to the two private-use boxes. One figure is posted, and
+every line of the form that shows it again is derived from that one.
+
+Estonia meets the same thing three deep: form KMD reports an intra-Community
+acquisition in box 6.1, in box 6 which contains it, and in box 1 which contains
+that. The pack posts to `61`, the innermost, and declares the other two as
+totals; where a printed parent carries a part no posting writes, it adds a
+`hidden` leaf box for that part and totals the two. Six such boxes are what it
+costs, and [`international.md`](international.md) records the gap that would
+remove them.
+
+**When you meet it**, find the box the amount is *defined* in — usually the
+innermost, the one broken down by rate — and post there. Every further
+appearance is a `total` naming it. Two base postings would be two definitions
+of one figure, kept in step by whoever reads the pack next, and `pack check`
+refuses them before that can start.
+
 ## Which declaration a box belongs to
 
 A box number is unique inside one form and nowhere else. Belgium and France
@@ -1130,6 +1179,12 @@ expression language, in any country. Every box carries its own
 Then go back to `taxes.json` and put a `box` on each posting. The two files are
 checked against each other, which is the first place a country pack usually
 turns out to be wrong.
+
+Each tax takes **one `base` posting per kind of document**. Where your form
+prints the same taxable amount somewhere else — a turnover line above a rate
+breakdown, a memo box inside a box — that second place is a `total` naming the
+first, never a second posting: see "A base is written once, and printed as
+often as the form likes".
 
 ### 6. The financial statements
 
