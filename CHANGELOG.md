@@ -71,7 +71,6 @@ somewhere has already run it.
   beside the rule each belongs to. `ekwo pack check` refuses a declared rule
   that cites no article on a `reviewed` pack and warns about one on any other,
   and refuses a key the pack's register does not carry.
-||||||| parent of feaa972 (feat(schema): the territories of the common system of VAT, and a word for a triangular supply)
 - **The core can say where the common system of VAT applies, and under which
   two letters.** `ec_sales_list()` shipped with two holes `docs/international.md`
   recorded: it could not tell a Member State from a third country — its only
@@ -199,7 +198,6 @@ somewhere has already run it.
   the overload is granted to `authenticated` and `service_role`, and the public
   door is still one `security definer` function. No pack moved — every golden
   figure and every compiled seed is identical.
-||||||| parent of 5d6ff05 (feat(schema): the territories of the common system of VAT, and a word for a triangular supply)
 
 ## [0.3.0] — 2026-09-15
 
