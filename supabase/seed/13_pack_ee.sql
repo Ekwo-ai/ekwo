@@ -1,6 +1,6 @@
 -- Ekwo OS — Estonia: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/ee at version 1.3.1, do not edit.
+-- Generated from packs/ee at version 1.3.2, do not edit.
 -- Change the pack and run `ekwo pack build ee`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -34,7 +34,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum, sources)
 values
-  ('EE', 'Estonia', '1.3.1', date '2026-09-15', '20260914163943', 'community', null, null, '743f4f19bd276ab58fe0b2ebad9ff2d6555a123f459906ac765890e55ddd873d', '[{"key":"kms","title":"Käibemaksuseadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/kms","consulted_on":"2026-09-15","kind":"law"},{"key":"rps","title":"Raamatupidamise seadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/rps","consulted_on":"2026-09-15","kind":"law"},{"key":"vos","title":"Võlaõigusseadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/120062026018","consulted_on":"2026-09-15","kind":"law"},{"key":"kmd-vorm","title":"Rahandusministri 10.06.2014 määrus nr 17 „Käibedeklaratsiooni vorm“, lisa 1 (vorm KMD) ja lisa 2 (vorm KMD INF)","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/130052025008","consulted_on":"2026-09-15","kind":"regulation"},{"key":"rtj-2","title":"Raamatupidamise Toimkonna juhend RTJ 2 „Nõuded informatsiooni esitusviisile raamatupidamise aastaaruandes“, rahandusministri 22.12.2017 määruse nr 105 lisa 2","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/119022025012","consulted_on":"2026-09-15","kind":"guidance"},{"key":"kmd-esitamine","title":"Käibedeklaratsiooni ja aruannete esitamine — vormi KMD ja selle lisa täitmine","publisher":"Maksu- ja Tolliamet","url":"https://www.emta.ee/ariklient/maksud-ja-tasumine/kaibemaks/kaibedeklaratsiooni-ja-aruannete-esitamine","consulted_on":"2026-09-15","kind":"form"},{"key":"e-mta","title":"e-MTA — keskkond, kus käibedeklaratsioon esitatakse","publisher":"Maksu- ja Tolliamet","url":"https://maasikas.emta.ee/","consulted_on":"2026-09-15","kind":"portal"},{"key":"en-16931","title":"EN 16931-1 — Euroopa e-arve semantiline andmemudel ja direktiivist 2014/55/EL tulenev vastavus","publisher":"Euroopa Komisjon","url":"https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance","consulted_on":"2026-09-15","kind":"standard"},{"key":"uncl5305","title":"UNCL5305 — käibemaksu kategooria koodide loend (BT-118 ja BT-151), EN 16931 jaoks avaldatud alamhulk","publisher":"OpenPEPPOL — nimekirja avaldab Euroopa Komisjon","url":"https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/","consulted_on":"2026-09-15","kind":"standard"},{"key":"vatex","title":"VATEX — käibemaksuvabastuse põhjuse koodide loend (BT-121)","publisher":"OpenPEPPOL — nimekirja avaldab Euroopa Komisjon","url":"https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/","consulted_on":"2026-09-15","kind":"standard"}]'::jsonb)
+  ('EE', 'Estonia', '1.3.2', date '2026-09-15', '20260914163943', 'community', null, null, 'd6421c683cf9507487de812de4b953a5f380044f971ee82cd9a61327658f0fc1', '[{"key":"kms","title":"Käibemaksuseadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/kms","consulted_on":"2026-09-15","kind":"law"},{"key":"rps","title":"Raamatupidamise seadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/rps","consulted_on":"2026-09-15","kind":"law"},{"key":"vos","title":"Võlaõigusseadus","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/120062026018","consulted_on":"2026-09-15","kind":"law"},{"key":"kmd-vorm","title":"Rahandusministri 10.06.2014 määrus nr 17 „Käibedeklaratsiooni vorm“, lisa 1 (vorm KMD) ja lisa 2 (vorm KMD INF)","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/130052025008","consulted_on":"2026-09-15","kind":"regulation"},{"key":"rtj-2","title":"Raamatupidamise Toimkonna juhend RTJ 2 „Nõuded informatsiooni esitusviisile raamatupidamise aastaaruandes“, rahandusministri 22.12.2017 määruse nr 105 lisa 2","publisher":"Riigi Teataja","url":"https://www.riigiteataja.ee/akt/119022025012","consulted_on":"2026-09-15","kind":"guidance"},{"key":"kmd-esitamine","title":"Käibedeklaratsiooni ja aruannete esitamine — vormi KMD ja selle lisa täitmine","publisher":"Maksu- ja Tolliamet","url":"https://www.emta.ee/ariklient/maksud-ja-tasumine/kaibemaks/kaibedeklaratsiooni-ja-aruannete-esitamine","consulted_on":"2026-09-15","kind":"form"},{"key":"e-mta","title":"e-MTA — keskkond, kus käibedeklaratsioon esitatakse","publisher":"Maksu- ja Tolliamet","url":"https://maasikas.emta.ee/","consulted_on":"2026-09-15","kind":"portal"},{"key":"en-16931","title":"EN 16931-1 — Euroopa e-arve semantiline andmemudel ja direktiivist 2014/55/EL tulenev vastavus","publisher":"Euroopa Komisjon","url":"https://ec.europa.eu/digital-building-blocks/sites/spaces/DIGITAL/pages/467108950/EN+16931+compliance","consulted_on":"2026-09-15","kind":"standard"},{"key":"uncl5305","title":"UNCL5305 — käibemaksu kategooria koodide loend (BT-118 ja BT-151), EN 16931 jaoks avaldatud alamhulk","publisher":"OpenPEPPOL — nimekirja avaldab Euroopa Komisjon","url":"https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305/","consulted_on":"2026-09-15","kind":"standard"},{"key":"vatex","title":"VATEX — käibemaksuvabastuse põhjuse koodide loend (BT-121)","publisher":"OpenPEPPOL — nimekirja avaldab Euroopa Komisjon","url":"https://docs.peppol.eu/poacc/billing/3.0/codelist/vatex/","consulted_on":"2026-09-15","kind":"standard"}]'::jsonb)
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -671,18 +671,26 @@ on conflict (country) do update set
   vat_period_default              = excluded.vat_period_default;
 
 update country_defaults set
-  numbering_gapless       = false,
-  number_format           = '{CODE}-{YYYY}-{NNNN}',
-  legal_payment_days      = 30,
-  late_payment_reference  = 'Võlaõigusseadus § 113 lõige 1 — viivis on § 94 alusel poolaastati avaldatav Euroopa Keskpanga põhirefinantseerimisoperatsioonide intressimäär, mida on suurendatud kaheksa protsendipunkti võrra; § 113¹ lõige 1 — sissenõudmiskulude hüvitis 40 eurot',
-  tax_point_rule          = 'delivery_date',
-  einvoice_profile        = 'peppol-bis-3',
-  einvoice_mandatory_from = null,
-  party_scheme            = '0191',
-  vat_scheme              = '9931',
-  bank_statement_formats  = array['camt.053', 'camt.052']::text[],
-  payment_formats         = array['pain.001']::text[],
-  fiscal_year_default     = 'calendar'
+  numbering_gapless             = false,
+  number_format                 = '{CODE}-{YYYY}-{NNNN}',
+  legal_payment_days            = 30,
+  late_payment_reference        = 'Võlaõigusseadus § 113 lõige 1 — viivis on § 94 alusel poolaastati avaldatav Euroopa Keskpanga põhirefinantseerimisoperatsioonide intressimäär, mida on suurendatud kaheksa protsendipunkti võrra; § 113¹ lõige 1 — sissenõudmiskulude hüvitis 40 eurot',
+  numbering_legal_reference     = 'Käibemaksuseadus § 37 lõige 7 punkt 1 — arvele tuleb märkida arve järjekorranumber ja väljastamise kuupäev. Seadus nõuab järjekorranumbrit ega sea numbrile vormi. Katkematut, lünkadeta numeratsiooni käibemaksuseadus ei nõua, mistõttu numbering on siin sequential ja mitte gapless.',
+  numbering_source_key          = 'kms',
+  payment_terms_legal_reference = 'Võlaõigusseadus § 82¹ lõige 1 — kui vastastikuse lepingu puhul ei ole tasu maksmise tähtpäeva või tähtaega kokku lepitud, muutub tasu maksmise kohustus sissenõutavaks hiljemalt 30 päeva möödumisel arve või muu sellise makseettepaneku võlgniku kätte jõudmisest, või kauba, teenuse või muu hüve saamisest, kui arve kättesaamise aeg ei ole selge. Lõige 2 piirab lepinguga kokku lepitavat tähtaega 60 päevaga.',
+  payment_terms_source_key      = 'vos',
+  tax_point_rule                = 'delivery_date',
+  tax_point_legal_reference     = 'Käibemaksuseadus § 11 lõige 1 punkt 1 — käive on tekkinud päeval, mil esimesena tehti üks lõikes 1 nimetatud toimingutest, millest esimene on kauba ostjale lähetamine või kättesaadavaks tegemine või teenuse osutamine. delivery_date on selle esimene haru. Osalise või täieliku makse laekumine toob käibe tekkimise ettepoole laekunud summa ulatuses (§ 11 lõike 1 punkt 2 koostoimes lõikega 3), ja kauba ühendusesisesele käibele kehtib § 11 lõige 2 eraldi.',
+  tax_point_source_key          = 'kms',
+  einvoice_profile              = 'peppol-bis-3',
+  einvoice_mandatory_from       = null,
+  einvoice_legal_reference      = 'Raamatupidamise seadus § 7¹ lõige 7, kehtiv alates 01.07.2025 — äriregistris e-arve vastuvõtjaks märgitud raamatupidamiskohustuslane võib nõuda müüjalt e-arve esitamist, ja e-arve eeldatakse nõuetekohaseks, kui see vastab Euroopa standardile EN 16931-1; pooled võivad kokku leppida muu standardi kasutamises. Seadus ei kehtesta üldist e-arve kohustust ega ühtki tähtpäeva, mistõttu mandatory_from on tühi. Deklareeritud profiil peppol-bis-3 on EN 16931-1 kitsendus, mida Eesti operaatorid tegelikkuses vahetavad; see ei ole seadusest tulenev nõue. Riigisisene standard EVS 923 kaotas õigusliku aluse 01.07.2025, kui rahandusministri määrus „Masintöödeldava algdokumendi juhendi kehtestamine“ kehtetuks tunnistati.',
+  einvoice_source_key           = 'rps',
+  party_scheme                  = '0191',
+  vat_scheme                    = '9931',
+  bank_statement_formats        = array['camt.053', 'camt.052']::text[],
+  payment_formats               = array['pain.001']::text[],
+  fiscal_year_default           = 'calendar'
  where country = 'EE';
 
 insert into legal_mention_templates

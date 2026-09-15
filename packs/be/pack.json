@@ -2,7 +2,7 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "BE",
   "name": "Belgium",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "schema_min": "20260914163943",
   "seed_sequence": 10,
   "released_at": "2026-09-15",
@@ -245,6 +245,20 @@
     "legal_payment_days": 30,
     "late_payment_reference": "Loi du 2 août 2002, art. 5 — intérêt au taux directeur de la Banque centrale européenne majoré de huit points, publié semestriellement au Moniteur belge ; art. 6 — indemnité forfaitaire de 40 € pour frais de recouvrement",
     "tax_point": "invoice_date",
+    "references": {
+      "numbering": {
+        "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 5, § 1er, 1° — la facture porte « la date à laquelle ils sont respectivement émis ou établi et un numéro séquentiel, basé sur une ou plusieurs séries qui identifie ces documents de façon unique ». Le texte impose la séquence, la série et l'unicité, jamais une forme : le motif déclaré en number_format est l'une des séries qu'il autorise, et non une forme qu'il prescrirait.",
+        "source": "ar-1"
+      },
+      "payment_terms": {
+        "legal_reference": "Loi du 2 août 2002, art. 4, § 1er — à défaut de date ou de délai de paiement fixé dans le contrat, le paiement d'une transaction commerciale entre entreprises est effectué dans un délai de trente jours civils à partir du jour qui suit celui de la réception de la facture, ou celui de la réception des marchandises ou de la prestation lorsque la date de réception de la facture est incertaine ; l'alinéa 2 plafonne à soixante jours civils le délai que les parties peuvent convenir.",
+        "source": "retard-de-paiement"
+      },
+      "tax_point": {
+        "legal_reference": "Code de la taxe sur la valeur ajoutée, art. 17, § 1er, alinéa 1er, pour les livraisons de biens et art. 22bis, § 1er, alinéa 1er, pour les prestations de services, tels que remplacés par la loi du 6 décembre 2015 et en vigueur depuis le 1er janvier 2016 — par dérogation aux art. 16 et 22, qui placent le fait générateur au moment où la livraison ou la prestation est effectuée, la taxe devient exigible au moment de l'émission de la facture. À défaut de facture émise avant cette date, elle l'est en tout état de cause le quinzième jour du mois qui suit le fait générateur ; les services intracommunautaires relèvent de l'art. 22bis, § 2 et restent exigibles au moment de la prestation.",
+        "source": "code-tva"
+      }
+    },
     "mentions": [
       {
         "code": "reverse_charge",

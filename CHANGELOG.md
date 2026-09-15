@@ -9,6 +9,23 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Added
+
+- **The document rules of a country cite the article behind them.** How an
+  invoice is numbered, the payment term the law sets in the absence of an
+  agreement, when the tax falls due and which structured invoice is
+  obligatory all arrived in the database as a word — `gapless_per_year`, `30`,
+  `invoice_date`, `peppol-bis-3` — and a word looks the same whether somebody
+  read the decree or guessed. `documents.references` now carries a
+  `legal_reference` and a `source` per rule, three and not one because they are
+  three articles of two or three different texts in every country the packs
+  cover; `einvoicing.legal_reference`, which the format has accepted since the
+  section existed and all four packs write, stopped being dropped by the
+  compiler. Eight nullable columns on `country_defaults` hold the four pairs,
+  beside the rule each belongs to. `ekwo pack check` refuses a declared rule
+  that cites no article on a `reviewed` pack and warns about one on any other,
+  and refuses a key the pack's register does not carry.
+
 ### Fixed
 
 - **A VAT category came back padded with a space.** `taxes.vat_category`,

@@ -577,7 +577,7 @@ core never chooses a tax for anyone, in any country.
 ## What a country puts on an invoice
 
 Three sections of the manifest — `documents`, `einvoicing` and `bank` —
-compile into twelve columns of `country_defaults` and into
+compile into twenty columns of `country_defaults` and into
 `legal_mention_templates`. None of them has a default: a pack that says
 nothing leaves null, and a reader that needs the value says which one is
 missing rather than borrowing another country's law.
@@ -589,6 +589,20 @@ missing rather than borrowing another country's law.
   "legal_payment_days": 30,
   "late_payment_reference": "…où le taux et l'indemnité sont fixés",
   "tax_point": "invoice_date",
+  "references": {
+    "numbering": {
+      "legal_reference": "Arrêté royal n° 1 du 29 décembre 1992, art. 5, § 1er, 1° — …",
+      "source": "ar-1"
+    },
+    "payment_terms": {
+      "legal_reference": "Loi du 2 août 2002, art. 4, § 1er — …",
+      "source": "retard-de-paiement"
+    },
+    "tax_point": {
+      "legal_reference": "Code de la TVA, art. 17, § 1er et art. 22bis, § 1er — …",
+      "source": "code-tva"
+    }
+  },
   "mentions": [
     {
       "code": "reverse_charge",
@@ -603,7 +617,9 @@ missing rather than borrowing another country's law.
   "profile": "peppol-bis-3",
   "mandatory_from": "2026-01-01",
   "party_scheme": "0208",
-  "vat_scheme": "9925"
+  "vat_scheme": "9925",
+  "legal_reference": "Loi du 6 février 2024 modifiant le Code de la TVA, art. 53, § 2 — …",
+  "source": "facturation-electronique"
 },
 "bank": {
   "statement_formats": ["coda", "camt.053"],
@@ -640,6 +656,26 @@ addressed on the network (`0208` the Belgian enterprise number, `0009` the
 French SIRET) and `vat_scheme` is the VAT identifier (`9925`, `9957`). Where a
 country has two registration identifiers, declare the one its invoices carry
 and name the other in the legal reference.
+
+**The article behind each rule** is `documents.references`, one entry per
+rule and not one for the section. A tax and a box of a declaration form are
+rows and carry their own `legal_reference` and `source`; the rules here are
+words — `gapless_per_year`, `30`, `invoice_date` — with nowhere to write
+either, and a word looks exactly the same whether somebody read the decree or
+guessed. Three entries, because they are three articles of two or three
+different texts in every country covered so far: `numbering` answers for the
+style and the pattern together, `payment_terms` for `legal_payment_days` alone
+(the interest and the indemnity stay in `late_payment_reference`, which is a
+sentence to print rather than a citation), and `tax_point` for the tax point.
+`einvoicing` writes its `legal_reference` and `source` flat, beside the
+profile, because the section is one rule. All four pairs compile into
+`country_defaults`, beside the rule each belongs to.
+
+Where the value declared is a derogation rather than the country's principle,
+say so in the reference. The Luxembourg pack declares `invoice_date` and its
+citation names art. 24, par. 1er as the derogation it is, with art. 21 as the
+rule — a reader who opens the text is then not left wondering whether the pack
+read the wrong article.
 
 **The bank formats** are a known list rather than free text — `camt.052`,
 `camt.053`, `camt.054`, `mt940`, `mt942`, `coda`, `cfonb120`, `ofx`, `qif`,
@@ -688,7 +724,7 @@ a tax rate and a box of a form governs a sentence too.
 
 | Change | Version |
 |---|---|
-| A label, a translation, a legal source | patch |
+| A label, a translation, a legal source, a legal reference | patch |
 | An account, a tax, a box, a statement line; a validity that closes | minor |
 | A new declaration form, a new statement framework | major |
 
@@ -1062,7 +1098,12 @@ code. A `valid_to` before its `valid_from`. A mention with no
 `legal_reference` — a sentence the law requires cites the article that requires
 it. A `number_format` carrying a token nobody defined, or no counter, or two.
 An `einvoicing.mandatory_from` with no `profile`: a day an obligation starts
-and nothing that says what becomes obligatory.
+and nothing that says what becomes obligatory. A `source` under
+`documents.references` or in `einvoicing` naming a key the register does not
+carry. And on a `reviewed` pack, a document rule that is declared and cites no
+article at all — that one is a warning on every other status, including
+`community`, because a country whose law nobody has written down yet is the
+normal state of a new pack and not a defect of it.
 
 **The languages.** A label under a code the pack does not carry — an account,
 a journal, a tax, a chart, a mention, an asset category, a box, a statement

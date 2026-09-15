@@ -2,7 +2,7 @@
   "$schema": "https://ekwo.ai/schemas/pack/1.json",
   "country": "FR",
   "name": "France",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "schema_min": "20260914163943",
   "seed_sequence": 11,
   "released_at": "2026-09-15",
@@ -207,6 +207,20 @@
     "legal_payment_days": 30,
     "late_payment_reference": "Code de commerce, art. L441-10, II — taux appliqué par la Banque centrale européenne à son opération de refinancement la plus récente majoré de dix points, sans pouvoir être inférieur à trois fois le taux d'intérêt légal ; art. D441-5 — indemnité forfaitaire de 40 € pour frais de recouvrement",
     "tax_point": "delivery_date",
+    "references": {
+      "numbering": {
+        "legal_reference": "Code général des impôts, annexe II, art. 242 nonies A, I, 7° — la facture porte « un numéro unique basé sur une séquence chronologique et continue ; la numérotation peut être établie dans ces conditions par séries distinctes lorsque les conditions d'exercice de l'activité de l'assujetti le justifient ; l'assujetti doit faire des séries distinctes un usage conforme à leur justification initiale ». Le texte impose la continuité de la séquence et l'unicité, jamais une forme.",
+        "source": "cgi-annexe-2"
+      },
+      "payment_terms": {
+        "legal_reference": "Code de commerce, art. L441-10, I, alinéa 1er — « sauf dispositions contraires figurant aux conditions de vente ou convenues entre les parties, le délai de règlement des sommes dues ne peut dépasser trente jours après la date de réception des marchandises ou d'exécution de la prestation demandée ». Les alinéas suivants plafonnent le délai convenu à soixante jours après la date d'émission de la facture, ou quarante-cinq jours fin de mois sur stipulation expresse au contrat.",
+        "source": "code-de-commerce"
+      },
+      "tax_point": {
+        "legal_reference": "Code général des impôts, art. 269, 1, a — le fait générateur se produit au moment où la livraison, l'acquisition intracommunautaire du bien ou la prestation de services est effectuée ; art. 269, 2, a — pour les livraisons de biens, la taxe est exigible lors de la réalisation du fait générateur, l'encaissement d'un acompte l'avançant à concurrence du montant encaissé. Les prestations de services relèvent de l'art. 269, 2, c, qui les rend exigibles à l'encaissement des acomptes, du prix ou de la rémunération, sauf option du redevable pour les débits : c'est cette exception que les taxes de service de ce pack portent en cash_basis, et non un second fait générateur du pays.",
+        "source": "cgi"
+      }
+    },
     "mentions": [
       {
         "code": "reverse_charge",

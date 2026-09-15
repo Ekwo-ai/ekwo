@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.3.0",
-  "migration": "20260915174500",
+  "migration": "20260915180000",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1094,11 +1094,19 @@
             "type": "text"
           },
           {
+            "name": "einvoice_legal_reference",
+            "type": "text"
+          },
+          {
             "name": "einvoice_mandatory_from",
             "type": "date"
           },
           {
             "name": "einvoice_profile",
+            "type": "text"
+          },
+          {
+            "name": "einvoice_source_key",
             "type": "text"
           },
           {
@@ -1150,6 +1158,14 @@
             "type": "boolean"
           },
           {
+            "name": "numbering_legal_reference",
+            "type": "text"
+          },
+          {
+            "name": "numbering_source_key",
+            "type": "text"
+          },
+          {
             "name": "opening_entry_label",
             "type": "text"
           },
@@ -1168,6 +1184,14 @@
           {
             "name": "payment_formats",
             "type": "text[]"
+          },
+          {
+            "name": "payment_terms_legal_reference",
+            "type": "text"
+          },
+          {
+            "name": "payment_terms_source_key",
+            "type": "text"
           },
           {
             "name": "purchase_account_code",
@@ -1210,7 +1234,15 @@
             "type": "text"
           },
           {
+            "name": "tax_point_legal_reference",
+            "type": "text"
+          },
+          {
             "name": "tax_point_rule",
+            "type": "text"
+          },
+          {
+            "name": "tax_point_source_key",
             "type": "text"
           },
           {

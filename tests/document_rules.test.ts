@@ -7,9 +7,11 @@ import { asUser, expectError, freshDatabase, one, repoRoot, rows, seedFiles } fr
 import { newCompany, newContact, newDocument } from './helpers/factory.js';
 import { packWhere } from './helpers/packs.js';
 
-// What a country requires on a document is data. Twelve columns of
+// What a country requires on a document is data. Twenty columns of
 // `country_defaults`, one table of sentences, and two views that read them —
-// and nothing executable, which is the point of the sub-task.
+// and nothing executable, which is the point of the sub-task. Eight of the
+// twenty are the article behind a rule and the register entry it is read at,
+// so a word like `gapless_per_year` is as reviewable as a rate.
 
 const packs = join(repoRoot, 'packs');
 const seedDir = join(repoRoot, 'supabase', 'seed');
@@ -30,7 +32,11 @@ async function rulesOf(country: string): Promise<Record<string, unknown>> {
     db,
     `select numbering_gapless, number_format, legal_payment_days, late_payment_reference,
             tax_point_rule, einvoice_profile, einvoice_mandatory_from::text as einvoice_mandatory_from,
-            party_scheme, vat_scheme, bank_statement_formats, payment_formats, fiscal_year_default
+            party_scheme, vat_scheme, bank_statement_formats, payment_formats, fiscal_year_default,
+            numbering_legal_reference, numbering_source_key,
+            payment_terms_legal_reference, payment_terms_source_key,
+            tax_point_legal_reference, tax_point_source_key,
+            einvoice_legal_reference, einvoice_source_key
        from country_defaults where country = $1`,
     [country],
   );
@@ -50,11 +56,22 @@ describe('the document columns of the country model', () => {
     'bank_statement_formats',
     'payment_formats',
     'fiscal_year_default',
+    // And the article behind four of them. A rate cites a decree and a grid
+    // cites a form; the rule deciding how every invoice of the country is
+    // numbered used to cite nothing, which is what these eight end.
+    'numbering_legal_reference',
+    'numbering_source_key',
+    'payment_terms_legal_reference',
+    'payment_terms_source_key',
+    'tax_point_legal_reference',
+    'tax_point_source_key',
+    'einvoice_legal_reference',
+    'einvoice_source_key',
   ];
 
   it('are all nullable and none of them carries a default', async () => {
     // The rule the year-end close set when it landed the closing style, applied to the
-    // twelve columns of this one: a default legal payment term, a default
+    // twenty columns of this one: a default legal payment term, a default
     // e-invoicing profile or a default tax point would each be one country's
     // law given to every country that has not spoken. A silent pack gets
     // null, and a reader that needs the value says which one is missing.
@@ -115,6 +132,58 @@ describe('what each pack declares, compiled and read back', () => {
       expect(stored['payment_formats'] ?? [], slug).toEqual(declared.payment_formats);
       expect(stored['fiscal_year_default'], slug).toBe(declared.fiscal_year_default);
     }
+  });
+
+  it('holds the article behind each rule, and the register key it is read at', async () => {
+    // The gap this closes is narrow and was easy to miss: the pack format has
+    // carried `einvoicing.legal_reference` since the section existed, all four
+    // packs write it, and the compiler dropped it — so the database held the
+    // profile and the day the obligation starts with nothing saying who said
+    // so. The three under `documents.references` are new; this test reads all
+    // four back the same way, from the pack rather than from a country.
+    for (const slug of await listPacks(packs)) {
+      const pack = await readPack(slug, packs);
+      const stored = await rulesOf(pack.manifest.country);
+      const declared = pack.documents;
+      const held = new Set(pack.sources.map((source) => source.key));
+
+      const pairs: [string, string, { legal_reference: string | null; source: string | null }][] = [
+        ['numbering', 'numbering', declared.numbering_reference],
+        ['payment terms', 'payment_terms', declared.payment_terms_reference],
+        ['tax point', 'tax_point', declared.tax_point_reference],
+        ['e-invoicing', 'einvoice', declared.einvoice_reference],
+      ];
+      for (const [what, prefix, reference] of pairs) {
+        expect(stored[`${prefix}_legal_reference`], `${slug} ${what}`).toBe(reference.legal_reference);
+        expect(stored[`${prefix}_source_key`], `${slug} ${what}`).toBe(reference.source);
+        // And the key resolves in the register the same seed wrote, which is
+        // the whole point of keeping the article on the rule and the link in
+        // one place: a text that moves is one line to change.
+        if (reference.source !== null) {
+          expect(held.has(reference.source), `${slug} ${what} names ${reference.source}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  it('carries the e-invoicing article for every pack that names a profile', async () => {
+    // Stated separately from the loop above because it is the claim the gap
+    // was about: a pack that says a structured invoice is obligatory says
+    // which text made it so, and that text is now readable from the database.
+    const named = (await listPacks(packs)).map((slug) => readPack(slug, packs));
+    let checked = 0;
+    for (const pack of await Promise.all(named)) {
+      if (pack.documents.einvoice_profile === null) continue;
+      checked += 1;
+      const stored = await rulesOf(pack.manifest.country);
+      expect(stored['einvoice_profile'], pack.slug).toBe(pack.documents.einvoice_profile);
+      expect(stored['einvoice_legal_reference'], pack.slug).not.toBeNull();
+      expect(String(stored['einvoice_legal_reference']).length, pack.slug).toBeGreaterThan(0);
+      expect(stored['einvoice_source_key'], pack.slug).not.toBeNull();
+    }
+    // A loop that checked nothing would pass, and this is the file where that
+    // would be hardest to notice.
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('holds every mention of every pack, with its condition and its source', async () => {

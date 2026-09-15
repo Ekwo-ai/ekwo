@@ -700,6 +700,14 @@ Which template account plays which role, per country.
 | `languages` | `text[]` | not null — Languages this country pack publishes every label in, the language of the pack itself first. An installer offers them; nothing in the schema restricts a company to them. |
 | `opening_entry_label` | `text` | Wording the computed opening lines of an export carry, from the pack, in the language the administration of this country reads. Null falls back to a neutral English label: the format fixes no wording, so there is no wrong answer to guess at. |
 | `vat_period_default` | `declaration_period` | Cadence a company of this country files on unless it says otherwise, from the pack. Null wherever the law makes the cadence depend on a fact about the company — turnover in Belgium, France and Luxembourg — because a pack proposing one of two lawful answers there would be choosing a filing deadline for somebody it knows nothing about. Set where the law gives one answer for everybody, as in Estonia. Read at install; never read by the return. |
+| `numbering_legal_reference` | `text` | The article requiring a sequential, uniquely identifying invoice number, and the shape of that number where the country prescribes one. Covers numbering_gapless and number_format together: both answer the same article. |
+| `numbering_source_key` | `text` | Key of the entry in country_packs.sources where numbering_legal_reference can be read. Null where the pack names none. |
+| `payment_terms_legal_reference` | `text` | The article setting legal_payment_days in the absence of an agreement. Distinct from late_payment_reference, which says where the interest and the recovery indemnity come from and is written to be printed. |
+| `payment_terms_source_key` | `text` | Key of the entry in country_packs.sources where payment_terms_legal_reference can be read. Null where the pack names none. |
+| `tax_point_legal_reference` | `text` | The article fixing tax_point_rule. Where the value is a derogation rather than the country's principle, the reference says which, so a reader is not left believing the pack read the wrong article. |
+| `tax_point_source_key` | `text` | Key of the entry in country_packs.sources where tax_point_legal_reference can be read. Null where the pack names none. |
+| `einvoice_legal_reference` | `text` | The text making einvoice_profile obligatory from einvoice_mandatory_from. Where reception and emission start on different days, the emission calendar is written out here; where a country has several registration identifiers, this is where the ones party_scheme could not hold are named. |
+| `einvoice_source_key` | `text` | Key of the entry in country_packs.sources where einvoice_legal_reference can be read. Null where the pack names none. |
 
 Constraints:
 

@@ -97,6 +97,21 @@
       "description": "Key of an entry in certification.sources: where the legal reference written beside it can be read. The article stays on the item and the link stays in the register, so a text moved on its publisher's site is one line to change. `ekwo pack check` refuses a key the register does not carry; on a reviewed pack it also refuses a tax or a box that names none."
     },
 
+    "rule_reference": {
+      "type": "object",
+      "description": "Where one rule of a country comes from: the article that imposes it, and the key of the register entry where that article is read. The shape a tax and a box of a declaration form already have, given to the rules that carry no legal_reference of their own because they are a word rather than a row.",
+      "required": ["legal_reference"],
+      "additionalProperties": false,
+      "properties": {
+        "legal_reference": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The article that imposes the rule, cited as the country cites it. Not a paraphrase of what it says: a reader opens the text in the register and finds the sentence there."
+        },
+        "source": { "$ref": "#/$defs/source_ref" }
+      }
+    },
+
     "source": {
       "description": "One text of a pack's source register. An object is the form to write; a bare string is the deprecated form the field held before the register existed.",
       "oneOf": [
@@ -260,6 +275,25 @@
           "enum": ["invoice_date", "delivery_date", "payment_date"],
           "description": "When the tax becomes chargeable under the country's general rule. A tax that departs from it says cash_basis itself, which is how France taxes goods on delivery and services on collection without a second country field."
         },
+        "references": {
+          "type": "object",
+          "description": "Where the rules above come from, one entry per rule and not one for the section: the numbering of an invoice, the payment term the law sets and the tax point are three articles of two or three different texts in every country the packs cover, and a single reference would have had to name them all in one string. A rule a pack declares and does not source is refused on a reviewed pack and warned about on any other.",
+          "additionalProperties": false,
+          "properties": {
+            "numbering": {
+              "$ref": "#/$defs/rule_reference",
+              "description": "The article that requires a sequential, uniquely identifying invoice number — and, where a country prescribes one, the shape that number takes. Covers `numbering` and `number_format` together, because both answer the same article."
+            },
+            "payment_terms": {
+              "$ref": "#/$defs/rule_reference",
+              "description": "The article that sets `legal_payment_days` in the absence of an agreement. The interest and the recovery indemnity are a different matter and stay in `late_payment_reference`, which is a sentence a renderer prints rather than a citation."
+            },
+            "tax_point": {
+              "$ref": "#/$defs/rule_reference",
+              "description": "The article that fixes when the tax becomes chargeable under the country's general rule. Where the value declared is a derogation rather than the principle, the reference says which, so a reader is not left believing the pack read the wrong article."
+            }
+          }
+        },
         "mentions": {
           "type": "array",
           "description": "The sentences the law requires on an invoice, and when each applies.",
@@ -309,7 +343,10 @@
           "pattern": "^[0-9]{4}$",
           "description": "ISO 6523 ICD of the VAT identifier, four digits. Distinct from party_scheme: a company is addressed by its registration number and taxed on its VAT number."
         },
-        "legal_reference": { "type": ["string", "null"] },
+        "legal_reference": {
+          "type": ["string", "null"],
+          "description": "The text that makes the profile above obligatory and fixes the day it starts. It is where the emission calendar is written out where reception and emission part company, and where a country with several registration identifiers names the ones party_scheme could not hold. Compiled beside the profile and the date, so an application answers \"who says so\" without going back to the pack file."
+        },
         "source": { "$ref": "#/$defs/source_ref" }
       }
     },

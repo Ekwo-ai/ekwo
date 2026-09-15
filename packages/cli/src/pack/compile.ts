@@ -716,8 +716,14 @@ function defaults(pack: Pack, country: string): string[] {
 
 /**
  * What a country requires on a document, how the document is exchanged, and
- * the formats its banks speak: twelve columns of `country_defaults` and the
+ * the formats its banks speak: twenty columns of `country_defaults` and the
  * sentences of `legal_mention_templates`.
+ *
+ * Eight of the twenty are citations — the article behind the numbering, the
+ * payment term, the tax point and the e-invoicing profile, and the register
+ * key each of them is read at. They ride in the same update as the rule they
+ * belong to, because a rule and the text that imposes it going into the
+ * database by two different routes is how one of them gets left behind.
  *
  * An `update` rather than a second `insert`. The row exists — `defaults()`
  * writes it immediately above — and an insert would have to restate the name,
@@ -735,18 +741,26 @@ function documentRules(pack: Pack, country: string): string[] {
   const out = [
     '',
     'update country_defaults set',
-    `  numbering_gapless       = ${orNull(rules.numbering_gapless, bool)},`,
-    `  number_format           = ${text(rules.number_format)},`,
-    `  legal_payment_days      = ${orNull(rules.legal_payment_days, number)},`,
-    `  late_payment_reference  = ${text(rules.late_payment_reference)},`,
-    `  tax_point_rule          = ${text(rules.tax_point_rule)},`,
-    `  einvoice_profile        = ${text(rules.einvoice_profile)},`,
-    `  einvoice_mandatory_from = ${date(rules.einvoice_mandatory_from)},`,
-    `  party_scheme            = ${text(rules.party_scheme)},`,
-    `  vat_scheme              = ${text(rules.vat_scheme)},`,
-    `  bank_statement_formats  = ${listOrNull(rules.bank_statement_formats)},`,
-    `  payment_formats         = ${listOrNull(rules.payment_formats)},`,
-    `  fiscal_year_default     = ${text(rules.fiscal_year_default)}`,
+    `  numbering_gapless             = ${orNull(rules.numbering_gapless, bool)},`,
+    `  number_format                 = ${text(rules.number_format)},`,
+    `  legal_payment_days            = ${orNull(rules.legal_payment_days, number)},`,
+    `  late_payment_reference        = ${text(rules.late_payment_reference)},`,
+    `  numbering_legal_reference     = ${text(rules.numbering_reference.legal_reference)},`,
+    `  numbering_source_key          = ${text(rules.numbering_reference.source)},`,
+    `  payment_terms_legal_reference = ${text(rules.payment_terms_reference.legal_reference)},`,
+    `  payment_terms_source_key      = ${text(rules.payment_terms_reference.source)},`,
+    `  tax_point_rule                = ${text(rules.tax_point_rule)},`,
+    `  tax_point_legal_reference     = ${text(rules.tax_point_reference.legal_reference)},`,
+    `  tax_point_source_key          = ${text(rules.tax_point_reference.source)},`,
+    `  einvoice_profile              = ${text(rules.einvoice_profile)},`,
+    `  einvoice_mandatory_from       = ${date(rules.einvoice_mandatory_from)},`,
+    `  einvoice_legal_reference      = ${text(rules.einvoice_reference.legal_reference)},`,
+    `  einvoice_source_key           = ${text(rules.einvoice_reference.source)},`,
+    `  party_scheme                  = ${text(rules.party_scheme)},`,
+    `  vat_scheme                    = ${text(rules.vat_scheme)},`,
+    `  bank_statement_formats        = ${listOrNull(rules.bank_statement_formats)},`,
+    `  payment_formats               = ${listOrNull(rules.payment_formats)},`,
+    `  fiscal_year_default           = ${text(rules.fiscal_year_default)}`,
     ` where country = ${text(country)};`,
   ];
 

@@ -19,7 +19,14 @@ import {
   validate,
 } from '../packages/cli/src/index.js';
 import { freshDatabase, repoRoot, rows } from './helpers/db.js';
-import { allPacks, certificationStatuses, defaultChartOf, somePack, sourceKinds } from './helpers/packs.js';
+import {
+  allPacks,
+  certificationStatuses,
+  defaultChartOf,
+  packWhere,
+  somePack,
+  sourceKinds,
+} from './helpers/packs.js';
 
 // The country packs replaced four hand-written seeds. The point of this file
 // is that the replacement changed nothing: the same template rows, from a
@@ -822,6 +829,167 @@ describe('the pack format', () => {
     await expect(readPack(somePack.slug, dir)).rejects.toThrow(
       new RegExp(`taxes\\.json ${code}: a reviewed pack says which text its legal reference is in`),
     );
+  });
+
+  // -------------------------------------------------------------------
+  // The document rules, and the article behind each of them.
+  //
+  // A tax and a box are rows and carry their own citation. The rules under
+  // `documents` are words — a numbering style, a number of days, a tax point
+  // — and a word looks exactly the same whether somebody read the decree or
+  // guessed, so the citation sits beside it under `documents.references` and
+  // the e-invoicing one sits flat in `einvoicing`.
+  // -------------------------------------------------------------------
+
+  /**
+   * The four rules of a country that are a word, as the pack declares them:
+   * whether the rule is there at all, and what it cites.
+   *
+   * The same list the reader checks, restated here on purpose. A test that
+   * imported it from the reader would be the reader agreeing with itself.
+   */
+  function ruleCitations(
+    pack: (typeof allPacks)[number],
+  ): { what: string; declared: boolean; legal_reference: string | null; source: string | null }[] {
+    const rules = pack.documents;
+    return [
+      {
+        what: 'numbering',
+        declared: rules.numbering_gapless !== null || rules.number_format !== null,
+        ...rules.numbering_reference,
+      },
+      {
+        what: 'payment terms',
+        declared: rules.legal_payment_days !== null,
+        ...rules.payment_terms_reference,
+      },
+      {
+        what: 'tax point',
+        declared: rules.tax_point_rule !== null,
+        ...rules.tax_point_reference,
+      },
+      {
+        what: 'e-invoicing',
+        declared: rules.einvoice_profile !== null,
+        ...rules.einvoice_reference,
+      },
+    ];
+  }
+
+  it('cites an article for every document rule a pack declares, in a text of its register', async () => {
+    for (const pack of allPacks) {
+      const keys = new Set(sourcesOf(pack.manifest.certification).map((source) => source.key));
+      for (const chart of pack.charts) {
+        for (const source of sourcesOf(chart.certification)) keys.add(source.key);
+      }
+      for (const rule of ruleCitations(pack)) {
+        if (!rule.declared) continue;
+        expect(rule.legal_reference, `packs/${pack.slug} ${rule.what}`).not.toBeNull();
+        expect(rule.legal_reference!.length, `packs/${pack.slug} ${rule.what}`).toBeGreaterThan(0);
+        expect(rule.source, `packs/${pack.slug} ${rule.what} names no source`).not.toBeNull();
+        expect(keys.has(rule.source!), `packs/${pack.slug} ${rule.what} names ${rule.source}`).toBe(true);
+      }
+    }
+  });
+
+  it('refuses a reviewed pack whose document rule cites nothing, and warns on any other', async () => {
+    // The pack under test is the one that declares the rules, not a country
+    // somebody listed: a pack that says nothing about its invoices owes
+    // nobody an article, and would prove nothing here.
+    const subject = packWhere(
+      'declares a payment term, a tax point and an e-invoicing profile',
+      (pack) =>
+        pack.documents.legal_payment_days !== null &&
+        pack.documents.tax_point_rule !== null &&
+        pack.documents.einvoice_profile !== null,
+    );
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-rules-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+
+    /** The pack again, with the citations stripped and the status claimed. */
+    async function rewrite(status: string): Promise<void> {
+      await cp(join(packs, subject.slug), join(dir, subject.slug), { recursive: true, force: true });
+      const file = join(dir, subject.slug, 'pack.json');
+      const manifest = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>;
+      const documents = { ...(manifest['documents'] as Record<string, unknown>) };
+      delete documents['references'];
+      const einvoicing = { ...(manifest['einvoicing'] as Record<string, unknown>) };
+      delete einvoicing['legal_reference'];
+      delete einvoicing['source'];
+      manifest['documents'] = documents;
+      manifest['einvoicing'] = einvoicing;
+      manifest['certification'] = {
+        ...(manifest['certification'] as Record<string, unknown>),
+        status,
+        ...(status === 'reviewed' ? { by: 'A. Example, chartered accountant', on: '2026-09-15' } : {}),
+      };
+      await writeFile(file, JSON.stringify(manifest), 'utf8');
+    }
+
+    await rewrite('reviewed');
+    await expect(readPack(subject.slug, dir)).rejects.toThrow(
+      /cites no article; a reviewed pack says which text imposes it/,
+    );
+
+    // Below `reviewed` the pack still builds — a country whose law nobody has
+    // written down yet is the normal state of a new pack — and the reader is
+    // told, by rule, which is the difference between a gap and a silence.
+    for (const status of certificationStatuses.filter((claimed) => claimed !== 'reviewed')) {
+      await rewrite(status);
+      const read = await readPack(subject.slug, dir);
+      expect(read.warnings.join('\n'), status).toMatch(
+        /document rule\(s\) declare a country's law and cite no article/,
+      );
+      expect(read.warnings.join('\n'), status).toMatch(/documents\.legal_payment_days/);
+      expect(read.warnings.join('\n'), status).toMatch(/einvoicing\.profile/);
+    }
+  });
+
+  it('refuses a document rule naming a source the register does not carry', async () => {
+    const subject = packWhere(
+      'sources the article behind its tax point',
+      (pack) => pack.documents.tax_point_reference.source !== null,
+    );
+    const dir = await mkdtemp(join(tmpdir(), 'ekwo-rules-'));
+    await cp(join(packs, 'schema'), join(dir, 'schema'), { recursive: true });
+    await cp(join(packs, subject.slug), join(dir, subject.slug), { recursive: true });
+    const file = join(dir, subject.slug, 'pack.json');
+    const manifest = JSON.parse(await readFile(file, 'utf8')) as Record<string, unknown>;
+    const documents = manifest['documents'] as Record<string, unknown>;
+    const references = documents['references'] as Record<string, Record<string, unknown>>;
+    references['tax_point'] = { ...references['tax_point'], source: 'a-text-nobody-declared' };
+    await writeFile(file, JSON.stringify(manifest), 'utf8');
+    await expect(readPack(subject.slug, dir)).rejects.toThrow(
+      /documents\.tax_point: names the source a-text-nobody-declared/,
+    );
+  });
+
+  it('takes a citation for a rule as an article and a key, and nothing looser', async () => {
+    const schema = await readSchema(packs);
+    const defs = schema['$defs'] as Record<string, Record<string, unknown>>;
+    const reference = defs['rule_reference']!;
+    expect(validate({ legal_reference: 'An act of 1979, art. 63' }, reference, schema)).toEqual([]);
+    expect(validate({ legal_reference: 'An act, art. 1', source: 'an-act' }, reference, schema)).toEqual([]);
+    // An article is the half that cannot be left out: a key alone points at a
+    // text and says nothing about what in it the rule claims.
+    expect(validate({ source: 'an-act' }, reference, schema)).toEqual([
+      { path: '(root)', message: 'missing "legal_reference"' },
+    ]);
+    expect(validate({ legal_reference: '' }, reference, schema)).toHaveLength(1);
+    expect(validate({ legal_reference: 'An act, art. 1', source: 'An Act' }, reference, schema)).toHaveLength(1);
+    expect(
+      validate({ legal_reference: 'An act, art. 1', note: 'what it says' }, reference, schema),
+    ).toHaveLength(1);
+    // And the section takes those three rules and no fourth, so a pack cannot
+    // quietly invent a rule the core has no column for.
+    const documents = defs['documents']!;
+    const properties = (documents['properties'] as Record<string, Record<string, unknown>>)['references']!;
+    expect(Object.keys(properties['properties'] as Record<string, unknown>)).toEqual([
+      'numbering',
+      'payment_terms',
+      'tax_point',
+    ]);
+    expect(validate({ references: { something_else: { legal_reference: 'x' } } }, documents, schema)).toHaveLength(1);
   });
 
   it('accepts the two shapes of a source and nothing between them', async () => {

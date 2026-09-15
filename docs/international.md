@@ -37,7 +37,7 @@ The list this plan started from, with what phase 0 closed and what it did not.
 | Gap | Where it stands | Why it matters outside Belgium and France |
 |---|---|---|
 | No pack object | **Closed.** `packs/<cc>/` compiled into a committed seed, versioned, with `country_packs` and `company_packs` recording what an installation and a company hold | UK, US or Canada would each add a third place where a country lives |
-| Nothing on the invoice itself | **Closed.** Numbering and its pattern, the legal payment term, the tax point, the e-invoicing profile, the bank formats and the legal mentions are pack data | Every country prescribes different sentences on an invoice, and a renderer that hard-codes them is a renderer per country |
+| Nothing on the invoice itself | **Closed.** Numbering and its pattern, the legal payment term, the tax point, the e-invoicing profile, the bank formats and the legal mentions are pack data, each rule citing the article that imposes it | Every country prescribes different sentences on an invoice, and a renderer that hard-codes them is a renderer per country |
 | No year-end close, no opening balances | **Closed.** `opening_balance()`, `close_fiscal_year()`, `reopen_fiscal_year()` and a `closing_style` the pack declares; shifted and 52/53-week years were always covered by `fiscal_years` | UK years run April to March; US retail runs 52/53 weeks; every migration starts with an opening balance |
 | Currencies without realised gains or revaluation | **Half closed.** A matching that realises an exchange difference books it on the accounts the pack names; revaluation of open items is still out | Mandatory the day a company invoices outside its functional currency |
 | Accrual only | **Half closed.** A tax can fall due on collection, which is what French services needed; cash accounting as a ledger is still out | UK and US small businesses report on a cash basis; French VAT on services is due on collection; the UK has a cash accounting scheme |
@@ -104,11 +104,12 @@ buy a third country, which is phase 1.
    debits is the tax that was already there. Out of scope and staying out:
    revaluation of open items, and cash accounting as a ledger.
 7. Document rules, e-invoicing profiles and bank formats as data. **Done**:
-   twelve columns on the country model — gapless numbering and the
+   twenty columns on the country model — gapless numbering and the
    number pattern, the legal payment term and where its interest comes from,
    the tax point, the e-invoicing profile and the day it becomes obligatory,
    the ISO 6523 party and VAT schemes, the bank statement and payment
-   formats, the usual opening of the financial year — plus
+   formats, the usual opening of the financial year, and the article behind
+   four of those rules with the register entry it is read at — plus
    `legal_mention_templates`, the sentences a country requires on an invoice
    with a closed vocabulary of nine conditions. `document_legal_mentions`
    decides which of them apply to one document from its country, its date and
@@ -580,34 +581,51 @@ the currencies. Neither is decided here.
 
 Found while turning `certification.sources` into a register a reviewer can
 open — a key, a title, the publisher, an absolute link — and pointing every
-`legal_reference` at one of its keys. Neither blocked that work. Both are
-places where the format lets a pack claim something and gives it nowhere to
-say where the claim comes from.
+`legal_reference` at one of its keys. Neither blocked that work. Both were
+places where the format let a pack claim something and gave it nowhere to
+say where the claim came from, and both were closed the day after.
 
-**What a country puts on an invoice cites nothing.** `documents` carries the
-numbering style, the number pattern, the legal payment term and the tax point,
-and it has no `legal_reference` of its own — only the sentences under
-`documents.mentions` do, one per sentence. So a pack that took its numbering
-rule from an article of a decree has no field to say which, and the register
-entry for that text ends up pointed at by nothing: the French pack holds
-`cgi-annexe-2` for exactly the article that prescribes continuous numbering and
-the compulsory mentions, and no rule of the pack names it. *Fix*: a
-`legal_reference` and a `source` on `documents`, beside the four rules it
-carries, the way `einvoicing` and `bank` already have one. *Until then*: the
-text is in the register and a reviewer finds it there, one step further away
-than it should be.
+~~**What a country puts on an invoice cites nothing.**~~ **Closed, 15 September
+2026.** `documents.references` carries a `legal_reference` and a `source` per
+rule — `numbering`, `payment_terms`, `tax_point` — and not one for the section,
+because they are two or three different texts in every country the packs cover:
+Belgium numbers an invoice under a royal decree of 1992 and counts a payment
+term under a law of 2002, France numbers under an annex to the tax code and
+counts under the commercial code. A single citation would have had to name them
+all in one string, and then no rule would have had one. Six columns of
+`country_defaults` hold the three pairs, beside the rule each belongs to, and
+`cgi-annexe-2` is now named by the rule it was read for. `ekwo pack check`
+refuses a declared rule that cites no article on a `reviewed` pack, warns about
+one on any other, and refuses a key the register does not carry.
 
-**A legal reference the schema accepts and the compiler drops.**
-`einvoicing.legal_reference` is read by `pack.1.json`, written by all four
-packs — it is where the day an obligation starts is justified — and it reaches
-no column: `country_defaults` holds the profile, the date and the two ISO 6523
-schemes, and nothing carries the article behind them. The same is true of
-`charts[].legal_reference`, which does compile, and of the `source` beside
-either, which does not. Nothing is wrong in the pack; the information stops at
-the seed. *Fix*: an `einvoicing_legal_reference` column beside the four that
-exist, and `source_key` on `chart_templates` and `statement_line_templates`,
-the way this change added it to `tax_templates` and
-`tax_report_box_templates`. *Until then*: `country_packs.sources` answers
+One thing the reading turned up and this change did not act on. The Luxembourg
+pack declares `tax_point: invoice_date`, and the principle of the VAT law is
+art. 21 — the tax falls due when the supply is made. The invoice date is the
+derogation of art. 24, par. 1er, which applies where an invoice is obligatory
+and only while it is issued within the legal delay; it does not cover a supply
+with no invoicing obligation, nor a service the customer is liable for. The
+reference written into the pack says exactly that rather than citing art. 24 as
+if it were the rule, so nobody is misled — but the single-word column cannot
+hold "the principle, except where a facture is due", and either a second value
+of the vocabulary or an explicit note on the country model is the honest next
+step.
+
+~~**A legal reference the schema accepts and the compiler drops.**~~ **Closed,
+15 September 2026**, for the half of it that was about e-invoicing.
+`einvoicing.legal_reference` had been read by `pack.1.json` and written by all
+four packs since the section existed — it is where the day an obligation starts
+is justified, and where France writes out an emission calendar that depends on
+the size of a company the core cannot yet hold — and the compiler dropped it on
+the floor. `country_defaults.einvoice_legal_reference` and
+`einvoice_source_key` now sit beside the profile and the date, written by the
+same `update` so that a rule and the text imposing it cannot reach the database
+by two routes and have one of them left behind.
+
+What is left of the note is the other two: `charts[].legal_reference` compiles
+and the `source` beside it does not, and a statement line carries both in the
+pack and neither in the database. *Fix*: `source_key` on `chart_templates` and
+`statement_line_templates`, the way the register added it to `tax_templates`
+and `tax_report_box_templates`. *Until then*: `country_packs.sources` answers
 "where do these rules come from" for the pack as a whole, and the pack file is
 where the per-rule answer is read.
 

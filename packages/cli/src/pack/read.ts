@@ -237,6 +237,24 @@ export interface PackMention {
 }
 
 /**
+ * Where one rule of a country comes from.
+ *
+ * A tax and a box of a declaration form are rows, and each carries its own
+ * `legal_reference` and `source`. A document rule is a word — `gapless_per_year`,
+ * `30`, `invoice_date` — with nowhere to write either, so the citation lives
+ * beside it under `documents.references` and comes back here in the same shape.
+ */
+export interface PackRuleReference {
+  /** The article that imposes the rule. Null where the pack cites none. */
+  legal_reference: string | null;
+  /** Key of the register entry where that reference can be read. */
+  source: string | null;
+}
+
+/** A rule of a country that cites nothing: both halves null, never absent. */
+const NO_REFERENCE: PackRuleReference = { legal_reference: null, source: null };
+
+/**
  * The `documents`, `einvoicing` and `bank` sections of the manifest, read as
  * one thing because they compile to one row: what a country requires on a
  * document, how it is exchanged, and the formats its banks speak.
@@ -254,8 +272,23 @@ export interface PackDocumentRules {
   late_payment_reference: string | null;
   /** invoice_date | delivery_date | payment_date. */
   tax_point_rule: string | null;
+  /**
+   * Where the three rules above come from, one citation per rule.
+   *
+   * Three and not one, because they are three articles of two or three
+   * different texts in every country the packs cover: Belgium numbers an
+   * invoice under a royal decree and counts a payment term under a law of
+   * 2002, France numbers under an annex to the tax code and counts under the
+   * commercial code. A single reference on the section would have had to name
+   * them all in one string, and then no rule would have had one.
+   */
+  numbering_reference: PackRuleReference;
+  payment_terms_reference: PackRuleReference;
+  tax_point_reference: PackRuleReference;
   einvoice_profile: string | null;
   einvoice_mandatory_from: string | null;
+  /** The text that makes the profile obligatory, and where it is read. */
+  einvoice_reference: PackRuleReference;
   /** ISO 6523 ICD, four digits. */
   party_scheme: string | null;
   vat_scheme: string | null;
@@ -963,7 +996,20 @@ function sourceRegister(
   }
 
   // Every place the format lets a legal reference name where it is read.
-  const references: { path: string; source: string | null; kind: 'tax' | 'box' | 'other' }[] = [
+  const references: { path: string; source: string | null; kind: 'tax' | 'box' | 'rule' | 'other' }[] = [
+    // Only a rule that is declared and cites an article: a country that says
+    // nothing owes no source, and a rule that cites nothing has nowhere for a
+    // source to point — the check below is the one that catches that.
+    ...documentRules(documents)
+      .filter((rule) => rule.declared && rule.reference.legal_reference !== null)
+      .map((rule) => ({
+        path: rule.path,
+        source: rule.reference.source,
+        // A rule of a country is held to what a tax and a box are held to: a
+        // reviewed pack says which text it read, a maintained one is told it
+        // did not. What an invoice must carry is as reviewable as a rate.
+        kind: 'rule' as const,
+      })),
     ...charts.map((chart) => ({ path: `pack.json charts.${chart.code}`, source: chart.source, kind: 'other' as const })),
     ...taxes.map((tax) => ({ path: `taxes.json ${tax.code}`, source: tax.source, kind: 'tax' as const })),
     ...(report === null ? [] : [{ path: `tax_report.json ${report.code}`, source: report.source, kind: 'other' as const }]),
@@ -1006,10 +1052,37 @@ function sourceRegister(
     });
   }
 
+  // A rule that cites no article at all. One step before the check above: that
+  // one asks where a reference is read, this one asks whether there is a
+  // reference. A word — `gapless_per_year`, `30`, `invoice_date` — looks the
+  // same whether somebody read a decree or guessed, which is exactly why the
+  // citation has to be written down.
+  const uncited = documentRules(documents).filter(
+    (rule) => rule.declared && rule.reference.legal_reference === null,
+  );
+  if (status === 'reviewed') {
+    for (const rule of uncited) {
+      issues.push({
+        path: rule.path,
+        message:
+          `${rule.what} and cites no article; a reviewed pack says which text imposes it: ` +
+          `add "legal_reference" under ${rule.under}`,
+      });
+    }
+  } else if (uncited.length > 0) {
+    warnings.push(
+      `${uncited.length} document rule(s) declare a country's law and cite no article: ` +
+        `${uncited.map((rule) => rule.path).join(', ')}. ` +
+        'A reviewed pack is refused for this; any other is told.',
+    );
+  }
+
   // A reviewer read something before they put their name on a rate or a grid.
   // Saying which text is the difference between a review and a signature.
   const unsourced = references.filter(
-    (reference) => reference.source === null && (reference.kind === 'tax' || reference.kind === 'box'),
+    (reference) =>
+      reference.source === null &&
+      (reference.kind === 'tax' || reference.kind === 'box' || reference.kind === 'rule'),
   );
   if (status === 'reviewed') {
     for (const reference of unsourced) {
@@ -1020,7 +1093,7 @@ function sourceRegister(
     }
   } else if (status === 'maintained' && unsourced.length > 0) {
     warnings.push(
-      `${unsourced.length} tax(es) and box(es) carry a legal reference and name no source: ` +
+      `${unsourced.length} tax(es), box(es) and document rule(s) carry a legal reference and name no source: ` +
         `${unsourced
           .slice(0, 3)
           .map((reference) => reference.path)
@@ -1030,6 +1103,53 @@ function sourceRegister(
   }
 
   return { sources, issues, warnings };
+}
+
+/**
+ * The four rules of a country that are a word rather than a row, each with the
+ * citation the pack wrote beside it and whether the pack declared the rule at
+ * all.
+ *
+ * `declared` is the whole difficulty. A country that says nothing about the
+ * numbering of its invoices owes nobody an article, and a pack that leaves the
+ * section out is not an incomplete pack — it is a pack about a country whose
+ * law has not been read yet, which `country_defaults` holds as null and a
+ * reader raises on by name. So the demand for a citation attaches to the rule
+ * being *declared*, never to the section existing.
+ */
+function documentRules(
+  documents: PackDocumentRules,
+): { path: string; what: string; under: string; declared: boolean; reference: PackRuleReference }[] {
+  return [
+    {
+      path: 'pack.json documents.numbering',
+      what: 'says how an invoice of this country is numbered',
+      under: 'documents.references.numbering',
+      declared: documents.numbering_gapless !== null || documents.number_format !== null,
+      reference: documents.numbering_reference,
+    },
+    {
+      path: 'pack.json documents.legal_payment_days',
+      what: 'sets the payment term the law imposes in the absence of an agreement',
+      under: 'documents.references.payment_terms',
+      declared: documents.legal_payment_days !== null,
+      reference: documents.payment_terms_reference,
+    },
+    {
+      path: 'pack.json documents.tax_point',
+      what: 'fixes when the tax becomes chargeable',
+      under: 'documents.references.tax_point',
+      declared: documents.tax_point_rule !== null,
+      reference: documents.tax_point_reference,
+    },
+    {
+      path: 'pack.json einvoicing.profile',
+      what: 'names the structured invoice this country expects',
+      under: 'einvoicing',
+      declared: documents.einvoice_profile !== null,
+      reference: documents.einvoice_reference,
+    },
+  ];
 }
 
 function normaliseAssets(raw: Record<string, unknown>): PackAssets {
@@ -1628,6 +1748,21 @@ const KNOWN_NUMBER_TOKEN = /^(CODE|YYYY|YY|MM|N+)$/;
 const GAPLESS_NUMBERING = new Set(['gapless_per_year', 'gapless']);
 
 /**
+ * One `{ legal_reference, source }` of the manifest, or the pair of nulls that
+ * stands for a rule citing nothing. The shape is the schema's business — a
+ * `legal_reference` that is present is a non-empty string there — so this only
+ * has to survive the section being absent altogether.
+ */
+function ruleReference(raw: unknown): PackRuleReference {
+  if (raw === null || typeof raw !== 'object') return { ...NO_REFERENCE };
+  const entry = raw as Record<string, unknown>;
+  return {
+    legal_reference: (entry['legal_reference'] as string | null | undefined) ?? null,
+    source: (entry['source'] as string | null | undefined) ?? null,
+  };
+}
+
+/**
  * `documents`, `einvoicing` and `bank`, normalised into the row they compile
  * to. A section left out is not an error and not a default: every field comes
  * out null, and `country_defaults` holds null, and a reader that needs the
@@ -1654,14 +1789,22 @@ function normaliseDocumentRules(manifest: Manifest): PackDocumentRules {
       }) satisfies PackMention,
   );
 
+  const references = (documents['references'] ?? {}) as Record<string, unknown>;
+
   return {
     numbering_gapless: numbering === undefined ? null : GAPLESS_NUMBERING.has(numbering),
     number_format: (documents['number_format'] as string | undefined) ?? null,
     legal_payment_days: (documents['legal_payment_days'] as number | null | undefined) ?? null,
     late_payment_reference: (documents['late_payment_reference'] as string | null | undefined) ?? null,
     tax_point_rule: (documents['tax_point'] as string | undefined) ?? null,
+    numbering_reference: ruleReference(references['numbering']),
+    payment_terms_reference: ruleReference(references['payment_terms']),
+    tax_point_reference: ruleReference(references['tax_point']),
     einvoice_profile: (einvoicing['profile'] as string | null | undefined) ?? null,
     einvoice_mandatory_from: (einvoicing['mandatory_from'] as string | null | undefined) ?? null,
+    // `einvoicing` carries its citation flat, beside the profile, because the
+    // section is one rule: there is nothing else in it to tell apart.
+    einvoice_reference: ruleReference(einvoicing),
     party_scheme: (einvoicing['party_scheme'] as string | null | undefined) ?? null,
     vat_scheme: (einvoicing['vat_scheme'] as string | null | undefined) ?? null,
     bank_statement_formats: (bank['statement_formats'] as string[] | undefined) ?? [],
