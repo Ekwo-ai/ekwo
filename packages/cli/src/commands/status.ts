@@ -122,7 +122,8 @@ export async function statusCommand(args: ParsedArgs): Promise<number> {
           `${c.country} · pack ${c.packVersion ?? 'unknown'} · chart ${c.chartCode ?? 'unknown'} · ` +
             `files ${c.vatPeriod === null ? 'on no recorded cadence' : `every ${c.vatPeriod}`} · ` +
             `${c.accounts} accounts · ${c.entries} entries · ` +
-            `${c.fiscalYears} financial year(s), ${c.fiscalYears - c.closedFiscalYears} open`,
+            `${c.fiscalYears} financial year(s), ${c.fiscalYears - c.closedFiscalYears} open` +
+            (c.liveShares === 0 ? '' : ` · ${c.liveShares} document(s) published behind a link`),
         ]),
       );
       const behind = report.companies.filter((c) => {

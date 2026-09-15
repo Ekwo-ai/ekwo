@@ -33,6 +33,13 @@ export interface CompanySummary {
    * offers "file the current period" read.
    */
   vatPeriod: string | null;
+  /**
+   * Links onto this company's documents that still answer: not withdrawn, and
+   * not past their expiry. It is here because it is the one thing about an
+   * installation that is reachable without signing in, and an operator looking
+   * at `ekwo status` should be able to see how many doors are open.
+   */
+  liveShares: number;
 }
 
 /** A country pack loaded in this installation. */
@@ -106,6 +113,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
     pack_version: string | null;
     chart_code: string | null;
     vat_period: string | null;
+    live_shares: string;
   }>(
     `select c.name,
             c.country,
@@ -114,6 +122,9 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
             (select count(*) from entries e where e.company_id = c.id)::text as entries,
             (select count(*) from fiscal_years f where f.company_id = c.id)::text as fiscal_years,
             (select count(*) from fiscal_years f where f.company_id = c.id and f.is_closed)::text as closed_fiscal_years,
+            (select count(*) from document_shares s
+              where s.company_id = c.id and s.revoked_at is null
+                and (s.expires_at is null or s.expires_at > now()))::text as live_shares,
             (select p.version from company_packs p
               where p.company_id = c.id and p.country = c.country) as pack_version,
             (select p.chart_code from company_packs p
@@ -164,6 +175,7 @@ export async function status(db: SqlClient, migrations: Migration[]): Promise<St
       packVersion: c.pack_version,
       chartCode: c.chart_code,
       vatPeriod: c.vat_period,
+      liveShares: Number(c.live_shares),
     })),
     packs: packs.map((p) => ({
       country: p.country,

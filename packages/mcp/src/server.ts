@@ -188,6 +188,18 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
   );
 
   server.registerTool(
+    'list_shares',
+    {
+      title: 'Public links onto documents',
+      description:
+        'The links a company has published onto its own sales documents, with how many times each was opened and when it was last opened. No token is in here: a link is shown once, when it is made. Use it to answer "did the customer open the invoice?" and to find the link to withdraw.',
+      inputSchema: read.ListSharesInput.shape,
+      annotations: { readOnlyHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => read.listShares(backend, args)),
+  );
+
+  server.registerTool(
     'list_bank_transactions',
     {
       title: 'Bank transactions',
@@ -547,6 +559,30 @@ export function buildServer(backend: Backend, options: ServerOptions = {}): McpS
       annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
     },
     async (args) => guard(() => write.revokeInvitation(backend, args)),
+  );
+
+  server.registerTool(
+    'share_document',
+    {
+      title: 'Publish a document behind a link',
+      description:
+        'Publishes a posted sales invoice, credit note or quote behind a link the customer opens without an account and without a password: the token in the url is the whole secret. It returns that token once and stores only its hash, so give the url to the customer and say it cannot be read back. The page shows the document as it was sent and what is still owed on it today, so the link stays worth opening after a payment. A purchase document is refused — it is a third party\u2019s own document — and so is a draft. A link is never edited: to change when it expires, withdraw it and make another.',
+      inputSchema: write.ShareDocumentInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    async (args) => guard(() => write.shareDocument(backend, args)),
+  );
+
+  server.registerTool(
+    'revoke_share',
+    {
+      title: 'Withdraw a published link',
+      description:
+        'Stops a link working, now and for good. Whoever holds it sees exactly what they would see for a link that never existed. There is no un-withdraw: a secret that has been out of the building is issued again rather than brought back, so say so before calling it.',
+      inputSchema: write.RevokeShareInput.shape,
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: true, openWorldHint: false },
+    },
+    async (args) => guard(() => write.revokeShare(backend, args)),
   );
 
   server.registerTool(

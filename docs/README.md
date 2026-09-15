@@ -9,6 +9,7 @@
 | [`modules.md`](modules.md) | What a module is, the six rules it follows, how its migrations and its country data are applied, and how to write one in a day | By hand, when the mechanism changes |
 | [`international.md`](international.md) | The plan for any country: the country pack as data, four phases, the order of countries, what is out of scope | By hand, when a phase is decided or delivered |
 | [`languages.md`](languages.md) | How a label reaches a reader in their own language: what stays English, what is data, how `label_for` chooses, and what a pack owes a language it declares | By hand, when the mechanism changes |
+| [`sharing.md`](sharing.md) | How a document is published behind a link a customer opens without an account: the three functions, what may be shared and the refusal each other case gets, the exact shape `shared_document()` answers with, and why there is no access code and no IP address | By hand, when the functions or the payload change |
 | [`releasing.md`](releasing.md) | How a release is cut: the schema-version migration, the package versions and the schema floor, the changelog, the tag and the GitHub Release | By hand, when the procedure changes |
 | [`decisions.md`](decisions.md) | One paragraph per design decision and the reason behind it | By hand, **append**; a decision that is reversed gets a dated note, not a deletion |
 

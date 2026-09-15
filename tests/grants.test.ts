@@ -209,6 +209,12 @@ describe('what the grants say, against what the policies say', () => {
     // `auth.uid()`, which is null for `anon`, so what they give away is the
     // word *no*. The list is asserted rather than counted, because a tenth
     // entry appearing here is a decision and not a detail.
+    //
+    // `shared_document` is the one entry that is not a policy helper. It is a
+    // door rather than an answer about the caller: `20260915153000` publishes
+    // one document to whoever presents its token, and nothing else — no table
+    // is reached on the visitor's behalf, and a token that is not a live link
+    // gets the same null as a token that never existed.
     const callable = sections
       .flatMap((s) => s.functions.filter((f) => f.anon.length > 0).map((f) => `${s.schema}.${f.name}`))
       .sort();
@@ -223,6 +229,7 @@ describe('what the grants say, against what the policies say', () => {
       'public.is_company_owner',
       'public.is_instance_admin',
       'public.module_enabled',
+      'public.shared_document',
     ]);
   });
 

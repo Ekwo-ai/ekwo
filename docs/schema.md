@@ -156,6 +156,7 @@ the return say the same thing, because they are the same rows.
 | [`currencies`](#currencies) | ISO 4217 currencies known to this instance. |
 | [`currency_rates`](#currency_rates) | Dated exchange rates. A document stores the rate it used; this table is the history. |
 | [`document_lines`](#document_lines) | Document lines in a table, not JSON: EN 16931 needs a VAT category per line and the FEC needs the detail. |
+| [`document_shares`](#document_shares) | Public links onto a document. The token is handed over once and kept only as a sha256; the link is withdrawn by revoking it, never by editing it. |
 | [`documents`](#documents) | Sales and purchase invoices, credit notes, quotes and orders. `state` is the document, `payment_state` the settlement. |
 | [`entries`](#entries) | Journal entries. A document and its entry are two layers joined by a foreign key. |
 | [`entry_line_analytics`](#entry_line_analytics) | Analytic split of a ledger line. One row per value, share in percent. |
@@ -802,6 +803,33 @@ Constraints:
 - `CHECK (((line_type <> 'product'::document_line_type) OR (account_id IS NOT NULL)))`
 - `PRIMARY KEY (id)`
 
+### `document_shares`
+
+Public links onto a document. The token is handed over once and kept only as a sha256; the link is withdrawn by revoking it, never by editing it.
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | `uuid` | not null |
+| `company_id` | `uuid` | not null |
+| `subject_kind` | `share_subject_kind` | not null |
+| `document_id` | `uuid` |  |
+| `token_hash` | `text` | not null — sha256 of the token, hex. The token itself is returned by share_document() and stored nowhere. |
+| `expires_at` | `timestamp with time zone` | When the link stops answering. Null means it answers until it is revoked, which is a deliberate choice and not an oversight: an invoice is looked at years later. |
+| `revoked_at` | `timestamp with time zone` | When the link was withdrawn. A withdrawn link answers exactly like one that never existed. |
+| `created_by` | `uuid` | auth.users.id of whoever created it. No foreign key, for the same reason company_members has none. |
+| `created_at` | `timestamp with time zone` | not null |
+| `view_count` | `integer` | not null — How many times the document was read through this link. No address and no user agent: who opened it and from where is a log the application keeps, with the retention policy that goes with it. |
+| `last_viewed_at` | `timestamp with time zone` |  |
+
+Constraints:
+
+- `CHECK (((expires_at IS NULL) OR (expires_at > created_at)))`
+- `CHECK (((subject_kind = 'document'::share_subject_kind) = (document_id IS NOT NULL)))`
+- `CHECK ((token_hash ~ '^[0-9a-f]{64}$'::text))`
+- `CHECK ((view_count >= 0))`
+- `PRIMARY KEY (id)`
+- `UNIQUE (token_hash)`
+
 ### `documents`
 
 Sales and purchase invoices, credit notes, quotes and orders. `state` is the document, `payment_state` the settlement.
@@ -983,10 +1011,12 @@ The installation itself. Exactly one row. Registration with Ekwo is optional and
 | `contact_email` | `text` | Opt-in only: an address to reach the operator. Empty unless they asked to register. |
 | `registered_at` | `timestamp with time zone` | Opt-in only: when the operator registered with Ekwo. Empty means not registered, which is a supported state. |
 | `updated_at` | `timestamp with time zone` | not null |
+| `public_base_url` | `text` | Where this installation answers on the public internet, as an origin with no trailing slash — the base a shared document link is built on. Null where the operator has not said, and then a share returns its token with no URL. |
 
 Constraints:
 
 - `CHECK ((country ~ '^[A-Z]{2}$'::text))`
+- `CHECK (((public_base_url IS NULL) OR (public_base_url ~ '^https?://[^[:space:]]+$'::text)))`
 - `CHECK (((registered_at IS NULL) OR (contact_email IS NOT NULL)))`
 - `CHECK ((id = 1))`
 - `PRIMARY KEY (id)`
@@ -1533,6 +1563,7 @@ Constraints:
 | `declaration_period_of(p_from date, p_to date)` | The cadence a pair of dates is a whole one of — month, quarter, year — or null when the two dates are not a filing period at all. |
 | `disable_module(p_company_id uuid, p_code text)` | Disables a module on a company, unless the module says it still holds data — `<schema>.can_disable(company)` returning a sentence refuses, returning null allows. Nothing the module wrote is deleted. Needs company.write. |
 | `document_lines_amount_untaxed()` | Derives a line's amount from its quantity, price and discount, rounded once at the decimals of the document's currency. What the generated column used to do, minus the assumption that every currency has cents. |
+| `document_share_refusal(p_document documents)` | Why this document may not be shared, or null when it may. Sales only, never cancelled, never an unposted invoice, always numbered. |
 | `documents_default_payee_iban()` | A sales document with no payee IBAN takes the company's default bank account. A purchase document never does: the payee there is somebody else. |
 | `documents_refresh_amount_paid(p_document_id uuid)` | Recomputes what a document has been settled by, from the matched amounts on its third-party lines. |
 | `ekwo_schema_version()` | Schema version of the installed release. Bumped by a migration, never by hand. |
@@ -1586,11 +1617,14 @@ Constraints:
 | `resolve_line_account(p_company_id uuid, p_doc_type doc_type, p_product_id uuid, p_account_id uuid)` | Account of a document line: the line, the product, the company default, the country model. Never a code prefix. |
 | `revoke_api_key(p_api_key_id uuid)` | Withdraws a key. There is no un-withdraw: a secret that has been out of the building is issued again, not brought back. |
 | `revoke_invitation(p_invitation_id uuid)` | Withdraws an invitation that has not been accepted. An accepted one is a member, and members are removed from company_members. |
+| `revoke_share(p_share_id uuid)` | Withdraws a link, now and for good. A withdrawn link answers exactly like one that never existed; there is no un-withdraw, because a secret that has been out of the building is issued again rather than brought back. |
 | `round_amount(p_amount numeric, p_rounding money_rounding)` | Rounds an amount at the decimals of its currency, by the method of its country. The only function of the schema that names a rounding method; every other one asks rounding_of() and passes the answer here. |
 | `rounding_of(p_company_id uuid, p_currency_code text)` | How this company writes an amount in this currency, or in its own when none is named. The only place currencies.decimal_places and country_defaults.rounding_method are read. |
 | `set_preferences(p_patch jsonb)` | Writes the signed-in user's preferences. A key that is present is written, null included; a key that is absent is left alone; a key nobody declared is refused. |
 | `set_updated_at()` | Generic BEFORE UPDATE trigger keeping updated_at honest. |
 | `settle_cash_basis_tax(p_document_id uuid, p_date date)` | Moves the share of a cash-basis tax that settlement has made due, from the transition account to the account and the box it is declared on. Derived from the ledger, so it is the same call whether a matching was made or undone. |
+| `share_document(p_document_id uuid, p_expires_at timestamp with time zone)` | Publishes a sales document behind a link and returns the token once — only its hash is stored. `url` is the instance's public base plus /shared/<token>, or null where the instance has not recorded one. A share is never edited: revoke it and make another. |
+| `shared_document(p_token text)` | One document, read by whoever holds its link: the header, the lines, the tax breakdown, the totals, the legal mentions in the document's own language, and what is still owed today. Returns null — the same null, in the same shape — for a token that is unknown, withdrawn, expired, or onto a document that may no longer be shared. |
 | `statement_account_matches(p_company_id uuid, p_statement_code text, p_from date, p_to date)` | Every account of a company with a balance in the period, and the statement line it falls on — null when no rule catches it. An income statement and an allocation section leave the closing entry out; a balance sheet keeps it. The single decision financial_statement() and unmapped_accounts() both read. |
 | `tax_rate_at(p_tax_id uuid, p_date date)` | Percentage in force at a date, NULL when the tax does not apply then. |
 | `touch_api_key(p_api_key_id uuid)` | Records that a key was used just now. A key that has never been used, and one that has not been used for a year, are both things an operator should be able to see. |

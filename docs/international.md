@@ -447,6 +447,33 @@ no pack here needs the distinction, and a pack that does will be the argument
 for adding it.
 
 
+### From a document read by its recipient
+
+Publishing an invoice behind a link (`20260915153000`) put a reader in front of
+it who has no session, no preferences and no membership, and that reader found
+two things the core cannot say.
+
+**A document does not record the language it was written in.** `documents` has
+no `language` column: the language is re-derived, every time, from the
+contact's, then the company's, then the one the country pack declares. So an
+invoice reprinted after the customer switched to another language comes out in
+a language it was never sent in — which is wrong on a document whose legal
+mentions are part of what the law requires. *Fix*: `documents.language`,
+written from that same chain when the document is created, snapshotted like
+`document_lines.vat_category` and `vat_rate` already are, for the same reason.
+*Until then*: `shared_document()` resolves the chain on every read and a link
+follows the contact.
+
+**`preferred_languages()` cannot serve a reader who is not signed in.** It
+starts at `user_preferences` for `auth.uid()`, which is null for `anon`, so the
+one published way of choosing a language is unavailable to the one reader who
+is outside the installation. `shared_document()` therefore resolves the chain
+itself — the customer's language, then the company's — and that is a second
+place a language is chosen. *Fix*: a `document_language(document_id)` that
+answers for a document rather than for a user, with `preferred_languages()`
+keeping its own chain for a person reading their own books. *Until then*: the
+chain is two columns inside `shared_document()`, and it is the only copy.
+
 ## Decisions taken with the plan
 
 - **US sales tax is not in the core.** Tens of thousands of jurisdictions

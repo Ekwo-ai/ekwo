@@ -35,6 +35,34 @@ somewhere has already run it.
   standard rate no supplier had levied. `docs/packs.md` carries the table and
   the two decisions behind it.
 
+- **A document can be sent to the person it is addressed to, behind a link they
+  open without an account.**
+  `document_shares` holds a link onto one sales document; `share_document()`
+  creates one and returns its token once; `revoke_share()` stops it, for good;
+  and `shared_document(token)` — the one function `anon` may execute that is not
+  a policy helper — returns that document as jsonb: the header, the lines, the
+  VAT breakdown, the totals, the legal mentions in the document's own language,
+  the seller's identity and payment details, and what is still owed today with
+  the date of the last payment, so a link a customer keeps stays worth opening
+  after they have paid.
+  The token is the whole secret: 32 bytes as 43 base64url characters, stored
+  only as a sha256, returned by the call that creates it and by nothing else.
+  It is drawn from two `gen_random_uuid()` rather than `gen_random_bytes(32)`,
+  because `pgcrypto` is not available under PGlite and an invariant that cannot
+  be tested is an invariant nobody is keeping.
+  `anon` holds no privilege on `document_shares` or on any view: the invariant
+  of `20260911210131` is kept, not bent. An unknown token, a withdrawn link, an
+  expired link and a document that may no longer be shared all answer with the
+  same null, so the function is an oracle for nothing. Sales documents only —
+  a purchase invoice is a third party's own document — never a draft, never a
+  cancelled one.
+  A new capability, `documents.share`, on the owner and accountant presets;
+  `instance.public_base_url`, nullable and with no default, which the returned
+  `url` is built on; `share_document`, `revoke_share` and `list_shares` as MCP
+  tools, and `shared_document` deliberately not one; and the count of live
+  links per company in `ekwo status`. [`docs/sharing.md`](docs/sharing.md) is
+  the reference and `docs/decisions.md` carries the reasoning.
+
 ### Changed
 
 - **A test may book in a country. It may not expect one.**

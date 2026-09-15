@@ -710,6 +710,50 @@ export async function listInvitations(
   };
 }
 
+export const ListSharesInput = z.object({
+  company_id: companyId,
+  document_id: uuid.optional().describe('Only the links onto this document. Left out, the whole company.'),
+  include_withdrawn: z
+    .boolean()
+    .optional()
+    .describe('Also the ones withdrawn or expired. Default false.'),
+});
+
+export async function listShares(
+  backend: Backend,
+  args: z.infer<typeof ListSharesInput>,
+): Promise<unknown> {
+  const where: Filter[] = [{ column: 'company_id', op: 'eq', value: args.company_id }];
+  if (args.document_id !== undefined) {
+    where.push({ column: 'document_id', op: 'eq', value: args.document_id });
+  }
+
+  const shares = await backend.select<Row>({
+    table: 'document_shares',
+    columns: columns.DOCUMENT_SHARE,
+    where,
+    order: [{ column: 'created_at', ascending: false }],
+  });
+
+  const now = Date.now();
+  const described = shares.map((share) => ({ ...share, state: shareState(share, now) }));
+  return {
+    shares:
+      args.include_withdrawn === true
+        ? described
+        : described.filter((share) => share.state === 'live'),
+    note: 'The token of a link exists only in the answer that created it. A link that is lost is withdrawn and made again.',
+  };
+}
+
+/** Live, expired or withdrawn — three states off two columns. */
+function shareState(share: Row, now: number): string {
+  if (share['revoked_at'] !== null && share['revoked_at'] !== undefined) return 'withdrawn';
+  const expires = share['expires_at'];
+  if (typeof expires === 'string' && Date.parse(expires) <= now) return 'expired';
+  return 'live';
+}
+
 /** Pending, expired, accepted or withdrawn — four states off three columns. */
 function invitationState(invitation: Row, now: number): string {
   if (invitation['accepted_at'] !== null && invitation['accepted_at'] !== undefined) return 'accepted';

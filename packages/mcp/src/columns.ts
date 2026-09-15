@@ -404,6 +404,20 @@ export const API_KEY = [
   'revoked_at::text',
 ];
 
+/** A public link onto a document, without its secret. There is only a hash. */
+export const DOCUMENT_SHARE = [
+  'id',
+  'company_id',
+  'document_id',
+  'subject_kind',
+  'created_by',
+  'created_at::text',
+  'expires_at::text',
+  'revoked_at::text',
+  'view_count',
+  'last_viewed_at::text',
+];
+
 export const INSTANCE = [
   'instance_id',
   'organization_name',

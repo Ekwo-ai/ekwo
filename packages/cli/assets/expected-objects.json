@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.2.0",
-  "migration": "20260915094500",
+  "migration": "20260915153000",
   "socle": {
     "schema": "public",
     "tables": [
@@ -1404,6 +1404,55 @@
         ]
       },
       {
+        "name": "document_shares",
+        "columns": [
+          {
+            "name": "company_id",
+            "type": "uuid"
+          },
+          {
+            "name": "created_at",
+            "type": "timestamp with time zone"
+          },
+          {
+            "name": "created_by",
+            "type": "uuid"
+          },
+          {
+            "name": "document_id",
+            "type": "uuid"
+          },
+          {
+            "name": "expires_at",
+            "type": "timestamp with time zone"
+          },
+          {
+            "name": "id",
+            "type": "uuid"
+          },
+          {
+            "name": "last_viewed_at",
+            "type": "timestamp with time zone"
+          },
+          {
+            "name": "revoked_at",
+            "type": "timestamp with time zone"
+          },
+          {
+            "name": "subject_kind",
+            "type": "share_subject_kind"
+          },
+          {
+            "name": "token_hash",
+            "type": "text"
+          },
+          {
+            "name": "view_count",
+            "type": "integer"
+          }
+        ]
+      },
+      {
         "name": "documents",
         "columns": [
           {
@@ -1853,6 +1902,10 @@
           },
           {
             "name": "organization_name",
+            "type": "text"
+          },
+          {
+            "name": "public_base_url",
             "type": "text"
           },
           {
@@ -3043,6 +3096,10 @@
         "arguments": ""
       },
       {
+        "name": "document_share_refusal",
+        "arguments": "p_document documents"
+      },
+      {
         "name": "documents_default_payee_iban",
         "arguments": ""
       },
@@ -3291,6 +3348,10 @@
         "arguments": "p_invitation_id uuid"
       },
       {
+        "name": "revoke_share",
+        "arguments": "p_share_id uuid"
+      },
+      {
         "name": "round_amount",
         "arguments": "p_amount numeric, p_rounding money_rounding"
       },
@@ -3309,6 +3370,14 @@
       {
         "name": "settle_cash_basis_tax",
         "arguments": "p_document_id uuid, p_date date"
+      },
+      {
+        "name": "share_document",
+        "arguments": "p_document_id uuid, p_expires_at timestamp with time zone"
+      },
+      {
+        "name": "shared_document",
+        "arguments": "p_token text"
       },
       {
         "name": "statement_account_matches",
@@ -3542,6 +3611,11 @@
         "table": "document_lines",
         "name": "document_lines_write",
         "command": "all"
+      },
+      {
+        "table": "document_shares",
+        "name": "document_shares_select",
+        "command": "select"
       },
       {
         "table": "documents",
@@ -4294,6 +4368,13 @@
         ]
       },
       {
+        "name": "share_subject_kind",
+        "kind": "enum",
+        "labels": [
+          "document"
+        ]
+      },
+      {
         "name": "tax_amount_type",
         "kind": "enum",
         "labels": [
@@ -4670,6 +4751,16 @@
             "insert",
             "select",
             "update"
+          ]
+        },
+        {
+          "name": "document_shares",
+          "anon": [],
+          "authenticated": [
+            "select"
+          ],
+          "service_role": [
+            "select"
           ]
         },
         {
@@ -5458,6 +5549,17 @@
           "service_role": []
         },
         {
+          "name": "document_share_refusal",
+          "arguments": "p_document documents",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
           "name": "documents_default_payee_iban",
           "arguments": "",
           "trigger": true,
@@ -6119,6 +6221,17 @@
           ]
         },
         {
+          "name": "revoke_share",
+          "arguments": "p_share_id uuid",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
           "name": "round_amount",
           "arguments": "p_amount numeric, p_rounding money_rounding",
           "anon": [],
@@ -6163,6 +6276,30 @@
           "name": "settle_cash_basis_tax",
           "arguments": "p_document_id uuid, p_date date",
           "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "share_document",
+          "arguments": "p_document_id uuid, p_expires_at timestamp with time zone",
+          "anon": [],
+          "authenticated": [
+            "execute"
+          ],
+          "service_role": [
+            "execute"
+          ]
+        },
+        {
+          "name": "shared_document",
+          "arguments": "p_token text",
+          "anon": [
+            "execute"
+          ],
           "authenticated": [
             "execute"
           ],

@@ -1374,6 +1374,47 @@ export async function revokeInvitation(
   return { invitation: answer };
 }
 
+export const ShareDocumentInput = z.object({
+  document_id: uuid.describe('The sales document to publish. A purchase document and a draft are refused.'),
+  expires_at: z
+    .string()
+    .nullable()
+    .optional()
+    .describe('When the link stops answering, as a timestamp. Left out, it answers until it is withdrawn.'),
+});
+
+export async function shareDocument(
+  backend: Backend,
+  args: z.infer<typeof ShareDocumentInput>,
+): Promise<unknown> {
+  const share = only(
+    await backend.rpc<Row>('share_document', {
+      p_document_id: args.document_id,
+      p_expires_at: args.expires_at ?? null,
+    }),
+    'the link could not be created',
+  );
+  return {
+    share,
+    note: 'The token is in this answer and nowhere else — only its hash is stored. Give the url to the customer; anyone holding it can open the document without an account. A link is never edited: to change when it expires, withdraw it and make another. `url` is null when the installation has not recorded its public address.',
+  };
+}
+
+export const RevokeShareInput = z.object({
+  share_id: uuid,
+});
+
+export async function revokeShare(
+  backend: Backend,
+  args: z.infer<typeof RevokeShareInput>,
+): Promise<unknown> {
+  const share = only(
+    await backend.rpc<Row>('revoke_share', { p_share_id: args.share_id }),
+    'the link could not be withdrawn',
+  );
+  return { share };
+}
+
 export const LockPeriodInput = z.object({
   company_id: companyId,
   lock_date: isoDate.nullable().optional().describe('Nothing may be booked on or before this date. null lifts the lock.'),

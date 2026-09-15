@@ -3105,3 +3105,98 @@ Everything else goes through — a fortnight, a half-year, the annual
 recapitulative form a quarterly filer also files. `vat_return()` is a control
 query as often as it is a filing, and a guard that refused an analysis would be
 a guard people work around.
+
+## A document is shared by a link, and the link is the whole secret (15 September 2026)
+
+A customer who receives an invoice wants to look at it, and everything that
+would let them is behind row level security: they are not a member of the
+company and never will be. The two usual answers are both bad. An account for
+somebody who will read one invoice is a login nobody maintains and a password
+nobody remembers. A PDF attached to an e-mail is a copy that stops being true
+the day the invoice is paid.
+
+**A share is a row and a function.** `document_shares` says that one document
+may be read by whoever presents one secret; `shared_document(token)` takes the
+secret and returns the document as it was sent, with what is still owed on it
+today. The application draws the page; the core answers the question.
+
+**The token is hashed, and 256 bits wide.** Only `sha256(token)` is stored, so
+a backup, a replica or a support engineer reading the table hands nobody a live
+link — the arrangement `company_invitations` and `api_keys` were already built
+on. The width is the answer to "could somebody guess one": at 244 bits of
+randomness inside 32 bytes, no. The 244 rather than 256 is where the bytes come
+from, and that is the second decision.
+
+**The bytes are two `gen_random_uuid()`, not `gen_random_bytes(32)`.** The
+latter is `pgcrypto`, and `pgcrypto` is not available under PGlite, which is
+what the whole of `tests/` runs on. An invariant that cannot be tested is an
+invariant nobody is keeping, and a token generator that only works on a hosted
+project is exactly the kind of difference between "it works here" and "it works
+where you run it" this project refuses. `gen_random_uuid()` is core Postgres
+and is where every primary key in this schema already comes from; a v4 UUID
+fixes six bits for its version and its variant, so two of them are 244 random
+bits rendered into 43 base64url characters. `sha256()` is core too, since
+PostgreSQL 11.
+
+**`anon` gets one function and not one table.** The doctrine of `20260911210131`
+and `20260914151207` is that the anonymous role holds no privilege on any table
+or view and reaches only functions that answer about the caller.
+`shared_document` is the first function it reaches that is not a policy helper,
+and the invariant is kept rather than bent: it is `security definer`, the
+visitor has no rights of their own, and what comes out is one document rendered
+into one jsonb. There is no view to select from, no filter to widen and no
+second row to reach. `tests/hardening.test.ts` and `tests/grants.test.ts` both
+assert the list by name, so an eleventh entry is a decision somebody argued for.
+
+**Unknown, withdrawn, expired and no-longer-shareable are the same null.** Four
+different refusals would be an oracle: somebody feeding tokens at the function
+would learn which of their guesses had been a real link. The function takes the
+token and nothing else, so it is an oracle for nothing at all.
+
+**No IP address and no user agent.** `view_count` and `last_viewed_at` answer
+the question a sender actually has — did they open it. A log of the people a
+company invoices, with where they were when they read the invoice, is personal
+data with a retention policy, a lawful basis and a subject-access request
+behind it, and the core does not collect what it is not prepared to answer for.
+An application that is prepared to keeps its own.
+
+**There is no access code, and the door is left open for one.** A second factor
+— a code read out over the phone, the customer's own VAT number, a one-time
+password by e-mail — is a useful option and a bad floor: it turns every link
+into a conversation, and most invoices go to somebody who is expected to open
+them. The day it is wanted it is a column on `document_shares` and a second
+argument to `shared_document`, which is why neither is shaped to prevent it.
+
+**Sales only.** A purchase invoice is a third party's own document: their
+prices, their bank details, their legal mentions. Publishing it under a link
+this company controls would be publishing somebody else's data, and there is no
+request behind it — nobody shares a supplier's invoice with the supplier.
+`share_not_a_sale` says so by name.
+
+**A share is not edited.** No update policy and no `change_share()`. An expiry
+that can move is a lifetime nobody can rely on, and a token that outlives the
+decision to withdraw it is the one failure this feature must not have. Revoke
+it and make another; there is no un-withdraw, for the reason there is none on a
+machine key.
+
+**`subject_kind` exists with one value in it.** A statement of account, an
+ageing balance, a financial statement sent to a customer are the same act with
+another subject, and the shape that survives the second one is decided now or
+paid for later. `document_id` is nullable and tied to the kind by a check, so
+the kind that arrives next adds its own column and its own branch of the same
+check, and every row written before it keeps meaning what it meant.
+
+**The list of links is row level security, not a function.** `list_shares()`
+would have been a fourth function producing a list that a `select` on
+`document_shares` already produces correctly, under a policy this schema
+already has to write. Two places where the same rule is decided is the one
+thing this schema will not do.
+
+**`instance.public_base_url` is nullable and has no default.** A link has to be
+absolute, and a self-hosted installation answers at the address its operator
+chose. A core that guessed would hand out links to somebody else's host, and no
+URL of Ekwo's is written anywhere. Where it is empty, `share_document` returns
+the token with a null `url` and the caller builds the link — which is the same
+answer `no_currency_default` and the filing cadence give: a value nobody has
+stated is null and said to be null, never one country's answer given to
+everyone.
