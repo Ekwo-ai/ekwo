@@ -9,6 +9,32 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+### Added
+
+- **A treatment for a service bought from a supplier who is not established
+  here, and a check that a tax's three code lists agree.**
+  `tax_treatment` gains `foreign_services_received`: the general
+  business-to-business rule of articles 44 and 196 of Directive 2006/112/EC,
+  which the vocabulary had no word for — `intracom_acquisition_services`
+  covers a supplier in another Member State and `import` is goods declared to
+  customs, so the Estonian pack had been declaring such a tax as an import and
+  saying so in its own legal reference. The name is about establishment rather
+  than about the border, which is why it is not `import_services`. It resolves
+  to the reverse-charge mention on an invoice, and `EE-P-VS-24` now carries
+  it.
+  `ekwo pack check` gains the correspondence between `treatment`, the EN 16931
+  category (BT-118, BT-151) and the VATEX reason (BT-121), transcribed from
+  UNCL5305, from the Commission's *Technical guidance for tax codes in
+  EN 16931* version 1 and from the pairings the VATEX list publishes on its
+  own codes. Neither of those two columns is read by the ledger or by the
+  declaration, so nothing had ever compared them to anything: a pack could
+  declare an export at the standard rate and the whole suite passed. Twenty
+  taxes across the four packs were corrected — the intra-Community supplies
+  and acquisitions carried the reverse-charge pair where the supplier's
+  invoice carries `K` and `VATEX-EU-IC`, and the imports of goods claimed a
+  standard rate no supplier had levied. `docs/packs.md` carries the table and
+  the two decisions behind it.
+
 ### Changed
 
 - **A test may book in a country. It may not expect one.**

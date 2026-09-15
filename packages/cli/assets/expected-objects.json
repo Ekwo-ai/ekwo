@@ -1,6 +1,6 @@
 {
   "schemaVersion": "0.2.0",
-  "migration": "20260914163943",
+  "migration": "20260915094500",
   "socle": {
     "schema": "public",
     "tables": [
@@ -4348,6 +4348,7 @@
           "intracom_services",
           "intracom_acquisition_goods",
           "intracom_acquisition_services",
+          "foreign_services_received",
           "export",
           "import",
           "exempt",

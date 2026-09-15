@@ -314,8 +314,8 @@
     "treatment": "intracom_services",
     "valid_from": "2010-01-01",
     "legal_reference": "KMS § 10 lg 4 p 9 ja § 15 lg 4 p 1 — teenus, mille käibe tekkimise koht ei ole Eesti; nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
@@ -642,8 +642,8 @@
     "treatment": "intracom_acquisition_goods",
     "valid_from": "2025-07-01",
     "legal_reference": "KMS § 8 ja § 3 lg 4 — soetaja arvestab käibemaksu ise; § 29 lg 3 p 4 — arvestatud käibemaks on sisendkäibemaks; § 31 lg 2 — mahaarvamiseks ei ole arve nõutav",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
@@ -695,8 +695,8 @@
     "treatment": "intracom_acquisition_services",
     "valid_from": "2025-07-01",
     "legal_reference": "KMS § 10 lg 1 ja § 3 lg 4 p 2 — teenuse saaja arvestab käibemaksu; § 29 lg 3 p 3; § 31 lg 3 — mahaarvamiseks ei ole arve nõutav. KMS § 3 lg 7 — arvestamiskohustust ei teki, kui teise liikmesriigi müüja kohaldab väikeettevõtja erikorda ja tema number kannab lõppu „EX“.",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "postings": {
       "invoice": [
         {
@@ -745,11 +745,9 @@
     "description": "Pöördmaksustamine, lahtrid 7, 4 ja 5",
     "rate": 24,
     "scope": "purchase",
-    "treatment": "import",
+    "treatment": "foreign_services_received",
     "valid_from": "2025-07-01",
-    "legal_reference": "KMS § 3 lg 4 p 2 ja § 10 lg 1 — teenuse saamine ettevõtlusega tegelevalt välisriigi isikult, kes ei ole Eestis registreeritud; § 29 lg 3 p 3. Ekwo maksumudelis ei ole ühendusevälise teenuse saamise jaoks oma väärtust, seega on siin lähim olemasolev väärtus import.",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "legal_reference": "KMS § 3 lg 4 p 2 ja § 10 lg 1 — teenuse saamine ettevõtlusega tegelevalt välisriigi isikult, kes ei ole Eestis registreeritud; § 29 lg 3 p 3. Nõukogu direktiivi 2006/112/EÜ artiklid 44 ja 196.",
     "postings": {
       "invoice": [
         {
@@ -854,7 +852,6 @@
     "treatment": "import",
     "valid_from": "2025-07-01",
     "legal_reference": "KMS § 38 lg 2¹–2³ — maksuhalduri kirjalikul loal deklareeritakse impordilt arvestatav käibemaks käibedeklaratsioonis; § 29 lg 3 p 2 ja § 31 lg 4 ja 8. Vormil KMD ei ole impordi maksustatava väärtuse lahtrit: väärtus on tollideklaratsioonil.",
-    "vat_category": "S",
     "postings": {
       "invoice": [
         {

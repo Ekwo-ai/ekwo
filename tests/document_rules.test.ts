@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { compilePack, listPacks, readPack, readSchema, validate } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows, seedFiles } from './helpers/db.js';
 import { newCompany, newContact, newDocument } from './helpers/factory.js';
+import { packWhere } from './helpers/packs.js';
 
 // What a country requires on a document is data. Twelve columns of
 // `country_defaults`, one table of sentences, and two views that read them —
@@ -194,6 +195,46 @@ describe('the mentions that apply to one document', () => {
       lines: [{ unitPrice: 2500, taxCode: 'BE-S-ICG', accountCode: '700000' }],
     });
     expect(await mentionsOf(documentId)).toEqual(['intracom_goods', 'late_payment']);
+  });
+
+  it('prints the reverse charge on a service bought from a supplier who is not established here', async () => {
+    // The treatment `foreign_services_received` names the general
+    // business-to-business rule — articles 44 and 196 — which is the same
+    // mechanism as a domestic reverse charge under a different article, so it
+    // is the reverse-charge sentence that comes out and not the one about a
+    // supply between two Member States. The pack is found by the property,
+    // not named: a second country declaring such a tax changes nothing here.
+    const pack = packWhere('taxing a service received from a supplier established elsewhere', (p) =>
+      p.taxes.some((t) => t.treatment === 'foreign_services_received'),
+    );
+    const tax = pack.taxes.find((t) => t.treatment === 'foreign_services_received')!;
+    const country = pack.manifest.country;
+    const purchases = (
+      await one<{ code: string }>(
+        db,
+        'select purchase_account_code as code from country_defaults where country = $1',
+        [country],
+      )
+    ).code;
+
+    const { companyId } = await newCompany(db, { name: 'Hors Union SRL', country });
+    const contactId = await newContact(db, companyId, { type: 'supplier', country });
+    const documentId = await newDocument(db, companyId, {
+      docType: 'purchase_invoice',
+      contactId,
+      date: tax.valid_from,
+      lines: [{ unitPrice: 800, taxCode: tax.code, accountCode: purchases }],
+    });
+
+    const printed = await mentionsOf(documentId);
+    const conditions = await rows<{ applies_when: string }>(
+      db,
+      `select distinct m.applies_when::text as applies_when
+         from document_legal_mentions m where m.document_id = $1`,
+      [documentId],
+    );
+    expect(conditions.map((c) => c.applies_when)).toEqual(['reverse_charge']);
+    expect(printed.length).toBe(1);
   });
 
   it('prints only what a plain domestic sale owes: the late payment terms', async () => {

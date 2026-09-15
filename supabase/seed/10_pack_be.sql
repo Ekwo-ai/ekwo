@@ -1,6 +1,6 @@
 -- Ekwo OS — Belgium: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/be at version 1.6.0, do not edit.
+-- Generated from packs/be at version 1.7.0, do not edit.
 -- Change the pack and run `ekwo pack build be`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -26,7 +26,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('BE', 'Belgium', '1.6.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '94a65104afbd1ff778b9f5f7a76f0f710c1eb7aec2df251a082a54c0de4c1b31')
+  ('BE', 'Belgium', '1.7.0', date '2026-09-14', '20260914163943', 'maintained', null, null, 'af2d947c81948ce1897f11162bfdfab619d4f378780f00114bae1cdef04cd8fa')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -796,9 +796,9 @@ values
   ('BE', 'BE-P-21-ND', 'Achat non deductible 21 %', '{"de":"Nicht abzugsfähiger Einkauf 21 %","en":"Non-deductible purchase 21%","nl":"Niet-aftrekbare aankoop 21 %"}'::jsonb, 'Frais de reception, tabac et boissons spiritueuses : aucune deduction. Toute la TVA suit le compte de la ligne.', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'Code de la TVA, art. 45, par. 3', 'S', null, 240, 'vat', false, null, false, false, null),
   ('BE', 'BE-P-21-S', 'Achat services 21 %', '{"de":"Einkauf von Dienstleistungen 21 %","en":"Purchase of services 21%","nl":"Aankoop diensten 21 %"}'::jsonb, 'Services et biens divers, grille 82', 'percent', 21, 'purchase', 'domestic', date '1996-01-01', null, 'AR n. 20, art. 1', 'S', null, 120, 'vat', true, null, false, false, null),
   ('BE', 'BE-P-CC-21', 'Achat cocontractant 21 %', '{"de":"Einkauf Vertragspartner 21 %","en":"Purchase, reverse charge 21%","nl":"Aankoop medecontractant 21 %"}'::jsonb, 'Report de perception, grilles 87/56/59', 'percent', 21, 'purchase', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 200, 'vat', true, null, false, false, null),
-  ('BE', 'BE-P-ICG-21', 'Acquisition intracom. biens 21 %', '{"de":"Innergem. Erwerb von Gegenständen 21 %","en":"Intra-Community acquisition of goods 21%","nl":"Intracomm. verwerving goederen 21 %"}'::jsonb, 'Report de perception, grilles 86/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'Code TVA, art. 25ter', 'AE', 'VATEX-EU-AE', 180, 'vat', true, null, false, false, null),
-  ('BE', 'BE-P-ICS-21', 'Service intracom. recu 21 %', '{"de":"Empfangene innergem. Dienstleistung 21 %","en":"Intra-Community service received 21%","nl":"Ontvangen intracomm. dienst 21 %"}'::jsonb, 'Report de perception, grilles 88/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'Code TVA, art. 51 par. 2', 'AE', 'VATEX-EU-AE', 190, 'vat', true, null, false, false, null),
-  ('BE', 'BE-P-IMP-21', 'Importation report de perception', '{"de":"Einfuhr mit Verlagerung der Steuerschuld","en":"Import with postponed accounting","nl":"Invoer met verlegging van heffing"}'::jsonb, 'Licence ET 14000, grilles 87/57/59', 'percent', 21, 'purchase', 'import', date '1996-01-01', null, 'AR n. 7, art. 5', 'S', null, 210, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-ICG-21', 'Acquisition intracom. biens 21 %', '{"de":"Innergem. Erwerb von Gegenständen 21 %","en":"Intra-Community acquisition of goods 21%","nl":"Intracomm. verwerving goederen 21 %"}'::jsonb, 'Report de perception, grilles 86/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'Code TVA, art. 25ter', 'K', 'VATEX-EU-IC', 180, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-ICS-21', 'Service intracom. recu 21 %', '{"de":"Empfangene innergem. Dienstleistung 21 %","en":"Intra-Community service received 21%","nl":"Ontvangen intracomm. dienst 21 %"}'::jsonb, 'Report de perception, grilles 88/55/59', 'percent', 21, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'Code TVA, art. 51 par. 2', 'K', 'VATEX-EU-IC', 190, 'vat', true, null, false, false, null),
+  ('BE', 'BE-P-IMP-21', 'Importation report de perception', '{"de":"Einfuhr mit Verlagerung der Steuerschuld","en":"Import with postponed accounting","nl":"Invoer met verlegging van heffing"}'::jsonb, 'Licence ET 14000, grilles 87/57/59', 'percent', 21, 'purchase', 'import', date '1996-01-01', null, 'AR n. 7, art. 5', null, null, 210, 'vat', true, null, false, false, null),
   ('BE', 'BE-S-00', 'Vente 0 %', '{"de":"Verkauf 0 %","en":"Sale 0%","nl":"Verkoop 0 %"}'::jsonb, 'Taux zero', 'percent', 0, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau C', 'Z', null, 40, 'vat', true, null, false, false, null),
   ('BE', 'BE-S-06', 'Vente 6 %', '{"de":"Verkauf 6 %","en":"Sale 6%","nl":"Verkoop 6 %"}'::jsonb, 'Taux reduit, tableau A', 'percent', 6, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau A', 'S', null, 30, 'vat', true, null, false, false, null),
   ('BE', 'BE-S-12', 'Vente 12 %', '{"de":"Verkauf 12 %","en":"Sale 12%","nl":"Verkoop 12 %"}'::jsonb, 'Taux reduit, tableau B', 'percent', 12, 'sale', 'domestic', date '1996-01-01', null, 'AR n. 20, tableau B', 'S', null, 20, 'vat', true, null, false, false, null),
@@ -806,7 +806,7 @@ values
   ('BE', 'BE-S-CC', 'Vente cocontractant', '{"de":"Verkauf Vertragspartner","en":"Sale, reverse charge","nl":"Verkoop medecontractant"}'::jsonb, 'TVA due par le cocontractant', 'percent', 0, 'sale', 'domestic_reverse_charge', date '1996-01-01', null, 'AR n. 1, art. 20', 'AE', 'VATEX-EU-AE', 50, 'vat', true, null, false, false, null),
   ('BE', 'BE-S-EXP', 'Exportation hors UE', '{"de":"Ausfuhr außerhalb der EU","en":"Export outside the EU","nl":"Uitvoer buiten de EU"}'::jsonb, 'Exemptee', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'Code TVA, art. 39', 'G', 'VATEX-EU-G', 80, 'vat', true, null, false, false, null),
   ('BE', 'BE-S-ICG', 'Livraison intracommunautaire', '{"de":"Innergemeinschaftliche Lieferung","en":"Intra-Community supply","nl":"Intracommunautaire levering"}'::jsonb, 'Biens, exemptee', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'Code TVA, art. 39bis', 'K', 'VATEX-EU-IC', 60, 'vat', true, null, false, false, null),
-  ('BE', 'BE-S-ICS', 'Service intracommunautaire', '{"de":"Innergemeinschaftliche Dienstleistung","en":"Intra-Community service","nl":"Intracommunautaire dienst"}'::jsonb, 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'Code TVA, art. 21 par. 2', 'AE', 'VATEX-EU-AE', 70, 'vat', true, null, false, false, null)
+  ('BE', 'BE-S-ICS', 'Service intracommunautaire', '{"de":"Innergemeinschaftliche Dienstleistung","en":"Intra-Community service","nl":"Intracommunautaire dienst"}'::jsonb, 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'Code TVA, art. 21 par. 2', 'K', 'VATEX-EU-IC', 70, 'vat', true, null, false, false, null)
 on conflict (country, code) do update set
   name            = excluded.name,
   name_i18n       = excluded.name_i18n,

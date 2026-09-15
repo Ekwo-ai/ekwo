@@ -123,17 +123,39 @@ export type TaxScope = 'sale' | 'purchase' | 'both';
 export type TaxDocumentKind = 'invoice' | 'credit_note';
 export type TaxPostingType = 'base' | 'tax';
 
-export type TaxTreatment =
-  | 'domestic'
-  | 'domestic_reverse_charge'
-  | 'intracom_goods'
-  | 'intracom_services'
-  | 'intracom_acquisition_goods'
-  | 'intracom_acquisition_services'
-  | 'export'
-  | 'import'
-  | 'exempt'
-  | 'not_subject';
+/**
+ * How an operation is treated for the return, in the order the Postgres enum
+ * `tax_treatment` declares them.
+ *
+ * A value, not a union of string literals, because three places say this list
+ * — the enum, `packs/schema/pack.1.json` and this file — and until one of them
+ * could be read at runtime nothing compared them. `tests/vat_codes.test.ts`
+ * now does, in order, so a treatment added to the database and forgotten here
+ * fails rather than silently narrowing what a pack may declare.
+ *
+ * `foreign_services_received` is a service bought from a supplier who is not
+ * established in the buyer's country and who charges no tax on it, the buyer
+ * accounting for it themselves under the general business-to-business rule of
+ * articles 44 and 196 of Directive 2006/112/EC. It is the sibling of
+ * `intracom_acquisition_services` for a supplier the intra-Union rules do not
+ * reach, and it says nothing about where that supplier is: the rule is about
+ * establishment, not about membership of the Union.
+ */
+export const TAX_TREATMENTS = [
+  'domestic',
+  'domestic_reverse_charge',
+  'intracom_goods',
+  'intracom_services',
+  'intracom_acquisition_goods',
+  'intracom_acquisition_services',
+  'foreign_services_received',
+  'export',
+  'import',
+  'exempt',
+  'not_subject',
+] as const;
+
+export type TaxTreatment = (typeof TAX_TREATMENTS)[number];
 
 export type PaymentDirection = 'inbound' | 'outbound';
 export type BankTransactionState = 'pending' | 'reconciled' | 'ignored';

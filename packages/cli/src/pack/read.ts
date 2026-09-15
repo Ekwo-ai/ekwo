@@ -12,6 +12,7 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { validate, type Issue } from './schema.js';
+import { taxCodes } from './vat-codes.js';
 
 /**
  * The chart a pack has when it declares none, and the name of the framework
@@ -725,6 +726,10 @@ export async function readPack(slug: string, dir = packsDir()): Promise<Pack> {
   }
 
   issues.push(...crossReferences(manifest, charts, taxes));
+  // The three code lists a tax tells the same fact in: its treatment, its
+  // EN 16931 category and its VATEX reason. Nothing in the ledger reads the
+  // last two, so nothing else would ever notice them disagreeing.
+  issues.push(...taxCodes(taxes));
   issues.push(...reportReferences(report, taxes));
   issues.push(...proposedPeriod(manifest, report));
   issues.push(...statementReferences(statements, charts));

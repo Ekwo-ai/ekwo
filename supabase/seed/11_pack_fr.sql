@@ -1,6 +1,6 @@
 -- Ekwo OS — France: chart of accounts, journals, taxes and defaults.
 --
--- Generated from packs/fr at version 1.7.0, do not edit.
+-- Generated from packs/fr at version 1.8.0, do not edit.
 -- Change the pack and run `ekwo pack build fr`; `ekwo pack check --all`
 -- refuses a seed that is not the exact output of its pack, and the CI runs it.
 --
@@ -28,7 +28,7 @@ insert into country_packs
   (country, name, version, released_at, schema_min, certification_status,
    certified_by, certified_at, checksum)
 values
-  ('FR', 'France', '1.7.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '833566239c8987d1419f05594d0b1998f973c29b61c878668dbc0017ab594508')
+  ('FR', 'France', '1.8.0', date '2026-09-14', '20260914163943', 'maintained', null, null, '0f4969234f0be2a16b932443e4f8728e18c0360993d4d882f8f655641b663ebf')
 on conflict (country) do update set
   name                 = excluded.name,
   version              = excluded.version,
@@ -488,9 +488,9 @@ values
   ('FR', 'FR-P-20-ENC', 'Achat de services 20 % — TVA déductible au décaissement', '{"en":"Purchase of services 20% — VAT deductible on payment"}'::jsonb, 'Le droit à déduction prend naissance quand la taxe devient exigible chez le prestataire, soit au paiement. Si le prestataire a opté pour les débits, FR-P-20.', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 271-I-2 ; CGI, art. 269-2-c ; CGI, art. 278', 'S', null, 111, 'vat', true, null, false, true, '445860'),
   ('FR', 'FR-P-20-I', 'Achat immobilisation 20 %', '{"en":"Purchase of a fixed asset 20%"}'::jsonb, 'Immobilisations', 'percent', 20, 'purchase', 'domestic', date '2014-01-01', null, 'CGI, art. 278', 'S', null, 120, 'vat', true, null, false, false, null),
   ('FR', 'FR-P-AL-20', 'Achat autoliquidation 20 %', '{"en":"Purchase, reverse charge 20%"}'::jsonb, 'Assujetti non etabli, lignes 3C/08/20', 'percent', 20, 'purchase', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-1', 'AE', 'VATEX-EU-AE', 180, 'vat', true, null, false, false, null),
-  ('FR', 'FR-P-ICG-20', 'Acquisition intracom. biens 20 %', '{"en":"Intra-Community acquisition of goods 20%"}'::jsonb, 'Autoliquidation, lignes 03/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'CGI, art. 256 bis', 'AE', 'VATEX-EU-AE', 160, 'vat', true, null, false, false, null),
-  ('FR', 'FR-P-ICS-20', 'Service intracom. recu 20 %', '{"en":"Intra-Community service received 20%"}'::jsonb, 'Autoliquidation, lignes 2A/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'CGI, art. 283-2', 'AE', 'VATEX-EU-AE', 170, 'vat', true, null, false, false, null),
-  ('FR', 'FR-P-IMP-20', 'Importation autoliquidee 20 %', '{"en":"Import, reverse charge 20%"}'::jsonb, 'Lignes 3A/08/20', 'percent', 20, 'purchase', 'import', date '2022-01-01', null, 'CGI, art. 293 A', 'S', null, 190, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-ICG-20', 'Acquisition intracom. biens 20 %', '{"en":"Intra-Community acquisition of goods 20%"}'::jsonb, 'Autoliquidation, lignes 03/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_goods', date '1993-01-01', null, 'CGI, art. 256 bis', 'K', 'VATEX-EU-IC', 160, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-ICS-20', 'Service intracom. recu 20 %', '{"en":"Intra-Community service received 20%"}'::jsonb, 'Autoliquidation, lignes 2A/08/20', 'percent', 20, 'purchase', 'intracom_acquisition_services', date '2010-01-01', null, 'CGI, art. 283-2', 'K', 'VATEX-EU-IC', 170, 'vat', true, null, false, false, null),
+  ('FR', 'FR-P-IMP-20', 'Importation autoliquidee 20 %', '{"en":"Import, reverse charge 20%"}'::jsonb, 'Lignes 3A/08/20', 'percent', 20, 'purchase', 'import', date '2022-01-01', null, 'CGI, art. 293 A', null, null, 190, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-021', 'Vente 2,1 %', '{"en":"Sale 2.1%"}'::jsonb, 'Taux particulier', 'percent', 2.1, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 281 quater', 'S', null, 40, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-055', 'Vente 5,5 %', '{"en":"Sale 5.5%"}'::jsonb, 'Taux reduit', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 278-0 bis', 'S', null, 30, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-055-ENC', 'Prestation de services 5,5 % — TVA sur les encaissements', '{"en":"Services 5.5% — VAT on collection"}'::jsonb, 'Régime de droit commun des prestations de services : la TVA est exigible à l''encaissement du prix. Pour une entreprise ayant opté pour les débits, FR-S-055.', 'percent', 5.5, 'sale', 'domestic', date '2014-01-01', null, 'CGI, art. 269-2-c ; CGI, art. 278-0 bis', 'S', null, 31, 'vat', true, null, false, true, '445870'),
@@ -501,7 +501,7 @@ values
   ('FR', 'FR-S-AL', 'Vente autoliquidation', '{"en":"Sale, reverse charge"}'::jsonb, 'TVA due par le preneur', 'percent', 0, 'sale', 'domestic_reverse_charge', date '2014-01-01', null, 'CGI, art. 283-2 nonies', 'AE', 'VATEX-EU-AE', 50, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-EXP', 'Exportation hors UE', '{"en":"Export outside the EU"}'::jsonb, 'Exoneree', 'percent', 0, 'sale', 'export', date '1993-01-01', null, 'CGI, art. 262 I', 'G', 'VATEX-EU-G', 80, 'vat', true, null, false, false, null),
   ('FR', 'FR-S-ICG', 'Livraison intracommunautaire', '{"en":"Intra-Community supply"}'::jsonb, 'Biens, exoneree', 'percent', 0, 'sale', 'intracom_goods', date '1993-01-01', null, 'CGI, art. 262 ter I', 'K', 'VATEX-EU-IC', 60, 'vat', true, null, false, false, null),
-  ('FR', 'FR-S-ICS', 'Service intracommunautaire', '{"en":"Intra-Community service"}'::jsonb, 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'CGI, art. 259-1', 'AE', 'VATEX-EU-AE', 70, 'vat', true, null, false, false, null)
+  ('FR', 'FR-S-ICS', 'Service intracommunautaire', '{"en":"Intra-Community service"}'::jsonb, 'Autoliquidation par le preneur', 'percent', 0, 'sale', 'intracom_services', date '2010-01-01', null, 'CGI, art. 259-1', 'K', 'VATEX-EU-IC', 70, 'vat', true, null, false, false, null)
 on conflict (country, code) do update set
   name            = excluded.name,
   name_i18n       = excluded.name_i18n,

@@ -398,6 +398,92 @@ appearance is a `total` naming it. Two base postings would be two definitions
 of one figure, kept in step by whoever reads the pack next, and `pack check`
 refuses them before that can start.
 
+## What a tax says on the invoice: treatment, category and reason
+
+A tax says the same fact three times over. `treatment` is Ekwo's own word for
+what the operation is. `vat_category` is BT-118 and BT-151 of EN 16931, from
+the UNCL5305 subset the standard publishes. `exemption_code` is BT-121, from
+the VATEX list. Neither of the last two is read by the ledger or by the
+declaration — they are read by whoever renders the invoice — so until
+`ekwo pack check` learned the correspondence, a pack could declare an export
+taxed at the standard rate and every test in this repository would pass.
+
+Three published sources decide the whole table, and nothing here is anybody's
+opinion:
+
+- **UNCL5305 (UN/CEFACT D.16B, the OpenPEPPOL subset)** for what each code
+  means. `K` is *VAT exempt for EEA intra-community supply of goods **and
+  services***, which settles a question the Ekwo vocabulary asks twice.
+- **Technical guidance for tax codes in EN 16931, version 1** (European
+  Commission, Technical Advisory Group on Electronic Invoicing, use cases
+  dated 1 July 2024), whose six use cases give the pair for each case.
+- **The VATEX code list itself**, which carries the pairing as a remark on
+  eight of its codes: `VATEX-EU-AE` *only use with category code AE*,
+  `VATEX-EU-IC` with `K`, `VATEX-EU-G` with `G`, `VATEX-EU-O` with `O`, and
+  `VATEX-EU-D`, `-F`, `-I`, `-J` with `E`.
+
+| `treatment` | Side | `vat_category` | `exemption_code` |
+|---|---|---|---|
+| `domestic` | either | `S` above zero, `Z` at zero | none |
+| `domestic_reverse_charge` | either | `AE` | `VATEX-EU-AE` |
+| `intracom_goods` | sale | `K` | `VATEX-EU-IC` |
+| `intracom_services` | sale | `K` | `VATEX-EU-IC` |
+| `intracom_acquisition_goods` | purchase | `K`, or none | `VATEX-EU-IC` |
+| `intracom_acquisition_services` | purchase | `K`, or none | `VATEX-EU-IC` |
+| `foreign_services_received` | purchase | none | none |
+| `export` | sale | `G` | `VATEX-EU-G` |
+| `import` | purchase | none | none |
+| `exempt` | either | `E` | the article claimed, from the VATEX list |
+| `not_subject` | either | `O` | `VATEX-EU-O` |
+
+Two things in that table are decisions, and both are worth reading before
+filling a column in.
+
+**A category is a term of the invoice, so on a purchase it is the
+supplier's.** A purchase tax describes how the buyer books and declares
+somebody else's invoice, and BT-151 on that invoice was chosen by the seller.
+An intra-Community acquisition is therefore `K`: the supplier made an
+intra-Community supply, and rule BR-IC-10 binds them to `K` and
+`VATEX-EU-IC`. It is not `AE`, which the guidance gives for a reverse charge
+*within* one Member State — the case where the supplier is established in the
+buyer's country and national law moves the liability. A pack that does not
+want to record the seller's answer may leave the column null on a
+purchase-only tax; a value that contradicts the treatment is refused either
+way, and a tax that can reach a sale has to name one.
+
+**Where no invoice governed by the standard exists, the category is absent.**
+Import tax is assessed on a customs document, and a service received from a
+supplier the Union's rules do not reach arrives on an invoice the Directive
+does not govern. There is no seller's category to record, so `import` and
+`foreign_services_received` carry none. `S` there would claim the supplier
+levied the standard rate, which is the one thing that certainly did not
+happen.
+
+`foreign_services_received` is the treatment for a service bought from a
+supplier who is not established in the buyer's country and charges no tax on
+it, the buyer accounting for it themselves under the general
+business-to-business rule — articles 44 and 196 of Directive 2006/112/EC. It
+is the sibling of `intracom_acquisition_services` for a supplier the
+intra-Union rules do not reach, and it says nothing about where that supplier
+is: the rule turns on **establishment**, which is why the name is not
+`import_services`. It is also why it is not `import`, which in this vocabulary
+means goods declared to customs — a different mechanism behind a different
+document. On the invoice, it is the reverse-charge sentence that comes out:
+the same mechanism as a domestic reverse charge, under a different article.
+
+The rate is checked on sales only. There the pack's `rate` is the BT-152 the
+seller prints, and the business rules of EN 16931 fix it per category —
+BR-S-05 wants a standard-rated line above zero, and BR-Z-05, BR-E-05,
+BR-AE-05, BR-IC-05, BR-G-05 and BR-O-05 want zero. On a purchase the rate is
+the one the buyer self-assesses at, 21 % on a line the supplier invoiced at
+zero, so the same rule there would refuse every reverse charge ever written.
+
+What the check does **not** hold is a copy of the VATEX list. The list grows,
+two published renderings of it already disagree on which codes it carries, and
+a code it has not heard of is not a contradiction. So a reason code is checked
+for its shape — `VATEX-EU-<article>`, or `VATEX-<country>-<article>` for a
+national one — and for the pairings the list itself states.
+
 ## Which declaration a box belongs to
 
 A box number is unique inside one form and nowhere else. Belgium and France
@@ -899,6 +985,23 @@ one — those two land on the account of the line they tax, so an account on the
 is a misunderstanding worth stopping. An account, or a
 `cash_basis_transition_account`, that is missing from a chart. A posting whose
 `box` the declaration form does not carry.
+
+The three code lists a tax tells one fact in have seven of their own, all of
+them from the table under "What a tax says on the invoice", and every message
+names the tax, its treatment, what it says, what the source says instead and
+which source. A `vat_category` the treatment contradicts — an export that is
+not `G`, an intra-Community acquisition that is `AE` rather than `K`. A
+category on `import` or on `foreign_services_received`, where no invoice
+governed by EN 16931 exists and there is nothing of a supplier's to record. No
+category at all on a tax that can reach a sale, because an invoice carries
+BT-151. An `exemption_code` the VATEX list reserves for another category, and
+one on a line that is taxed, which is exempt under nothing. A category that
+asks for a reason and names none. A reason that is not shaped like a VATEX
+code. And, on the sale side only, a rate the category forbids: a standard rate
+of zero, or an exempt line at 21 %. A treatment declared on the side it does
+not happen on — an `import` that is a sale, an `export` that is a purchase —
+is refused in the same pass, because that is what makes the expected category
+knowable.
 
 A cash-basis tax has four of its own: it has to name its transition account; it
 takes exactly one `tax` posting per document kind; it takes no `tax_on_base`

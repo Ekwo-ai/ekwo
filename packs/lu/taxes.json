@@ -422,8 +422,8 @@
     "treatment": "intracom_services",
     "valid_from": "2015-01-01",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — le preneur est le redevable ; directive 2006/112/CE, art. 44 et 196",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 120,
     "postings": {
       "invoice": [
@@ -844,8 +844,8 @@
     "treatment": "intracom_acquisition_goods",
     "valid_from": "2024-01-01",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 270,
     "postings": {
       "invoice": [
@@ -897,8 +897,8 @@
     "valid_from": "2015-01-01",
     "valid_to": "2022-12-31",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 280,
     "postings": {
       "invoice": [
@@ -950,8 +950,8 @@
     "valid_from": "2023-01-01",
     "valid_to": "2023-12-31",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 26 — exigibilité ; art. 61, par. 6 — redevable ; art. 48, par. 1er, point b) — déduction",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 290,
     "postings": {
       "invoice": [
@@ -1002,8 +1002,8 @@
     "treatment": "intracom_acquisition_services",
     "valid_from": "2024-01-01",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 300,
     "postings": {
       "invoice": [
@@ -1055,8 +1055,8 @@
     "valid_from": "2015-01-01",
     "valid_to": "2022-12-31",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 310,
     "postings": {
       "invoice": [
@@ -1108,8 +1108,8 @@
     "valid_from": "2023-01-01",
     "valid_to": "2023-12-31",
     "legal_reference": "Loi TVA modifiée du 12 février 1979, art. 39, par. 3 ; loi du 26 octobre 2022 (Mém. A n° 534), art. 1er — taux réduits de deux points pour la seule année 2023 ; Loi TVA modifiée du 12 février 1979, art. 17, par. 1er, point b) — lieu ; art. 61, par. 5 — redevable ; art. 48, par. 1er, point b)",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 320,
     "postings": {
       "invoice": [

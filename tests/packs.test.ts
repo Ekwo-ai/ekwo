@@ -4,6 +4,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
+  CATEGORY_CODES,
+  TREATMENT_CODES,
   compilePack,
   declaredSeedSequences,
   listPacks,
@@ -79,6 +81,43 @@ const KEYS: Record<string, (row: TemplateRow) => string> = {
   country_defaults: (r) => String(r['country']),
 };
 
+const identity = (row: TemplateRow): TemplateRow => row;
+
+/**
+ * One hand-written row, with the EN 16931 category its treatment actually
+ * asks for.
+ *
+ * The hand-written seeds gave every self-assessed tax the reverse-charge pair
+ * — `AE` and `VATEX-EU-AE` — and gave an import of goods the standard rate,
+ * and nothing ever compared those columns to anything. `ekwo pack check` does
+ * now, from `TREATMENT_CODES`, and the packs were corrected to match; so this
+ * file stops claiming those two columns never moved and says instead exactly
+ * how they moved, from the same table the check reads.
+ *
+ * Everything else still has to be identical, which is the claim that matters.
+ * A treatment that leaves the pack a choice — `domestic` is `S` or `Z`, an
+ * exemption is `E` under whichever article the country claims — is left as
+ * the seed wrote it, because there the seed was already saying something the
+ * check has no quarrel with.
+ */
+function asCorrected(row: TemplateRow): TemplateRow {
+  const codes = TREATMENT_CODES[row['treatment'] as string];
+  if (codes === undefined || codes.categories.length > 1) return row;
+  const category = codes.categories[0] ?? null;
+  const reserved = category === null ? null : (CATEGORY_CODES[category]?.exemption ?? undefined);
+  return {
+    ...row,
+    // Padded, because the column is `char(2)` and every EN 16931 category but
+    // `AE` is one character — so the database hands back `S `, `K `, `E `.
+    // That is a defect and not an expectation; it is written up in
+    // `docs/international.md`, and this line is what it looks like from here.
+    vat_category: category === null ? null : category.padEnd(2),
+    // `undefined` is the article-based case: the pack picks the reason, so
+    // whatever the seed wrote is what is expected back.
+    exemption_code: reserved === undefined ? row['exemption_code'] : reserved,
+  };
+}
+
 async function templateRows(db: PGlite): Promise<Record<string, TemplateRow[]>> {
   const out: Record<string, TemplateRow[]> = {};
   for (const [table, sql] of Object.entries(QUERIES)) {
@@ -120,13 +159,14 @@ describe('the compiled packs against the seeds they replace', () => {
     await after.close();
   });
 
-  it('leave every row they already held exactly as it was', async () => {
+  it('leave every row they already held exactly as it was, but for the categories since corrected', async () => {
     const left = await templateRows(before);
     const right = await templateRows(after);
     for (const table of Object.keys(QUERIES)) {
       const key = KEYS[table]!;
       const held = new Set((left[table] ?? []).map(key));
-      expect((right[table] ?? []).filter((row) => held.has(key(row))), table).toEqual(left[table]);
+      const expected = (left[table] ?? []).map(table === 'tax_templates' ? asCorrected : identity);
+      expect((right[table] ?? []).filter((row) => held.has(key(row))), table).toEqual(expected);
     }
   });
 

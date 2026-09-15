@@ -81,6 +81,14 @@ export {
   type PackGoldenDocument,
   type PackGoldenPayment,
 } from './pack/read.js';
+export {
+  CATEGORY_CODES,
+  TREATMENT_CODES,
+  taxCodes,
+  type CodeIssue,
+  type TaxCodes,
+  type TreatmentCodes,
+} from './pack/vat-codes.js';
 export { validate, type Issue } from './pack/schema.js';
 export {
   packDiff,

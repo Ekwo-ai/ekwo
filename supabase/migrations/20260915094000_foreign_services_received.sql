@@ -1,0 +1,37 @@
+-- Ekwo OS — a service bought from a supplier who is not established here.
+--
+-- The `tax_treatment` vocabulary had `intracom_acquisition_services` for a
+-- supplier in another Member State and `import` for goods crossing the
+-- Union's border, and nothing at all for the case in between: a service
+-- received from a supplier who is not established in the buyer's country, on
+-- which the buyer accounts for the tax themselves under the general
+-- business-to-business rule — articles 44 and 196 of Directive 2006/112/EC.
+-- Every Member State needs it, and `docs/international.md` recorded it as a
+-- gap when the Estonian pack had to declare such a tax as `import`, which is
+-- a rule about goods.
+--
+-- The name is `foreign_services_received` rather than `import_services`,
+-- which is what that note proposed, for two reasons. The rule turns on
+-- **establishment** and not on the border: a supplier established in another
+-- Member State but not registered here falls under the same article, so a
+-- name built on "import" would be as wrong for this treatment as `import`
+-- already was. And `import` in this vocabulary means goods declared to
+-- customs, an entirely different mechanism with an entirely different
+-- document behind it; a name that echoed it would invite exactly the
+-- confusion this value exists to end.
+--
+-- Nothing in the core branches on a treatment, here or anywhere: the value
+-- documents the tax, and what the tax does is said by its postings. What it
+-- does change is the legal mention a document carries, which the next
+-- migration reads, and what `ekwo pack check` requires of the tax's
+-- EN 16931 category — a supplier not established here writes no invoice the
+-- standard governs, so there is no category of theirs to record.
+--
+-- A value added to an enum cannot be used in the transaction that adds it.
+-- The runner applies each file as one transaction, so the value is added
+-- alone here and used by the files that come after.
+
+alter type tax_treatment add value 'foreign_services_received' after 'intracom_acquisition_services';
+
+-- No object is created, so there is nothing to grant. The type itself is
+-- reachable by everyone who can already read the column that uses it.

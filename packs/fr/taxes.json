@@ -346,8 +346,8 @@
     "treatment": "intracom_services",
     "valid_from": "2010-01-01",
     "legal_reference": "CGI, art. 259-1",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 70,
     "postings": {
       "invoice": [
@@ -649,8 +649,8 @@
     "treatment": "intracom_acquisition_goods",
     "valid_from": "1993-01-01",
     "legal_reference": "CGI, art. 256 bis",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 160,
     "postings": {
       "invoice": [
@@ -702,8 +702,8 @@
     "treatment": "intracom_acquisition_services",
     "valid_from": "2010-01-01",
     "legal_reference": "CGI, art. 283-2",
-    "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
+    "vat_category": "K",
+    "exemption_code": "VATEX-EU-IC",
     "sequence": 170,
     "postings": {
       "invoice": [
@@ -808,7 +808,6 @@
     "treatment": "import",
     "valid_from": "2022-01-01",
     "legal_reference": "CGI, art. 293 A",
-    "vat_category": "S",
     "sequence": 190,
     "postings": {
       "invoice": [

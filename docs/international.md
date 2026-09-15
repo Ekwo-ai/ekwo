@@ -369,12 +369,18 @@ That shape is the documented rule — one base posting, every further printing a
 total, in [`packs.md`](packs.md) — and the gap stays open all the same: the six
 boxes are what the rule costs on a form whose boxes nest.
 
-**There is no treatment for a service received from outside the Union.** The
-`treatment` vocabulary has `intracom_acquisition_services` for a supplier in
-another Member State and `import` for goods, and nothing for the general
-business-to-business rule applied to a third-country supplier — which every EU
-country needs. *Fix*: add `import_services`. *Until then*: Estonia declares
-that tax `import`, which is imprecise and is flagged for the reviewer.
+~~**There is no treatment for a service received from outside the Union.**~~
+**Closed, 15 September 2026**, and not under the name this note proposed. The
+value is `foreign_services_received`, not `import_services`, because the rule
+it names — articles 44 and 196 of Directive 2006/112/EC — turns on whether the
+supplier is **established** in the buyer's country and not on whether the
+service crossed the Union's border; a name built on "import" would have been
+as wrong for it as `import` already was, and `import` in this vocabulary means
+goods declared to customs, which is a different mechanism behind a different
+document. The Estonian `EE-P-VS-24` carries it and has dropped the sentence of
+its legal reference that apologised for saying `import`. On the invoice it
+resolves to the reverse-charge mention: the same mechanism as a domestic
+reverse charge, under a different article.
 
 **A country that keeps one account for both signs of the year's result has to
 name it twice.** `retained_earnings_loss` may be null and falls back to
@@ -407,6 +413,38 @@ and evaluation order at once**. Box 1 of form KMD is printed first and is a
 total of boxes printed after it. Estonia escapes because the rule only
 constrains a total that names another total, and box 1 names base boxes — but
 it escapes by luck, and the fix Luxembourg proposes is the fix.
+
+### From the EN 16931 code lists
+
+Found while teaching `ekwo pack check` to compare a tax's treatment with its
+category and its exemption reason. Neither blocked that work; both are about
+the same two columns, and both are a change to the core rather than to a pack.
+
+**A VAT category comes back padded with a space.** `taxes.vat_category`,
+`tax_templates.vat_category` and `document_lines.vat_category` are `char(2)`,
+and every category of EN 16931 but `AE` is one character — so the database
+answers `S `, `K `, `E `, `G `, `Z `, `O `, and has done since the column was
+created. `document_line_items` and `document_tax_summary` publish it that way
+as BT-151, which is not a code of UNCL5305: a renderer writing it straight
+into an invoice emits one that fails validation, and a reader comparing it to
+`'S'` finds nothing. Nothing in this repository noticed, because the only test
+that compared the column compared two databases that pad identically.
+*Fix*: a migration widening the three columns to `text`, which means dropping
+and recreating the two views that select them, and a check constraint if the
+width was ever the point. *Until then*: every reader trims, and
+`tests/packs.test.ts` pads its expectation on purpose with a comment pointing
+here.
+
+**A legal mention cannot tell a domestic reverse charge from a foreign one.**
+`applies_when` is a closed vocabulary of nine conditions, and
+`foreign_services_received` had to join `reverse_charge` because that is the
+sentence all four packs print for it — the mechanism is the same and the
+wording is the same. A country whose law prescribes a different sentence for a
+service bought from a supplier established elsewhere cannot say so: it would
+have to choose between the two sentences for both cases. *Fix*: a tenth
+condition, `foreign_reverse_charge`, beside the one that exists. *Until then*:
+no pack here needs the distinction, and a pack that does will be the argument
+for adding it.
 
 
 ## Decisions taken with the plan
