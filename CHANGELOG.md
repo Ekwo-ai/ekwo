@@ -29,7 +29,9 @@ somewhere has already run it.
   Northern Ireland, Making Tax Digital submission and the VAT schemes are out of
   scope and say so.
   Seven gaps in the core are written up in
-  [`docs/international.md`](docs/international.md) and none of them is patched:
+  [`docs/international.md`](docs/international.md) and none of them was patched
+  for the pack's sake — the first two were closed afterwards, on their own, and
+  are under Fixed below:
   an exemption outside the Union has no VATEX code and one is required; `G` and
   `VATEX-EU-G` describe the Union's border and not a third country's; one
   taxable amount is printed in two boxes that are siblings rather than nested;
@@ -122,6 +124,40 @@ somewhere has already run it.
   a rule nobody can review.
 
 ### Fixed
+
+- **An exemption reason code was demanded of a country the list does not
+  reach.** `ekwo pack check` required BT-121 as soon as a tax's `vat_category`
+  was `E`, `G`, `O`, `AE` or `K`, and checked it against the VATEX list of
+  EN 16931 — which is the Union's list: its own codes name articles of
+  Directive 2006/112/EC and its national codes belong to Member States that
+  publish them. A country outside the common system of VAT has no code there
+  and no administration with any reason to publish one, so the first pack of
+  such a country had to invent `VATEX-GB-SCH9` and borrow three Union codes to
+  get past the check. The last column of the correspondence table now applies
+  only where the Union's VAT applies: there, an `exemption_code` stays null,
+  the article goes in `legal_reference`, a `VATEX-*` code is refused by name,
+  and the five `intracom_*` treatments are refused outright. A reason code from
+  some other published list is accepted where the pack's register declares that
+  list with `kind: standard` — the field provided for, the content left to
+  whoever publishes one. The EN 16931 categories are untouched, because
+  UNCL5305 is a UN/CEFACT list; the description of `G` was corrected with it,
+  from the Union's border to the border of whoever levies the tax, which is
+  what UNCL5305 says and what makes a British export `G`. Which side of the
+  line a pack is on is read from `territories` — the `eu_vat_scope` of its
+  country at the manifest's `released_at` — and no country is written into the
+  code: `pack check` has no database, so it parses
+  `supabase/seed/00_territories.sql`, the file the database is seeded from, and
+  a test holds its answer against `eu_vat_scope_of()` for every territory on
+  every date the table carries. A country the table has no row for is held to
+  the table as published, because a missing row is silence and not a no. No
+  migration, no schema change: the rule is in the CLI and the two gaps it
+  closes are marked closed in `docs/international.md`.
+- **`packs/gb/` 0.1.1** drops `VATEX-GB-SCH9` and the three Union codes it had
+  borrowed from seven taxes, keeps every `legal_reference` — Schedule 9 to the
+  Value Added Tax Act 1994, s. 30(6) for the export, s. 55A for the
+  construction reverse charge — and loses the two review points its README
+  opened on. Nothing is computed from an exemption reason code, so the golden
+  expectations are byte for byte what they were.
 
 - **A VAT category came back padded with a space.** `taxes.vat_category`,
   `tax_templates.vat_category` and `document_lines.vat_category` were

@@ -369,45 +369,44 @@ Open an issue titled "Review: United Kingdom". What a review is, and what it is
 not, is in [`docs/packs.md`](../../docs/packs.md) under "Certification, and who
 may say what".
 
-Nine points a reviewer holding an ICAEW or ACCA practising certificate should
+Two points that stood here in version 0.1.0 have gone. `GB-S-EXEMPT` and
+`GB-P-EXEMPT` carried `VATEX-GB-SCH9`, a code no published list contains,
+because `ekwo pack check` required a VATEX code as soon as the category was
+`E`; and `GB-S-EXPORT` carried `VATEX-EU-G`, whose article belongs to a
+Directive that does not bind a British seller. The check now applies the VATEX
+list only where the common system of VAT does, so no tax of this pack carries
+an `exemption_code` at all and every exemption states its article in
+`legal_reference` instead. The categories are unchanged: they come from
+UNCL5305, which is a UN/CEFACT list, and `G` there is *free export item, VAT not
+charged* — goods leaving the territory of whoever levies the tax, which is
+exactly what s. 30(6) zero-rates.
+
+Seven points a reviewer holding an ICAEW or ACCA practising certificate should
 look at first, roughly in the order the author is least sure of them:
 
-1. **The exemption reason code.** `GB-S-EXEMPT` and `GB-P-EXEMPT` carry
-   `VATEX-GB-SCH9`, which **no published list contains**. `ekwo pack check`
-   requires a VATEX code as soon as the category is `E`, the VATEX list carries
-   articles of Directive 2006/112/EC and the national codes of Member States,
-   and the United Kingdom is neither. The shape is one the check accepts for a
-   national code; the code itself is this pack's invention and is the single
-   thing in it most likely to be wrong. The gap is written up in
-   `docs/international.md`.
-2. **`VATEX-EU-G` on a British export.** The VATEX list names that code "Export
-   outside the EU". A British export is a supply outside the *United Kingdom*,
-   and a supply to a member State is one. The check requires `G` with that
-   reason and nothing else; it is the least wrong pair available and it says
-   something false about the destination.
-3. **Which boxes each self-charge fills.** The four-row table above is read off
+1. **Which boxes each self-charge fills.** The four-row table above is read off
    VAT Notice 700/12 and HMRC's guidance for the construction charge and for
    postponed VAT accounting. That a construction purchase goes in box 7 and not
    box 6, while a service received from abroad goes in both 6 and 7, is the
    distinction most worth a second reading.
-4. **Whether the installer should ask at all.** The pack proposes nothing and
+2. **Whether the installer should ask at all.** The pack proposes nothing and
    `ekwo init` asks, for the reason under "The return". A reviewer who reads
    reg. 25(1) as giving every British company a quarterly default would want
    the installer to stop asking, and that is an argument for the core and not
    for this pack.
-5. **The reduced rate as one code.** Schedule 7A has many Groups, added at
+3. **The reduced rate as one code.** Schedule 7A has many Groups, added at
    different dates, and the pack carries one 5 % code running from 11 May 2001,
    the day s. 29A was inserted. A supply falling under a Group added after that
    day is accepted by this code on dates when the Group did not yet exist. The
    pack carries the rate and not the list, and a reviewer who wants the Groups
    dated is asking for a code per Group.
-6. **Item F and the whole of item J.** See "The accounts".
-7. **The chart's mapping onto Format 1.** Every account reaches a line —
+4. **Item F and the whole of item J.** See "The accounts".
+5. **The chart's mapping onto Format 1.** Every account reaches a line —
    `ekwo pack check` refuses a chart where one reaches none — and only the
    suspense account reaches two, as a debtor while it is in debit and a creditor
    while it is in credit. *Which* line is a judgement everywhere else,
    especially for the VAT accounts and for everything that falls into
    administrative expenses because Format 1 classifies by function.
-8. **The fixed asset durations**, every one of which is practice and says so.
-9. **The historical rates**, which matter only for a credit note on an old
+6. **The fixed asset durations**, every one of which is practice and says so.
+7. **The historical rates**, which matter only for a credit note on an old
    supply and which nobody has replayed.

@@ -360,10 +360,9 @@
     "scope": "sale",
     "treatment": "exempt",
     "valid_from": "1994-09-01",
-    "legal_reference": "Value Added Tax Act 1994, s. 31(1) and Schedule 9 — a supply of a description specified in Schedule 9 is an exempt supply. The exemption reason code below is not a code any published list carries: the VATEX list names articles of Directive 2006/112/EC and the national codes of Member States, and the United Kingdom is neither. See the pack's README.",
+    "legal_reference": "Value Added Tax Act 1994, s. 31(1) and Schedule 9 — a supply of a description specified in Schedule 9 is an exempt supply. The line carries no exemption reason code: BT-121 comes from the VATEX list of EN 16931, which names articles of Directive 2006/112/EC and the national codes of Member States, and the United Kingdom is neither, so what an exempt invoice states here is this article.",
     "source": "vata-1994",
     "vat_category": "E",
-    "exemption_code": "VATEX-GB-SCH9",
     "postings": {
       "invoice": [
         {
@@ -392,7 +391,6 @@
     "legal_reference": "Value Added Tax Act 1994, s. 30(6) — a supply of goods is zero-rated where the Commissioners are satisfied that the goods have been or are to be exported, on the conditions they impose. The code is dated from 1 January 2021 because that is the day the word changed meaning: before it, an export was a supply outside the European Union; since it, it is a supply outside the United Kingdom, and a supply to a Member State is one.",
     "source": "vata-1994",
     "vat_category": "G",
-    "exemption_code": "VATEX-EU-G",
     "postings": {
       "invoice": [
         {
@@ -422,7 +420,6 @@
     "legal_reference": "Value Added Tax Act 1994, s. 4(1) — VAT is charged on a supply of goods or services made in the United Kingdom; ss. 7 and 7A place a supply, and a supply placed elsewhere is outside the scope of the charge. VAT Notice 700/12 puts its value in box 6 all the same.",
     "source": "vata-1994",
     "vat_category": "O",
-    "exemption_code": "VATEX-EU-O",
     "postings": {
       "invoice": [
         {
@@ -452,7 +449,6 @@
     "legal_reference": "Value Added Tax Act 1994, s. 55A, and the Value Added Tax (Section 55A) (Specified Services and Excepted Supplies) Order 2019 (S.I. 2019/892), art. 1 as amended — in force on 1 March 2021 for supplies made on or after that day. The supplier charges no VAT; VAT Notice 700/12 puts the value of the sale in box 6 and nothing in box 1.",
     "source": "drc-order-2019",
     "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
     "postings": {
       "invoice": [
         {
@@ -704,10 +700,9 @@
     "scope": "purchase",
     "treatment": "exempt",
     "valid_from": "1994-09-01",
-    "legal_reference": "Value Added Tax Act 1994, s. 31 and Schedule 9. The exemption reason code is the one the supplier would have claimed and is not a code any published list carries — see the pack's README.",
+    "legal_reference": "Value Added Tax Act 1994, s. 31 and Schedule 9. No exemption reason code, for the reason given on the sale side: no published list carries one for a British exemption.",
     "source": "vata-1994",
     "vat_category": "E",
-    "exemption_code": "VATEX-GB-SCH9",
     "postings": {
       "invoice": [
         {
@@ -772,7 +767,6 @@
     "legal_reference": "Value Added Tax Act 1994, s. 55A and the Value Added Tax (Section 55A) (Specified Services and Excepted Supplies) Order 2019 (S.I. 2019/892), in force 1 March 2021 — the recipient of a specified construction service accounts for the tax as if they had made the supply. The guidance for the charge puts the tax in box 1 and, where it is deductible, in box 4, and the value of the purchase in box 7 only.",
     "source": "drc-guidance",
     "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
     "postings": {
       "invoice": [
         {
@@ -825,7 +819,6 @@
     "legal_reference": "The same charge as GB-P-20-DRC-CIS, at the reduced rate of s. 29A and Schedule 7A of the Value Added Tax Act 1994 — a qualifying conversion or renovation of a dwelling is a specified service taxed at 5 per cent, and the reverse charge applies to a reduced-rated supply as it does to a standard-rated one.",
     "source": "drc-guidance",
     "vat_category": "AE",
-    "exemption_code": "VATEX-EU-AE",
     "postings": {
       "invoice": [
         {
