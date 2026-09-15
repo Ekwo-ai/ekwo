@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "MCP server for Ekwo OS: let an AI assistant keep the books, under the user's own row level security.",
   "keywords": [
     "mcp",
@@ -27,7 +27,7 @@
     "node": ">=20"
   },
   "ekwo": {
-    "schemaMin": "0.2.0"
+    "schemaMin": "0.3.0"
   },
   "files": [
     "dist",
@@ -49,8 +49,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ekwo-ai/core": "^0.2.0",
-    "@ekwo-ai/fec": "^0.2.0",
+    "@ekwo-ai/core": "^0.3.0",
+    "@ekwo-ai/fec": "^0.3.0",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@supabase/supabase-js": "^2.58.0",
     "zod": "^4.6.2"

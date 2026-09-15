@@ -26,6 +26,11 @@ that is not cut.
    table, a column, a function. A release that touches no schema keeps the
    number and needs no migration.
 
+   `tests/cli/schema-version.test.ts` writes the three numbers out by hand —
+   `RELEASE`, `PREVIOUS` and `BUMP`, the name of the migration that carries
+   nothing else — because a test that asks the code what it says proves
+   nothing. Move them in the same commit.
+
 2. **The package versions.** Every workspace manifest, the private root
    included:
 
@@ -37,7 +42,14 @@ that is not cut.
 
    Check the dependency ranges between the workspaces afterwards —
    `@ekwo-ai/core` on `@ekwo-ai/fec`, `@ekwo-ai/mcp` on both — and the
-   formatting of the manifests, which npm rewrites.
+   formatting of the manifests, which npm rewrites. The final `npm install`
+   `npm version` runs on its own fails until those ranges name the new number,
+   because a workspace at `0.3.0` no longer answers a range of `^0.2.0` and npm
+   goes looking on the registry for a package that is not there.
+
+   `SERVER_VERSION` in `packages/mcp/src/server.ts` follows the manifest, for
+   the reason `SCHEMA_MIN` does: a bundle that ships no manifest still has to
+   say what it is in the MCP handshake. A test keeps the two equal.
 
 3. **The schema floor.** `ekwo.schemaMin` in the manifests of `ekwo`,
    `@ekwo-ai/core` and `@ekwo-ai/mcp`, and the `SCHEMA_MIN` constant in each
@@ -187,6 +199,10 @@ source of:
 npm publish --workspace packages/formats/fec --access public
 npm publish --workspace packages/formats/factur-x --access public
 npm publish --workspace packages/formats/xbrl-cbso --access public
+npm publish --workspace packages/formats/intra-consignment --access public
+npm publish --workspace packages/formats/des --access public
+npm publish --workspace packages/formats/ecdf --access public
+npm publish --workspace packages/formats/vd --access public
 npm publish --workspace packages/core --access public
 npm publish --workspace packages/cli --access public
 npm publish --workspace packages/mcp --access public

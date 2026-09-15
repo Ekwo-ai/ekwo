@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/intra-consignment",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "The Belgian intra-Community sales listing for Intervat (IntraConsignment XML, schema NewICO-in v0.9) in TypeScript, from plain statement rows. Zero dependencies.",
   "keywords": [
     "intervat",

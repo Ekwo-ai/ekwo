@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/xbrl-cbso",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Generate XBRL annual accounts for the National Bank of Belgium (CBSO taxonomy, abridged model) — pure TypeScript, zero dependencies.",
   "keywords": [
     "xbrl",

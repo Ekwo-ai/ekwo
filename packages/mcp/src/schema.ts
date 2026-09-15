@@ -17,7 +17,7 @@ import { schemaIsAtLeast } from '@ekwo-ai/core';
 import { EkwoMcpError, type Backend } from './backend.js';
 
 /** The oldest schema this server speaks to. */
-export const SCHEMA_MIN = '0.2.0';
+export const SCHEMA_MIN = '0.3.0';
 
 /** The version the migrations of that database define. */
 export async function installedSchemaVersion(backend: Backend): Promise<string | undefined> {

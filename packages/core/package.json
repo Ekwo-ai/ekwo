@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TypeScript row types and a typed Supabase client for the Ekwo OS accounting schema.",
   "keywords": ["accounting", "supabase", "postgres", "pcmn", "pcg", "bookkeeping", "ekwo"],
   "license": "AGPL-3.0-only",
@@ -11,7 +11,7 @@
   "type": "module",
   "sideEffects": false,
   "engines": { "node": ">=20" },
-  "ekwo": { "schemaMin": "0.2.0" },
+  "ekwo": { "schemaMin": "0.3.0" },
   "files": ["dist", "README.md", "CHANGELOG.md"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,7 +23,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@ekwo-ai/fec": "^0.2.0"
+    "@ekwo-ai/fec": "^0.3.0"
   },
   "peerDependencies": {
     "@supabase/supabase-js": "^2.0.0"

@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/ecdf",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "The Luxembourg eCDF XML interface file (v2.0) in TypeScript, with the four recapitulative statement forms it carries. Zero dependencies.",
   "keywords": [
     "ecdf",

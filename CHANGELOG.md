@@ -9,6 +9,8 @@ somewhere has already run it.
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-09-15
+
 ### Added
 
 - **The sources of a pack become a register somebody can open.**
@@ -137,96 +139,6 @@ somewhere has already run it.
   proves the listing and the return do not read alike, since Belgium reports
   that credit note positively in a box of its own and the statement deducts it
   from the customer.
-
-### Changed
-
-- **A test may book in a country. It may not expect one.**
-  Eleven test files named `BE`, `FR` and `LU` by hand: six loops over a literal
-  pair of pack slugs, and tables keyed by country for the statements, the
-  declaration forms, the charts, the exchange accounts, the closing parameters
-  and the fixed-asset rules. Adding Luxembourg meant editing most of them, and
-  until they were edited the pack was checked by nothing.
-  Every one of those now walks `listPacks()` through the new
-  `tests/helpers/packs.ts` and takes its expectation from the pack itself — a
-  role of the manifest, an account of a chart, a box of the form. A test that
-  needs the pack with a particular property asks for that property
-  (`packWhere('taxes on collection', …)`) instead of naming the country that
-  has it. The set of certification statuses comes from the published schema
-  rather than a literal pair.
-  A claim only one pack can make — a fact key of a national filing taxonomy —
-  moves to **`packs/<cc>/golden/expectations.json`**, beside the golden and
-  outside the pack checksum, read by one generic runner. Adding a country now
-  touches the pack folder and its `golden/`, and nothing under `tests/`.
-  `scripts/check-no-country-literals-in-tests.mjs` runs in the CI and keeps it
-  that way; `docs/packs.md` describes the two places a pack is written.
-
-- **A base is written once, and printed as often as the form likes.**
-  A tax carries one `base` posting per kind of document, so a taxable amount
-  has one definition and reaches one box — and a national form that prints that
-  base a second time gets a computed `total`, not a second posting. The rule
-  was enforced by `ekwo pack check` and written down nowhere. `docs/packs.md`
-  now carries it where the postings are defined and again in the walkthrough,
-  with the Luxembourg return as the worked example: box `472` adds the rate
-  bases of section II instead of being posted to, and the Estonian `6.1` / `6`
-  / `1` nesting is the same shape three deep. Documentation only: no pack and
-  no function changed.
-
-### Security
-
-- **The schema grants its own rights, and the anonymous role holds none on any
-  table.**
-  Until now not one migration gave `anon` or `authenticated` a privilege on a
-  table. A Supabase project carries default privileges on `public` that hand
-  `all` on every new table, sequence and function to the three API roles, so
-  everything worked — and `anon`, the role behind the publishable key any
-  visitor holds, had INSERT, UPDATE and DELETE on every table of the ledger
-  with row level security as the only thing in the way.
-  **Migration `20260914151207` declares the privileges by name**, table by
-  table and view by view, with one migration each for the `assets` and
-  `budgets` modules. `authenticated` may attempt exactly the verbs the policies
-  of that table are prepared to judge: the four on the twenty-six a policy
-  `for all` governs, SELECT alone on the twenty-four a country pack or a
-  `security definer` function writes, and SELECT alone on `audit_log`, which
-  is append-only by trigger for everyone including its owner. `anon` gets
-  nothing on any table, view or sequence, and keeps the ten policy helpers it
-  already had. `service_role` gets what a person gets. The twenty-nine trigger
-  bodies stop being callable at all.
-  **No wildcard, and no `alter default privileges` as the mechanism** — that
-  is the hidden dependency being removed. The project's defaults are taken
-  back and stopped; Ekwo's own EXECUTE default from `20260911210131` goes with
-  them. From here, **a migration that creates a table, a view or a function
-  grants it in the same file**.
-  **`anon` could read every table of the `assets` and `budgets` modules**,
-  whose opening migrations carried `grant select on all tables … to anon`.
-  Row level security answered every such read with an empty set, so nothing
-  leaked; the surface is closed now.
-  **`ekwo pack upgrade` could not have worked through PostgREST.**
-  `pack_upgrade()` writes its own audit line and was `security invoker`, so it
-  called `audit_record()` — closed to `authenticated` since `20260914103412` —
-  as the caller. On a real project the upgrade committed and the trail did
-  not. `20260914152840` makes the function `security definer`, like its peers,
-  and the capability test it already carried is unchanged.
-  **What enforces it**: the `grants` section of
-  `packages/cli/assets/expected-objects.json` — the inventory that already
-  carries the objects a release defines, because a privilege and the object it
-  sits on ship in the same migration — generated by `npm run inventory` and
-  refused by the CI when it drifts; `tests/grants.test.ts`, which compares the catalogue to it,
-  checks the doctrine against `pg_policy`, and books a whole country pack's
-  golden year on a database whose roles start with nothing at all; and
-  `ekwo doctor`, which reports a missing grant or an extra one to `anon` as a
-  problem and a wider grant to `authenticated` as a warning.
-  **The test harness stopped supplying privileges.** The Supabase shim and
-  `freshDatabase` used to grant the three roles everything, which made the
-  whole suite pass against privileges no installation was guaranteed to have.
-  Every test file is now also a test of the grants.
-  **The installation guide says the new answer and keeps the old symptom.**
-  `packages/cli/README.md` described where table access comes from as a known
-  gap; it now says that the schema grants its own rights, what that means for
-  an application that reads a table without signing a user in, and why an
-  installation nobody has migrated can still answer `permission denied for
-  table companies`.
-
-### Added
 
 - **A company opens on the part of its chart it actually works with.**
   A country pack is a transcription of the regulation — 120 accounts in
@@ -499,6 +411,37 @@ somewhere has already run it.
 
 ### Changed
 
+- **A test may book in a country. It may not expect one.**
+  Eleven test files named `BE`, `FR` and `LU` by hand: six loops over a literal
+  pair of pack slugs, and tables keyed by country for the statements, the
+  declaration forms, the charts, the exchange accounts, the closing parameters
+  and the fixed-asset rules. Adding Luxembourg meant editing most of them, and
+  until they were edited the pack was checked by nothing.
+  Every one of those now walks `listPacks()` through the new
+  `tests/helpers/packs.ts` and takes its expectation from the pack itself — a
+  role of the manifest, an account of a chart, a box of the form. A test that
+  needs the pack with a particular property asks for that property
+  (`packWhere('taxes on collection', …)`) instead of naming the country that
+  has it. The set of certification statuses comes from the published schema
+  rather than a literal pair.
+  A claim only one pack can make — a fact key of a national filing taxonomy —
+  moves to **`packs/<cc>/golden/expectations.json`**, beside the golden and
+  outside the pack checksum, read by one generic runner. Adding a country now
+  touches the pack folder and its `golden/`, and nothing under `tests/`.
+  `scripts/check-no-country-literals-in-tests.mjs` runs in the CI and keeps it
+  that way; `docs/packs.md` describes the two places a pack is written.
+
+- **A base is written once, and printed as often as the form likes.**
+  A tax carries one `base` posting per kind of document, so a taxable amount
+  has one definition and reaches one box — and a national form that prints that
+  base a second time gets a computed `total`, not a second posting. The rule
+  was enforced by `ekwo pack check` and written down nowhere. `docs/packs.md`
+  now carries it where the postings are defined and again in the walkthrough,
+  with the Luxembourg return as the worked example: box `472` adds the rate
+  bases of section II instead of being posted to, and the Estonian `6.1` / `6`
+  / `1` nesting is the same shape three deep. Documentation only: no pack and
+  no function changed.
+
 - **The code and the type of an account stop moving once it is in use.**
   Every reference to an account inside a company is a foreign key on
   `accounts(id)`, so renumbering one appeared to break nothing. The rules do
@@ -573,6 +516,61 @@ somewhere has already run it.
   them could move the pair in a document nobody had edited. It now orders by
   name and `oid`, and the two `resolve_line_account` entries swapped places
   once, for good.
+
+### Security
+
+- **The schema grants its own rights, and the anonymous role holds none on any
+  table.**
+  Until now not one migration gave `anon` or `authenticated` a privilege on a
+  table. A Supabase project carries default privileges on `public` that hand
+  `all` on every new table, sequence and function to the three API roles, so
+  everything worked — and `anon`, the role behind the publishable key any
+  visitor holds, had INSERT, UPDATE and DELETE on every table of the ledger
+  with row level security as the only thing in the way.
+  **Migration `20260914151207` declares the privileges by name**, table by
+  table and view by view, with one migration each for the `assets` and
+  `budgets` modules. `authenticated` may attempt exactly the verbs the policies
+  of that table are prepared to judge: the four on the twenty-six a policy
+  `for all` governs, SELECT alone on the twenty-four a country pack or a
+  `security definer` function writes, and SELECT alone on `audit_log`, which
+  is append-only by trigger for everyone including its owner. `anon` gets
+  nothing on any table, view or sequence, and keeps the ten policy helpers it
+  already had. `service_role` gets what a person gets. The twenty-nine trigger
+  bodies stop being callable at all.
+  **No wildcard, and no `alter default privileges` as the mechanism** — that
+  is the hidden dependency being removed. The project's defaults are taken
+  back and stopped; Ekwo's own EXECUTE default from `20260911210131` goes with
+  them. From here, **a migration that creates a table, a view or a function
+  grants it in the same file**.
+  **`anon` could read every table of the `assets` and `budgets` modules**,
+  whose opening migrations carried `grant select on all tables … to anon`.
+  Row level security answered every such read with an empty set, so nothing
+  leaked; the surface is closed now.
+  **`ekwo pack upgrade` could not have worked through PostgREST.**
+  `pack_upgrade()` writes its own audit line and was `security invoker`, so it
+  called `audit_record()` — closed to `authenticated` since `20260914103412` —
+  as the caller. On a real project the upgrade committed and the trail did
+  not. `20260914152840` makes the function `security definer`, like its peers,
+  and the capability test it already carried is unchanged.
+  **What enforces it**: the `grants` section of
+  `packages/cli/assets/expected-objects.json` — the inventory that already
+  carries the objects a release defines, because a privilege and the object it
+  sits on ship in the same migration — generated by `npm run inventory` and
+  refused by the CI when it drifts; `tests/grants.test.ts`, which compares the catalogue to it,
+  checks the doctrine against `pg_policy`, and books a whole country pack's
+  golden year on a database whose roles start with nothing at all; and
+  `ekwo doctor`, which reports a missing grant or an extra one to `anon` as a
+  problem and a wider grant to `authenticated` as a warning.
+  **The test harness stopped supplying privileges.** The Supabase shim and
+  `freshDatabase` used to grant the three roles everything, which made the
+  whole suite pass against privileges no installation was guaranteed to have.
+  Every test file is now also a test of the grants.
+  **The installation guide says the new answer and keeps the old symptom.**
+  `packages/cli/README.md` described where table access comes from as a known
+  gap; it now says that the schema grants its own rights, what that means for
+  an application that reads a table without signing a user in, and why an
+  installation nobody has migrated can still answer `permission denied for
+  table companies`.
 
 ## [0.2.0] — 2026-09-14
 
@@ -1543,5 +1541,6 @@ against the latest tag, and a mistake is corrected by a new migration, always.
   period locks, reports, row level security, the instance singleton and its
   roles, and a golden FEC export.
 
-[Unreleased]: https://github.com/Ekwo-ai/ekwo-os/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Ekwo-ai/ekwo-os/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Ekwo-ai/ekwo-os/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/Ekwo-ai/ekwo-os/releases/tag/v0.2.0

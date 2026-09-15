@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/factur-x",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Factur-X / ZUGFeRD e-invoices in TypeScript: EN 16931 CII XML from a plain invoice object, PDF/A-3 embedding and extraction.",
   "keywords": [
     "factur-x",

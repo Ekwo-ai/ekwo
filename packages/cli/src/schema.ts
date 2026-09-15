@@ -12,4 +12,4 @@
  * equal.
  */
 
-export const SCHEMA_MIN = '0.2.0';
+export const SCHEMA_MIN = '0.3.0';

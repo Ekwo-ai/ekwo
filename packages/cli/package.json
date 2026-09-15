@@ -1,6 +1,6 @@
 {
   "name": "ekwo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Install and operate Ekwo OS on your own Supabase project: npx ekwo init.",
   "keywords": ["accounting", "supabase", "postgres", "migrations", "cli", "bookkeeping", "ekwo"],
   "license": "AGPL-3.0-only",
@@ -10,7 +10,7 @@
   "bugs": { "url": "https://github.com/Ekwo-ai/ekwo-os/issues" },
   "type": "module",
   "engines": { "node": ">=20" },
-  "ekwo": { "schemaMin": "0.2.0" },
+  "ekwo": { "schemaMin": "0.3.0" },
   "files": ["dist", "README.md"],
   "bin": { "ekwo": "./dist/bin.js" },
   "main": "./dist/index.js",

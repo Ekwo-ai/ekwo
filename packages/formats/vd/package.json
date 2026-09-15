@@ -1,6 +1,6 @@
 {
   "name": "@ekwo-ai/vd",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "The Estonian form VD — uhendusesisese kaibe aruanne — in TypeScript: the XML the e-MTA loads, from plain statement rows. Zero dependencies.",
   "keywords": [
     "vd",
