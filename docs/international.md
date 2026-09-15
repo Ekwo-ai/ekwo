@@ -571,6 +571,40 @@ one genuinely new question, and it is worth answering before any code — either
 company holds several packs, or the rates of the scheme are framework data like
 the currencies. Neither is decided here.
 
+### From the register of sources
+
+Found while turning `certification.sources` into a register a reviewer can
+open — a key, a title, the publisher, an absolute link — and pointing every
+`legal_reference` at one of its keys. Neither blocked that work. Both are
+places where the format lets a pack claim something and gives it nowhere to
+say where the claim comes from.
+
+**What a country puts on an invoice cites nothing.** `documents` carries the
+numbering style, the number pattern, the legal payment term and the tax point,
+and it has no `legal_reference` of its own — only the sentences under
+`documents.mentions` do, one per sentence. So a pack that took its numbering
+rule from an article of a decree has no field to say which, and the register
+entry for that text ends up pointed at by nothing: the French pack holds
+`cgi-annexe-2` for exactly the article that prescribes continuous numbering and
+the compulsory mentions, and no rule of the pack names it. *Fix*: a
+`legal_reference` and a `source` on `documents`, beside the four rules it
+carries, the way `einvoicing` and `bank` already have one. *Until then*: the
+text is in the register and a reviewer finds it there, one step further away
+than it should be.
+
+**A legal reference the schema accepts and the compiler drops.**
+`einvoicing.legal_reference` is read by `pack.1.json`, written by all four
+packs — it is where the day an obligation starts is justified — and it reaches
+no column: `country_defaults` holds the profile, the date and the two ISO 6523
+schemes, and nothing carries the article behind them. The same is true of
+`charts[].legal_reference`, which does compile, and of the `source` beside
+either, which does not. Nothing is wrong in the pack; the information stops at
+the seed. *Fix*: an `einvoicing_legal_reference` column beside the four that
+exist, and `source_key` on `chart_templates` and `statement_line_templates`,
+the way this change added it to `tax_templates` and
+`tax_report_box_templates`. *Until then*: `country_packs.sources` answers
+"where do these rules come from" for the pack as a whole, and the pack file is
+where the per-rule answer is read.
 
 ## Decisions taken with the plan
 

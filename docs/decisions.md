@@ -3200,3 +3200,61 @@ the token with a null `url` and the caller builds the link — which is the same
 answer `no_currency_default` and the filing cadence give: a value nobody has
 stated is null and said to be null, never one country's answer given to
 everyone.
+
+## The sources of a pack are a register, not a bibliography (15 September 2026)
+
+`legal_reference` has been required on every tax and every box since the format
+existed, and it is half an answer. *Arrêté royal n° 20 du 20 juillet 1970,
+tableau A* tells a reviewer what is being claimed and leaves them a search
+engine to find out whether it is true. `certification.sources` was the other
+half and was not: a list of bare titles, in a manifest, with no link on any of
+them.
+
+**A register, and a key on the rule.** Each text is declared once — a key, a
+title, the official publisher, an absolute `https` URL and the day somebody
+opened it — and every rule names the key of the text its own article is in. The
+alternative was a URL on each rule, which would have put the same link on
+thirty-one Belgian boxes and made a publisher's site reorganisation a sweep
+across four files. The article is the claim and belongs where the claim is; the
+link is where a text lives and changes on the publisher's schedule, not on the
+pack's.
+
+**The publisher is a field, not part of the title.** A link says where
+something is served and not who stands behind it, and those come apart exactly
+when it matters: a mirror, a commentary, a law firm's copy of a statute all
+resolve. A reviewer checks the publisher first, so the pack says it in a column
+rather than hoping the hostname does.
+
+**Six kinds, closed.** `law`, `regulation`, `form`, `standard`, `portal`,
+`guidance`. A register that is readable across countries is worth more than one
+that lets each pack invent its own words for the same six things, and the split
+that earns its keep is `law` against `form`: the rate comes from a statute and
+the box comes from a form, and in three of the four packs here they are
+different documents published by different administrations.
+
+**A portal is in the register although it is not a legal source.** Whoever
+installs a pack needs to know where the return is filed, and the register is
+the one place in a pack where they will look for it. It is also the thing a new
+contributor is least likely to write down and most likely to need.
+
+**Nothing is copied.** No pack holds a sentence of the law it transcribes. A
+quotation ages without anybody noticing and would make a country pack a second,
+unversioned edition of a statute — which is the failure mode this repository
+avoids everywhere else by deriving rather than restating.
+
+**The register is what a reviewed pack is refused for leaving out.** A
+professional who reads a pack against the law reads something, and a status
+that let them leave that unsaid would be a signature rather than a review. So
+`reviewed` requires a source on every tax and every box; `maintained` warns,
+because the register arrived after four packs did and a missing link is a link
+that is missing, never a figure that is wrong; `community` asks nothing, which
+is what `community` means.
+
+**Following the links is not a check.** `ekwo pack check --links` exists and
+the CI will never run it. Légifrance answers `403` to anything without a
+browser behind it — all four of its entries here do — Riigi Teataja serves the
+same page for a text and for a typo, and a ministry moves a form the week
+before a deadline. A gate on any of that fails a contributor's pull request for
+something nobody in it did, and the cheapest way to make it green is to delete
+the link, which is the opposite of what the register is for. It reports a
+reading. A maintainer decides.

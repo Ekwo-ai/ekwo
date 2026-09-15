@@ -156,6 +156,7 @@ ekwo pack build be       # writes supabase/seed/10_pack_be.sql
 ekwo pack build --all
 ekwo pack check be       # validate one pack and compare its seed
 ekwo pack check --all    # exit 1 if a committed seed is not the output of its pack
+ekwo pack check --all --links   # … and open every URL of every source register
 ```
 
 All four run in a checkout of the repository and touch no database: they walk
@@ -163,6 +164,17 @@ up from the command's own file looking for a directory holding both `packs/`
 and `supabase/seed/`, and say so plainly when there is none — a published
 installation carries the compiled seeds and no `packs/` folder, and there is
 nothing there to build.
+
+`--links` is the one thing under `packs/` that reaches the network, which is
+why it is an option and why the CI never passes it. It opens every URL of
+every [source register](#the-register-of-sources) and names the ones that did
+not answer, and **it never changes the exit code**. A link that is quiet today
+is not a wrong pack: Légifrance refuses a request with no browser behind it —
+all four of its entries come back `403` here — Riigi Teataja serves the same
+page for a text and for a typo, and a ministry moves a form the week before a
+deadline. A gate on any of that would fail a contributor's pull request for
+something nobody in it did, and the cheapest way to make it green would be to
+delete the link. So it reports a reading, and a maintainer decides.
 
 `ekwo pack list` on this repository:
 
@@ -1032,6 +1044,19 @@ part a qualified name such as `bas:m9`, with no empty or padded part and no
 dimension twice; and two lines of one statement may not carry the same key,
 which is how a key missing a member shows up.
 
+**The register of sources.** Two entries claiming one key — a reference would
+resolve to whichever came first. An entry that is not shaped like one: a field
+missing, a field nobody defined, a `kind` outside the six, a `url` that is not
+absolute and `https`. A `source` naming a key the pack's register does not
+carry, which reads as a text and is a typo; the message lists the keys there
+are. A pack whose status is not `community` and whose register holds no entry
+anybody can open, because `maintained` and `reviewed` are both claims that
+somebody keeps this current and neither is sayable about a list of titles. And
+on a `reviewed` pack, a tax or a box that names no source at all — that one is
+a warning on a `maintained` pack and nothing on a `community` one. A bare
+string in the register is a warning everywhere: it is the shape the field had
+before, and a pack written against it still compiles.
+
 **The legal mentions and the document rules.** Two mentions with the same
 code. A `valid_to` before its `valid_from`. A mention with no
 `legal_reference` — a sentence the law requires cites the article that requires
@@ -1088,6 +1113,100 @@ carries one form; the day a country files two, it will be. A pack with no
 are not refused on a pack that is not `reviewed` — the status is a claim a
 person makes, and `.github/CODEOWNERS` is what puts a name next to it.
 
+## The register of sources
+
+A `legal_reference` says which article a rule claims. It has been required on
+every tax and every box since the format existed, and it is half an answer: a
+reviewer holding *Arrêté royal n° 20 du 20 juillet 1970, tableau A* has a
+citation and a search engine. The other half is **where that text can be
+read**, and it belongs in one place rather than on four hundred rules.
+
+`certification.sources` is that place. Each entry is a text:
+
+```json
+"certification": {
+  "status": "maintained",
+  "sources": [
+    {
+      "key": "ar-20",
+      "title": "Arrêté royal n° 20 du 20 juillet 1970 fixant les taux de la taxe sur la valeur ajoutée et déterminant la répartition des biens et des services selon ces taux",
+      "publisher": "SPF Justice — Moniteur belge (Justel)",
+      "url": "https://www.ejustice.just.fgov.be/eli/arrete/1970/07/20/1970072012/justel",
+      "consulted_on": "2026-09-15",
+      "kind": "regulation"
+    }
+  ]
+}
+```
+
+and every rule of the pack names the key of the text its own reference is in:
+
+```json
+{ "code": "BE-S-21", "rate": 21, "scope": "sale",
+  "legal_reference": "Arrêté royal n° 20 du 20 juillet 1970, art. 1er, § 1er — taux normal",
+  "source": "ar-20" }
+```
+
+**The article stays on the rule and the link stays in the register.** A
+publisher that reorganises its site is then one line of the pack to change
+rather than a sweep across every tax that cites the same statute, and a
+reviewer opening a pack has the reading list before they have read a rule.
+
+| Field | Is |
+|---|---|
+| `key` | how the rest of the pack names this text. Unique inside the pack, lower case, and stable once published |
+| `title` | the text as it is cited, in the pack's own language |
+| `publisher` | who publishes it officially: SPF Finances, Légifrance, Legilux, Riigi Teataja, Maksu- ja Tolliamet, the European Commission. A reviewer checks the publisher before the link |
+| `url` | absolute and `https`, and a permanent identifier wherever the publisher has one — an ELI on Legilux and on the Moniteur belge, a `LEGITEXT` on Légifrance, a short alias such as `/akt/kms` on Riigi Teataja |
+| `consulted_on` | the day somebody opened it and read what it served |
+| `kind` | one of six, below |
+
+Six kinds, and the vocabulary is closed so that a register reads the same
+across countries:
+
+| `kind` | Is |
+|---|---|
+| `law` | a consolidated legal text — a code, a statute |
+| `regulation` | the decree or order that applies it |
+| `form` | a declaration form, or the administrative notice that explains its boxes |
+| `standard` | a technical norm or a code list: EN 16931, UNCL5305, VATEX, an XSD |
+| `portal` | where the declaration is actually filed — Intervat, eCDF, e-MTA, an `impots.gouv.fr` professional space |
+| `guidance` | an official administrative comment or circular: the French BOFiP, an Estonian *juhend* |
+
+**A `source` may sit beside any `legal_reference` the format carries** — a
+tax, a box, a chart, a statement and its lines, a sentence of an invoice, a
+rule of the fixed-assets section. It is optional everywhere and named nowhere
+twice.
+
+**The register never holds a copy of the text.** A quotation ages without
+anybody noticing, and a pack carrying one would be a second, unversioned
+edition of a statute. A pack says where the law is; the law says what it says.
+
+**A bare string is the deprecated form.** The field used to be a list of
+titles, and those are still read so that a pack written before the register
+goes on compiling. `ekwo pack check` warns on each one and refuses none:
+
+```
+! packs/xx: pack.json certification.sources: "Code de la TVA, art. 37" is a title
+  with nowhere to read it. The register takes an object — key, title, publisher,
+  url, consulted_on, kind — and the bare string is deprecated.
+```
+
+A chart that carries its own `certification` may name the texts that reading
+went through, and they join the same register: **a key is unique in a pack,
+not in a section of one.** The Belgian `asbl` chart is the case — it declares
+the Code des sociétés et des associations, which the rest of the pack does not
+need.
+
+The register compiles into `country_packs.sources`, so an application can
+answer "where do these rules come from" without reading the pack, and the key
+travels with the rule it belongs to in `tax_templates.source_key` and
+`tax_report_box_templates.source_key`. The MCP tool `describe_pack` returns
+all of it. What a register entry is **not** is a foreign key: a pack is
+upserted one statement at a time and the register lives in a jsonb column, so
+the check that a key resolves is `ekwo pack check`'s, before the seed is
+written.
+
 ## Certification, and who may say what
 
 A golden test proves that a pack is internally coherent. It does not prove
@@ -1097,9 +1216,25 @@ three are enforced rather than encouraged.
 **Every tax and every declaration box names where it comes from.**
 `legal_reference` is a required field, not a convention: `ekwo pack check`
 refuses a pack that leaves one out, on a tax or on a box, and `"TODO"` is not a
-source. A box nobody can trace to a source is a box nobody can review. The
-manifest lists the texts the pack as a whole was built from, in
-`certification.sources`.
+source. A box nobody can trace to a source is a box nobody can review. Beside
+it, `source` names the text that article is in, out of the register the
+manifest carries in `certification.sources` — see
+[The register of sources](#the-register-of-sources).
+
+**What the status costs in sources** is the other half of what the status
+claims:
+
+| Status | The register | Every tax and every box |
+|---|---|---|
+| `community` | anything, including the deprecated bare titles | nothing asked |
+| `maintained` | at least one text somebody can open, or the pack is refused | a warning, naming the first few and counting the rest |
+| `reviewed` | the same | **refused** where one of them names no source |
+
+The third row is the substance of a review. A professional who reads a pack
+against the law reads *something*, and a status that let them leave that
+unsaid would be a signature rather than a review. The second is a warning
+rather than a refusal because the register landed after four packs did, and a
+missing link is a link that is missing — never a figure that is wrong.
 
 **The manifest says out loud how much anyone has read it**, and `ekwo init`
 prints it in as many words before anyone books anything:
@@ -1129,7 +1264,7 @@ to `maintained` by migration `20260912081015`. **Belgium and France are
   "status": "reviewed",
   "by": "A. Example, chartered accountant, IEC/IAB 00000",
   "on": "2027-03-14",
-  "sources": ["…the texts they worked from…"]
+  "sources": [ … the register of texts they worked from … ]
 }
 ```
 
@@ -1180,6 +1315,34 @@ resembles your country's accounting more — and change what differs.
 Nothing here needs a database. Every command runs in a checkout, and the pull
 request you open at the end contains the pack and the seed compiled from it.
 
+### 0. Open the four things you are going to transcribe
+
+Before a line of JSON, find where your country publishes what you are about to
+copy, and keep the tabs open. Four of them, and they are the four kinds of
+source most packs need:
+
+1. **The consolidated text** of your VAT law or its equivalent, on the site
+   that publishes it officially — not a commentary, not a law firm's copy.
+   Look for a permanent identifier: an ELI, a code identifier, a short alias.
+2. **The decree or order** that fixes the rates and the chart of accounts,
+   which is usually a different text from the law.
+3. **The declaration form and its notice.** This is what the boxes of
+   `tax_report.json` are, and the notice is what tells you which amount goes in
+   which box.
+4. **The portal** where the return is filed. It is not a legal source and it is
+   in the register anyway: whoever installs your pack will need it, and the
+   register is the one place in the pack where they will look.
+
+Each of them becomes an entry of `certification.sources` with a key you will
+use for the rest of the day — see
+[The register of sources](#the-register-of-sources). Write them as you open
+them, with `consulted_on` set to today, and never write a URL you have not
+opened. A link nobody followed is worth less than no link: it reads as checked.
+
+This is step 0 rather than step 9 because every later step cites one of these
+texts, and the citation is cheaper to write while the tab is open than to
+reconstruct from a rate you no longer remember reading.
+
 ### 1. Copy a pack and give it its identity
 
 ```sh
@@ -1188,7 +1351,8 @@ rm -rf packs/xx/golden packs/xx/i18n
 ```
 
 Open `packs/xx/pack.json` and set `country` (upper case), `name`, `version` to
-`0.1.0`, `released_at`, and `certification` to `{ "status": "community" }`.
+`0.1.0`, `released_at`, and `certification` to `{ "status": "community",
+"sources": [ … the register from step 0 … ] }`.
 Leave `schema_min` where it is: it is the migration your pack needs, not a
 number you choose. Set `seed_sequence` to the **first number no pack has
 taken** — `ls supabase/seed/` shows what is in use — and **never change it
@@ -1266,7 +1430,7 @@ a new code plus a `valid_to` on the old one, never an edit, which is how the
 return of a past period keeps giving the same answer.
 
 Each tax carries a `legal_reference`, and it is required — the article, not the
-word "TODO". Its `postings` say where the money goes, per kind of document, out
+word "TODO" — and a `source` naming which text of step 0 that article is in. Its `postings` say where the money goes, per kind of document, out
 of the three posting types described above. Start with the plain cases in both
 directions, then the ones that are actually specific to your country: a partly
 deductible tax, a reverse charge, a tax due on collection.
@@ -1284,7 +1448,8 @@ invoice governed by EN 16931 exists there is none to record.
 from what the postings wrote on the ledger; a `total` is a list to add, a list
 to subtract and a floor at zero, evaluated in `sequence` order. There is no
 expression language, in any country. Every box carries its own
-`legal_reference`.
+`legal_reference` and, like a tax, the `source` of the text it is in — usually
+the form itself, which is the entry of step 0 the boxes actually came from.
 
 Then go back to `taxes.json` and put a `box` on each posting. The two files are
 checked against each other, which is the first place a country pack usually
@@ -1393,6 +1558,17 @@ the module migration runner, on installations that carry the module.
 Commit the generated SQL with the pack. It is a build artefact that is
 committed on purpose, so that `supabase db push` and `psql -f` install your
 country without the CLI ever running.
+
+Then run
+
+```sh
+node packages/cli/dist/bin.js pack check xx --links
+```
+
+once, by hand, and read what it says: it opens every URL of your register and
+names the ones that did not answer. It fails nothing and the CI never runs it —
+a publisher that turns away anything without a browser is not a wrong pack — so
+open the ones it names yourself before deciding anything.
 
 Then add a line for `packs/xx/` to `.github/CODEOWNERS` pointing at yourself,
 add a line to `CHANGELOG.md` under `[Unreleased]`, and open the pull request.
