@@ -66,8 +66,13 @@ describe('before anything is installed', () => {
   it('offers the packs it holds, named as the pack names itself', async () => {
     // `ekwo init` has no list of countries and no default one: the question
     // is built from this, so adding a pack is what adds a choice.
+    // In the order the question is asked in, which is by name: `allPacks` is
+    // ordered by directory, and the two stopped agreeing with the first pack
+    // whose name does not sort where its slug does.
     expect(await installedPacks(db)).toEqual(
-      allPacks.map((pack) => ({ country: pack.manifest.country, name: pack.manifest.name })),
+      allPacks
+        .map((pack) => ({ country: pack.manifest.country, name: pack.manifest.name }))
+        .sort((a, b) => (a.name === b.name ? a.country.localeCompare(b.country) : a.name.localeCompare(b.name))),
     );
   });
 

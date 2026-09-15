@@ -464,7 +464,25 @@ describe('what `ekwo pack check` refuses in a formula', () => {
       // A country pack of a VAT jurisdiction carries a periodic return, its
       // code is the one the seed loaded, and its boxes are not a stub.
       expect(pack.report, pack.slug).not.toBeNull();
-      expect(pack.report!.boxes.length, pack.slug).toBeGreaterThan(20);
+      // Not a stub, asked of the pack rather than of a number: the form carries
+      // every box this pack's taxes post to, at least one of them, and at least
+      // one total computed from them. How many boxes a return has is the
+      // country's own answer — nine printed in the United Kingdom, a hundred
+      // and fifty-six in Luxembourg — and a threshold here would be a country
+      // nobody named.
+      const declared = new Set(pack.report!.boxes.map((box) => box.box));
+      const posted = new Set(
+        pack.taxes
+          .flatMap((tax) => Object.values(tax.postings).flat())
+          .map((posting) => posting.box)
+          .filter((box): box is string => box !== null),
+      );
+      expect([...posted].filter((box) => !declared.has(box)), pack.slug).toEqual([]);
+      expect(posted.size, pack.slug).toBeGreaterThan(0);
+      expect(
+        pack.report!.boxes.some((box) => box.kind === 'total'),
+        pack.slug,
+      ).toBe(true);
       expect(pack.reportCode, pack.slug).toBe(pack.report!.code);
       expect(pack.report!.code.startsWith(pack.manifest.country), pack.slug).toBe(true);
     }

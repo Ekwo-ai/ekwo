@@ -84,6 +84,27 @@ export const sourceKinds: string[] = (() => {
 })();
 
 /**
+ * The ways a pack may close its year, from the published schema.
+ *
+ * Read there for the same reason as the statuses above: the vocabulary is
+ * closed, and a test that listed the styles by hand would stop noticing the
+ * day a pack used one no pack had used before — which is what happened to the
+ * first pack that closes straight into retained earnings.
+ */
+export const closingStyles: string[] = (() => {
+  const defs = (schema['$defs'] ?? {}) as Record<string, Record<string, unknown>>;
+  const properties = (defs['defaults']?.['properties'] ?? {}) as Record<
+    string,
+    Record<string, unknown>
+  >;
+  const values = properties['closing_style']?.['enum'];
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error('packs/schema/pack.1.json defines no closing style');
+  }
+  return values as string[];
+})();
+
+/**
  * The cadences a declaration form may be filed on, from the published schema.
  *
  * Same reason as the statuses above: a test that listed `month`, `quarter` and

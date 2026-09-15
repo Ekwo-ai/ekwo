@@ -9,6 +9,7 @@
 
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { allPacks } from '../helpers/packs.js';
 import {
   applyMigrations,
   listMigrations,
@@ -128,11 +129,17 @@ describe('applying them', () => {
 
 describe('the country data of a module', () => {
   it('is a seed of its own, under the module, and not in the flat seed folder', async () => {
+    // One file per pack that says something about fixed assets, named by the
+    // number that pack's manifest declares. Listing them by hand was a list of
+    // countries a test had to be told about, and the first pack added after it
+    // was written is what said so.
     const seeds = await moduleSeeds('assets', seedPath);
-    expect(seeds.map((path) => path.slice(seedPath.length + 1))).toEqual([
-      'modules/assets/10_pack_be.sql',
-      'modules/assets/11_pack_fr.sql',
-    ]);
+    expect(seeds.map((path) => path.slice(seedPath.length + 1))).toEqual(
+      allPacks
+        .filter((pack) => pack.assets !== null)
+        .map((pack) => `modules/assets/${pack.manifest.seed_sequence}_pack_${pack.slug}.sql`)
+        .sort(),
+    );
     expect(await moduleSeeds('budgets', seedPath)).toEqual([]);
   });
 });

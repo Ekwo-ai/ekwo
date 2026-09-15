@@ -62,17 +62,32 @@ describe('the territories of the common system of VAT', () => {
     expect(all.length).toBeGreaterThan(40);
   });
 
-  it('carries every Member State the packs of this repository need', async () => {
+  it('carries every country the packs of this repository book in, and says which are in the Union', async () => {
     // Read from the packs rather than counted: a pack whose country this table
     // did not carry would produce a statement in which every one of its own
     // customers was outside the Union.
+    //
+    // Being *in* the table is what every pack needs. Being a Member State is
+    // what only a pack that makes intra-Community supplies needs, and the two
+    // were the same assertion until the first pack of a country outside the
+    // Union arrived — one that is in the table, with the day it left. So the
+    // membership is asked of the pack's own taxes: a pack whose treatments are
+    // intra-Community has to be inside the system, and one whose treatments
+    // are not has to be outside it.
     for (const pack of allPacks) {
-      const member = await one<{ answer: boolean }>(
+      const row = await one<{ known: boolean; member: boolean }>(
         db,
-        `select is_eu_member($1) as answer`,
+        `select exists (select 1 from territories where code = $1) as known,
+                is_eu_member($1) as member`,
         [pack.manifest.country],
       );
-      expect(member.answer, `${pack.slug} is not in territories`).toBe(true);
+      expect(row.known, `${pack.slug} is not in territories`).toBe(true);
+
+      const intracom = pack.taxes.some((tax) => tax.treatment.startsWith('intracom_'));
+      expect(
+        row.member,
+        `${pack.slug} ${intracom ? 'carries intra-Community taxes and is outside the common system' : 'carries none and is inside it'}`,
+      ).toBe(intracom);
     }
   });
 

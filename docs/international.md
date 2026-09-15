@@ -473,6 +473,11 @@ them are about the same assumption — that a country's VAT is the Union's VAT �
 and the other three are about what a price, a rounding rule and a filing cadence
 belong to. None blocked the pack. None was patched for its sake.
 
+An eighth is of a different kind and is recorded at the end: ten assertions of
+the test suite that had never been contradicted, and that were fixed rather than
+worked around, because a test reading the pack is what this repository asks for
+in as many words.
+
 **A VAT exemption outside the Union has no reason code, and one is required.**
 `ekwo pack check` demands an `exemption_code` as soon as `vat_category` is `E`,
 and checks its shape against `VATEX-EU-<article>` or `VATEX-<country>-<article>`.
@@ -592,6 +597,39 @@ the company, are two different silences and today they are the same one. *Until
 then*: `packs/gb/` proposes nothing, `ekwo init` asks a British company what it
 files on, and the pack's README says that a company which has asked HMRC for
 nothing files quarterly.
+
+**And ten assertions that were an unnamed country.** These are not gaps in the
+format: the core supported everything the United Kingdom asked of it. They are
+places where `tests/` had assumed something every pack until now happened to
+satisfy, and the invariant CONTRIBUTING states — *a test may book in a country,
+it may not expect one* — is what says they are defects. Unlike the seven above,
+they were fixed, in a commit of their own, and every fix **removes** an
+assumption rather than adding a country: `npm run check:no-country-literals`
+never saw any of them, because none of them spelled a country code.
+
+| What was assumed | What the United Kingdom is | What the test reads now |
+|---|---|---|
+| every pack declares at least one other language | a pack written in English has none to declare | the promise is checked for what is declared, and one assertion says the repository still has a multilingual pack |
+| `manifest.languages` is an array | it is optional and absent | `?? []` |
+| every asset category has translated labels | a pack with no i18n file has none | the column's own empty object |
+| a declaration form has more than twenty boxes | the VAT Return has nine, and twelve with the pack's hidden ones | the form carries every box the pack's taxes post to, at least one of them, and at least one total |
+| the fixed-assets module has exactly two country seeds, named | it has one per pack that says something about fixed assets | derived from `allPacks` and each manifest's `seed_sequence` |
+| `country_packs` in slug order is `allPacks` order | the first pack whose name does not sort where its slug does — United Kingdom after Luxembourg | sorted the way the query asks, by name |
+| a closing style is `appropriation_accounts` or `result_accounts` | the first pack that closes straight into retained earnings, which the schema has always allowed and `docs/packs.md` names the United Kingdom for | the enum of `packs/schema/pack.1.json`, beside the statuses and the cadences already read there |
+| every pack names an account for the result of the year | under `retained_earnings` there is no such account and the schema says the roles are null | the roles, nullable |
+| every pack's country is a Member State | it is in `territories` with the day it left | the country has to be *known* to the table, and a Member State exactly where the pack's own treatments are intra-Community |
+
+The last one arrived with `territories` on the same day, and is the sharpest of
+them: the table was written so that the core could say whether a country is in
+the common system, and the test that read it asked every pack's country to be a
+Member State. It now asks the pack. A pack whose taxes are intra-Community has
+to be inside the system and one whose taxes are not has to be outside it, which
+is a stronger claim than the one it replaces and the only one a pack of a third
+country can satisfy.
+
+The eleventh is the cadence above, and it is the one that was **not** fixed: it
+is a policy and not an assumption, so the pack works around it and the fix is
+proposed rather than taken.
 
 One thing the United Kingdom **confirmed** rather than found. A legal mention
 cannot tell a domestic reverse charge from a foreign one — recorded from the

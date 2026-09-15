@@ -19,7 +19,7 @@ import type { PGlite } from '@electric-sql/pglite';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { readPack } from '../packages/cli/src/index.js';
 import { asUser, expectError, freshDatabase, one, repoRoot, rows } from './helpers/db.js';
-import { allPacks, packWhere, roleOf } from './helpers/packs.js';
+import { allPacks, closingStyles, packWhere } from './helpers/packs.js';
 import {
   newCompany,
   newContact,
@@ -787,8 +787,11 @@ describe('the three functions', () => {
         .map((pack) => ({
           country: pack.manifest.country,
           closing_style: pack.manifest.defaults['closing_style'],
-          profit: roleOf(pack, 'current_year_result_profit'),
-          loss: roleOf(pack, 'current_year_result_loss'),
+          // A country that closes straight into retained earnings keeps no
+          // account for the result of the year and names neither role, which
+          // the schema allows and the column holds as null.
+          profit: pack.manifest.defaults.roles['current_year_result_profit'] ?? null,
+          loss: pack.manifest.defaults.roles['current_year_result_loss'] ?? null,
           opening_journal_code: pack.manifest.defaults.journal_roles?.['opening'],
         }))
         .sort((a, b) => (a.country < b.country ? -1 : 1)),
@@ -955,10 +958,7 @@ describe('a pack that declares a closing style', () => {
     // Every pack says how it closes, and the two styles are the ones the
     // functions branch on. A pack that said nothing is refused by the reader.
     for (const pack of allPacks) {
-      expect(
-        ['appropriation_accounts', 'result_accounts'],
-        pack.slug,
-      ).toContain(pack.manifest.defaults['closing_style']);
+      expect(closingStyles, pack.slug).toContain(pack.manifest.defaults['closing_style']);
     }
     expect(closer.manifest.defaults['closing_style']).toBe('appropriation_accounts');
   });

@@ -48,9 +48,17 @@ function sectionsOf(pack: (typeof allPacks)[number]): [string, string[]][] {
 
 describe('what a pack promises when it declares a language', () => {
   it('covers every label of every section, in every language it declares', async () => {
+    // A pack that declares no other language has promised nothing and owes
+    // nothing: its own labels are already in the one language it has, which is
+    // the ordinary case for a pack written in English. What is asserted is the
+    // promise, and that at least one pack in the repository makes one.
+    expect(
+      allPacks.some((pack) => (pack.manifest.languages ?? []).length > 0),
+      'no pack of this repository declares a second language',
+    ).toBe(true);
+
     for (const pack of allPacks) {
       const declared = pack.manifest.languages ?? [];
-      expect(declared.length, pack.slug).toBeGreaterThan(0);
 
       for (const language of declared) {
         expect(pack.labels.pack_name[language], `${pack.slug} ${language}`).toBeTruthy();
@@ -68,7 +76,7 @@ describe('what a pack promises when it declares a language', () => {
 
   it('never lists the language the pack is written in', async () => {
     for (const pack of allPacks) {
-      expect(pack.manifest.languages, pack.slug).not.toContain(pack.manifest.defaults.language);
+      expect(pack.manifest.languages ?? [], pack.slug).not.toContain(pack.manifest.defaults.language);
     }
   });
 
@@ -249,8 +257,10 @@ describe('what the seeds carry', () => {
           `select name_i18n from assets.category_templates where country = $1 and code = $2`,
           [pack.manifest.country, category.code],
         );
+        // A pack with no translation file carries no labels for the category,
+        // and the column holds an empty object rather than nothing.
         expect(row.name_i18n, `${pack.slug} ${category.code}`).toEqual(
-          pack.labels.asset_categories[category.code],
+          pack.labels.asset_categories[category.code] ?? {},
         );
       }
     }

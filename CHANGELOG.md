@@ -37,8 +37,23 @@ somewhere has already run it.
   price needs; a rounding rule belongs to a country where HMRC gives one to each
   kind of trader; a tax cannot depend on a territory, so the `territories` table
   can say what `XI` is and a pack still cannot carry its taxes, which is why
-  Northern Ireland is absent; and a pack may propose a filing cadence only where its form
-  accepts one, where the British law gives a default its form does not show.
+  Northern Ireland is absent; and a pack may propose a filing cadence only where
+  its form accepts one, where the British law gives a default its form does not
+  show.
+- **Ten assertions of the test suite were an unnamed country.** Adding the
+  first pack that is written in English, closes straight into retained earnings,
+  files a nine-box return, sorts after Luxembourg by name and is not a Member
+  State found ten places where `tests/` assumed something every pack until then
+  happened to satisfy — a hard-coded list of two module seed files, a form with
+  more than twenty boxes, a closing style out of two of the three the schema
+  defines, a pack with at least one other language, a country `is_eu_member()`
+  answers yes about, and the rest. None of them spelled a country code, so
+  `npm run check:no-country-literals` never saw them. Each now reads the pack,
+  the schema or the query it is asserting about, and no country was added to any
+  list; the membership one became a stronger claim than it replaces, because a
+  pack whose treatments are intra-Community has to be inside the common system
+  and one whose treatments are not has to be outside it. The table is in
+  [`docs/international.md`](docs/international.md).
 
 - **The document rules of a country cite the article behind them.** How an
   invoice is numbered, the payment term the law sets in the absence of an
