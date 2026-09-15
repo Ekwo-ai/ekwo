@@ -223,6 +223,28 @@ The repository must contain no real company, person, VAT number or bank
 account. `npm run check:no-private-data` enforces a denylist and runs in CI.
 Demo data is fictional and stays that way.
 
+## No conflict marker
+
+```sh
+npm run check:no-conflict-markers
+```
+
+reads every file git tracks and refuses the four lines a merge conflict leaves
+behind: the opening marker, the separator, the closing marker, and the fourth
+one naming the common ancestor that the `diff3` and `zdiff3` styles write. It
+runs in the CI's *hygiene* job.
+
+It exists because two `|||||||` lines sat in `CHANGELOG.md` for a day before
+anybody read the file with their eyes. In a `.sql` or a `.ts` the same mistake
+breaks the build on the first push; in prose it costs nothing at runtime, and
+prose is exactly where a conflict is most likely — a changelog and a design
+note are what every branch appends to.
+
+Only tracked files are read: a marker in your working copy is a merge you are
+in the middle of, which is not a fault. The separator is matched whole, a line
+of seven `=` and nothing else, so a Markdown heading underlined with `=` is not
+caught.
+
 ## Commits
 
 Conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`.

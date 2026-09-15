@@ -122,6 +122,18 @@ somewhere has already run it.
   on a fixture rather than on a country, because an invented tax in `packs/` is
   a rule nobody can review.
 
+- **A conflict marker cannot be committed.** `npm run check:no-conflict-markers`
+  reads every file git tracks and refuses the four lines a merge leaves behind:
+  the opening marker, the separator, the closing marker and the fourth one
+  naming the common ancestor that the `diff3` and `zdiff3` styles write. It
+  runs in the CI's *hygiene* job. Two `|||||||` lines had sat in this file for
+  a day: they cost nothing at runtime, which is why nothing noticed — no test
+  reads the changelog and no build parses it — and prose is where a conflict is
+  most likely, because a changelog and a design note are what every branch
+  appends to. Only tracked files are read, so a marker in a working copy is a
+  merge somebody is in the middle of rather than a fault, and the separator is
+  matched whole so a Markdown heading underlined with `=` is not caught.
+
 ### Fixed
 
 - **An exemption reason code was demanded of a country the list does not

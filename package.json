@@ -21,6 +21,7 @@
     "check:no-private-data": "node scripts/check-no-private-data.mjs",
     "check:rounding": "node scripts/check-rounding.mjs",
     "check:no-country-literals": "node scripts/check-no-country-literals-in-tests.mjs",
+    "check:no-conflict-markers": "node scripts/check-no-conflict-markers.mjs",
     "docs:schema": "node scripts/generate-schema-doc.mjs",
     "inventory": "node scripts/generate-expected-objects.mjs",
     "e2e:supabase": "node scripts/e2e-supabase.mjs"
